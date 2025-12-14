@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../common/header') %>
+<body class="bg-white flex items-center justify-center h-screen">
+  <div class="text-center">
+    <div class="flex justify-center mb-6">
+      <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+    <p class="text-xl font-bold text-gray-800">보고서를 작성 중입니다...</p>
+    <p class="mt-2 text-sm text-gray-600">잠시만 기다려주세요.</p>
+  </div>
+
+<% if (shopOrderNo && goodsPrice && goodsType) { %>
+<script>
+$(document).ready(function() {
+
+  const shopOrderNo = "<%= shopOrderNo %>";
+  const price = Number("<%= goodsPrice %>") || 10000;
+  const goodsType = "<%= goodsType %>"; 
+
+  // 상품명 매핑
+  function getProductName(type) {
+    switch (type) {
+      case 'ROMANTIC': 
+        return '연애 사주 (로맨스)';
+      case 'CLASSIC': 
+        return '종합 사주 (클래식)';
+      default:
+        return '사주 리포트 (TIGHT)';
+    }
+  }
+  const productName = getProductName(goodsType);
+
+  //  구매 중복 방지 key (주문번호 기반)
+  const purchaseKey = "purchase_done_" + shopOrderNo;
+
+  //  최초 1번만 트래킹
+  if (!localStorage.getItem(purchaseKey)) {
+
+      // 중복 방지 기록 저장
+      localStorage.setItem(purchaseKey, "1");
+
+      // Facebook Pixel
+      fbq('track', 'Purchase', {
+        value: price,
+        currency: 'KRW',
+        contents: [{ id: shopOrderNo, quantity: 1 }],
+        content_type: 'product'
+      });
+
+      // GA4
+      gtag('event', 'purchase', {
+        transaction_id: shopOrderNo,
+        value: price,
+        currency: 'KRW',
+        items: [{
+          item_id: shopOrderNo,
+          item_name: productName,
+          price: price,
+          quantity: 1
+        }]
+      });
+
+      // 당근마켓 픽셀
+      window.karrotPixel.track('Purchase');
+  }
+
+  //  리포트 생성 요청
+  $.ajax({
+    url: "/api/gpt/report",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ shopOrderNo }),
+
+    success: function () {
+      console.log("Report generation started");
+
+      const intervalId = setInterval(() => {
+        $.ajax({
+          url: "/saju/report/check",
+          method: "POST",
+          data: { shopOrderNo },
+
+          success: function (res) {
+            if (res.status === "DONE") {
+              clearInterval(intervalId);
+              window.location.href = "/saju/report?shopOrderNo=" + shopOrderNo;
+            }
+          },
+
+          error: function (err) {
+            console.error("Failed to check report status", err);
+          }
+        });
+      }, 10000);
+    },
+
+    error: function (err) {
+      console.error("Failed to start report generation:", err);
+      alert('보고서 생성 중 문제가 발생했습니다. 고객센터로 문의해주세요.');
+    }
+  });
+
+});
+</script>
+<% } %> 
+</body>
+</html>

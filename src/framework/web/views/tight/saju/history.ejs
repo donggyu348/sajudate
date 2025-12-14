@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../common/header') %>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-xl mx-auto p-4">
+    <h1 class="text-xl font-bold text-gray-900 mb-4">구매내역</h1>
+
+    <ul id="history-list" class="space-y-3"></ul>
+
+    <div id="empty-state" class="text-center text-gray-500 py-12 hidden">
+      구매내역이 없습니다.
+    </div>
+
+    <button id="load-more" class="mt-6 w-full py-3 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+      더보기
+    </button>
+  </div>
+
+<script>
+  $(function() {
+    let offset = 0;
+    const limit = 10;
+    let loading = false;
+
+    function formatKrw(n){ try { return Number(n||0).toLocaleString('ko-KR') + '원'; } catch(e){ return n + '원'; } }
+    function formatDate(d){ try { return new Date(d).toLocaleString('ko-KR'); } catch(e){ return d; } }
+
+    function renderItems(items){
+      const $list = $('#history-list');
+      items.forEach(it => {
+        const goods = it.reportHistory?.goodsType || '-';
+        const price = formatKrw(it.amount);
+        const dt = formatDate(it.approvalDate || it.createdDtm);
+        const shopOrderNo = it.shopOrderNo;
+        const li = `
+          <li class=\"bg-white rounded-md shadow p-4 border border-gray-100\">
+            <div class=\"flex items-center justify-between\">
+              <div>
+                <div class=\"text-sm text-gray-500\">${goods}</div>
+                <div class=\"text-base font-semibold text-gray-900\">${price}</div>
+                <div class=\"text-xs text-gray-400 mt-1\">${dt}</div>
+                <div class=\"text-[11px] text-gray-400 mt-0.5\">주문번호: ${shopOrderNo}</div>
+              </div>
+              <a href=\"/saju/report?shopOrderNo=${encodeURIComponent(shopOrderNo)}\" class=\"ml-4 px-3 py-2 text-sm bg-gray-800 text-white rounded hover:bg-black\">보고서 보기</a>
+            </div>
+          </li>`;
+        $list.append(li);
+      });
+    }
+
+    function toggleEmpty(hasItems){
+      if (hasItems) { $('#empty-state').addClass('hidden'); } else { $('#empty-state').removeClass('hidden'); }
+    }
+
+    function fetchMore(){
+      if (loading) return;
+      loading = true;
+      $('#load-more').prop('disabled', true).text('불러오는 중...');
+
+      $.ajax({
+        url: `/user/payment/history?limit=${limit}&offset=${offset}`,
+        method: 'GET',
+        xhrFields: { withCredentials: true },
+        success: function(res){
+          const data = res.data || { items: [], nextOffset: offset, hasMore: false };
+          const items = data.items || [];
+          if (offset === 0) toggleEmpty(items.length > 0);
+          renderItems(items);
+          offset = data.nextOffset || (offset + items.length);
+          if (data.hasMore) {
+            $('#load-more').prop('disabled', false).text('더보기');
+          } else {
+            $('#load-more').prop('disabled', true).text('더 이상 내역이 없습니다');
+          }
+        },
+        statusCode: {
+          401: function(){
+            alert('로그인이 필요합니다.');
+            window.location.href = '/user/login';
+          }
+        },
+        error: function(){
+          alert('구매내역을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+          $('#load-more').prop('disabled', false).text('더보기');
+        },
+        complete: function(){
+          loading = false;
+        }
+      });
+    }
+
+    $('#load-more').on('click', fetchMore);
+    // 첫 로드
+    fetchMore();
+  });
+</script>
+</body>
+</html>

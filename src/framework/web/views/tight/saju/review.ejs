@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../common/header') %>
+
+  <body>
+    <div class="w-full max-w-[480px] mx-auto">
+      <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+
+        <%- include('./../common/common') %>
+
+          <div class="w-full px-6 max-w-md mx-auto pb-10">
+            <div>
+              <div class="mt-24">
+                <h2 class="text-2xl font-pretendard-regular">내 분석결과 다시보기</h2>
+
+                <p class="mt-4 pb-4">서비스 결제 시 입력한<br>연락처와 비밀번호 4자리를 입력해주세요.</p>
+              </div>
+            </div>
+            <div class="w-full flex justify-center mt-4 mb-4">
+              <div class="max-w-md w-full flex justify-center">
+                <div class="border-b border-gray-100 w-full"></div>
+
+              </div>
+            </div>
+
+            <form id="reviewForm" method="POST" action="/saju/review/check">
+              <div class="pt-2">
+                <div>
+                  <h1 class="font-bold">연락처</h1>
+                </div>
+                <div class="mt-2 flex space-x-2 h-12"><input disabled=""
+                    class="text-center bg-gray-200 rounded-xl flex-none w-[60px]" value="010"><input id="telF"
+                    name="telF" autocomplete="off" inputmode="numeric"
+                    class="text-center border border-gray-300 rounded-xl flex-1 min-w-0" value="" maxlength="4"><input
+                    id="telB" name="telB" autocomplete="off" inputmode="numeric"
+                    class="text-center border border-gray-300 rounded-xl flex-1 min-w-0" value="" maxlength="4"></div>
+              </div>
+              <div class="mt-6">
+                <div>
+                  <h1 class="font-bold">비밀번호</h1>
+                </div>
+
+                <input id="reviewPw" name="userPw" type="password" autocomplete="off" inputmode="numeric"
+                  class="mt-2 px-4 border border-gray-300 h-12 w-full rounded-xl" placeholder="숫자 4자리를 입력해주세요." value=""
+                  maxlength="4">
+              </div>
+              <div class="mt-12">
+                <button id="reviewBtn" type="submit"
+                  class="p-3 rounded-xl w-full bg-indigo-600 text-white hover:bg-indigo-700">다시보기</button>
+              </div>
+            </form>
+
+          </div>
+
+          <%- include('./../common/footer') %>
+      </div>
+    </div>
+
+    <script>
+      $(function () {
+        const $button = $('#reviewBtn');
+
+        // Enter key submit handler
+        $('input').on('keypress', function (e) {
+          if (e.which === 13) {
+            e.preventDefault();
+            $('#reviewBtn').trigger('click');
+          }
+        });
+
+        $button.on('click', function (e) {
+          e.preventDefault();
+
+          const telF = $('#telF').val().trim();
+          const telB = $('#telB').val().trim();
+          const pw = $('#reviewPw').val().trim();
+          const fullTel = `010${telF}${telB}`;
+
+          if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB)) {
+            alert("휴대폰 번호를 정확히 입력해 주세요 (4자리씩)");
+            return;
+          }
+          if (!/^\d{4}$/.test(pw)) {
+            alert("비밀번호는 숫자 4자리로 입력해 주세요");
+            return;
+          }
+
+          $button.prop('disabled', true).text('확인 중...').removeClass('bg-indigo-600').addClass('bg-gray-300');
+
+          $.ajax({
+            url: "/saju/review/check",
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ userTelNo: fullTel, userPw: pw }),
+            success: function (res) {
+              if (res.shopOrderNo) {
+                window.location.href = "/saju/report?shopOrderNo=" + res.shopOrderNo;
+              } else {
+                // 404가 아닌 200으로 실패 응답이 온 경우
+                alert(res.message || '일치하는 결제 정보를 찾을 수 없습니다.');
+              }
+            },
+            error: function (xhr) {
+              alert(xhr.responseJSON?.message || '결제 정보 확인 중 오류가 발생했습니다.');
+            },
+            complete: function () {
+              $button.prop('disabled', false).text('다시보기').removeClass('bg-gray-300').addClass('bg-indigo-600');
+            }
+          });
+        });
+      });
+    </script>
+
+  </body>
+
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<body>
+ 
+<div class="flex flex-col w-full max-w-[480px] mx-auto">
+    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+
+        <%- include('./../../common/common') %>
+
+        <div id="container">
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+
+                <div class="relative">
+                    <img src="/assets/images/tight/romantic/report_1.png" class="w-full h-auto object-cover"/>
+                    <img src="/assets/images/svg/4.svg" class="absolute top-[-15%] left-0 w-full h-auto" />
+
+               <%
+const STEM_TO_HANJA = {
+  '갑':'甲','을':'乙','병':'丙','정':'丁','무':'戊',
+  '기':'己','경':'庚','신':'辛','임':'壬','계':'癸'
+};
+
+// 지지
+const BRANCH_TO_HANJA = {
+  '자':'子','축':'丑','인':'寅','묘':'卯','진':'辰','사':'巳',
+  '오':'午','미':'未','신':'申','유':'酉','술':'戌','해':'亥'
+};
+
+// 변환 함수 (천간/지지 자동판별)
+function H(v){
+  return STEM_TO_HANJA[v] || BRANCH_TO_HANJA[v] || v;
+}
+
+
+%>
+
+                
+                <!-- 십성 1열-->
+                <div class="absolute top-[56%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[0]; %></p>
+                </div>
+                <div class="absolute top-[68%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[0][1]); %></p>
+                </div>
+                <div class="absolute top-[78%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[0][2]); %></p>
+                </div>
+
+                <!-- 십성 2열-->
+                <div class="absolute top-[56%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[1]; %></p>
+                </div>
+                <div class="absolute top-[68%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[1][1]); %></p>
+                </div>
+                <div class="absolute top-[78%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[1][2]); %></p>
+                </div>
+
+                <!-- 십성 3열-->
+                <div class="absolute top-[56%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[2]; %></p>
+                </div>
+                <div class="absolute top-[68%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[2][1]); %></p>
+                </div>
+                <div class="absolute top-[78%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[2][2]); %></p>
+                </div>
+
+                <!-- 십성 4열-->
+                <div class="absolute top-[56%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[3]; %></p>
+                </div>
+                <div class="absolute top-[68%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[3][1]); %></p>
+                </div>
+                <div class="absolute top-[78%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[3][2]); %></p>
+                </div>
+            </div>
+
+     
+
+                <div class="relative">
+                    <img src="/assets/images/tight/romantic/report_2.png" class="w-full h-auto object-cover"/>
+                    <div class="absolute top-[65%] left-[13%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="text-sm"><%= sampleInfo.fiveElements.elements.수; %></p>
+                    </div>
+                    <div class="absolute top-[65%] left-[31%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="text-sm"><%= sampleInfo.fiveElements.elements.금; %></p>
+                    </div>
+                    <div class="absolute top-[65%] left-[49%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="text-sm"><%= sampleInfo.fiveElements.elements.토; %></p>
+                    </div>
+                    <div class="absolute top-[65%] left-[66%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="text-sm"><%= sampleInfo.fiveElements.elements.화; %></p>
+                    </div>
+                    <div class="absolute top-[65%] left-[84%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="text-sm"><%= sampleInfo.fiveElements.elements.목; %></p>
+                    </div>
+                </div>
+             
+<%
+    const g = String(userInfo.gender).trim(); // 실제 들어오는 값: "남성"
+
+    // 성별 → 폴더명 변환
+    let genderKey = "man"; 
+    if (["여","여자","여성","female","F","woman"].includes(g)) genderKey = "woman";
+    if (["남","남자","남성","male","M","man"].includes(g)) genderKey = "man";
+
+    const dayStem = sampleInfo.tenGodTable?.data?.[1]?.[1]
+        ? H(sampleInfo.tenGodTable.data[1][1])
+        : null;
+
+    const STEM_TO_KR_KEY = {
+        "甲":"갑목","乙":"을목","丙":"병화","丁":"정화","戊":"무토",
+        "己":"기토","庚":"경금","辛":"신금","壬":"임수","癸":"계수"
+    };
+
+    const stemKey = STEM_TO_KR_KEY[dayStem];
+
+    // 🔥 이미지 파일 경로 (네가 준 배열 그대로 유지하되 gender 반영됨)
+    const dayMasterImages = [
+        `/assets/images/tight/romantic/report/${stemKey}13.png`,
+        `/assets/images/tight/romantic/report/${genderKey}/${stemKey}1.png`,
+        `/assets/images/tight/romantic/report/${genderKey}/${stemKey}3.png`,
+    ];
+%>
+
+<% if(dayMasterImages.length){ %>
+    <% dayMasterImages.forEach(imgPath => { %>
+        <div class="relative w-full max-w-[448px] mx-auto">
+            <img src="<%= imgPath %>" class="w-full h-auto object-cover"/>
+        </div>
+    <% }) %>
+<% } %>
+
+
+                <div class="relative">
+                    <% let currentChapter = ''; %>
+                    <% reportInfo.forEach((item, index) => { %>
+                        <% if (item.chapter !== currentChapter) { %>
+                            <% currentChapter = item.chapter; %>
+                        <div class="bg-[#fbf4f9] pb-32">
+                            <div class="inline-block ml-8 px-4 py-1 border border-b-black text-xl  rounded-full w-auto max-w-fit">
+                                <%= item.chapter %>
+                            </div>
+                            <div class="mt-10 text-left space-y-10 text-black text-xl mr-8 ml-8">
+                                <% } %>
+
+                                <div>
+                                    <div class="text-[#c73f89] text-left font-bold text-4xl leading-tight whitespace-pre-line">
+                                        <%= item.title %>
+                                    </div>
+                                    <p class="whitespace-pre-line pt-16 pb-16"><%= item.content %></p>
+                                </div>
+
+                                <%
+                                    const nextItem = reportInfo[index + 1];
+                                if (!nextItem || nextItem.chapter !== currentChapter) {
+                                %>
+                            </div>
+                        </div>
+                        <% } %>
+                    <% }); %>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

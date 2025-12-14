@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<%- include('./../common/header') %>
+
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+<div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm border border-gray-200 relative overflow-hidden">
+    <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+    <div class="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
+    <div class="absolute top-0 right-0 h-full w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
+    <div class="flex flex-col items-center">
+        <img src="https://tailwindflex.com/images/logo.svg" alt="Profile Picture" class="w-14 h-14 rounded-full mt-4">
+        <h2 class="text-xl font-semibold mt-2">Welcome</h2>
+        <p class="text-gray-500 text-sm">Sign in to continue</p>
+    </div>
+    <form class="mt-6">
+        <label class="block text-sm font-medium text-gray-700">Id</label>
+        <input type="text" name="email" placeholder="Id" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none">
+
+        <label class="block text-sm font-medium text-gray-700 mt-4">Password</label>
+        <div class="relative">
+            <input type="password" name="password" placeholder="Password" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md  focus:outline-none">
+        </div>
+
+        <button type="button" id="loginBtn" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md text-center font-semibold">Sign In</button>
+    </form>
+</div>
+</body>
+
+
+<script>
+  $(document).ready(function() {
+    $('#loginBtn').on('click', function(e) {
+      e.preventDefault();
+      const email = $('input[name="email"]').val();
+      const password = $('input[name="password"]').val();
+
+      $.post('/admin/login', { email, password })
+        .done(function(res) {
+          console.log(res);
+          window.location.href = '/admin/payment';
+        })
+        .fail(function(xhr) {
+          alert(xhr.responseJSON?.error || '서버 오류');
+        });
+    });
+  });
+
+</script>
+
+</html>

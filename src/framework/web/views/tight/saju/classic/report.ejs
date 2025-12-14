@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<body>
+  
+<div class="flex flex-col w-full max-w-[480px] mx-auto">
+    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+
+        <%- include('./../../common/common') %>
+
+        <div id="container">
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <div class="relative">
+
+                    <img src="/assets/images/tight/classic/report_1.png" class="w-full h-auto object-cover"/>
+                    <div class="absolute top-[11.7%] left-[23%] w-[55%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= userInfo.birthdate; %> <%= userInfo.birthtime; %></p>
+                        <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]">이제 <%= userInfo.name; %> 님의</p>
+                        <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]">사주 팔자를 풀어보겠소</p>
+                    </div>
+
+                    <div class="absolute top-[24.8%] left-[21%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="text-[18px]"><%= userInfo.name; %></p>
+                    </div>
+
+                    <!-- 십성 컬럼 -->
+                    <div class="absolute top-[33%] left-[5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.columns[0]; %></p>
+                    </div>
+                    <div class="absolute top-[36%] left-[5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.columns[1]; %></p>
+                    </div>
+                    <div class="absolute top-[39.6%] left-[5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.columns[2]; %></p>
+                    </div>
+                    <div class="absolute top-[42.5%] left-[5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.columns[3]; %></p>
+                    </div>
+
+                    <!-- 십성 1열-->
+                    <div class="absolute top-[30%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.headerRows[0]; %></p>
+                    </div>
+                    <div class="absolute top-[33%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[0][0]; %></p>
+                    </div>
+                    <div class="absolute top-[36%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[0][1]; %></p>
+                    </div>
+                    <div class="absolute top-[39.6%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[0][2]; %></p>
+                    </div>
+                    <div class="absolute top-[42.5%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[0][3]; %></p>
+                    </div>
+
+                    <!-- 십성 2열-->
+                    <div class="absolute top-[30%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.headerRows[1]; %></p>
+                    </div>
+                    <div class="absolute top-[33%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[1][0]; %></p>
+                    </div>
+                    <div class="absolute top-[36%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[1][1]; %></p>
+                    </div>
+                    <div class="absolute top-[39.6%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[1][2]; %></p>
+                    </div>
+                    <div class="absolute top-[42.5%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[1][3]; %></p>
+                    </div>
+
+                    <!-- 십성 3열-->
+                    <div class="absolute top-[30%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.headerRows[2]; %></p>
+                    </div>
+                    <div class="absolute top-[33%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[2][0]; %></p>
+                    </div>
+                    <div class="absolute top-[36%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[2][1]; %></p>
+                    </div>
+                    <div class="absolute top-[39.6%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[2][2]; %></p>
+                    </div>
+                    <div class="absolute top-[42.5%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[2][3]; %></p>
+                    </div>
+
+                    <!-- 십성 4열-->
+                    <div class="absolute top-[30%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.headerRows[3]; %></p>
+                    </div>
+                    <div class="absolute top-[33%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[3][0]; %></p>
+                    </div>
+                    <div class="absolute top-[36%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[3][1]; %></p>
+                    </div>
+                    <div class="absolute top-[39.6%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[3][2]; %></p>
+                    </div>
+                    <div class="absolute top-[42.5%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[3][3]; %></p>
+                    </div>
+
+                    <!-- 오늘의 운세 -->
+                    <div class="absolute top-[69%] text-center w-[100%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold text-white text-3xl mb-2"><%= userInfo.name; %> 님의</p>
+                        <p class="font-gyeonggibatangbold text-white text-3xl"><%= todayDate.year; %>년 <%= todayDate.month; %>년 <%= todayDate.day; %>일 총운세</p>
+                    </div>
+                    <div class="absolute top-[78%] text-left ml-[10%] mr-[10%] w-[80%] min-h-[4rem] flex flex-col items-center justify-center">
+                        <p class="font-gyeonggibatangbold  text-xl"><%= sampleInfo.todayLimit; %></p>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <% let currentChapter = ''; %>
+                    <% reportInfo.forEach((item, index) => { %>
+                        <% if (item.chapter !== currentChapter) { %>
+                            <% currentChapter = item.chapter; %>
+                        <div class="bg-[#0C1A3C] pb-32">
+                            <div class="ml-auto w-[80px]">
+                                <img src="/assets/images/tight/classic/report_header_icon.png" alt="장식 아이콘" />
+                            </div>
+                            <div class="inline-block ml-8 px-4 py-1 border border-white text-white text-sm rounded-full w-auto max-w-fit">
+                                <%= item.chapter %>
+                            </div>
+                            <div class="mt-10 text-left space-y-10 text-white text-xl mr-8 ml-8">
+                                <% } %>
+
+                                <div>
+                                    <div class="text-white text-left font-bold text-3xl leading-tight whitespace-pre-line">
+                                        <%= item.title %>
+                                    </div>
+                                    <p class="whitespace-pre-line pt-16 pb-16"><%= item.content %></p>
+                                </div>
+
+                                <%
+                                    const nextItem = reportInfo[index + 1];
+                                if (!nextItem || nextItem.chapter !== currentChapter) {
+                                %>
+                            </div>
+                        </div>
+                        <% } %>
+                    <% }); %>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
