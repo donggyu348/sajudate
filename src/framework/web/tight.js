@@ -22,15 +22,6 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
-app.set("trust proxy", true);
-
-app.use((req, res, next) => {
-  if (!req.secure) {
-    return res.redirect(301, "https://www.sajudate.store" + req.originalUrl);
-  }
-  next();
-});
-
 
 app.use(session({
   secret: "tight123456",
