@@ -1,0 +1,48 @@
+<html lang="ko">
+
+    <%
+      // 이름+생년월일 기반으로 01~04 고정 인덱스 생성
+      const key = `${userInfo?.name || ''}${userInfo?.birthdate || ''}`;
+      let sum = 0;
+      for (let i = 0; i < key.length; i++) sum += key.charCodeAt(i);
+      const idx = (sum % 4) + 1; // 1~4
+      const idxStr = idx.toString().padStart(2, '0');
+      // 성별 반대 이미지 폴더명 결정: 남성이면 female, 여성이면 male
+      const opposite = userInfo?.gender === '남성' ? 'female' : 'male';
+      const idealImgSrc = `/assets/images/ideal/${opposite}${idxStr}.png`;
+    %>
+
+    <div class="relative w-full max-w-[448px] ">
+        <img src="/assets/images/jujangso/report/4_1.png" class="w-full h-auto object-cover"/>
+    </div>
+
+    <div class="relative w-full max-w-[448px] ">
+        <img src="/assets/images/jujangso/report/4_2.png" class="w-full h-auto object-cover"/>
+    </div>
+
+    <div class="relative w-full max-w-[448px] mx-auto bg-[#f6f3ee]">
+        <div class="absolute inset-0 border-[2px] border-black pointer-events-none z-10"></div>
+        <div class="absolute top-[4px] left-[4px] right-[4px] bottom-[4px] border border-black pointer-events-none z-20"></div>
+
+        <div class="relative z-30 p-6">
+
+            <!-- 사용자 고정 인덱스 기반 이상형 이미지 -->
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <!-- 타이틀: 이름 님의 운명의 짝 -->
+                <div class="text-center font-gyeonggibatangbold text-[24px] md:text-[28px] leading-tight mb-3">
+                    <%= (userInfo?.name || '') %> 님의 운명의 짝
+                </div>
+                <!-- 둥근 모서리 + 상하 간격 조정 -->
+                <img src="<%= idealImgSrc %>" alt="ideal" class="w-full h-auto object-cover rounded-xl mb-4"/>
+            </div>
+
+            <div class="relative z-30 p-6">
+                <div class="font-gyeonggibatangbold text-[18px] leading-relaxed whitespace-pre-wrap"><%= reportInfo[3].content; %></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative w-full max-w-[448px] ">
+        <img src="/assets/images/jujangso/report/4_3.png" class="w-full h-auto object-cover"/>
+
+</html>

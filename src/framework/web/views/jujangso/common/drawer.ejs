@@ -1,0 +1,91 @@
+<div class="drawer-end"><input class="drawer-toggle" id="my-drawer" type="checkbox" />
+    <div class="drawer-side z-40"><label class="drawer-overlay" for="my-drawer"></label>
+        <div class="drawer-content min-h-full bg-base-200 relative">
+            <div class="navbar bg-base-100 border-b-2 border-gray-700">
+                <div class="flex-1"><a class="btn btn-ghost normal-case text-xl" href="https://saju-maeul.kr/">
+                        <div class="flex items-center">
+                            <div class="w-9 h-9">
+                                <svg id="fortune" viewbox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M22.707 22.293a.999.999 0 1 1-1.414 1.414l-1-1a.999.999 0 1 1 1.414-1.414l1 1zm.668-8.074L22 15.32V8a1 1 0 0 0-2 0v6.586l-.293-.293a.999.999 0 1 0-1.414 1.414l1.432 1.432-1.35 1.08A1 1 0 0 0 19 20h4a1 1 0 0 0 0-2h-1.149l2.774-2.219a1 1 0 0 0-1.25-1.562zM16 22h-6a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2zm1-5v3a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1zm-2 1h-4v1h4v-1zm2-10v6a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1zm-5 4h-1v1h1v-1zm0-3h-1v1h1V9zm3 3h-1v1h1v-1zm0-3h-1v1h1V9zm15-6v26a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h26a1 1 0 0 1 1 1zM4 8.826A14.09 14.09 0 0 1 8.826 4H4v4.826zM8.826 28A14.09 14.09 0 0 1 4 23.174V28h4.826zM28 23.174A14.09 14.09 0 0 1 23.174 28H28v-4.826zM28 16c0-6.617-5.383-12-12-12S4 9.383 4 16s5.383 12 12 12 12-5.383 12-12zm0-12h-4.826A14.09 14.09 0 0 1 28 8.826V4z"
+                                          fill="#772108"></path>
+                                </svg>
+                            </div>
+                            <div><p class="ml-2">사주마을</p></div>
+                        </div>
+                    </a></div>
+                <div class="flex-none"><label class="btn btn-square btn-ghost" for="my-drawer">
+                        <svg class="w-5 h-5" id="x" stroke="#000" viewbox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                            <path d="m2 2 28 28M2 30 30 2" stroke-width="4"></path>
+                        </svg>
+                    </label></div>
+            </div>
+            <ul class="menu p-2 w-64 md:w-96 text-lg lg:text-2xl pb-24">
+
+
+                <% if (session && session.user) { %>
+                    <li class="border-b border-t">
+                        <div class="inline-block w-full py-4 lg:py-6">
+                            <div class="flex items-center w-full">
+                                <p class="inline-block"><%= (session.user.name || session.user.email) %>님</p>
+                                <div class="ml-auto flex space-x-3">
+                                  <button id="logoutBtn" class="btn btn-sm">로그아웃</button>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                <% } else { %>
+                    <li class="border-b border-t">
+                        <a class="inline-block w-full py-4 lg:py-6" href="/user/login">
+                            <div class="flex items-center w-full"><p class="inline-block">로그인</p></div>
+                        </a>
+                    </li>
+                <% } %>
+
+                <li class="border-b border-t"><a class="inline-block w-full py-3 lg:py-5" href="/saju">
+                        <div class="flex items-center w-full"><p class="inline-block">종합사주</p>
+                            <div class="w-8 h-8 ml-auto -mr-3">
+                                <svg id="next" viewbox="0 0 139 139" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M84.629 65.592a5.36 5.36 0 0 0-.912-.727L62.108 43.257a5.4 5.4 0 0 0-7.637 7.638l18.611 18.609-18.705 18.707a5.398 5.398 0 1 0 7.634 7.635l21.706-21.703a5.35 5.35 0 0 0 .912-.727 5.373 5.373 0 0 0 1.574-3.912 5.366 5.366 0 0 0-1.574-3.912z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </a></li>
+
+                <% if (session && session.user) { %>
+                <li class="border-b border-t">
+                    <a class="inline-block w-full py-4 lg:py-6" href="/saju/history">
+                        <div class="flex items-center w-full">
+                            <p class="inline-block text-indigo-800">내 구매내역</p>
+                        </div>
+                    </a>
+                </li>
+                <% } %>
+
+                <li class="border-b border-t"><a class="inline-block w-full py-4 lg:py-6" href="/saju/review">
+                        <div class="flex items-center w-full"><p class="inline-block text-indigo-800">유료 운세 결과 다시보기</p></div>
+                    </a></li>
+                <li class="border-b border-t"><a class="inline-block w-full py-4 lg:py-6" href="tel:07080951558 ">
+                        <div class="flex items-center w-full"><p class="inline-block text-indigo-800">오류 문의</p></div>
+                    </a></li>
+            </ul>
+
+            <% if (session && session.user) { %>
+            <div class="absolute bottom-4 right-4">
+                <div class="flex items-center gap-2">
+                    <a href="/user/delete" class="btn btn-error btn-sm">회원탈퇴</a>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+  $(function() {
+    $(document).on('click', '#logoutBtn', function() {
+      $.post('/user/logout')
+        .done(function(){ location.href = '/saju'; })
+        .fail(function(xhr){ alert(xhr.responseJSON?.error || '서버 오류'); });
+    });
+  });
+</script>

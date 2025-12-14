@@ -1,0 +1,33 @@
+<html lang="ko">
+
+    <div class="relative w-full max-w-[448px] ">
+        <img src="/assets/images/jujangso/report/3_1.png" class="w-full h-auto object-cover"/>
+    </div>
+
+    <div class="relative w-full max-w-[448px] ">
+        <img src="/assets/images/jujangso/report/3_2.png" class="w-full h-auto object-cover"/>
+        <div class="absolute top-[34%] left-[47%] w-[30%] min-h-[4rem] flex flex-col items-center justify-center">
+            <p class="font-gyeonggibatangbold text-lg"><%= sampleInfo.moneySteps?.[0]?.money || ''; %></p>
+        </div>
+        <div class="absolute top-[44%] left-[47%] w-[30%] min-h-[4rem] flex flex-col items-center justify-center">
+            <p class="font-gyeonggibatangbold text-lg"><%= sampleInfo.moneySteps?.[1]?.money || ''; %></p>
+        </div>
+        <div class="absolute top-[54%] left-[47%] w-[30%] min-h-[4rem] flex flex-col items-center justify-center">
+            <p class="font-gyeonggibatangbold text-lg"><%= sampleInfo.moneySteps?.[2]?.money || ''; %></p>
+        </div>
+    </div>
+
+    <div class="relative w-full max-w-[448px] mx-auto bg-[#f6f3ee]">
+        <div class="absolute inset-0 border-[2px] border-black pointer-events-none z-10"></div>
+        <div class="absolute top-[4px] left-[4px] right-[4px] bottom-[4px] border border-black pointer-events-none z-20"></div>
+
+        <div class="relative z-30 p-6">
+            <div class="font-gyeonggibatangbold text-[18px] leading-relaxed whitespace-pre-wrap"><%= reportInfo[2].content; %></div>
+        </div>
+    </div>
+
+    <div class="relative w-full max-w-[448px] ">
+        <img src="/assets/images/jujangso/report/3_3.png" class="w-full h-auto object-cover"/>
+    </div>
+
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<body>
+<div class="flex flex-col w-full max-w-[480px] mx-auto mt-[50px]">
+    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+
+        <%- include('./../../common/common') %>
+
+        <div id="page-container" class="w-full mt-4">
+
+        </div>
+
+        <div class="flex justify-between w-full max-w-[390px] mt-8 mb-6 px-4">
+            <button id="prev-btn"
+                    class="bg-gray-300 text-white font-pretendard-regular py-2 px-4 rounded cursor-not-allowed opacity-50"
+                    disabled>
+                이전
+            </button>
+            <button id="next-btn" class="bg-bluePrimary text-white font-pretendard-regular py-2 px-4 rounded">
+                다음
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    let currentPage = 1;
+    const totalPages = 8;
+
+    $(document).ready(function () {
+
+      window.userinfo = <%- JSON.stringify(userInfo) %>;
+      window.reportInfo = <%- JSON.stringify(reportInfo) %>;
+      window.sampleInfo = <%- JSON.stringify(sampleInfo) %>;
+
+        loadPage(1); // ✅ 첫 페이지 자동 로딩
+
+        $('#prev-btn').on('click', function () {
+            if (currentPage > 1) {
+                loadPage(currentPage - 1);
+            }
+        });
+
+        $('#next-btn').on('click', function () {
+            if (currentPage < totalPages) {
+                loadPage(currentPage + 1);
+            }
+        });
+    });
+
+    function updateButtons() {
+        const $prev = $('#prev-btn');
+        const $next = $('#next-btn');
+
+        if (currentPage <= 1) {
+            $prev.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+        } else {
+            $prev.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+        }
+
+        if (currentPage >= totalPages) {
+            $next.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+        } else {
+            $next.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+        }
+    }
+
+    function loadPage(pageNum) {
+        $.ajax({
+            url: `/saju/report/${pageNum}`,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({userInfo: window.userinfo,
+              reportInfo: window.reportInfo,
+              sampleInfo: window.sampleInfo}),
+            success: function (html) {
+                $('#page-container').html(html);
+                currentPage = pageNum;
+                updateButtons();
+                window.scrollTo(0, 0);
+            },
+            error: function () {
+                $('#page-container').html('<p>페이지를 불러올 수 없습니다.</p>');
+            }
+        });
+    }
+
+</script>
+
+
+</body>
+</html>
+

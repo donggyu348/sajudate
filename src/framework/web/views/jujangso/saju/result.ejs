@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../common/header') %>
+<style>
+    #saju-text-wrap { transform: translateY(-0.8%); }
+
+</style>
+<body>
+<div class="flex flex-col w-full max-w-[480px] mx-auto">
+    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+
+        <%- include('./../common/common') %>
+
+        <div id="container" class="mt-16">
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <video
+                              autoplay
+                         muted
+                            loop
+                            playsinline
+                            src="/assets/images/jujangso/result/1.1.mp4"
+                                    ></video>
+                 <img src="/assets/images/jujangso/result/1.2.png" class="w-full h-auto object-cover" />
+
+
+                 <div id="saju-text-wrap" class="absolute w-full h-full top-0 left-0">
+
+                <div class="absolute top-[74%] left-[15%] w-[70%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-chosunkm text-[26px]"><%= userInfo.name; %> 님의 사주</p>
+                </div>
+                <!-- 십성 1열-->
+                <div class="absolute top-[78.7%] left-[22%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 5px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[0]?.[0] || ''; %></p>
+                </div>
+                <div class="absolute top-[81.3%] left-[22%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 2px; padding-right: 5px;">
+                    <p class="font-gyeonggibatangbold text-[24px]"><%= sample.tenGodTable.data?.[0]?.[1] || ''; %></p>
+                </div>
+                <div class="absolute top-[84.5%] left-[22%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 5px;">
+                    <p class="font-gyeonggibatangbold text-[24px]"><%= sample.tenGodTable.data?.[0]?.[2] || ''; %></p>
+                </div>
+                <div class="absolute top-[87%] left-[22%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 1px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[0]?.[3] || ''; %></p>
+                </div>
+                <div class="absolute top-[89.2%] left-[22%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 1px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[0]?.[4] || ''; %></p>
+                </div>
+                <div class="absolute top-[91.3%] left-[22%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 2px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%- (sample.tenGodTable.data?.[0]?.[5] || '').match(/.{1,2}/g)?.join('<br/>') %></p>
+                </div>
+                <div class="absolute top-[93.2%] left-[22%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%- (sample.tenGodTable.data?.[0]?.[6] || '').match(/.{1,2}/g)?.join('<br/>') %></p>
+                </div>
+
+                <!-- 십성 2열 -->
+                <div class="absolute top-[78.7%] left-[41%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 5px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[1]?.[0] || ''; %></p>
+                </div>
+                <div class="absolute top-[81.3%] left-[41%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 2px; padding-right: 8px;">
+                    <p class="font-gyeonggibatangbold text-[24px]"><%= sample.tenGodTable.data?.[1]?.[1] || ''; %></p>
+                </div>
+                <div class="absolute top-[84.5%] left-[41%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 8px;">
+                    <p class="font-gyeonggibatangbold text-[24px]"><%= sample.tenGodTable.data?.[1]?.[2] || ''; %></p>
+                </div>
+                <div class="absolute top-[87%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center"  style="margin-top: 1px; padding-right: 8px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[1]?.[3] || ''; %></p>
+                </div>
+                <div class="absolute top-[89.2%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 1px; padding-right: 8px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[1]?.[4] || ''; %></p>
+                </div>
+                <div class="absolute top-[91.3%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 2px; padding-right: 8px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%- (sample.tenGodTable.data?.[1]?.[5] || '').match(/.{1,2}/g)?.join('<br/>') %></p>
+                </div>
+                <div class="absolute top-[93.2%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 8px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%- (sample.tenGodTable.data?.[1]?.[6] || '').match(/.{1,2}/g)?.join('<br/>') %></p>
+                </div>
+
+                <!-- 십성 3열 -->
+                <div class="absolute top-[78.7%] left-[59%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[2]?.[0] || ''; %></p>
+                </div>
+                <div class="absolute top-[81.3%] left-[59%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 2px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[24px]"><%= sample.tenGodTable.data?.[2]?.[1] || ''; %></p>
+                </div>
+                <div class="absolute top-[84.5%] left-[59%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[24px]"><%= sample.tenGodTable.data?.[2]?.[2] || ''; %></p>
+                </div>
+                <div class="absolute top-[87%] left-[59%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center"  style="margin-top: 1px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[2]?.[3] || ''; %></p>
+                </div>
+                <div class="absolute top-[89.2%] left-[59%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 1px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[2]?.[4] || ''; %></p>
+                </div>
+                <div class="absolute top-[91.3%] left-[59%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 2px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%- (sample.tenGodTable.data?.[2]?.[5] || '').match(/.{1,2}/g)?.join('<br/>') %></p>
+                </div>
+                <div class="absolute top-[93.2%] left-[59%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%- (sample.tenGodTable.data?.[2]?.[6] || '').match(/.{1,2}/g)?.join('<br/>') %></p>
+                </div>
+
+                <!-- 십성 4열 -->
+                <div class="absolute top-[78.7%] left-[77.5%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[3]?.[0] || ''; %></p>
+                </div>
+                <div class="absolute top-[81.3%] left-[77.5%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 2px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[24px]"><%= sample.tenGodTable.data?.[3]?.[1] || ''; %></p>
+                </div>
+                <div class="absolute top-[84.5%] left-[77.5%] w-[15%] min-h-[3rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 2px;">
+                    <p class="font-gyeonggibatangbold text-[24px]"><%= sample.tenGodTable.data?.[3]?.[2] || ''; %></p>
+                </div>
+                <div class="absolute top-[87%] left-[77.5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center"  style="margin-top: 1px; padding-right: 1px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[3]?.[3] || ''; %></p>
+                </div>
+                <div class="absolute top-[89.2%] left-[77.5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 1px; padding-right: 1px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= sample.tenGodTable.data?.[3]?.[4] || ''; %></p>
+                </div>
+                <div class="absolute top-[91.3%] left-[77.5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 2px; padding-right: 1px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%- (sample.tenGodTable.data?.[3]?.[5] || '').match(/.{1,2}/g)?.join('<br/>') %></p>
+                </div>
+                <div class="absolute top-[93.2%] left-[77.5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center" style="margin-top: 6px; padding-right: 1px;">
+                    <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%- (sample.tenGodTable.data?.[3]?.[6] || '').match(/.{1,2}/g)?.join('<br/>') %></p>
+                </div>
+
+            </div>
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto ">
+                <% if (userInfo.gender === '남성') { %>
+                    <img src="/assets/images/jujangso/result/2_male.png" class="w-full h-auto object-cover" />
+                <% } else { %>
+                    <img src="/assets/images/jujangso/result/2_female.png" class="w-full h-auto object-cover" />
+                <% } %>
+
+                <!-- 운명의 짝 -->
+                <div class="absolute top-[48%] left-[15%] w-[70%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-chosunkm text-[26px]"><%= userInfo.name; %> 님의 운명의 짝</p>
+                </div>
+
+                <!--                <div class="absolute top-[77%] left-[12%] flex flex-wrap gap-2 w-[75%]">-->
+                <!--                    <div class="w-fit p-2 rounded-full border border-[#486493] bg-[rgba(189,206,237,0.2)]">-->
+                <!--                        <p class="text-sm md:text-base text-[#2B557E] blur-sm"><%= sample.futurePartner.job %></p>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+                <!--                <div class="absolute top-[80%] left-[12%] flex flex-wrap gap-2 w-[75%]">-->
+                <!--                    <div class="w-fit p-2 rounded-full border border-[#486493] bg-[rgba(189,206,237,0.2)]">-->
+                <!--                        <p class="text-sm md:text-base text-[#2B557E]"><%= sample.futurePartner.appearance[0] %></p>-->
+                <!--                    </div>-->
+                <!--                    <div class="w-fit p-2 rounded-full border border-[#486493] bg-[rgba(189,206,237,0.2)]">-->
+                <!--                        <p class="text-sm md:text-base text-[#2B557E] blur-sm"><%= sample.futurePartner.appearance[1] %></p>-->
+                <!--                    </div>-->
+                <!--                    <div class="w-fit p-2 rounded-full border border-[#486493] bg-[rgba(189,206,237,0.2)]">-->
+                <!--                        <p class="text-sm md:text-base text-[#2B557E] blur-sm"><%= sample.futurePartner.appearance[2] %></p>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+                <!--                <div class="absolute top-[83%] left-[12%] flex flex-wrap gap-2 w-[75%]">-->
+                <!--                    <div class="w-fit p-2 rounded-full border border-[#486493] bg-[rgba(189,206,237,0.2)]">-->
+                <!--                        <p class="text-sm md:text-base text-[#2B557E]"><%= sample.futurePartner.personality[0] %></p>-->
+                <!--                    </div>-->
+                <!--                    <div class="w-fit p-2 rounded-full border border-[#486493] bg-[rgba(189,206,237,0.2)]">-->
+                <!--                        <p class="text-sm md:text-base text-[#2B557E] blur-sm"><%= sample.futurePartner.personality[1] %></p>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+
+                <!--                <div class="absolute top-[86%] left-[12%] flex flex-wrap gap-2 w-[75%]">-->
+                <!--                    <div class="w-fit p-2 rounded-full border border-[#486493] bg-[rgba(189,206,237,0.2)]">-->
+                <!--                        <p class="text-sm md:text-base text-[#2B557E] blur-sm"><%= sample.futurePartner.feature[0] %></p>-->
+                <!--                    </div>-->
+                <!--                    <div class="w-fit p-2 rounded-full border border-[#486493] bg-[rgba(189,206,237,0.2)]">-->
+                <!--                        <p class="text-sm md:text-base text-[#2B557E] blur-sm"><%= sample.futurePartner.feature[1] %></p>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+
+            </div>
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/jujangso/result/3.png" class="w-full h-auto object-cover" />
+                <!-- 오행표 -->
+                <div class="absolute top-[39.5%] left-[21%] w-[58%] min-h-[4rem] flex flex-col items-center justify-center" >
+                    <p class="font-gyeonggibatangbold text-[14px]" style="padding-left: 8px; padding-bottom: 15px; text-align: center; word-break: keep-all;"><%= sample.fiveElements.gainFrom; %></p>
+                </div>
+                <div class="absolute top-[42.5%] left-[21%] w-[58%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-[14px]" style="padding-left: 8px; padding-bottom: 15px; text-align: center; word-break: keep-all;"><%= sample.fiveElements.lossFrom; %></p>
+                </div>
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/jujangso/result/4.png" class="w-full h-auto object-cover" />
+            </div>
+
+            <div class="fixed z-50 bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4">
+                <form method="POST" action="<%= userInfo.name === '테스트' ? '/saju/skip-payment' : '/saju/payment' %>" class="w-full">
+                    <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
+                    <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />
+                    <button type="submit" class="block w-full">
+                        <img src="/assets/images/jujangso/result/banner.png"
+                             alt="정통사주 지금 받아보기"
+                             class="block w-full h-auto" />
+                    </button>
+                </form>
+                <div class="pb-[env(safe-area-inset-bottom)]"></div>
+                <!--            <div class="z-50 max-w-md fixed bottom-0 w-full bg-black text-white">-->
+                <!--                <div class="flex justify-center items-center min-h-16">-->
+                <!--                    <form method="POST" action="/saju/payment">-->
+                <!--                        <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />-->
+                <!--                        <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />-->
+                <!--                        <button type="submit"-->
+                <!--                                class="text-white bg-bluePrimary p-3 px-5 rounded-full cursor-pointer font-pretendard-regular">-->
+                <!--                            정통사주 지금 받아보기-->
+                <!--                        </button>-->
+                <!--                    </form>-->
+                <!--                </div>-->
+                <!--                <div class="w-full" style="padding-bottom: env(safe-area-inset-bottom);"></div>-->
+                <!--            </div>-->
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+      $(document).ready(function() {
+        window.karrotPixel.track("ViewContent");
+      });
+    </script>
+
+</body>
+</html>

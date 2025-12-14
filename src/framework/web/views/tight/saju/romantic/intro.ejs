@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<body>
+ 
+<div class="flex flex-col w-full max-w-[480px] mx-auto">
+    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+
+        <%- include('./../../common/common') %>
+
+        <div id="container">
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/intro_1.png" class="w-full h-auto object-cover" />
+                <img src="/assets/images/svg/2.svg" class="absolute top-0 left-0 w-full h-auto" />
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/intro_2.png" class="w-full h-auto object-cover" />
+                <img src="/assets/images/svg/4.svg" class="absolute top-[20%] left-0 w-full h-auto" />
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/intro_3.png" class="w-full h-auto object-cover" />
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/intro_4.png" class="w-full h-auto object-cover" />
+                <img src="/assets/images/svg/1.svg" class="absolute top-[-5%] left-0 w-full h-auto" />
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/intro_5.png" class="w-full h-auto object-cover" />
+            </div>
+
+        
+
+        </div>
+
+           <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50">
+    <a href="/saju/romantic/input" class="block w-full" >
+        <img src="/assets/images/tight/romantic/index_banner2.png"
+             alt="지금 보러가기"
+             class="w-full h-auto object-cover"
+             />
+    </a>
+    <div class="pb-[env(safe-area-inset-bottom)]"></div>
+</div>
+</div>
+
+
+
+
+</body>
+<script>
+  $(document).ready(function(){
+    window.karrotPixel.track('ViewContent');
+  });
+
+  function startCountdown(duration) {
+    let timer = duration, hours, minutes, seconds;
+    setInterval(function() {
+      hours = parseInt(timer / 3600, 10);
+      minutes = parseInt((timer % 3600) / 60, 10);
+      seconds = parseInt(timer % 60, 10);
+
+      hours = hours < 10 ? "0" + hours : hours;
+      minutes = minutes < 10 ? "0" + minutes : minutes;
+      seconds = seconds < 10 ? "0" + seconds : seconds;
+
+      document.getElementById('countdown-timer').textContent = hours + ":" + minutes + ":" + seconds;
+
+      if (--timer < 0) {
+        timer = 0;
+      }
+    }, 1000);
+  }
+
+  // Start with e.g., 5 minutes countdown
+  window.onload = function() {
+    startCountdown(4 * 60 * 60);
+  };
+</script>
+</html>

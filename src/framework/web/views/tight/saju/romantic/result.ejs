@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<body>
+   
+<div class="flex flex-col w-full max-w-[480px] mx-auto">
+    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+
+        <%- include('./../../common/common') %>
+
+        <div id="container">
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_1.png" class="w-full h-auto object-cover" />
+                <img src="/assets/images/svg/4.svg" class="absolute top-[-15%] left-0 w-full h-auto" />
+                <%
+const STEM_TO_HANJA = {
+  '갑':'甲','을':'乙','병':'丙','정':'丁','무':'戊',
+  '기':'己','경':'庚','신':'辛','임':'壬','계':'癸'
+};
+
+// 지지
+const BRANCH_TO_HANJA = {
+  '자':'子','축':'丑','인':'寅','묘':'卯','진':'辰','사':'巳',
+  '오':'午','미':'未','신':'申','유':'酉','술':'戌','해':'亥'
+};
+
+// 변환 함수 (천간/지지 자동판별)
+function H(v){
+  return STEM_TO_HANJA[v] || BRANCH_TO_HANJA[v] || v;
+}
+
+
+%>
+
+                
+                <!-- 십성 1열-->
+                <div class="absolute top-[52%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[0]; %></p>
+                </div>
+                <div class="absolute top-[64%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[0][1]); %></p>
+                </div>
+                <div class="absolute top-[76%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[0][2]); %></p>
+                </div>
+
+                <!-- 십성 2열-->
+                <div class="absolute top-[52%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[1]; %></p>
+                </div>
+                <div class="absolute top-[64%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[1][1]); %></p>
+                </div>
+                <div class="absolute top-[76%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[1][2]); %></p>
+                </div>
+
+                <!-- 십성 3열-->
+                <div class="absolute top-[52%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[2]; %></p>
+                </div>
+                <div class="absolute top-[64%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[2][1]); %></p>
+                </div>
+                <div class="absolute top-[76%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[2][2]); %></p>
+                </div>
+
+                <!-- 십성 4열-->
+                <div class="absolute top-[52%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[3]; %></p>
+                </div>
+                <div class="absolute top-[64%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[3][1]); %></p>
+                </div>
+                <div class="absolute top-[76%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[3][2]); %></p>
+                </div>
+            </div>
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_2.png" class="w-full h-auto object-cover" />
+                <div class="absolute top-[66%] left-[13%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-sm"><%= sample.fiveElements.elements.수; %></p>
+                </div>
+                <div class="absolute top-[66%] left-[31%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-sm"><%= sample.fiveElements.elements.금; %></p>
+                </div>
+                <div class="absolute top-[66%] left-[49%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-sm"><%= sample.fiveElements.elements.토; %></p>
+                </div>
+                <div class="absolute top-[66%] left-[66%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-sm"><%= sample.fiveElements.elements.화; %></p>
+                </div>
+                <div class="absolute top-[66%] left-[84%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-sm"><%= sample.fiveElements.elements.목; %></p>
+                </div>
+            </div>
+
+  <%
+    const g = String(userInfo.gender).trim(); // 실제 들어오는 값: "남성"
+
+    // 성별 → 폴더명 변환
+    let genderKey = "man"; 
+    if (["여","여자","여성","female","F","woman"].includes(g)) genderKey = "woman";
+    if (["남","남자","남성","male","M","man"].includes(g)) genderKey = "man";
+
+    const dayStem = sampleInfo.tenGodTable?.data?.[1]?.[1]
+        ? H(sampleInfo.tenGodTable.data[1][1])
+        : null;
+
+    const STEM_TO_KR_KEY = {
+        "甲":"갑목","乙":"을목","丙":"병화","丁":"정화","戊":"무토",
+        "己":"기토","庚":"경금","辛":"신금","壬":"임수","癸":"계수"
+    };
+
+    const stemKey = STEM_TO_KR_KEY[dayStem];
+
+    // 🔥 이미지 파일 경로 (네가 준 배열 그대로 유지하되 gender 반영됨)
+    const dayMasterImages = [
+        `/assets/images/tight/romantic/${stemKey}1.png`,
+        `/assets/images/tight/romantic/result/${genderKey}/${stemKey}1.png`,
+    ];
+%>
+
+   <% if(dayMasterImages && dayMasterImages.length){ %>
+    <% dayMasterImages.forEach(imgPath => { %>
+        <div class="relative w-full max-w-[448px] mx-auto">
+            <img src="<%= imgPath %>" class="w-full h-auto object-cover"/>
+        </div>
+    <% }) %>
+<% } else { %>
+    <div class="relative w-full max-w-[448px] mx-auto">
+        <img src="/assets/images/tight/romantic/result_3.png" class="w-full h-auto object-cover"/>
+    </div>
+<% } %>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_4.png" class="w-full h-auto object-cover" />
+                <img src="/assets/images/svg/3.gif"
+                     class="unlock-btn absolute top-[40%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
+                <div class="absolute top-[66.3%] left-[7%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-xl"><%= userInfo.name; %></p>
+                </div>
+                <img src="/assets/images/svg/3.gif"
+                     class="unlock-btn absolute top-[80%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
+            </div>
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_5_1.png" class="w-full h-auto object-cover" />
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_5_2.png" class="w-full h-auto object-cover" />
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_5_3.png" class="w-full h-auto object-cover" />
+                <img src="/assets/images/svg/3.gif"
+                     class="unlock-btn absolute top-[40%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
+                <div class="absolute top-[14.7%] left-[5%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-xl"><%= userInfo.name; %></p>
+                </div>
+            </div>
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_6.png" class="w-full h-auto object-cover" />
+                <img src="/assets/images/svg/3.gif"
+                     class="unlock-btn absolute top-[40%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
+                <div class="absolute top-[20.7%] left-[5%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-xl"><%= userInfo.name; %></p>
+                </div>
+            </div>
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_7_1.png" class="w-full h-auto object-cover" />
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_7_2.png" class="w-full h-auto object-cover" />
+            </div>
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_7_3.png" class="w-full h-auto object-cover" />
+                <img src="/assets/images/svg/3.gif"
+                     class="unlock-btn absolute top-[40%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
+                <div class="absolute top-[12%] left-[5%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-xl"><%= userInfo.name; %></p>
+                </div>
+            </div>
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_8.png" class="w-full h-auto object-cover" />
+            </div>
+
+            <div class="relative w-full max-w-[448px] mx-auto">
+                <img src="/assets/images/tight/romantic/result_9.png" class="w-full h-auto object-cover" />
+            </div>
+
+            <form method="POST" action="<%= userInfo.name === '테스트' ? '/saju/skip-payment' : '/saju/payment' %>" class="w-full">
+                <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
+                <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />
+                <input type="hidden" name="goodsType" value='ROMANTIC' />
+                <button  id="result10-button" type="submit" class="relative w-full max-w-[448px] mx-auto p-0 border-0 bg-transparent"
+                        style="background: none;">
+                    <img src="/assets/images/tight/romantic/result_10.png" class="w-full h-auto object-cover" />
+                </button>              
+            </form>
+
+            <div id="floating-btn">
+  <img src="/assets/images/tight/romantic/index_banner2.png" />
+</div>
+
+            
+        </div>
+
+    </div>
+</div>
+<style>
+ #floating-btn {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200%;
+  max-width: 448px;
+  z-index: 9999;
+  transition: opacity 0.3s ease; /* 부드러운 사라짐 */
+}
+
+#floating-btn.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+</style>
+<script>
+  $(document).ready(function() {
+    $(".unlock-btn").on("click", function() {
+      $("form").submit();
+    });
+
+    window.karrotPixel.track("Lead");
+  });
+
+
+  
+document.addEventListener("DOMContentLoaded", function () {
+  const floatingBtn = document.getElementById("floating-btn");
+  const target = document.getElementById("result10-button");
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          floatingBtn.classList.add("hide");
+        } else {
+          floatingBtn.classList.remove("hide");
+        }
+      });
+    },
+    {
+      threshold: 0.1,
+    }
+  );
+
+  observer.observe(target);
+});
+document.addEventListener("DOMContentLoaded", function() {
+  // 기존 unlock-btn 코드 유지
+  $(".unlock-btn").on("click", function() {
+    $("form").submit();
+  });
+
+  // 👉 플로팅 버튼 클릭 시에도 동일하게 form submit
+  document.getElementById("floating-btn").addEventListener("click", function() {
+    document.querySelector("form").submit();
+  });
+
+  window.karrotPixel.track("Lead");
+});
+</script>
+
+</body>
+</html>

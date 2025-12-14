@@ -1,0 +1,230 @@
+// src/framework/web/views/tight/admin/payment.ejs
+
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<%- include('./../common/header') %>
+
+<body>
+
+<div class="w-full bg-black flex items-center justify-center min-h-screen p-2">
+    <div class="container max-w-6xl">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                  
+   <div>
+                        <h2 class="text-xl font-bold text-gray-800">운세저장소 결제내역</h2>
+                        <p class="text-gray-500 mt-1">상품 결제 완료한 내역입니다.</p>
+                    </div>
+
+                    <div class="mt-4 md:mt-0 text-right">
+                        <p class="text-sm font-medium text-gray-500">오늘 승인 총 매출액</p>
+                        <p id="daily-sales" class="text-2xl font-extrabold text-green-600">로딩 중...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">날짜별 매출 기록 (최근 30일)</h3>
+                <div class="overflow-x-auto border rounded-xl shadow-sm">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">매출액</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-history-list" class="bg-white divide-y divide-gray-200">
+                            <tr><td colspan="2" class="text-center text-sm text-gray-500 py-4">매출 기록을 불러오는 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                    <tr>
+      
+                   <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            ID
+                        </th>
+                     
+    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            결제코드
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+   
+                          상품코드
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  
+           휴대폰
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            결제금액
+     
+                    </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            결제일
+                    
+     </th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="payment-list-body"> 
+                    </tbody>
+             
+    </table>
+            </div>
+
+            <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                <div class="flex items-center justify-between flex-col sm:flex-row">
+                    <div class="mb-4 sm:mb-0">
+          
+               <p id="totalCnt" class="text-sm text-gray-700">
+
+                        </p>
+                    </div>
+                    <div>
+                   
+      <div id="pagination" class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  // 유틸리티: 통화 형식 포매터 함수
+  const formatKrw = (n) => {
+    try { 
+      return Number(n || 0).toLocaleString('ko-KR') + '원'; 
+    } catch(e) { 
+      return n + '원'; 
+    } 
+  };
+  
+  // 기능: 일일 총 매출액 조회 함수 (오늘 하루 총합)
+  const fetchDailySales = (platform) => {
+    $.ajax({
+      url: `/api/payments/daily-summary?platform=${platform}`,
+      type: 'GET',
+      dataType: 'json',
+      success: function(res) {
+        const total = res.data.totalAmount;
+        $('#daily-sales').text(formatKrw(total));
+      },
+      error: function(xhr, status, error) {
+        console.error('Error fetching daily sales:', error);
+        $('#daily-sales').text('에러');
+      }
+    });
+  };
+
+  // 기능: 날짜별 매출 히스토리 조회 및 렌더링 함수
+  const fetchSalesHistory = (platform) => {
+    $.ajax({
+      url: `/api/payments/sales-history?platform=${platform}`,
+      type: 'GET',
+      dataType: 'json',
+      success: function(res) {
+        const $list = $('#sales-history-list'); // [수정 포인트] 정확한 ID 선택
+        $list.empty();
+        
+        if (res.data && res.data.length > 0) {
+          res.data.forEach(item => {
+            const row = `
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.saleDate}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-700">${formatKrw(item.totalAmount)}</td>
+              </tr>
+            `;
+            $list.append(row);
+          });
+        } else {
+           $list.append('<tr><td colspan="2" class="text-center text-sm text-gray-500 py-4">매출 기록이 없습니다.</td></tr>');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('Error fetching sales history:', error);
+        // 오류 시에도 sales-history-list만 업데이트
+        $('#sales-history-list').html('<tr><td colspan="2" class="text-center text-sm text-red-500 py-4">매출 기록 조회 오류</td></tr>');
+      }
+    });
+  };
+
+
+  $(document).ready(function() {
+    const PLATFORM = 'TIGHT'; // 운세저장소 플랫폼 코드
+    setList(1); 
+    fetchDailySales(PLATFORM); 
+    fetchSalesHistory(PLATFORM); // 날짜별 매출 기록 로드
+  });
+  
+  // setList 함수: ID 'payment-list-body'에만 데이터 삽입하도록 수정
+  const setList = (page = 1) => {
+    const PLATFORM = 'TIGHT'; 
+    $.ajax({
+      url: `/api/payments/list?page=${page}&platform=${PLATFORM}`,
+      type: 'POST',
+      dataType: 'json',
+      success: function(res) {
+        
+        const rows = res.data.rows;
+        const count = res.data.count;
+
+        $('#totalCnt').text(count + ' 건');
+
+        const tbody = $('#payment-list-body'); // [수정 포인트] ID 선택자를 사용하여 충돌 방지
+        tbody.empty();
+        
+        rows.forEach((payment, index) => {
+          const row = `
+            <tr class="hover:bg-gray-50 transition-colors duration-150">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${payment.id}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${payment.shopOrderNo}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${payment.reportHistory.goodsType}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${payment.userTelNo}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  ${formatKrw(payment.amount)}
+                </span>
+            </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">${new Date(payment.approvalDate).toLocaleDateString()}</td>
+            </tr>
+          `;
+          tbody.append(row);
+        });
+
+        const limit = 10;
+        const totalPages = Math.ceil(count / limit);
+        const $pagination = $('#pagination');
+        $pagination.empty();
+        const maxButtons = 10;
+        const startPage = Math.max(1, page - Math.floor(maxButtons / 2));
+        const endPage = Math.min(totalPages, startPage + maxButtons - 1);
+        
+        for (let i = startPage; i <= endPage; i++) {
+          const button = $(`
+            <a href="javascript:void(0);" class="relative inline-flex items-center px-4 py-2 border border-gray-300 ${
+              i === page ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-gray-700'
+            } text-sm font-medium hover:bg-indigo-100" data-page="${i}">
+              ${i}
+            </a>
+          `);
+          button.on('click', function(e) {
+            e.preventDefault();
+            setList(i);
+          });
+          $pagination.append(button);
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('Error fetching payment list:', error);
+      }
+    });
+  }
+
+</script>
