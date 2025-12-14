@@ -22,6 +22,18 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
+app.set("trust proxy", true);
+
+app.use((req, res, next) => {
+  // 프록시 뒤 HTTPS 감지
+  const proto = req.headers["x-forwarded-proto"] || (req.secure ? "https" : "http");
+
+  if (proto !== "https") {
+    return res.redirect(301, "https://www.sajudate.store" + req.originalUrl);
+  }
+
+  next();
+});
 
 app.use(session({
   secret: "tight123456",
