@@ -3,140 +3,146 @@
 
 <%- include('./../common/header') %>
 
-<body>
+<body
+  class="bg-repeat"
+  style="
+    background-image: url('/assets/images/tight/hanji_bg1.png');
+    background-size: cover;
+    background-position: top center;
+  "
+>
 
 <!-- Main -->
-<div class="w-full max-w-[480px] mx-auto mt-20">
-    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+<div class="w-full max-w-[480px] mx-auto">
+  <div class="flex flex-col items-center">
 
-        <%- include('./../common/common') %>
+    <%- include('./../common/common') %>
 
-        <div class="w-full px-4">
-            <!-- 타이틀 -->
-            <p class="text-sm text-gray-500 mb-1">사주데이트 정통사주</p>
-            <h1 class="text-xl font-bold mb-4">당신 운은 이미 정해져 있습니다.<br>이제 사주데이트에서 찾아보세요.</h1>
+   <!-- ================= HERO SLIDER ================= -->
+<section class="w-full px-4 pt-16">
+  <!-- 히어로 카드 -->
+  <div class="rounded-2xl overflow-hidden shadow-md">
 
-            <!-- 필터 탭 -->
-<!--            <div class="flex gap-2 mb-6">-->
-<!--                <button class="px-4 py-2 rounded-full bg-black text-white text-sm">전체</button>-->
-<!--                <button class="px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm">연애</button>-->
-<!--                <button class="px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm">종합</button>-->
-<!--                <button class="px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm">커리어</button>-->
-<!--            </div>-->
+    <div class="swiper heroSwiper h-[520px]">
+      <div class="swiper-wrapper">
 
-            <!-- 정통 사주 -->
-<a href="/saju/classic/intro" class="block bg-white rounded-xl shadow-md p-4 mb-4">
-                <!-- 운세 박스 -->
-                <div class="flex gap-2 mb-4">
-                    <img src="/assets/images/tight/banner_01.png"
-                         alt="운세이미지"
-                         class="w-full h-auto object-cover rounded-md">
-                </div>
-
-                <!-- 설명 -->
-<!--                <div class="mb-3">-->
-<!--                    <p class="text-2xl text-black-600">-->
-<!--                        10년 앞을 내다보는 정통사주-->
-<!--                    </p>-->
-<!--                    <p class="text-lg text-grey-600">-->
-<!--                        미래를 준비하는 가장 적확한 길잡이-->
-<!--                    </p>-->
-<!--                </div>-->
-
-                <!-- 태그 -->
-                <div class="flex gap-2 flex-wrap">
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">NEW!</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">재물운</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">연애운</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">월별운세</span>
-                </div>
-            </a>
-
-            <!-- 연애 사주 -->
-            <a href="/saju/romantic/intro" class="block bg-white rounded-xl shadow-md p-4 mb-4">
-                <!-- 운세 박스 -->
-                <div class="flex gap-2 mb-4">
-                    <img src="/assets/images/tight/banner_02.png"
-                         alt="운세이미지"
-                         class="w-full h-auto object-cover rounded-md">
-                </div>
-
-                <!-- 설명 -->
-<!--                <div class="mb-3">-->
-<!--                    <p class="text-2xl text-black-600">-->
-<!--                        나의 진짜 운명의 상대는?<br>-->
-<!--                        소름 돋는 궁합 풀이-->
-<!--                    </p>-->
-<!--                    <p class="text-lg text-grey-600">-->
-<!--                        진짜 인연 찾아주는 정통 궁합풀이-->
-<!--                    </p>-->
-<!--                </div>-->
-
-                <!-- 태그 -->
-                <div class="flex gap-2 flex-wrap">
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">HOT</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">19금 포함 ❤️</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">연애시기</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">연애운</span>
-                </div>
-            </a>
-
-            <!-- 직업 사주 -->
-            <a href="javascript:alert('상품 준비중');" class="block bg-white rounded-xl shadow-md p-4 mb-4">
-                <!-- 운세 박스 -->
-                <div class="flex gap-2 mb-4">
-                    <img src="/assets/images/tight/banner_03.png"
-                         alt="운세이미지"
-                         class="w-full h-auto object-cover rounded-md">
-                </div>
-
-                <!-- 설명 -->
-<!--                <div class="mb-3">-->
-<!--                    <p class="text-2xl text-black-600">-->
-<!--                        나, 돈 버는 사주일까?-->
-<!--                    </p>-->
-<!--                    <p class="text-lg text-grey-600">-->
-<!--                        부자되는 재물 100% 활용 방법-->
-<!--                    </p>-->
-<!--                </div>-->
-
-                <!-- 태그 -->
-                <div class="flex gap-2 flex-wrap">
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">직업운</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">진로고민</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">천직</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">재물운</span>
-                    <span class="px-3 py-1 rounded-full bg-gray-100 text-xs text-gray-600">사업운</span>
-                </div>
-            </a>
+        <div class="swiper-slide">
+          <img
+            src="/assets/images/tight/sum2.png"
+            class="w-full h-full object-cover"
+          >
         </div>
 
-        <%- include('./../common/footer') %>
+        <div class="swiper-slide">
+          <img
+            src="/assets/images/tight/sum2.png"
+            class="w-full h-full object-cover"
+          >
+        </div>
 
+        <div class="swiper-slide">
+          <img
+            src="/assets/images/tight/sum2.png"
+            class="w-full h-full object-cover"
+          >
+        </div>
+
+      </div>
+
+      <div class="swiper-pagination"></div>
     </div>
+
+  </div>
+</section>
+
+
+<!-- ================= 신뢰 문장 ================= -->
+<section class="w-full text-center pt-6 pb-5">
+  <p class="text-[15px] font-semibold text-[#2e1f14] tracking-[-0.2px]">
+    49,359건의 상담 데이터를 기반으로 분석합니다
+  </p>
+</section>
+
+<!-- ================= 카드 영역 ================= -->
+<section class="w-full px-4 pb-32">
+
+  <!-- 🔹 상단 2개 카드 (신년운 / 연애운) -->
+  <div class="grid grid-cols-2 gap-4">
+
+    <!-- 신년운 -->
+    <a href="/saju/classic/intro" class="block">
+      <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+        <img
+          src="/assets/images/tight/banner1.png"
+          alt="신년운"
+          class="w-full block"
+        >
+      </div>
+    </a>
+
+    <!-- 연애운 -->
+    <a href="/saju/romantic/intro" class="block">
+      <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+        <img
+          src="/assets/images/tight/banner2.png"
+          alt="연애운"
+          class="w-full block"
+        >
+      </div>
+    </a>
+
+  </div>
+
+  <!-- 🔹 하단 재물운 카드 (가로 전체, 끝선 맞춤) -->
+  <div class="mt-4">
+    <a href="javascript:alert('상품 준비중');" class="block w-full">
+      <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+        <img
+          src="/assets/images/tight/banner3.png"
+          alt="재물운"
+          class="w-full block"
+        >
+      </div>
+    </a>
+  </div>
+
+</section>
+
+    <%- include('./../common/footer') %>
+
+  </div>
 </div>
-</body>
 
-
+<!-- ================= SCRIPT ================= -->
 <script>
-  $(document).ready(function() {
-    /* 성별 버튼 */
-    $(".gender-btn").on("click", function() {
+  $(document).ready(function () {
+
+    $(".gender-btn").on("click", function () {
       $(".gender-btn").removeClass("active");
       $(this).addClass("active");
       $("#genderInput").val($(this).val());
-    })
-    ;
+    });
 
-    /* 양 / 음력 버튼 */
-    $(".birth-type-btn").on("click", function() {
+    $(".birth-type-btn").on("click", function () {
       $(".birth-type-btn").removeClass("active");
       $(this).addClass("active");
       $("#birthTypeInput").val($(this).val());
-    })
-    ;
+    });
+
   });
 
+  const heroSwiper = new Swiper(".heroSwiper", {
+    loop: true,
+    autoplay: {
+      delay: 4000,
+      disableOnInteraction: false,
+    },
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true,
+    },
+  });
 </script>
 
+</body>
 </html>
