@@ -6,7 +6,7 @@ const router = express.Router();
 router.post("/send", async (req, res) => {
   const { receiver } = req.body;
   try {
-    const result = await sendReportLink(receiver, 'ORD-20250730014446-ELRL9Y', 'CLASSIC', 'https://unse-jeojangso.kr');
+    const result = await sendReportLink(receiver, 'ORD-20250730014446-ELRL9Y', 'CLASSIC', 'http://sajudate.store');
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
