@@ -1,65 +1,148 @@
-<!DOCTYPE html>
-<html lang="ko">
-<%- include('./../../common/header') %>
+    <!DOCTYPE html>
+    <html lang="ko">
+    <%- include('./../../common/header') %>
 
-<body>
-    
-<div class="flex flex-col w-full max-w-[480px] mx-auto">
-    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+    <body>
+        
+    <div class="flex flex-col w-full max-w-[480px] mx-auto">
+        <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
 
-        <%- include('./../../common/common') %>
+            <%- include('./../../common/common') %>
 
-        <div id="container">
-            <div class="`relative w-full max-w-[448px] mx-auto`">
-                <img src="/assets/images/tight/classic/sangse1.jpeg" class="w-full h-auto object-cover pb-16" />
-                <img src="/assets/images/tight/classic/sangse2.jpeg" class="w-full h-auto object-cover pb-16" />
-                <img src="/assets/images/tight/classic/sangse3.jpeg" class="w-full h-auto object-cover pb-16" />
-                <img src="/assets/images/tight/classic/sangse4.jpeg" class="w-full h-auto object-cover pb-16" />
-                <img src="/assets/images/tight/classic/sangse5.jpeg" class="w-full h-auto object-cover pb-16" />
+            <div id="container">
+                <div class="`relative w-full max-w-[448px] mx-auto`">
+                    <img src="/assets/images/tight/classic/sangse1.jpeg" class="w-full h-auto object-cover pb-16" />
+                    <img src="/assets/images/tight/classic/sangse2.jpeg" class="w-full h-auto object-cover pb-16" />
+                    <img src="/assets/images/tight/classic/sangse3.jpeg" class="w-full h-auto object-cover pb-16" />
+                    <img src="/assets/images/tight/classic/sangse4.jpeg" class="w-full h-auto object-cover pb-16" />
+                    <img src="/assets/images/tight/classic/sangse5.jpeg" class="w-full h-auto object-cover pb-16" />
 
 
-<div class="z-50 max-w-md fixed bottom-0 w-full bg-transparent text-white">
-                <div class="flex justify-center items-center min-h-16 relative">
-                    <a href="/saju/classic/input" class="block w-full h-full relative">
-                        <img src="/assets/images/tight/classic/index_banner2.png" alt="정통사주 지금 받아보기"   class="w-full h-auto object-contain " />
+                    <div class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-[480px] px-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+    <a href="/saju/classic/input">
+<button class="cta-multi">
+  <span class="cta-text">내 사주팔자 확인하기</span>
+</button>
 
-<!--                        <div id="countdown-timer" class="absolute top-[40%] left-[20%] text-black text-xl font-bold">04:00:00</div>-->
-                    </a>
-                </div>
-                <div class="w-full" style="padding-bottom: env(safe-area-inset-bottom);"></div>
-            </div>
-        </div>
 
-    </div>
+    </a>
 </div>
 
-</body>
-<script>
-  $(document).ready(function(){
-    window.karrotPixel.track('ViewContent');
-  });
 
-    function startCountdown(duration) {
-        let timer = duration, hours, minutes, seconds;
-        setInterval(function () {
-            hours = parseInt(timer / 3600, 10);
-            minutes = parseInt((timer % 3600) / 60, 10);
-            seconds = parseInt(timer % 60, 10);
+            </div>
 
-            hours = hours < 10 ? "0" + hours : hours;
-            minutes = minutes < 10 ? "0" + minutes : minutes;
-            seconds = seconds < 10 ? "0" + seconds : seconds;
+        </div>
+    </div>
 
-            document.getElementById('countdown-timer').textContent = hours + ":" + minutes + ":" + seconds;
+    </body>
+    <script>
+    $(document).ready(function(){
+        window.karrotPixel.track('ViewContent');
+    });
 
-            if (--timer < 0) {
-                timer = 0;
-            }
-        }, 1000);
-    }
-    // Start with e.g., 5 minutes countdown
-    window.onload = function () {
-        startCountdown( 4 * 60 * 60);
-    };
-</script>
-</html>
+        function startCountdown(duration) {
+            let timer = duration, hours, minutes, seconds;
+            setInterval(function () {
+                hours = parseInt(timer / 3600, 10);
+                minutes = parseInt((timer % 3600) / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                hours = hours < 10 ? "0" + hours : hours;
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                document.getElementById('countdown-timer').textContent = hours + ":" + minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    timer = 0;
+                }
+            }, 1000);
+        }
+        // Start with e.g., 5 minutes countdown
+        window.onload = function () {
+            startCountdown( 4 * 60 * 60);
+        };
+    </script>
+    <style>
+        
+    .cta-multi {
+  position: relative;
+  width: 100%;
+  height: 60px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #F6F1EA 0%,
+      #EFE7DC 35%,
+      #E2D6C6 70%,
+      #D6C6B3 100%
+    );
+
+  border-radius: 20px;
+  border: 1px solid #CBBBA8;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    inset 0 -1px 0 rgba(0,0,0,0.06),
+    0 10px 22px rgba(0,0,0,0.14);
+
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+/* 안쪽 레이어 (종이 겹침) */
+.cta-multi::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.55),
+      rgba(0,0,0,0.03)
+    );
+  pointer-events: none;
+}
+
+/* 텍스트 */
+.cta-text {
+  position: relative;
+  z-index: 2;
+  font-family: 'Pretendard', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #3B2F2A;
+}
+
+/* hover */
+.cta-multi:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.95),
+    inset 0 -1px 0 rgba(0,0,0,0.08),
+    0 14px 28px rgba(0,0,0,0.16);
+}
+
+/* active */
+.cta-multi:active {
+  transform: translateY(1px);
+  background:
+    linear-gradient(
+      to bottom,
+      #EFE7DC 0%,
+      #E2D6C6 50%,
+      #D6C6B3 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    inset 0 3px 6px rgba(0,0,0,0.12);
+}
+
+
+
+    </style>
+
+    </html>

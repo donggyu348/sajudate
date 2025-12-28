@@ -3,34 +3,61 @@
 <%- include('./../../common/header') %>
 
 <style>
-body { margin: 0; }
-
-.saju-wrapper {
-  width: 100%;
-  max-width: 480px;
-  min-height: 100vh;
-  margin: 0 auto;
-  background: url('/assets/images/tight/classic/input_background.png') center / cover no-repeat;
-  display: flex;
-  align-items: center;
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(0,0,0,0.55) 0%,
+    rgba(0,0,0,0.35) 40%,
+    rgba(0,0,0,0.55) 100%
+  );
 }
 
+.saju-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translateY(-5%);
+}
+
+
+
+
 .question-box {
+  position: relative;
+  z-index: 1;
   width: 100%;
   padding: 48px 24px;
+}
+
+.question-box::before {
+  content: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0,0,0,0.35) 0%,
+    rgba(0,0,0,0.15) 60%,
+    rgba(0,0,0,0) 100%
+  );
+  z-index: -1;
+  border-radius: 16px;
 }
 
 .q-title {
   font-size: 22px;
   font-weight: 600;
-  color: #2b2b2b;
+  color: rgba(255,255,255,0.95);
   line-height: 1.4;
 }
 
 .q-desc {
   margin-top: 8px;
   font-size: 14px;
-  color: #6b6b6b;
+  color: rgba(255,255,255,0.75);
 }
 
 .answer-area {
@@ -41,10 +68,10 @@ body { margin: 0; }
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1.5px solid rgba(0,0,0,0.25);
+  border-bottom: 1.5px solid rgba(255,255,255,0.35);
   padding: 14px 4px;
   font-size: 18px;
-  color: #2b2b2b;
+  color: rgba(255,255,255,0.95);
   outline: none;
 }
 
@@ -53,7 +80,7 @@ body { margin: 0; }
 }
 
 .answer-area input::placeholder {
-  color: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.45);
 }
 
 .select-row {
@@ -76,6 +103,22 @@ body { margin: 0; }
   color: #fff;
   border-color: #5a4633;
 }
+.back-btn {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.back-btn:hover {
+  color: rgba(255,255,255,0.9);
+}
 
 .answer-area select {
   width: 100%;
@@ -93,18 +136,22 @@ body { margin: 0; }
   padding: 16px 0;
   border-radius: 999px;
   border: none;
-  background: #e9e4dc;
+  background: #F5EFE6;
   font-size: 16px;
   font-weight: 600;
-  color: #2b2b2b;
+  color: #2A1F24;
+  letter-spacing: -0.2px;
 }
+
 </style>
 
 <body>
 
 <div class="saju-wrapper">
   <form id="sajuForm" method="POST" action="/saju/classic/result" class="question-box">
-
+    <button type="button" class="back-btn" id="backBtn">
+  ← 뒤로가기
+</button>
     <!-- 🔒 기존 hidden 유지 -->
     <input type="hidden" name="gender" id="genderInput">
     <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
@@ -180,7 +227,7 @@ const steps = [
     desc: "모르셔도 괜찮습니다.",
     render: () => `
       <select name="birthTime">
-        <option value="99">모름</option>
+        <option value="unknown">모름</option>
         <option value="00">조자 (00:00~01:29)</option>
         <option value="02">축 (01:30~03:29)</option>
         <option value="04">인 (03:30~05:29)</option>
@@ -206,12 +253,17 @@ const qTitle = document.querySelector('.q-title');
 const qDesc = document.querySelector('.q-desc');
 const answerArea = document.querySelector('.answer-area');
 const nextBtn = document.getElementById('nextBtn');
+const backBtn = document.getElementById('backBtn');
+
 
 function renderStep() {
   const step = steps[stepIndex];
   qTitle.textContent = step.title;
   qDesc.textContent = step.desc || '';
   answerArea.innerHTML = step.render();
+
+    backBtn.style.display = stepIndex === 0 ? 'none' : 'block';
+
 
   document.querySelectorAll('.select-btn').forEach(btn => {
     btn.onclick = () => {
@@ -240,7 +292,14 @@ nextBtn.onclick = () => {
   }
 };
 
+
 renderStep();
+backBtn.onclick = () => {
+  if (stepIndex > 0) {
+    stepIndex--;
+    renderStep();
+  }
+};
 </script>
 
 </body>
