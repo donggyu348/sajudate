@@ -1,7 +1,6 @@
 // src/framework/web/api/KakaoPayClient.js
 import axios from "axios";
 
-const SECRET_KEY_SAJUMAEUL = "PRD7E7E52429D66A1132C68813BD32A292341539";
 const SECRET_KEY_UNSEJEOJANGSO = "PRDCFFE3CBA4A409E3608E3441811AB889636790";
 const BASE_URL = "https://open-api.kakaopay.com/online/v1/payment";
 
