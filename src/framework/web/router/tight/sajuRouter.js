@@ -8,6 +8,7 @@ import { Platform } from "../../enums/Platform.js";
 import ReportHistoryService from "../../service/ReportHistoryService.js";
 import paymentService from "../../service/PaymentService.js";
 import { PaymentStatus } from "../../enums/Payment.js";
+import KakaoPayClient from "../../api/KakaoPayClient.js";
 
 const router = express.Router();
 //미리보기 렌더링
@@ -220,16 +221,55 @@ router.post("/payment", async (req, res) => {
 
 router.get("/payment_success", async (req, res) => {
   try {
-    const { shopOrderNo } = req.query;
+    const { shopOrderNo, pg_token } = req.query;
     if (!shopOrderNo) {
       return res.status(400).send("shopOrderNo is required");
     }
 
-    const paymentInfo = await paymentService.getPaymentTransaction(shopOrderNo);
-    if (!paymentInfo || paymentInfo.paymentStatus != PaymentStatus.APPROVED) {
-      return res.status(404).send("invalid Payment");
+    let paymentInfo = await PaymentService.getPaymentTransaction(shopOrderNo);
+    if (!paymentInfo) {
+      return res.status(404).send("Payment info not found");
     }
 
+    /**
+     * --------------------------------------------------------
+     * 🔥 ① 기존에는 APPROVED 아니면 무조건 invalid Payment
+     *     → 이제는 카카오페이인 경우 승인 처리 후 APPROVED로 바꿔줌
+     * --------------------------------------------------------
+     */
+    if (pg_token) {
+      // DB 또는 세션에서 tid 가져오기
+      const tid = paymentInfo.tid || req.session?.kakaoPay?.tid;
+      if (!tid) {
+        return res.status(400).send("KakaoPay TID not found");
+      }
+
+      // 🔥 카카오페이 승인 API 호출
+      const approveResult = await KakaoPayClient.requestApprove({
+        cid: "CT10974949",
+        tid,
+        partner_order_id: shopOrderNo,
+        partner_user_id: `USER_${shopOrderNo}`,
+        pg_token 
+      });
+
+      // 🔥 승인 성공 시 DB 업데이트
+      await PaymentService.updatePaymentStatus(shopOrderNo, PaymentStatus.APPROVED);
+
+      // 다시 최신 결제 정보 조회
+      paymentInfo = await PaymentService.getPaymentTransaction(shopOrderNo);
+
+      if (paymentInfo.paymentStatus !== PaymentStatus.APPROVED) {
+        return res.status(500).send("KakaoPay approval failed");
+      }
+    }
+
+
+    /**
+     * --------------------------------------------------------
+     * 🔥 ② 여기부터는 기존 코드 100% 동일하게 유지
+     * --------------------------------------------------------
+     */
     const repostHistory = await ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
     if (!repostHistory) {
       return res.status(404).send("Report history not found");
@@ -241,18 +281,20 @@ router.get("/payment_success", async (req, res) => {
 
     const fileDir = Platform[repostHistory.platform].fileDir;
     const goodsPrice = GoodsType[repostHistory.goodsType].price;
-    const goodsTypeRaw = repostHistory.goodsType; // 상품 타입 코드(CLASSIC, ROMANTIC)를 가져옴
+    const goodsTypeRaw = repostHistory.goodsType; // goodsType 유지
 
-    // 기존과 동일한 템플릿 렌더링 (단, URL은 /saju/payment_success 로 노출됨)
     return res.render(`${fileDir}/saju/payment_success`, {
       shopOrderNo,
       goodsPrice,
-      goodsType: goodsTypeRaw // goodsType 변수를 추가하여 EJS로 전달
+      goodsType: goodsTypeRaw
     });
+
   } catch (error) {
+    console.error("payment_success error:", error);
     return res.status(500).send("Failed to render success page");
   }
 });
+
 router.post("/report/check", (req, res) => {
   const shopOrderNo = req.body.shopOrderNo;
 
@@ -270,7 +312,7 @@ router.post("/report/check", (req, res) => {
 
         const paymentTransaction = await PaymentService.getPaymentTransaction(shopOrderNo);
 
-        let domain = "https://unse-jeojangso.kr";
+        let domain = "http://sajudate.store";
         if (paymentTransaction.platform === Platform.JUJANGSO.code) {
           domain = "https://saju-maeul.kr";
         }

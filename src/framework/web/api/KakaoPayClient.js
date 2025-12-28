@@ -1,20 +1,14 @@
 // src/framework/web/api/KakaoPayClient.js
 import axios from "axios";
 
-const SECRET_KEY_UNSEJEOJANGSO = "PRDCFFE3CBA4A409E3608E3441811AB889636790";
+const SECRET_KEY = "PRDDA2902B8EAA0D514136BB8CDAA4DC95FAB385";
 const BASE_URL = "https://open-api.kakaopay.com/online/v1/payment";
 
 class KakaoPayClient {
   // 카카오페이 결제 준비 요청
-  async requestReady(payload, domain) {
+  async requestReady(payload) {
     const url = `${BASE_URL}/ready`;
     console.log("[KakaoPay][Ready] Request:", payload);
-
-    // SECRET_KEY가 saju-maeul인지 unse-jeojangso인지에 따라 다르게 설정
-    let SECRET_KEY = SECRET_KEY_SAJUMAEUL;
-    if (domain === "https://unse-jeojangso.kr") {
-      SECRET_KEY = SECRET_KEY_UNSEJEOJANGSO;
-    }
 
     try {
       const res = await axios.post(url, payload, {
@@ -33,15 +27,9 @@ class KakaoPayClient {
   }
 
   // 카카오페이 결제 승인 요청
-  async requestApprove(payload, domain) {
+  async requestApprove(payload) {
     const url = `${BASE_URL}/approve`;
     console.log("[KakaoPay][Approve] Request:", payload);
-
-    // SECRET_KEY가 saju-maeul인지 unse-jeojangso인지에 따라 다르게 설정
-    let SECRET_KEY = SECRET_KEY_SAJUMAEUL;
-    if (domain === "https://unse-jeojangso.kr") {
-      SECRET_KEY = SECRET_KEY_UNSEJEOJANGSO;
-    }
 
     try {
       const res = await axios.post(url, payload, {

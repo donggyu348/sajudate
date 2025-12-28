@@ -2,6 +2,7 @@ import PaymentTransactionRepository from "../repository/PaymentTransactionReposi
 import EasyPayClient from "../api/EasyPayClient.js";
 import { generateShopOrderNo } from "../utils/CommonUtils.js";
 import { PaymentStatus } from "../enums/Payment.js";
+import KakaoPayClient from "../api/KakaoPayClient.js";
 
 
 class PaymentService {
@@ -90,7 +91,56 @@ class PaymentService {
     return approvalResponse;
   }
 
+/* =========================================================
+   * 🟡 KAKAO PAY
+   * ========================================================= */
 
+  async registerKakaoPay(paymentDto, req) {
+
+    const shopOrderNo = generateShopOrderNo();
+    const domain = Platform[paymentDto.platform].domain;
+
+    await PaymentTransactionRepository.createPayment({
+      ...paymentDto,
+      shopOrderNo,
+      paymentStatus: PaymentStatus.READY
+    });
+
+    const final_domain = domain;
+    console.log("KakaoPay Final Domain:", final_domain);
+    // const final_domain = "http://localhost:3000";
+    const readyPayload = {
+      cid: "CT59746939",
+      partner_order_id: shopOrderNo,
+      partner_user_id: `USER_${shopOrderNo}`,
+      item_name: paymentDto.orderInfo.goodsName,
+      quantity: 1,
+      total_amount: paymentDto.amount,
+      tax_free_amount: 0,
+      approval_url: `${final_domain}/saju/payment_success?shopOrderNo=${encodeURIComponent(shopOrderNo)}`,
+      cancel_url: `${final_domain}/saju/payment`,
+      fail_url: `${final_domain}/saju/payment`
+    };
+
+    const kakaoRes = await KakaoPayClient.requestReady(readyPayload, domain);
+
+    // 🔥 DB 저장 안 하고 세션에 저장
+    req.session.kakaoPay = {
+      shopOrderNo,
+      tid: kakaoRes.tid
+    };
+
+    let redirectUrl =
+      paymentDto.deviceType === "mobile"
+        ? kakaoRes.next_redirect_mobile_url
+        : kakaoRes.next_redirect_pc_url;
+    console.log(redirectUrl);
+
+    return {
+      shopOrderNo,
+      authPageUrl: redirectUrl
+    };
+  }
   async getPaymentTransaction(shopOrderNo) {
     const transaction = await PaymentTransactionRepository.findByShopOrderNo(shopOrderNo);
     if (!transaction) {

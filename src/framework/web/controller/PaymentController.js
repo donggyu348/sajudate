@@ -85,91 +85,150 @@ const PaymentController = {
       });
     }
   },
-  async register(req, res) {
+ async register(req, res) {
     try {
+      const TEST_PHONE_NUMBER = [
+        "01033336666", "01020444630", "01093140321",
+        "01055989742", "01065710349", "01043904553", "01043500520", "01054620971"
+      ];
+      const TEST_AMOUNT = 1;
 
-      const TEST_PHONE_NUMBER = "01033336666"; 
-      const TEST_AMOUNT = 10; // 테스트 금액 (100원)
+      const { payMethod, reportHistoryId, userTelNo } = req.body;
 
-      const userAgent = req.headers['user-agent'] || '';
+      if (!payMethod) return res.status(400).json({ code: 400, message: "payMethod is required" });
+      if (!reportHistoryId) return res.status(400).json({ code: 400, message: "reportHistoryId is required" });
+
+      const reportHistory = await ReportHistoryService.getReportHistoryById(reportHistoryId);
+      if (!reportHistory) return res.status(404).json({ code: 404, message: "ReportHistory not found" });
+
+      const userAgent = req.headers["user-agent"] || "";
       const isMobile = /mobile/i.test(userAgent);
       const deviceType = isMobile ? DeviceType.MOBILE : DeviceType.PC;
 
-      const repostHistory = await ReportHistoryService.getReportHistoryById(req.body.reportHistoryId)
-
-      const userTelNo = req.body.userTelNo; // 사용자 전화번호 추출
-      let finalAmount = GoodsType[repostHistory.goodsType].price;
-
-      if (userTelNo === TEST_PHONE_NUMBER) {
-        console.log(`[TEST MODE] Setting payment amount to ${TEST_AMOUNT} for phone number: ${userTelNo}`);
+      let finalAmount = GoodsType[reportHistory.goodsType].price;
+      if (TEST_PHONE_NUMBER.includes(userTelNo)) {
+        console.log(`[TEST MODE] ${userTelNo} → 금액 ${TEST_AMOUNT}원`);
         finalAmount = TEST_AMOUNT;
       }
 
-      const redirectUrl = Platform[repostHistory.platform].domain + "/api/payments/callback";
+      const platformInfo = Platform[reportHistory.platform];
+      const redirectUrl = platformInfo.domain + "/api/payments/callback";
 
       const userId = req.session?.user?.id || null;
 
-      const payload = {
+      const basePayload = {
         ...req.body,
         ...(userId ? { userId } : {}),
         amount: finalAmount,
-        payMethodTypeCode: "CARD",
-        deviceType: deviceType,
+        payMethodTypeCode: "11",
+        deviceType,
         clientTypeCode: "00",
         currency: "00",
         returnUrl: redirectUrl,
-        platform: repostHistory.platform,
-        orderInfo: {
-          goodsName: GoodsType[repostHistory.goodsType].code
-        }
+        platform: reportHistory.platform,
+        orderInfo: { goodsName: GoodsType[reportHistory.goodsType].code }
       };
 
-      const result = await PaymentService.registerPayment(payload);
+      let result;
 
-      await ReportHistoryService.updateById({
-        id: req.body.reportHistoryId,
-        shopOrderNo: result.shopOrderNo,
-      })
+      /* -----------------------------------------------------
+       * 🔵 EasyPay
+       * ----------------------------------------------------- */
 
-      return res.status(200).json({
-        code: 200,
-        message: "거래등록 성공",
-        data: {
-          authPageUrl: result.authPageUrl
-        }
-      });
+      if (payMethod === "EASYPAY") {
+        result = await PaymentService.registerEasyPay(basePayload);
+
+        await ReportHistoryService.updateById({
+          id: reportHistoryId,
+          shopOrderNo: result.shopOrderNo
+        });
+
+        return res.status(200).json({
+          code: 200,
+          message: "이지페이 거래등록 성공",
+          data: { authPageUrl: result.authPageUrl }
+        });
+      }
+
+      /* -----------------------------------------------------
+       * 🟡 KakaoPay (세션 기반)
+       * ----------------------------------------------------- */
+
+      if (payMethod === "KAKAOPAY") {
+        result = await PaymentService.registerKakaoPay(basePayload, req);
+
+        await ReportHistoryService.updateById({
+          id: reportHistoryId,
+          shopOrderNo: result.shopOrderNo
+        });
+
+        return res.status(200).json({
+          code: 200,
+          message: "카카오페이 거래등록 성공",
+          data: { authPageUrl: result.authPageUrl }
+        });
+      }
+
+      return res.status(400).json({ code: 400, message: "Invalid payMethod" });
+
     } catch (error) {
       console.log(error);
       return res.status(500).json({
         code: 500,
         message: "거래등록 실패",
-        error: error.message,
+        error: error.message
       });
     }
-  },
 
+  },
   /**
    * [2] 인증 완료 콜백 처리
    * - authorizationId 수신
    * - shopOrderNo로 DB update (AUTH_DONE)
    */
-  async callback(req, res) {
-    try {
-      const { shopOrderNo, authorizationId } = req.body;
-      await PaymentService.handleCallback(shopOrderNo, authorizationId);
+ async callback(req, res) {
+  try {
+    // 🔥 EasyPay 실제 파라미터 매핑
+    const shopOrderNo =
+      req.body.shopOrderNo ||
+      req.body.partnerOrderId;
 
-      await PaymentService.approvePayment(shopOrderNo);
+    const authorizationId =
+      req.body.authorizationId ||
+      req.body.tid ||
+      req.body.payTid ||
+      req.body.transactionId;
 
-      return res.redirect(303, `/saju/payment_success?shopOrderNo=${encodeURIComponent(shopOrderNo)}`);
+    const resCd = req.body.resCd;
+    const resMsg = req.body.resMsg;
+    console.log(`[Payment][Callback] shopOrderNo: ${shopOrderNo}, authorizationId: ${authorizationId}, resCd: ${resCd}, resMsg: ${resMsg}`);
 
-    } catch (error) {
-      return res.status(500).json({
-        code: 500,
-        message: "인증 완료 처리 실패",
-        error: error.message,
-      });
+    // 🔥 인증 처리
+    await PaymentService.handleCallback(shopOrderNo, authorizationId);
+
+    // 🔥 승인 처리(되는 사이트와 동일)
+    const approveResponse = await PaymentService.approvePayment(shopOrderNo);
+    console.log(`[Payment][Callback] Approval Response:`, approveResponse);
+
+    if (approveResponse.resCd !== "0000") {
+      await PaymentService.updatePaymentStatus(
+        shopOrderNo,
+        PaymentStatus.FAILED,
+        approveResponse.resMsg
+      );
+      return res.redirect('/saju?error=approve_failed&resMsg=' + encodeURIComponent(approveResponse.resMsg));
     }
-  },
+
+    return res.redirect(
+      303,
+      `/saju/payment_success?shopOrderNo=${encodeURIComponent(shopOrderNo)}`
+    );
+  } catch (error) {
+    console.error("callback 오류:", error);
+    return res.status(500).send("콜백 처리 중 오류가 발생했습니다.");
+  }
+},
+
 
   /**
    * [3] 승인 처리
