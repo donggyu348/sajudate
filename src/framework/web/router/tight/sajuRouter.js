@@ -65,6 +65,9 @@ router.get("/classic/input", (req, res) => {
 
 router.post("/classic/result", async (req, res) => {
 
+  console.log("📥 /classic/result POST 도착");
+  console.log(req.body);   // ← 이게 핵심
+
   const userInfo = req.body;
   const result = await gptService.callSample(userInfo);
 
