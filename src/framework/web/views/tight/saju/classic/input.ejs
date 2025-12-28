@@ -2,134 +2,246 @@
 <html lang="ko">
 <%- include('./../../common/header') %>
 
+<style>
+body { margin: 0; }
+
+.saju-wrapper {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: url('/assets/images/tight/classic/input_background.png') center / cover no-repeat;
+  display: flex;
+  align-items: center;
+}
+
+.question-box {
+  width: 100%;
+  padding: 48px 24px;
+}
+
+.q-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #2b2b2b;
+  line-height: 1.4;
+}
+
+.q-desc {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+
+.answer-area {
+  margin-top: 40px;
+}
+
+.answer-area input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid rgba(0,0,0,0.25);
+  padding: 14px 4px;
+  font-size: 18px;
+  color: #2b2b2b;
+  outline: none;
+}
+
+.answer-area input:focus {
+  border-bottom-color: #5a4633;
+}
+
+.answer-area input::placeholder {
+  color: rgba(0,0,0,0.35);
+}
+
+.select-row {
+  display: flex;
+  gap: 12px;
+}
+
+.select-btn {
+  flex: 1;
+  padding: 14px 0;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.25);
+  background: rgba(255,255,255,0.4);
+  font-size: 16px;
+  color: #2b2b2b;
+}
+
+.select-btn.active {
+  background: #5a4633;
+  color: #fff;
+  border-color: #5a4633;
+}
+
+.answer-area select {
+  width: 100%;
+  padding: 14px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.25);
+  background: rgba(255,255,255,0.4);
+  font-size: 16px;
+  color: #2b2b2b;
+}
+
+.next-btn {
+  margin-top: 60px;
+  width: 100%;
+  padding: 16px 0;
+  border-radius: 999px;
+  border: none;
+  background: #e9e4dc;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2b2b2b;
+}
+</style>
+
 <body>
-   
-<div class="flex flex-col w-full max-w-[480px] mx-auto">
-    <div class="flex justify-center flex-col items-start justify-center">
 
-        <div class="relative overflow-hidden w-full max-w-[480px] mx-auto">
-            <div class="relative w-full" style="aspect-ratio: 9/16;">
-                <img src="/assets/images/tight/classic/input_background.png" alt=""
-                     class="absolute inset-0 w-full h-full object-cover" aria-hidden="true" />
-                <form id="sajuForm" method="POST" action="/saju/classic/result"
-                      class="relative z-10 flex flex-col items-center justify-center px-4 py-6 ">
-                    <div id="loading" class="hidden fixed inset-0 z-50 bg-black/40 flex flex-col items-center justify-center">
-                        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                        <p id="loading-title" class="mt-4 text-white text-sm font-medium">사주를 분석중입니다</p>
-                        <p class="mt-4 text-white text-sm font-medium">[1~2분 정도 기다려주세요]</p>
-                    </div>
+<div class="saju-wrapper">
+  <form id="sajuForm" method="POST" action="/saju/classic/result" class="question-box">
 
-                    <input type="hidden" name="gender" id="genderInput" />
-                    <input type="hidden" name="birthType" id="birthTypeInput" />
+    <!-- 🔒 기존 hidden 유지 -->
+    <input type="hidden" name="gender" id="genderInput">
+    <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
 
-                    <h1 class=" text-2xl text-white font-bold mt-12 mr-48"></h1>
-                    <div class="w-full space-y-1 mt-8 sm:mt-12 pr-2 pl-2">
-                        <h2 class="text-sm text-white font-pretendard-regular mb-2">이름</h2>
-                        <input class="w-full bg-white/40 input input-bordered focus:outline-none" name="name"
-                               type="text" value="" />
-                    </div>
-                    <div class="w-full space-y-1 mt-8 sm:mt-12 pr-2 pl-2">
-                        <div class="w-full space-y-1">
-                            <h2 class="text-sm text-white font-pretendard-regular mb-2">성별</h2>
-                            <div class="flex justify-between space-x-4">
-                                <button type="button" value="남성"
-                                        class="gender-btn bg-white/40 w-auto flex-1 py-2 px-4 border outline-none rounded-md border border-gray-300 active:border-2 active:border-bluePrimary">
-                                    남성
-                                </button>
-                                <button type="button" value="여성"
-                                        class="gender-btn bg-white/40 w-auto flex-1 py-2 px-4 border outline-none rounded-md border border-gray-300 active:border-2 active:border-bluePrimary">
-                                    여성
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w-full space-y-1 mt-8 sm:mt-12 pr-2 pl-2">
-                        <h2 class="text-sm text-white font-pretendard-regular mb-2">생년월일</h2>
-                        <div class="flex space-x-4">
-                            <select name="birthType" id="birthTypeInputSelect"
-                                    class="w-28 py-2 px-4 border outline-none rounded-md border border-gray-300 bg-white/40">
-                                <option value="양력">양력</option>
-                                <option value="음력">음력</option>
-                            </select>
-                            <input class="w-full py-2 px-4 border outline-none rounded-md bg-white/40"
-                                   name="birthdate" type="text" maxlength="8" placeholder="YYYYMMDD"
-                                   inputmode="numeric" pattern="[0-9]*" />
-                        </div>
-                    </div>
-                    <div class="w-full space-y-1 mt-8 sm:mt-12 pr-2 pl-2">
-                        <h2 class="text-sm text-white font-pretendard-regular mb-2">태어난 시</h2>
-                        <select name="birthTime" class="w-full select select-bordered bg-white/40">
-                            <option selected="" value="99">모름</option>
-                            <option value="00">조자/朝子 (00:00~01:29)</option>
-                            <option value="02">축/丑 (01:30~03:29)</option>
-                            <option value="04">인/寅 (03:30~05:29)</option>
-                            <option value="06">묘/卯 (05:30~07:29)</option>
-                            <option value="08">진/辰 (07:30~09:29)</option>
-                            <option value="10">사/巳 (09:30~11:29)</option>
-                            <option value="12">오/午 (11:30~13:29)</option>
-                            <option value="14">미/未 (13:30~15:29)</option>
-                            <option value="16">신/申 (15:30~17:29)</option>
-                            <option value="18">유/酉 (17:30~19:29)</option>
-                            <option value="20">술/戌 (19:30~21:29)</option>
-                            <option value="22">해/亥 (21:30~23:29)</option>
-                            <option value="24">야자/夜子 (23:30~23:59)</option>
-                        </select>
-                    </div>
-                    <div class="w-full mt-24 mb-8 pl-4 pr-4">
-                        <button id="submitBtn" type="button" onclick="submitTightForm();"
-                                class="w-full py-4 rounded-full text-sm font-bold text-gray-900 tracking-wide
-    bg-gradient-to-b from-gray-100 to-gray-300 border border-gray-300 shadow-md shadow-inner hover:from-gray-200 hover:to-gray-400">
-                            다음으로
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+    <!-- 🔒 실제 서버로 전송되는 input (기존 name 유지) -->
+    <input type="hidden" name="name">
+    <input type="hidden" name="birthdate">
+    <!-- birthTime은 select에 그대로 name 사용 -->
+
+    <div class="question-text">
+      <div class="q-title"></div>
+      <div class="q-desc"></div>
     </div>
+
+    <div class="answer-area"></div>
+
+    <button type="button" class="next-btn" id="nextBtn">다음으로</button>
+
+  </form>
 </div>
-</body>
+
 <script>
+/* ===============================
+   질문 정의 (UI만 제어)
+   🔒 key는 서버 전송용 name과 매핑
+================================ */
+const steps = [
+  {
+    key: "name",
+    title: "먼저, 어떻게 불러드리면 될까요?",
+    desc: "편하게 사용할 이름이면 됩니다.",
+    render: () => `
+      <input type="text" placeholder="이름을 입력해주세요">
+    `,
+    validate: () => {
+      const v = document.querySelector('.answer-area input').value.trim();
+      if (!v) return false;
+      document.querySelector('input[name="name"]').value = v;
+      return true;
+    }
+  },
+  {
+    key: "gender",
+    title: "성별을 알려주세요",
+    desc: "성별에 따라 해석 기준이 달라집니다.",
+    render: () => `
+      <div class="select-row">
+        <button type="button" class="select-btn" data-value="남성">남성</button>
+        <button type="button" class="select-btn" data-value="여성">여성</button>
+      </div>
+    `,
+    validate: () => {
+      return !!document.getElementById('genderInput').value;
+    }
+  },
+  {
+    key: "birthdate",
+    title: "태어난 날을 알려주세요",
+    desc: "YYYYMMDD 형식으로 입력해주세요.",
+    render: () => `
+      <input type="text" maxlength="8" placeholder="예) 19940517">
+    `,
+    validate: () => {
+      const v = document.querySelector('.answer-area input').value.trim();
+      if (!/^\d{8}$/.test(v)) return false;
+      document.querySelector('input[name="birthdate"]').value = v;
+      return true;
+    }
+  },
+  {
+    key: "birthTime",
+    title: "태어난 시를 알고 계신가요?",
+    desc: "모르셔도 괜찮습니다.",
+    render: () => `
+      <select name="birthTime">
+        <option value="99">모름</option>
+        <option value="00">조자 (00:00~01:29)</option>
+        <option value="02">축 (01:30~03:29)</option>
+        <option value="04">인 (03:30~05:29)</option>
+        <option value="06">묘 (05:30~07:29)</option>
+        <option value="08">진 (07:30~09:29)</option>
+        <option value="10">사 (09:30~11:29)</option>
+        <option value="12">오 (11:30~13:29)</option>
+        <option value="14">미 (13:30~15:29)</option>
+        <option value="16">신 (15:30~17:29)</option>
+        <option value="18">유 (17:30~19:29)</option>
+        <option value="20">술 (19:30~21:29)</option>
+        <option value="22">해 (21:30~23:29)</option>
+        <option value="24">야자 (23:30~23:59)</option>
+      </select>
+    `,
+    validate: () => true
+  }
+];
 
-  $(document).ready(function() {
-    /* 성별 버튼 */
-    $(".gender-btn").on("click", function() {
-      $(".gender-btn").removeClass("active");
-      $(this).addClass("active");
-      $("#genderInput").val($(this).val());
-    })
-    ;
+let stepIndex = 0;
 
-    /* 양/음력 select 동기화 */
-    $('#birthTypeInputSelect').on('change', function() {
-      $('#birthTypeInput').val(this.value);
-    }).trigger('change');
+const qTitle = document.querySelector('.q-title');
+const qDesc = document.querySelector('.q-desc');
+const answerArea = document.querySelector('.answer-area');
+const nextBtn = document.getElementById('nextBtn');
+
+function renderStep() {
+  const step = steps[stepIndex];
+  qTitle.textContent = step.title;
+  qDesc.textContent = step.desc || '';
+  answerArea.innerHTML = step.render();
+
+  document.querySelectorAll('.select-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.select-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('genderInput').value = btn.dataset.value;
+    };
   });
 
-  const submitTightForm = () => {
-    const data = {
-      name: $("input[name='name']").val()?.trim(),
-      gender: $("#genderInput").val(),
-      birthdate: $("input[name='birthdate']").val()?.trim(),
-      birthTime: $("select[name='birthTime']").val(),
-      birthType: $("#birthTypeInput").val()
-    };
+  nextBtn.textContent = stepIndex === steps.length - 1
+    ? '기록을 시작합니다'
+    : '다음으로';
+}
 
-    const isValidBirthdate = /^\d{8}$/.test(data.birthdate);
+nextBtn.onclick = () => {
+  if (!steps[stepIndex].validate()) {
+    alert('값을 입력해주세요.');
+    return;
+  }
 
-    if (!data.name || !data.gender || !isValidBirthdate || !data.birthTime) {
-      alert("입력값을 모두 입력해주세요.");
-      return false;
-    }
+  if (stepIndex < steps.length - 1) {
+    stepIndex++;
+    renderStep();
+  } else {
+    document.getElementById('sajuForm').submit();
+  }
+};
 
-    // Show loading and prevent double submit
-    $('#loading').removeClass('hidden');
-    $('#submitBtn').prop('disabled', true).css('opacity', 0.6);
-
-    $('#loading-title').text(`${data.name}님의 사주를 분석중입니다`);
-
-    try { fbq('track', 'CompleteRegistration'); } catch (e) {}
-    // Submit the form (no AJAX)
-    $('#sajuForm').trigger('submit');
-  };
+renderStep();
 </script>
+
+</body>
 </html>
