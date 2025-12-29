@@ -3,342 +3,207 @@
 
 <%- include('./../common/header') %>
 
-  <!-- 포커스 시 border/outline 제거 -->
-  <style>
-    input:focus {
-      outline: none !important;
-      box-shadow: none !important;
-    }
+    <body>
 
-    input[type="checkbox"] {
-      accent-color: #c37474 !important;
-    }
-  </style>
+        <div class="w-full max-w-[480px] mx-auto">
+            <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
 
-  <body>
-    <div class="w-full max-w-[480px] mx-auto">
-      <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+                <%- include('./../common/common') %>
 
-        <%- include('./../common/common') %>
+                    <div class="max-w-md w-full sm:border-x text-left bg-white">
 
-          <!-- STEP FLOW -->
-          <div class="max-w-md w-full sm:border-x text-left bg-white" x-data="{
-          step: 1,
-          tel: '010',
-          pwDigits: ['', '', '', ''],
-          get pw () { return this.pwDigits.join(''); },
-          get maskedPw () { return this.pw ? this.pw.slice(0,2) + 'xx' : ''; },
+                        <!-- 네비게이션 헤더 -->
+                        <div class="flex items-center justify-center border-b relative py-3">
+                            <a href="/s/bluemoonladysaju/result" class="absolute left-4">
+                                <svg class="w-5 h-5 text-gray-800" viewBox="0 0 1024 1024" fill="currentColor">
+                                    <!-- SVG PATH 생략 가능 -->
+                                </svg>
+                            </a>
+                            <h2 class="text-lg font-bold">결제하기</h2>
+                        </div>
 
-          handleTelInput($event) {
-            this.tel = $event.target.value.replace(/[^0-9]/g,'').slice(0,11);
-            $event.target.value = this.tel;
+                        <div class="relative w-full max-w-[448px]">
+                            <img src="/assets/images/tight/payment_banner_1.png" class="w-full h-auto object-cover" />
+                        </div>
 
-            if (this.tel.length === 11) {
-              this.step = 2;
-              setTimeout(() => document.querySelector('#pw-box-0')?.focus(), 0);
-            }
-          },
+                        <!-- 결제 폼 -->
+                        <div class="p-6 space-y-6">
 
-          handlePwInput($event, index) {
-            const digit = $event.target.value.replace(/[^0-9]/g,'').slice(0,1);
-            this.pwDigits[index] = digit;
-            $event.target.value = digit;
-
-            if (digit && index < 3) {
-              $event.target.nextElementSibling?.focus();
-            }
-
-            if (this.pw.length === 4) {
-              this.step = 3;
-            }
-          },
-
-          handlePwKeydown($event, index) {
-            if ($event.key !== 'Backspace') return;
-
-            $event.preventDefault(); // 기본 동작 막기
-
-            if (this.pwDigits[index]) {
-              this.pwDigits[index] = '';
-              $event.target.value = '';
-              return;
-            }
-
-            if (index > 0) {
-              const prevIndex = index - 1;
-              this.pwDigits[prevIndex] = '';
-              const prevEl = document.querySelector(`#pw-box-${prevIndex}`);
-              if (prevEl) {
-                prevEl.value = '';
-                prevEl.focus();
-              }
-            }
-          },
-
-          // 🔙 휴대폰 번호 단계로 돌아갈 때: 전화번호 리셋
-          goBackToTel() {
-            this.tel = '010';          // 상태 리셋
-            this.step = 1;
-            setTimeout(() => {
-              const el = document.querySelector('#tel-input');
-              if (!el) return;
-              el.value = this.tel;     // DOM 값도 맞춰주고
-              const len = el.value.length;
-              el.focus();
-              el.setSelectionRange(len, len);
-            }, 0);
-          },
-
-          // 🔙 비밀번호 단계로 돌아갈 때: 비밀번호 4자리 리셋
-          goBackToPw() {
-            this.pwDigits = ['', '', '', '']; // 상태 리셋
-            this.step = 2;
-            setTimeout(() => {
-              // 실제 인풋 value도 비워주기
-              for (let i = 0; i < 4; i++) {
-                const box = document.querySelector('#pw-box-' + i);
-                if (box) box.value = '';
-              }
-              document.querySelector('#pw-box-0')?.focus();
-            }, 0);
-          }
-        }">
-            <!-- 상단 헤더 -->
-            <div class="flex items-center justify-center border-b relative py-3">
-              <!-- 뒤로가기 버튼 -->
-              <button type="button" class="absolute left-4 flex items-center justify-center" x-on:click="
-                if (step === 1) {
-                  history.back();
-                } else if (step === 2) {
-                  goBackToTel();
-                } else {
-                  goBackToPw();
-                }
-              ">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 1024 1024">
-                  <path
-                    d="M724 218.3V141c0-6.7-7.7-10.4-12.9-6.3L260.3 486.8c-16.4 12.8-16.4 37.5 0 50.3l450.8 352.1c5.3 4.1 12.9.4 12.9-6.3v-77.3c0-4.9-2.3-9.6-6.1-12.6l-360-281 360-281c3.9-3 6.1-7.7 6.1-12.6z"
-                    fill="#111827" />
-                </svg>
-              </button>
-
-              <h2 class="text-lg font-bold">결제하기</h2>
-            </div>
-
-            <div class="p-6 space-y-8 pt-0 pb-10" style="min-height: 500px;">
-
-              <!-- STEP 1 : 휴대폰 번호 -->
-              <div x-show="step === 1">
-                <p class="text-xl font-bold text-center mt-8" style="color: #9b2e2e;">휴대폰 번호</p>
-                <p class="text-xs text-gray-600 mt-3 text-center">
-                  사주 결과 확인 및 안내 메시지 발송에 이용됩니다.
-                </p>
-                <div class="flex justify-center mt-10">
-                  <div class="border-b border-gray-400 pb-2" style="width: 250px;">
-                    <input id="tel-input" type="tel" maxlength="11" inputmode="numeric"
-                      class="w-full text-2xl bg-transparent focus:outline-none focus:ring-0 transition-all duration-200"
-                      x-on:input="handleTelInput($event)" x-model="tel" style="margin-left: 45px;" />
-                  </div>
-                </div>
-
-                <p class="mt-6 text-xs text-center text-gray-400">
-                  숫자 11자리를 모두 입력하면 다음 단계로 자동 이동합니다.
-                </p>
-              </div>
-
-              <!-- STEP 2 : 비밀번호 -->
-              <div x-show="step === 2">
-                <p class="text-xl font-bold text-center text-[#9b2e2e] mt-0" style="color: #9b2e2e;">비밀번호</p>
-                <p class="text-xs text-gray-600 mt-3 text-center">
-                  사주 결과를 열람할 때 이용됩니다. (숫자 4자리)
-                </p>
-
-                <div class="flex gap-3 mt-8 justify-center">
-                  <template x-for="i in 4" :key="i">
-                    <input :id="`pw-box-${i-1}`" type="password" maxlength="1" inputmode="numeric"
-                      class="w-12 h-12 border border-gray-300 rounded text-center text-2xl focus:outline-none"
-                      x-on:input="handlePwInput($event, i-1)" x-on:keydown="handlePwKeydown($event, i-1)" />
-                  </template>
-                </div>
-
-                <p class="mt-6 text-xs text-center text-gray-400">
-                  숫자 4자리를 모두 입력하면 확인/결제 단계로 자동 이동합니다.
-                </p>
-              </div>
-
-              <!-- STEP 3 : 확인 / 결제 -->
-              <div x-show="step === 3">
-                <p class="text-xl font-bold text-center text-[#9b2e2e] mb-6" style="color: #9b2e2e;">확인 / 결제</p>
-
-                <!-- 요약 카드 -->
-                <div class="space-y-3">
-                  <div class="bg-gray-50 border rounded-lg p-3 pt-4 pl-4">
-                    <p class="text-xs font-semibold text-gray-500 mb-1">휴대폰 번호</p>
-                    <p class="text-base font-medium" x-text="tel"></p>
-                  </div>
-                  <div class="bg-gray-50 border rounded-lg p-3 pt-4 pl-4" style="margin-bottom: 16px;">
-                    <p class="text-xs font-semibold text-gray-500 mb-1">비밀번호</p>
-                    <p class="text-base font-medium" x-text="maskedPw"></p>
-                  </div>
-                </div>
-
-                <!-- 금액 요약 -->
-                <div class="pt-5 border-t border-gray-200 space-y-4" style="padding-top: 16px;">
-                  <div class="flex justify-between">
-                    <p>
-                      <%= goodsInfo.title.toLocaleString(); %>
-                    </p>
-                    <p>
-                      <%= goodsInfo.originalPrice.toLocaleString(); %>원
-                    </p>
-                  </div>
-                  <div class="flex justify-between text-[#ae6666] font-pretendard-regular" style="color: #ae6666;">
-                    <p style="color: #ae6666;">얼리버드 특별 할인</p>
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs bg-[#ae6666] text-white rounded-full px-2 h-5 flex items-center"
-                        style="background-color: #ae6666;">
-                        -<%= Math.floor((goodsInfo.discountPrice / goodsInfo.originalPrice) * 100) %>%
-                      </span>
-                      <span class="text-[#ae6666]">-<%= goodsInfo.discountPrice.toLocaleString(); %>원</span>
-                    </div>
-                  </div>
-                  <div class="flex justify-between font-bold pt-4 border-t border-gray-300">
-                    <p>최종 결제금액</p>
-                    <p class="text-xl">
-                      <%= goodsInfo.price.toLocaleString(); %>원
-                    </p>
-                  </div>
-                </div>
-
-                <!-- 결제 수단 버튼 -->
-                <div class="mt-10 space-y-3">
-                  <button onclick="validateAndSubmit('easypay')"
-                    class="w-full bg-[#8f5555] text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center gap-2"
-                    style="background-color: #8f5555;">
-                    <span>카드 결제</span>
-                    <span class="flex items-center gap-2">
-                      <!-- <img src="/assets/images/common/kpay_logo.png" alt="KPay"
-                                            style="height:1em; width:auto;" class="align-middle pointer-events-none" /> -->
-                      <!-- <img src="/assets/images/common/npay_logo.svg" alt="NPay"
-                                            style="height:1em; width:auto;" class="align-middle pointer-events-none" /> -->
-                    </span>
-                  </button>
-                </div>
-                <div class="mt-10 space-y-3" style="margin-top: 12px;">
-                  <button onclick="validateAndSubmit('kakakopay')"
-                    class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center"
-                    style="background-color: #FFEB00;">
-                    <span class="flex items-center gap-2">
-                      <img src="/assets/images/payment_icon_yellow_large.png" alt="KPay"
-                        style="height:1.5em; width:auto;" class="align-middle pointer-events-none" />
-                    </span>
-                    <span style="color: black; margin-right: 20px; margin-bottom: 1.5px;">결제</span>
-                  </button>
-                </div>
-
-                <!-- <button type="button" class="w-full text-sm text-gray-500 underline" x-on:click="goBackToPw()">
-                  ← 비밀번호 다시 입력
-                </button> -->
-
-              <!-- 동의 영역들 (기존 그대로) -->
-              <div x-data="{ show: false }" class="my-4 text-sm">
-                <div class="flex items-center cursor-pointer" @click="show = !show">
-                  <input type="checkbox" id="privacyAgreeCheckboxId" class="w-4 h-4 mr-2" checked />
-                  <span class="font-pretendard-regular">개인정보 이용 동의</span>
-                  <span class="ml-2 underline text-gray-400">자세히 보기</span>
-                </div>
-
-                <div x-show="show" x-collapse style="display: none;"
-                  class="mt-3 border p-5 rounded bg-gray-50 leading-relaxed">
-                  <p>
-                    프리미엄 운세 컨텐츠 개인정보 수집 및 이용 안내<br>
-                    1. 수집항목 : 이름, 휴대폰번호, 성별, 생년월일, 태어난시간<br><br>
-                    2. 개인정보의 수집 목적<br>
-                    - 운세 컨텐츠 제공 및 다시보기<br>
-                    - 오류문의 등 고객지원 및 운영<br>
-                    - 컨텐츠 발송 및 안내<br>
-                    - 쿠폰 및 컨텐츠 소멸 및 안내<br><br>
-                    3. 개인정보의 보유 및 이용 기간<br>
-                    - 운세 콘텐츠 제공 및 고객지원: 30일<br>
-                    - 운세 다시보기 서비스 제공: 30일 (휴대폰번호 및 비밀번호를 통한 인증)<br>
-                    - 서비스 품질 개선 및 고객 관리 목적: 최대 5년 보관 후 파기<br>
-                    - 쿠폰 및 컨텐츠의 소멸 안내: 최대 5년 보관 후 파기<br><br>
-                    ※ 개인정보 수집 및 이용에 대해서는 거부 할 수 있으며, 거부 시에는 서비스 이용이 불가능해요.<br>
-                    ※ 개인정보 보유기간 종료 후에는 정보가 즉시 파기되어 다시보기가 불가능해요.
-                  </p>
-                </div>
-              </div>
-
-              <div x-data="{ show: false }" class="my-4 text-sm">
-                <div class="flex items-center cursor-pointer" @click="show = !show">
-                  <input type="checkbox" id="paymentAgreeCheckboxId" class="w-4 h-4 mr-2" checked />
-                  <span class="font-pretendard-regular">결제 진행 동의</span>
-                  <span class="ml-2 underline text-gray-400">자세히 보기</span>
-                </div>
-
-                <div x-show="show" x-collapse style="display: none;"
-                  class="mt-3 border p-5 rounded bg-gray-50 leading-relaxed">
-                  <p>
-                    ○ 구매하신 운세서비스의 유료결과 다시보기는 구매일로부터 30일 동안 이용하실 수 있어요.<br>
-                    ○ 프리미엄 운세는 구매 즉시 사용이 시작되거나 서비스에 즉시 적용되는 디지털 콘텐츠로,<br>
-                    &nbsp;&nbsp;「전자상거래법 제17조 제2항 제1호」에 따라 청약 철회가 제한돼요.<br>
-                    ○ 사주 운세 서비스 이용 중 오류 발생시, 고객센터로 해당 내용을 전달해 주시면 처리해 드려요.
-                  </p>
-                </div>
-              </div>
+                            <!-- 휴대폰 번호 입력 -->
+                            <div>
+                                <p class="text-lg font-bold">휴대폰 번호</p>
+                                <p class="text-xs text-gray-600 mt-1">사주 결과 확인 및 안내 메시지 발송에 이용됩니다.</p>
+                                <div class="flex gap-2 mt-2">
+                                    <select class="w-1/4 border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50"
+                                        disabled>
+                                        <option>010</option>
+                                    </select>
+                                    <input type="tel" name="buyerTelF" maxlength="4"
+                                        class="w-1/4 border rounded px-2 py-1 text-sm" />
+                                    <input type="tel" name="buyerTelB" maxlength="4"
+                                        class="w-1/4 border rounded px-2 py-1 text-sm" />
+                                </div>
                             </div>
 
+                            <!-- 비밀번호 -->
+                            <div>
+                                <p class="text-lg font-bold mt-6">비밀번호 <span class="text-xs">(숫자 4자리)</span></p>
+                                <input type="password" name="buyerPW" maxlength="4"
+                                    class="w-full border rounded px-2 py-1 mt-2 text-sm" />
+                            </div>
+
+                            <!-- 결제 내역 -->
+                            <div class="pt-8 border-t border-gray-200 space-y-4">
+                                <div class="flex justify-between">
+                                    <p>
+                                        <%= goodsInfo.title.toLocaleString(); %>
+                                    </p>
+                                    <p>
+                                        <%= goodsInfo.originalPrice.toLocaleString(); %>원
+                                    </p>
+                                </div>
+                                <div class="flex justify-between text-blue-600 font-pretendard-regular">
+                                    <p>얼리버드 특별 할인</p>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-xs bg-blue-600 text-white rounded-full px-2 h-5 flex items-center">
+                                            -<%= Math.floor((goodsInfo.discountPrice / goodsInfo.originalPrice) * 100)
+                                                %>%
+                                        </span>
+                                        <span>-<%= goodsInfo.discountPrice.toLocaleString(); %>원</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between font-bold pt-4 border-t border-gray-300">
+                                    <p>최종 결제금액</p>
+                                    <p class="text-xl">
+                                        <%= goodsInfo.price.toLocaleString(); %>원
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- 결제 수단 버튼 -->
+                            <div class="mt-10 space-y-3">
+                                <button onclick="validateAndSubmit('easypay')"
+                                    class="w-full bg-bluePrimary text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center gap-2">
+                                    <span>카드 결제</span>
+                                    <span class="flex items-center gap-2">
+                                        <!-- <img src="/assets/images/common/kpay_logo.png" alt="KPay"
+                                            style="height:1em; width:auto;" class="align-middle pointer-events-none" /> -->
+                                        <!-- <img src="/assets/images/common/npay_logo.svg" alt="NPay"
+                                            style="height:1em; width:auto;" class="align-middle pointer-events-none" /> -->
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="mt-10 space-y-3" style="margin-top: 12px;">
+                                <button onclick="validateAndSubmit('kakakopay')"
+                                    class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center"
+                                    style="background-color: #FFEB00;">
+                                    <span class="flex items-center gap-2">
+                                        <img src="/assets/images/payment_icon_yellow_large.png" alt="KPay"
+                                            style="height:1.5em; width:auto;"
+                                            class="align-middle pointer-events-none" />
+                                    </span>
+                                    <span style="color: black; margin-right: 20px; margin-bottom: 1.5px;">결제</span>
+                                </button>
+                            </div>
+
+
+                            <!-- 체크박스 -->
+                            <!-- 개인정보 수집 동의 -->
+                            <div x-data="{ show: false }" class="my-4 text-sm">
+                                <div class="flex items-center cursor-pointer" @click="show = !show">
+                                    <input type="checkbox" class="w-4 h-4 mr-2" checked />
+                                    <span class="font-pretendard-regular">개인정보 이용 동의</span>
+                                    <span class="ml-2 underline text-gray-400">자세히 보기</span>
+                                </div>
+
+                                <div x-show="show" x-collapse
+                                    class="mt-3 border p-5 rounded bg-gray-50 leading-relaxed">
+                                    <p>
+                                        프리미엄 운세 컨텐츠 개인정보 수집 및 이용 안내<br>
+                                        <!--                        회사는 고객님의 개인정보를 소중히 관리하며, 개인정보보호 관련 법령을 준수하여 아래와 같이 처리합니다.<br><br>-->
+
+                                        1. 수집항목 : 이름, 휴대폰번호, 성별, 생년월일, 태어난시간<br><br>
+                                        2. 개인정보의 수집 목적<br>
+                                        - 운세 컨텐츠 제공 및 다시보기<br>
+                                        - 오류문의 등 고객지원 및 운영<br>
+                                        - 컨텐츠 발송 및 안내<br>
+                                        - 쿠폰 및 컨텐츠 소멸 및 안내<br><br>
+                                        3. 개인정보의 보유 및 이용 기간<br>
+                                        - 운세 콘텐츠 제공 및 고객지원: 30일<br>
+                                        - 운세 다시보기 서비스 제공: 30일 (휴대폰번호 및 비밀번호를 통한 인증)<br>
+                                        - 서비스 품질 개선 및 고객 관리 목적: 최대 5년 보관 후 파기<br>
+                                        - 쿠폰 및 컨텐츠의 소멸 안내: 최대 5년 보관 후 파기<br><br>
+
+                                        ※ 개인정보 수집 및 이용에 대해서는 거부 할 수 있으며, 거부 시에는 서비스 이용이 불가능해요.<br>
+                                        ※ 개인정보 보유기간 종료 후에는 정보가 즉시 파기되어 다시보기가 불가능해요.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- 결제 동의 -->
+                            <div x-data="{ show: false }" class="my-4 text-sm">
+                                <div class="flex items-center cursor-pointer" @click="show = !show">
+                                    <input type="checkbox" class="w-4 h-4 mr-2" checked />
+                                    <span class="font-pretendard-regular">결제 진행 동의</span>
+                                    <span class="ml-2 underline text-gray-400">자세히 보기</span>
+                                </div>
+
+                                <div x-show="show" x-collapse
+                                    class="mt-3 border p-5 rounded bg-gray-50 leading-relaxed">
+                                    <p>
+                                        ○ 구매하신 운세서비스의 유료결과 다시보기는 구매일로부터 30일 동안 이용하실 수 있어요.<br>
+                                        ○ 프리미엄 운세는 구매 즉시 사용이 시작되거나 서비스에 즉시 적용되는 디지털 콘텐츠로,<br>
+                                        &nbsp;&nbsp;「전자상거래법 제17조 제2항 제1호」에 따라 청약 철회가 제한돼요.<br>
+                                        ○ 사주 운세 서비스 이용 중 오류 발생시, 고객센터로 해당 내용을 전달해 주시면 처리해 드려요.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="relative w-full max-w-[448px] pt-16">
+                                <img src="/assets/images/tight/payment_banner_2.png"
+                                    class="w-full h-auto object-cover" />
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <%- include('./../common/footer') %>
             </div>
-            <!-- /STEP 3 -->
+        </div>
+    </body>
 
-            <!-- Alpine 상태를 validate에서 읽기 위한 hidden -->
-            <input type="hidden" name="buyerTel" x-model="tel">
-            <input type="hidden" name="buyerPW" :value="pw">
-          </div>
-      </div>
+    <script>
+        function validateAndSubmit(pay) {
+            const telF = document.querySelector("input[name=\"buyerTelF\"]").value.trim();
+            const telB = document.querySelector("input[name=\"buyerTelB\"]").value.trim();
+            const pw = document.querySelector("input[name=\"buyerPW\"]").value.trim();
+            let payMethod;
+            if (pay === "easypay") {
+                payMethod = "EASYPAY";
+            } else if (pay === "kakakopay") {
+                payMethod = "KAKAOPAY"
+            }
 
-      <%- include('./../common/footer') %>
-    </div>
-    </div>
-  </body>
+            if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB)) {
+                alert("휴대폰 번호를 정확히 입력해 주세요 (4자리씩)");
+                return;
+            }
+            if (!/^\d{4}$/.test(pw)) {
+                alert("비밀번호는 숫자 4자리로 입력해 주세요");
+                return;
+            }
 
-  <script>
-    function validateAndSubmit(pay) {
-      const tel = document.querySelector('input[name="buyerTel"]').value.trim();
-      const pw = document.querySelector("input[name=\"buyerPW\"]").value.trim();
-      let payMethod;
-      if (pay === "easypay") {
-        payMethod = "EASYPAY";
-      } else if (pay === "kakakopay") {
-        payMethod = "KAKAOPAY"
-      }
+            const data = {
+                userTelNo: `010${telF}${telB}`,
+                userPw: pw,
+                payMethod: payMethod,
+                reportHistoryId: "<%= reportHistoryId %>"
+            };
+            requestRegisterPayment(data);
 
-      if (!/^\d{11}$/.test(tel)) {
-        alert('휴대폰 번호를 정확히 입력해 주세요 (숫자 11자리)');
-        return;
-      }
-      if (!/^\d{4}$/.test(pw)) {
-        alert('비밀번호는 숫자 4자리로 입력해 주세요');
-        return;
-      }
-
-      const privacyAgree = document.querySelector('#privacyAgreeCheckboxId')?.checked;
-      const paymentAgree = document.querySelector('#paymentAgreeCheckboxId')?.checked;
-      if (!privacyAgree || !paymentAgree) {
-        alert('개인정보 이용 동의 및 결제 진행 동의에 체크해주세요.');
-        return;
-      }
-
-      const data = {
-        userTelNo: tel,
-        userPw: pw,
-        payMethod: payMethod,
-        reportHistoryId: "<%= reportHistoryId %>"
-      };
-      requestRegisterPayment(data);
-
-      fbq("track", "InitiateCheckout");
-    }
-  </script>
+            fbq("track", "InitiateCheckout");
+        }
+    </script>
 
 </html>
