@@ -239,10 +239,10 @@ router.get("/payment_success", async (req, res) => {
      */
     if (pg_token) {
       // DB 또는 세션에서 tid 가져오기
-      const tid = paymentInfo.tid || req.session?.kakaoPay?.tid;
-      if (!tid) {
-        return res.status(400).send("KakaoPay TID not found");
-      }
+const tid = paymentInfo.tid;
+if (!tid) {
+  throw new Error("KakaoPay TID not found in DB");
+}
 
       // 🔥 카카오페이 승인 API 호출
       const approveResult = await KakaoPayClient.requestApprove({

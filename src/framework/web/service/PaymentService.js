@@ -158,10 +158,9 @@ class PaymentService {
     const kakaoRes = await KakaoPayClient.requestReady(readyPayload, domain);
 
     // 🔥 DB 저장 안 하고 세션에 저장
-    req.session.kakaoPay = {
-      shopOrderNo,
-      tid: kakaoRes.tid
-    };
+    await PaymentTransactionRepository.updateByShopOrderNo(shopOrderNo, {
+  tid: kakaoRes.tid
+});
 
     let redirectUrl =
       paymentDto.deviceType === "mobile"
