@@ -126,6 +126,10 @@ const PaymentTransaction = sequelize.define("PaymentTransaction", {
     defaultValue: DataTypes.NOW,
     comment: "수정 시각",
   },
+  tid: {
+  type: DataTypes.STRING,
+  allowNull: true,
+},
 }, {
   tableName: "PAYMENT_TRANSACTION",
   underscored: true,
