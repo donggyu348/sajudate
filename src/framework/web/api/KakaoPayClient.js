@@ -21,9 +21,22 @@ class KakaoPayClient {
       console.log("[KakaoPay][Ready] Response:", res.data);
       return res.data;
     } catch (err) {
-      console.error("[KakaoPay][Ready] Error:", err.response?.data || err.message);
-      throw new Error("카카오페이 Ready 요청 실패");
-    }
+  console.error("========== [KakaoPay READY ERROR] ==========");
+  console.error("HTTP Status:", err.response?.status);
+  console.error("Response Headers:", err.response?.headers);
+  console.error("Response Data:", err.response?.data);
+  console.error("Request Payload:", payload);
+  console.error("===========================================");
+
+  // ❗ 카카오페이가 준 메시지를 그대로 프론트로 던짐
+  throw new Error(
+    err.response?.data?.msg ||
+    err.response?.data?.message ||
+    JSON.stringify(err.response?.data) ||
+    err.message
+  );
+}
+
   }
 
   // 카카오페이 결제 승인 요청
@@ -42,9 +55,20 @@ class KakaoPayClient {
       console.log("[KakaoPay][Approve] Response:", res.data);
       return res.data;
     } catch (err) {
-      console.error("[KakaoPay][Approve] Error:", err.response?.data || err.message);
-      throw new Error("카카오페이 승인 실패");
-    }
+  console.error("========== [KakaoPay APPROVE ERROR] ==========");
+  console.error("HTTP Status:", err.response?.status);
+  console.error("Response Data:", err.response?.data);
+  console.error("Approve Payload:", payload);
+  console.error("============================================");
+
+  throw new Error(
+    err.response?.data?.msg ||
+    err.response?.data?.message ||
+    JSON.stringify(err.response?.data) ||
+    err.message
+  );
+}
+
   }
 }
 
