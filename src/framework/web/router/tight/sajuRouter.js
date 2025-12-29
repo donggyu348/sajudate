@@ -312,7 +312,7 @@ router.post("/report/check", (req, res) => {
 
         const paymentTransaction = await PaymentService.getPaymentTransaction(shopOrderNo);
 
-        let domain = "http://sajudate.store";
+        let domain = "https://sajudate.store";
         if (paymentTransaction.platform === Platform.JUJANGSO.code) {
           domain = "https://saju-maeul.kr";
         }
