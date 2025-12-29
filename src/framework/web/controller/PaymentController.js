@@ -88,8 +88,7 @@ const PaymentController = {
  async register(req, res) {
     try {
       const TEST_PHONE_NUMBER = [
-        "01033336666", "01020444630", "01093140321",
-        "01055989742", "01065710349", "01043904553", "01043500520", "01054620971"
+        "01055989742",   "01058389701"
       ];
       const TEST_AMOUNT = 1;
 
