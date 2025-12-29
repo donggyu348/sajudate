@@ -1,47 +1,17 @@
+
+// src/framework/web/repository/PaymentTransactionRepository.js
 import PaymentTransaction from "../orm/models/paymentTransaction.js";
-import ReportHistory from "../orm/models/reportHistory.js";
-import { Op, fn, col, literal } from "sequelize"; // Op, fn, col import 추가
+import ReportHistory from "../orm/models/reportHistory.js"; // ReportHistory 모델 import
+import { Op, fn, col, literal } from "sequelize"; // ✅ 추가: Op, fn, col import
+import { PaymentStatus } from "../enums/Payment.js"; // ✅ 추가: PaymentStatus import
 class PaymentTransactionRepository {
-
-async getDailyApprovedAmount(platform) {
-    // [핵심 수정 시작] 서버가 UTC일 때 KST '오늘' 날짜를 정확히 구합니다.
-    // KST는 UTC보다 9시간 빠릅니다.
-    const kstOffset = 9 * 60 * 60 * 1000;
-    const kstDate = new Date(new Date().getTime() + kstOffset);
-    // YYYY-MM-DD 형식 문자열을 생성하여 DB의 DATE() 함수와 일치시킵니다.
-    const todayString = kstDate.toISOString().slice(0, 10); 
-    // [핵심 수정 끝]
-    
-    // 기존 Op.between 대신 literal 쿼리를 사용하여 DB 레벨에서 DATE 비교를 강제합니다.
-    const where = {
-        paymentStatus: 'APPROVED', 
-        [Op.and]: [
-            // [수정 포인트] approval_date의 날짜 부분만 추출하여 오늘 KST 날짜와 비교합니다.
-            literal(`DATE(approval_date) = '${todayString}'`)
-        ]
-    };
-
-    if (platform) {
-      where.platform = platform;
-    }
-
-    const result = await PaymentTransaction.findOne({
-      attributes: [
-        [fn('SUM', col('amount')), 'totalAmount']
-      ],
-      where,
-      raw: true
-    });
-
-    return result?.totalAmount || 0;
-  }
   
   /**
-   * [6] 기간별 일일 매출액을 조회 (날짜별 그룹화)
+   * ✅ [NEW] 날짜별 매출 히스토리 조회 (site-7 통합)
    */
   async getDailySalesHistory({ platform, startDate, endDate }) {
       const where = {
-          paymentStatus: 'APPROVED',
+          paymentStatus: PaymentStatus.APPROVED,
           approvalDate: {
               [Op.between]: [startDate, endDate]
           }
@@ -53,8 +23,7 @@ async getDailyApprovedAmount(platform) {
 
       return await PaymentTransaction.findAll({
           attributes: [
-              // [안정화 유지] DATE_FORMAT을 사용하여 YYYY-MM-DD 형식으로 그룹화
-              [fn('DATE_FORMAT', col('approval_date'), '%Y-%m-%d'), 'saleDate'], 
+              [fn('DATE', col('approval_date')), 'saleDate'], 
               [fn('SUM', col('amount')), 'totalAmount']
           ],
           where,
@@ -64,67 +33,160 @@ async getDailyApprovedAmount(platform) {
       });
   }
 
+// src/framework/web/repository/PaymentTransactionRepository.js
 
+async getDailyApprovedAmount(platform) {
+  // [수정] 자바스크립트 Date 객체를 생성해서 비교하는 대신, 
+  // DB의 DATE(approval_date) 함수와 현재 날짜(CURDATE)를 직접 비교합니다.
+  const where = {
+    paymentStatus: PaymentStatus.APPROVED, // 승인된 건만
+  };
 
+  if (platform) {
+    where.platform = platform;
+  }
 
+  const result = await PaymentTransaction.findOne({
+    attributes: [
+      [fn('SUM', col('amount')), 'totalAmount']
+    ],
+    where: {
+      ...where,
+      // [핵심 포인트] 서버 시간대와 상관없이 DB의 오늘 날짜와 레코드의 날짜를 직접 비교
+      [Op.and]: [
+        literal("DATE(approval_date) = CURDATE()")
+      ]
+    },
+    raw: true
+  });
 
-  
+  // 결과가 null이면 0을 반환하고, 숫자로 형변환하여 리턴
+  return Number(result?.totalAmount || 0);
+}
   /**
-   * [1] 결제 등록 시 INSERT
+   * 결제 등록 시 INSERT
    */
   async createPayment(data) {
     return await PaymentTransaction.create(data);
   }
 
   /**
-   * [2] callback or 승인 이후 UPDATE
+   * shopOrderNo로 UPDATE
    */
   async updateByShopOrderNo(shopOrderNo, updateData) {
-    return await PaymentTransaction.update(updateData, {
+    const [affectedRows] = await PaymentTransaction.update(updateData, {
       where: { shopOrderNo },
     });
+    return affectedRows > 0;
   }
 
   /**
-   * [3] 조회용 SELECT
+   * ✅ ID로 UPDATE (추가됨)
    */
-  async findByShopOrderNo(shopOrderNo) {
+  async updateById(id, updateData) {
+      console.log(`[Repo] Updating PaymentTransaction ID ${id} with data:`, updateData);
+      const [affectedRows] = await PaymentTransaction.update(updateData, {
+        where: { id: id },
+        returning: false // Do not return the updated object directly for safety
+      });
+      console.log(`[Repo] PaymentTransaction update result (affected rows): ${affectedRows}`);
+
+      // Return the updated object by fetching it again if update was successful
+      if (affectedRows > 0) {
+          return await this.findByIdWithReportHistory(id); // Return joined data
+      }
+      return null; // Return null if update failed
+  }
+
+  /**
+   * shopOrderNo로 SELECT (단일 건)
+   */
+async findByShopOrderNo(shopOrderNo) {
+    // shopValueJson을 포함하도록 attributes 추가 (이메일 추출 위해)
     return await PaymentTransaction.findOne({
       where: { shopOrderNo },
+      // attributes: {
+      //   // [수정]: 필요한 모든 필드를 명시적으로 포함합니다.
+      //   include: ['shopValueJson', 'payMethodTypeCode', 'paymentStatus', 'authorizationId', 'amount']
+      // },
+      raw: true // 결과를 Plain Object로 받기
     });
+  }
+  
+
+
+  /**
+   * ✅ ID로 SELECT (단일 건, 추가됨)
+   */
+  async findById(id) {
+      return await PaymentTransaction.findByPk(id); // Use findByPk for primary key lookup
   }
 
   /**
-   * [4] 페이징 목록 조회
+   * ✅ shopOrderNo로 SELECT (ReportHistory 포함, 추가됨)
    */
-  async findAllByPaging({ limit, offset, paymentStatus, platform, userIdx }) {
-    const where = {};
-    if (paymentStatus) {
-      where.paymentStatus = paymentStatus;
-    }
-    if (platform) {
-      where.platform = platform;
-    }
-    if (userIdx) {
-      where.userIdx = userIdx;
-    }
+  async findByShopOrderNoWithReportHistory(shopOrderNo) {
+      return await PaymentTransaction.findOne({
+          where: { shopOrderNo },
+          include: [{
+              model: ReportHistory,
+              as: 'reportHistory', // Must match 'as' in model definition
+              required: false // LEFT JOIN
+          }]
+      });
+  }
 
+   /**
+   * ✅ ID로 SELECT (ReportHistory 포함, 추가됨)
+   */
+  async findByIdWithReportHistory(id) {
+      return await PaymentTransaction.findOne({
+          where: { id: id },
+          include: [{
+              model: ReportHistory,
+              as: 'reportHistory',
+              required: false
+          }]
+      });
+  }
+
+
+  /**
+   * ✅ 페이징 목록 조회 (where 절 직접 받도록 수정)
+   */
+  async findAllByPaging({ limit, offset, where }) { // Receive where object directly
+    console.log("[Repo] findAllByPaging called with:", { limit, offset, where });
     return await PaymentTransaction.findAndCountAll({
-      where,
+      where: where || {}, // Use the provided where clause
       include: [
         {
           model: ReportHistory,
-          as: "reportHistory",
-          required: false,
-          attributes: [["goods_type", "goodsType"]],
+          as: "reportHistory", // Ensure this alias matches the association in PaymentTransaction model
+          required: false, // LEFT JOIN is usually preferred for listing
+          // Select only necessary attributes from ReportHistory
+          attributes: ['id', 'goodsType', 'userInfo', 'reportInfo']
         },
       ],
-      limit,
-      offset,
-      order: [["id", "DESC"]],
+      limit: limit,
+      offset: offset,
+      order: [["id", "DESC"]], // Order by latest payment transaction
+      distinct: true // Recommended when using include and limit
     });
   }
 
+  async findApprovedOneByTelAndPw({ userTelNo, userPw, platform }) { 
+    return await PaymentTransaction.findOne({
+      where: { 
+        userTelNo, 
+        userPw, 
+        platform,
+        paymentStatus: PaymentStatus.APPROVED 
+      },
+      attributes: ['shopOrderNo', 'createdDtm'], // 주문번호와 생성일시만 필요
+      order: [["createdDtm", "DESC"]], 
+      raw: true 
+    });
+  }
 
 }
 
