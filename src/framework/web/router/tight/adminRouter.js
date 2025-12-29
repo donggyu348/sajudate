@@ -16,7 +16,7 @@ router.post("/login", async (req, res) => {
     return res.status(400).json({ error: "아이디와 비밀번호는 필수입니다." });
   }
 
-  const result = await adminsService.login(Platform.JUJANGSO.code, email, password)
+  const result = await adminsService.login(Platform.TIGHT.code, email, password)
   if (result) {
     req.session.admin = { id: email }
     return res.status(200).json({ message: "로그인 성공" });
