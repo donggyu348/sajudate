@@ -246,7 +246,7 @@ router.get("/payment_success", async (req, res) => {
 
       // 🔥 카카오페이 승인 API 호출
       const approveResult = await KakaoPayClient.requestApprove({
-        cid: "CT10974949",
+        cid: "CT59746939",
         tid,
         partner_order_id: shopOrderNo,
         partner_user_id: `USER_${shopOrderNo}`,
