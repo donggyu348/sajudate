@@ -77,6 +77,12 @@ async getDailyApprovedAmount(platform) {
     const [affectedRows] = await PaymentTransaction.update(updateData, {
       where: { shopOrderNo },
     });
+      console.log(
+    "[updateByShopOrderNo]",
+    "shopOrderNo =", shopOrderNo,
+    "updateData =", updateData,
+    "affectedRows =", affectedRows
+  );
     return affectedRows > 0;
   }
 
