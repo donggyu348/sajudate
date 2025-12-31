@@ -40,21 +40,21 @@
     position:relative;
     width:100%;
     max-width:448px;
-    aspect-ratio:9/16;     /* 반응형 핵심 */
+    aspect-ratio:auto;     /* 반응형 핵심 */
     margin:0 auto;
-    overflow:hidden;
+    overflow:visible;
   }
   .page2 .saju-stage > img{
-    width:100%;
+    width:auto;
     height:100%;
-    object-fit:cover;      /* ✅ contain 쓰지마 */
+    object-fit:auto;      /* ✅ contain 쓰지마 */
     display:block;
   }
 
   /* ✅ 2페이지에서만 테이블/오행 표시 */
   .page2 .saju-table{
     position:absolute;
-    bottom:10%;
+    bottom:12.5%;
     left:57%;
     transform:translateX(-50%);
 width:auto;    display:grid;
@@ -86,11 +86,11 @@ width:auto;    display:grid;
   }
 
   /* 위치 (2페이지 전용) */
-  .page2 .fire  { top:17.5%; left:50.7%; }
-  .page2 .wood  { top:28%; left:74%; }
-  .page2 .earth { top:43%; left:69.5%; }
-  .page2 .metal { top:43%; left:32%; }
-  .page2 .water { top:28%; left:27.5%; }
+  .page2 .fire  { top:19.5%; left:50.7%; }
+  .page2 .wood  { top:29.5%; left:74%; }
+  .page2 .earth { top:44%; left:69%; }
+  .page2 .metal { top:44%; left:32.3%; }
+  .page2 .water { top:29.5%; left:27.5%; }
 </style>
 
 <%- include('./../../common/header') %>
