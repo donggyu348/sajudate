@@ -9,6 +9,7 @@ import ReportHistoryService from "../../service/ReportHistoryService.js";
 import paymentService from "../../service/PaymentService.js";
 import { PaymentStatus } from "../../enums/Payment.js";
 import KakaoPayClient from "../../api/KakaoPayClient.js";
+import { getFourPillars } from "../../service/sajuCalService.js";
 
 const router = express.Router();
 //미리보기 렌더링
@@ -26,7 +27,7 @@ const processGetResult = async (req, res, goodsType) => {
     const userInfo = JSON.parse(userInfoJson);
 
     // 1. 사주 분석 결과 재계산
-    const result = await gptService.callSample(userInfo, goodsType);
+    const saju = getFourPillars(userInfo);
 
     const today = new Date();
     const todayDate = {
@@ -38,8 +39,7 @@ const processGetResult = async (req, res, goodsType) => {
     // 2. 결과 페이지 렌더링
     res.render(`tight/saju/${goodsType.code.toLowerCase()}/result`, {
       userInfo: userInfo,
-      sample: result,
-      sampleInfo: result,
+      saju,        // 🔥 이것만 있으면 됨
       todayDate: todayDate
     });
   } catch (error) {
@@ -71,6 +71,7 @@ router.post("/classic/result", async (req, res) => {
 
   const userInfo = req.body;
   const result = await gptService.callSample(userInfo);
+  const saju = getFourPillars(userInfo);
 
   const today = new Date();
   const todayDate = {
@@ -82,6 +83,7 @@ router.post("/classic/result", async (req, res) => {
   res.render("tight/saju/classic/result", {
     userInfo: req.body,
     sample: result,
+    saju,
     todayDate: todayDate
   });
 });

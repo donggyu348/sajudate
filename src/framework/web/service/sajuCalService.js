@@ -391,6 +391,10 @@ const isUnknownTime =
     relationYM,
     flow,
     gods12,
-    isUnknownTime  // 🔥 GPT가 활용 가능하도록 추가 (옵션)
+    isUnknownTime ,
+      // 🔥 추가 (프론트/이미지용)
+     dayGan: `${day.gan}${STEM_TO_ELEMENT[day.gan]}` // 무토, 기토, 을목
+
+ // 🔥 GPT가 활용 가능하도록 추가 (옵션)
   };
 }
