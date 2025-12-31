@@ -1,6 +1,32 @@
 <!DOCTYPE html>
 <html lang="ko">
    <style>
+    /* ✅ 1페이지 전용 이름 영역 */
+.page-stage{
+  position:relative;
+}
+
+/* 이름 기준 박스 */
+.name-anchor{
+  position:absolute;
+  top:29%;
+  left:2%;
+  width:42%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* 이름 텍스트 */
+.user-name{
+  font-family: 'GyeonggiBatang', serif;
+  font-size: clamp(18px, 4vw, 22px);
+  line-height: 1.2;
+  text-align:center;
+  word-break:keep-all;
+}
+
   /* ✅ 기본: 모든 페이지는 그냥 이미지 흐름 (건드리지 않음) */
   .page-stage img{
     width:100%;
@@ -134,11 +160,12 @@ width:auto;    display:grid;
     <img src="<%= getImageSrc(pageIndex) %>" />
 
     <% if (pageIndex === 1) { %>
-      <div class="absolute top-[28%] left-[4%] w-[40%] min-h-[4rem] flex flex-col items-center justify-center">
-        <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]">
-          <%= userInfo.name %>
-        </p>
-      </div>
+      <div class="name-anchor">
+  <p class="user-name">
+    <%= userInfo.name %>
+  </p>
+</div>
+
     <% } %>
 
   </div>
