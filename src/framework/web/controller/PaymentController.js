@@ -99,6 +99,44 @@ const PaymentController = {
 
       const reportHistory = await ReportHistoryService.getReportHistoryById(reportHistoryId);
       if (!reportHistory) return res.status(404).json({ code: 404, message: "ReportHistory not found" });
+      /* -----------------------------------------------------
+       * 🔥 [추가] 테스트 정보값 확인 시 결제 즉시 패스 로직
+       * ----------------------------------------------------- */
+      if (TEST_PHONE_NUMBER.includes(userTelNo)) {
+        console.log(`[TEST MODE] ${userTelNo} 감지: 결제 생략 및 보고서 즉시 생성 시작`);
+        
+        // 1) 테스트용 shopOrderNo 생성 및 DB 업데이트
+        const shopOrderNo = `FREE-TEST-${Date.now()}`;
+        await ReportHistoryService.updateById({
+          id: reportHistoryId,
+          shopOrderNo: shopOrderNo
+        });
+
+        // 2) 즉시 승인 상태로 결제 내역 생성 (PaymentService 활용)
+        // 이 부분은 서비스 레이어에 맞게 status를 APPROVED로 직접 밀어넣어야 합니다.
+        // 여기서는 간단하게 flow만 제어합니다.
+
+        // 3) 비동기로 GPT 보고서 생성 (사용자가 기다릴 수 있으므로 동기 처리 권장)
+        const reportInfo = await GptService.callReport(
+            reportHistory.userInfo, 
+            reportHistory.goodsType
+        );
+
+        // 4) DB 업데이트
+        await ReportHistoryService.updateById({
+          id: reportHistoryId,
+          reportInfo: reportInfo
+        });
+
+        // 5) 클라이언트에 리디렉션 경로 응답 (결제창 대신 결과 페이지로)
+        return res.status(200).json({
+          code: 200,
+          message: "테스트 계정 확인: 보고서가 즉시 생성되었습니다.",
+          data: { 
+            authPageUrl: `/saju/report?shopOrderNo=${shopOrderNo}` // 클라이언트에서 이 경로로 이동시킴
+          }
+        });
+      }
 
       const userAgent = req.headers["user-agent"] || "";
       const isMobile = /mobile/i.test(userAgent);
