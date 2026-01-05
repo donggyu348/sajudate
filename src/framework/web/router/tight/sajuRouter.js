@@ -70,6 +70,36 @@ router.post("/classic/result", async (req, res) => {
   console.log(req.body);   // ← 이게 핵심
 
   const userInfo = req.body;
+  // 🔥 [추가] 이름이 '테스트'인 경우 결제 없이 바로 리포트 생성 및 이동
+  if (userInfo.name === "테스트") {
+    console.log("🚀 [테스트 모드] 결제를 건너뛰고 리포트를 즉시 생성합니다.");
+    try {
+      const shopOrderNo = `FREE-TEST-${Date.now()}`;
+      
+      // 1) 리포트 내역 생성 (결제 완료 상태처럼 저장)
+      const created = await reportHistoryService.registerReportHistory({
+        userInfo,
+        sampleInfo: await gptService.callSample(userInfo), // 샘플 정보 생성
+        shopOrderNo,
+        goodsType: GoodsType.CLASSIC // 정통사주
+      });
+
+      // 2) 실제 리포트(GPT) 내용 생성
+      const reportInfo = await gptService.callReport(userInfo, GoodsType.CLASSIC.code);
+
+      // 3) 생성된 내용 DB 업데이트
+      await reportHistoryService.updateById({
+        id: created.result.id,
+        reportInfo
+      });
+
+      // 4) 바로 리포트 결과 페이지로 리다이렉트
+      return res.redirect(`/saju/report?shopOrderNo=${shopOrderNo}`);
+    } catch (error) {
+      console.error("테스트 모드 생성 오류:", error);
+      // 에러 시 일반 흐름으로 폴백
+    }
+  }
   const result = await gptService.callSample(userInfo);
   const saju = getFourPillars(userInfo);
 
@@ -124,9 +154,11 @@ router.get("/romantic/result", async (req, res) => {
 
 router.get("/report", async (req, res) => {
 
+
   const shopOrderNo = req.query.shopOrderNo;
 
   const reportHistory = await reportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
+  const userInfo = reportHistory.userInfo; // ✅ 요걸 써야 해
 
   const today = new Date();
   const todayDate = {
@@ -143,6 +175,13 @@ router.get("/report", async (req, res) => {
     reportPath = "tight/saju/romantic/report";
   }
 
+    // ✅ 여기 로그 추가
+  console.log("📌 [REPORT] userInfo =", userInfo);
+  console.log("📌 birthdate =", userInfo.birthdate);
+  console.log("📌 birthTime =", userInfo.birthTime);
+
+  const saju = getFourPillars(userInfo);
+
   res.render(reportPath,
     {
       reportInfo: reportHistory.reportInfo,
@@ -150,6 +189,7 @@ router.get("/report", async (req, res) => {
       todayDate: todayDate,
        sample: reportHistory.sampleInfo,        // sample 로도 접근 가능
   sampleInfo: reportHistory.sampleInfo, 
+  saju 
 
     }
   );

@@ -1,6 +1,79 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
+<style>
+    .report-section {
+  margin-top: 64px;
+}
+
+/* 소제목 (2-1, 2-2 역할) */
+.report-subtitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  padding-left: 12px;
+  border-left: 4px solid #8b5e3c; /* 사주/한지 느낌 */
+  margin-bottom: 24px;
+}
+
+/* 내용 */
+.report-content {
+  font-size: 18px;
+  line-height: 1.9;
+  color: #2a2a2a;
+}
+
+   .report-paper-light {
+  background-color: #f4efe4;
+
+  background-image:
+    radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.8),
+      rgba(0,0,0,0.03)
+    );
+
+  background-size: 4px 4px, 100% 100%;
+  background-repeat: repeat;
+
+  /* ✅ 핵심 */
+  color: #1a1a1a;
+}
+
+
+/* 천간지지 테이블 */
+.saju-table {
+  position: absolute;
+  top: 40%;
+  left: 57%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  grid-template-rows: repeat(2, auto);
+  gap: 10px 25px;
+  font-weight: bold;
+  font-size: clamp(16px, 2.5vw, 18px);
+  text-align: center;
+  z-index: 10;
+}
+
+/* 오행 위치 */
+.five {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: clamp(20px, 3vw, 22px);
+  text-align: center;
+  z-index: 10;
+}
+
+.fire  { top: 68%; left: 49.6%; color: #000; }
+.wood  { top: 76%; left: 74%; color: #000; }
+.earth { top: 92%; left: 65.5%; color: #000; }
+.metal { top: 92%; left: 34%; color: #000; }
+.water { top: 76%; left: 26%; color: #000; }
+</style>
 
 <body>
   
@@ -11,143 +84,105 @@
 
         <div id="container">
 
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <div class="relative">
+<div class="relative w-full max-w-[448px] mx-auto overflow-visible">
 
-                    <img src="/assets/images/tight/classic/report_1.png" class="w-full h-auto object-cover"/>
-                    <div class="absolute top-[11.7%] left-[23%] w-[55%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]"><%= userInfo.birthdate; %> <%= userInfo.birthtime; %></p>
-                        <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]">이제 <%= userInfo.name; %> 님의</p>
-                        <p class="font-gyeonggibatangbold text-[clamp(18px,4.5vw,20px)]">사주 팔자를 풀어보겠소</p>
-                    </div>
+  <!-- 이미지 -->
+  <img
+    src="/assets/images/tight/classic/report_01.png"
+    class="w-full h-auto object-cover"
+  />
 
-                    <div class="absolute top-[24.8%] left-[21%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="text-[18px]"><%= userInfo.name; %></p>
-                    </div>
+  <!-- ✅ 오버레이 전체 래퍼 -->
+  <div class="absolute inset-0 pointer-events-none">
 
-                    <!-- 십성 컬럼 -->
-                    <div class="absolute top-[33%] left-[5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.columns[0]; %></p>
-                    </div>
-                    <div class="absolute top-[36%] left-[5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.columns[1]; %></p>
-                    </div>
-                    <div class="absolute top-[39.6%] left-[5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.columns[2]; %></p>
-                    </div>
-                    <div class="absolute top-[42.5%] left-[5%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.columns[3]; %></p>
-                    </div>
+    <!-- 1️⃣ 이름 / 생년월일 / 출생시 -->
+    <div
+      class="absolute top-[24%] left-[10%] w-[80%]
+             text-center text-[clamp(10px,2vw,14px)]
+             text-black whitespace-nowrap">
+      성함: <%= userInfo.name %>님 |
+      생년월일: <%= userInfo.birthdate %> |
+      출생시:
+      <%= {
+        "00": "자시", "02": "축시", "04": "인시", "06": "묘시", "08": "진시",
+        "10": "사시", "12": "오시", "14": "미시", "16": "신시", "18": "유시",
+        "20": "술시", "22": "해시", "24": "야자시", "unknown": "모름"
+      }[userInfo.birthTime] || "모름" %>
+    </div>
 
-                    <!-- 십성 1열-->
-                    <div class="absolute top-[30%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.headerRows[0]; %></p>
-                    </div>
-                    <div class="absolute top-[33%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[0][0]; %></p>
-                    </div>
-                    <div class="absolute top-[36%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[0][1]; %></p>
-                    </div>
-                    <div class="absolute top-[39.6%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[0][2]; %></p>
-                    </div>
-                    <div class="absolute top-[42.5%] left-[23%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[0][3]; %></p>
-                    </div>
+    <!-- 2️⃣ 천간지지 -->
+      <div class="saju-table">
 
-                    <!-- 십성 2열-->
-                    <div class="absolute top-[30%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.headerRows[1]; %></p>
-                    </div>
-                    <div class="absolute top-[33%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[1][0]; %></p>
-                    </div>
-                    <div class="absolute top-[36%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[1][1]; %></p>
-                    </div>
-                    <div class="absolute top-[39.6%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[1][2]; %></p>
-                    </div>
-                    <div class="absolute top-[42.5%] left-[41%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[1][3]; %></p>
-                    </div>
+    <div><%= saju.hour.gan || "" %></div>
+        <div><%= saju.day.gan %></div>
+        <div><%= saju.month.gan %></div>
+        <div><%= saju.year.gan %></div>
 
-                    <!-- 십성 3열-->
-                    <div class="absolute top-[30%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.headerRows[2]; %></p>
-                    </div>
-                    <div class="absolute top-[33%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[2][0]; %></p>
-                    </div>
-                    <div class="absolute top-[36%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[2][1]; %></p>
-                    </div>
-                    <div class="absolute top-[39.6%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[2][2]; %></p>
-                    </div>
-                    <div class="absolute top-[42.5%] left-[60%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[2][3]; %></p>
-                    </div>
+        <div><%= saju.hour.ji || "" %></div>
+        <div><%= saju.day.ji %></div>
+        <div><%= saju.month.ji %></div>
+        <div><%= saju.year.ji %></div>
+    </div>
 
-                    <!-- 십성 4열-->
-                    <div class="absolute top-[30%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.headerRows[3]; %></p>
-                    </div>
-                    <div class="absolute top-[33%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[3][0]; %></p>
-                    </div>
-                    <div class="absolute top-[36%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[3][1]; %></p>
-                    </div>
-                    <div class="absolute top-[39.6%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[3][2]; %></p>
-                    </div>
-                    <div class="absolute top-[42.5%] left-[78%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-[clamp(18px,4.5vw,20px)]"><%= sampleInfo.tenGodTable.data[3][3]; %></p>
-                    </div>
+      <div class="five fire"><span><%= saju.fiveElements.화 %></span></div>
+      <div class="five wood"><span><%= saju.fiveElements.목 %></span></div>
+      <div class="five earth"><span><%= saju.fiveElements.토 %></span></div>
+      <div class="five metal"><span><%= saju.fiveElements.금 %></span></div>
+      <div class="five water"><span><%= saju.fiveElements.수 %></span></div>
 
-                    <!-- 오늘의 운세 -->
-                    <div class="absolute top-[69%] text-center w-[100%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold text-white text-3xl mb-2"><%= userInfo.name; %> 님의</p>
-                        <p class="font-gyeonggibatangbold text-white text-3xl"><%= todayDate.year; %>년 <%= todayDate.month; %>년 <%= todayDate.day; %>일 총운세</p>
-                    </div>
-                    <div class="absolute top-[78%] text-left ml-[10%] mr-[10%] w-[80%] min-h-[4rem] flex flex-col items-center justify-center">
-                        <p class="font-gyeonggibatangbold  text-xl"><%= sampleInfo.todayLimit; %></p>
-                    </div>
-                </div>
+  </div>
+</div>
 
-                <div class="relative">
-                    <% let currentChapter = ''; %>
-                    <% reportInfo.forEach((item, index) => { %>
-                        <% if (item.chapter !== currentChapter) { %>
-                            <% currentChapter = item.chapter; %>
-                        <div class="bg-[#0C1A3C] pb-32">
-                            <div class="ml-auto w-[80px]">
-                                <img src="/assets/images/tight/classic/report_header_icon.png" alt="장식 아이콘" />
-                            </div>
-                            <div class="inline-block ml-8 px-4 py-1 border border-white text-white text-sm rounded-full w-auto max-w-fit">
-                                <%= item.chapter %>
-                            </div>
-                            <div class="mt-10 text-left space-y-10 text-white text-xl mr-8 ml-8">
-                                <% } %>
+<div class="relative">
+  <% let currentChapter = ''; %>
 
-                                <div>
-                                    <div class="text-white text-left font-bold text-3xl leading-tight whitespace-pre-line">
-                                        <%= item.title %>
-                                    </div>
-                                    <p class="whitespace-pre-line pt-16 pb-16"><%= item.content %></p>
-                                </div>
+  <% reportInfo.forEach((item, index) => { %>
 
-                                <%
-                                    const nextItem = reportInfo[index + 1];
-                                if (!nextItem || nextItem.chapter !== currentChapter) {
-                                %>
-                            </div>
-                        </div>
-                        <% } %>
-                    <% }); %>
-                </div>
+    <% if (item.chapter !== currentChapter) { %>
+      <% currentChapter = item.chapter; %>
+
+      <div class="report-paper-light pb-32">
+
+        <!-- 챕터 아이콘 -->
+        <div class="ml-auto w-[80px]">
+          <img src="/assets/images/tight/classic/report_header_icon.png" />
+        </div>
+
+        <!-- 챕터 제목 -->
+        <div class="inline-block ml-8 px-4 py-1 border border-gray-700 text-gray-800 text-sm rounded-full">
+          <%= item.chapter %>
+        </div>
+
+        <!-- 챕터 내용 시작 -->
+        <div class="mt-10 mr-8 ml-8 space-y-16">
+    <% } %>
+
+          <!-- ✅ 여기부터가 소제목 + 내용 (항상 출력됨) -->
+          <div class="report-section">
+
+            <!-- 소제목 -->
+            <div class="report-subtitle">
+              <%= item.title %>
+            </div>
+
+            <!-- 내용 -->
+            <div class="report-content whitespace-pre-line">
+              <%= item.content %>
+            </div>
+
+          </div>
+
+    <% 
+      const nextItem = reportInfo[index + 1];
+      if (!nextItem || nextItem.chapter !== currentChapter) {
+    %>
+        </div> <!-- 챕터 내용 끝 -->
+      </div>   <!-- report-paper-light 끝 -->
+    <% } %>
+
+  <% }); %>
+</div>
+
 
             </div>
         </div>
