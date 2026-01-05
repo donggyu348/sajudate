@@ -69,22 +69,19 @@
     object-fit:cover;
   }
 
-  /* ✅ 2페이지에서만 오버레이를 위한 무대(stage) 설정 */
-  .page2 .saju-stage{
-    position:relative;
-    width:100%;
-    max-width:448px;
-    aspect-ratio:auto;     /* 반응형 핵심 */
-    margin:0 auto;
-    overflow:visible;
-  }
-  .page2 .saju-stage > img{
-    width:auto;
-    height:100%;
-    object-fit:auto;      /* ✅ contain 쓰지마 */
-    display:block;
-  }
+.page2 .saju-stage{
+  position: relative;
+  width: 100%;
+  max-width: 448px;
+  margin: 0 auto;
+}
 
+.page2 .saju-stage > img{
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
   /* ✅ 2페이지에서만 테이블/오행 표시 */
   .page2 .saju-table{
     position:absolute;
