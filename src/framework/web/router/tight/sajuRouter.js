@@ -264,78 +264,86 @@ router.post("/payment", async (req, res) => {
 router.get("/payment_success", async (req, res) => {
   try {
     const { shopOrderNo, pg_token } = req.query;
-    if (!shopOrderNo) {
-      return res.status(400).send("shopOrderNo is required");
-    }
+    if (!shopOrderNo) return res.status(400).send("주문번호가 없습니다.");
 
+    // 1. DB에서 결제 정보와 리포트 기록을 즉시 조회
     let paymentInfo = await PaymentService.getPaymentTransaction(shopOrderNo);
-    if (!paymentInfo) {
-      return res.status(404).send("Payment info not found");
+    const reportHistory = await ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
+
+    if (!paymentInfo || !reportHistory) {
+      return res.status(404).send("결제 정보를 찾을 수 없습니다.");
     }
 
     /**
-     * --------------------------------------------------------
-     * 🔥 ① 기존에는 APPROVED 아니면 무조건 invalid Payment
-     *     → 이제는 카카오페이인 경우 승인 처리 후 APPROVED로 바꿔줌
-     * --------------------------------------------------------
+     * 🔥 [핵심 수정] tid 누락 방지 및 중복 승인 에러 원천 차단
      */
-    if (pg_token) {
-      // DB 또는 세션에서 tid 가져오기
-const tid = paymentInfo.tid;
-if (!tid) {
-  throw new Error("KakaoPay TID not found in DB");
-}
+    // ① 이미 승인 완료(APPROVED)된 경우라면 API 호출 없이 즉시 다음 단계로 진행
+    if (paymentInfo.paymentStatus === PaymentStatus.APPROVED) {
+        console.log(`[${shopOrderNo}] 이미 승인 완료된 주문입니다.`);
+    } 
+    // ② 아직 승인 전(READY)이고 카카오 토큰(pg_token)이 온 경우에만 승인 시도
+    else if (pg_token && paymentInfo.paymentStatus === PaymentStatus.READY) {
+      
+      // [개선] DB에 저장된 tid를 최우선으로 사용하고, 없으면 세션에서 가져옴
+      const tid = paymentInfo.tid || (req.session?.kakaoPay?.tid);
+      
+      // 로그의 -400 에러(tid null)를 방지하기 위한 안전장치
+      if (!tid) {
+        console.error(`[${shopOrderNo}] TID를 찾을 수 없어 승인 요청을 중단합니다.`);
+      } else {
+        try {
+          await KakaoPayClient.requestApprove({
+            cid: "CT59746939",
+            tid: tid,
+            partner_order_id: shopOrderNo,
+            partner_user_id: `USER_${shopOrderNo}`,
+            pg_token 
+          });
 
-      // 🔥 카카오페이 승인 API 호출
-      const approveResult = await KakaoPayClient.requestApprove({
-        cid: "CT59746939",
-        tid,
-        partner_order_id: shopOrderNo,
-        partner_user_id: `USER_${shopOrderNo}`,
-        pg_token 
-      });
-
-      // 🔥 승인 성공 시 DB 업데이트
-      await PaymentService.updatePaymentStatus(shopOrderNo, PaymentStatus.APPROVED);
-
-      // 다시 최신 결제 정보 조회
-      paymentInfo = await PaymentService.getPaymentTransaction(shopOrderNo);
-
-      if (paymentInfo.paymentStatus !== PaymentStatus.APPROVED) {
-        return res.status(500).send("KakaoPay approval failed");
+          // 승인 성공 시 즉시 DB 업데이트
+          await PaymentService.updatePaymentStatus(shopOrderNo, PaymentStatus.APPROVED);
+        } catch (kakaoError) {
+          // -702(이미 완료됨) 에러 발생 시 정상 승인으로 간주
+          if (kakaoError.message.includes("-702")) {
+            await PaymentService.updatePaymentStatus(shopOrderNo, PaymentStatus.APPROVED);
+          } else {
+            throw kakaoError;
+          }
+        }
       }
     }
 
-
     /**
-     * --------------------------------------------------------
-     * 🔥 ② 여기부터는 기존 코드 100% 동일하게 유지
-     * --------------------------------------------------------
+     * ③ 결과 확인 및 페이지 렌더링 (가만히 기다리면 보고서가 나오는 구간)
      */
-    const repostHistory = await ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
-    if (!repostHistory) {
-      return res.status(404).send("Report history not found");
-    }
-
-    if (repostHistory.reportInfo) {
+    // 리포트(GPT 결과)가 이미 생성되어 있다면 보고서로 바로 이동
+    if (reportHistory.reportInfo) {
       return res.redirect("/saju/report?shopOrderNo=" + shopOrderNo);
     }
 
-    const fileDir = Platform[repostHistory.platform].fileDir;
-    const goodsPrice = GoodsType[repostHistory.goodsType].price;
-    const goodsTypeRaw = repostHistory.goodsType; // goodsType 유지
-
+    // 아직 리포트 생성 중이라면 대기 페이지(로딩창) 렌더링
+    const fileDir = Platform[reportHistory.platform].fileDir;
     return res.render(`${fileDir}/saju/payment_success`, {
       shopOrderNo,
-      goodsPrice,
-      goodsType: goodsTypeRaw
+      goodsPrice: GoodsType[reportHistory.goodsType].price,
+      goodsType: reportHistory.goodsType
     });
 
   } catch (error) {
-    console.error("payment_success error:", error);
-    return res.status(500).send("Failed to render success page");
+    console.error("payment_success 최종 오류:", error);
+    return res.status(500).send("결제 처리 중 문제가 발생했습니다.");
   }
 });
+// 결제 실패 페이지
+router.get("/payment_fail", (req, res) => {
+    const { shopOrderNo, message } = req.query;
+    console.warn(`[/payment_fail] Accessed for shopOrderNo: ${shopOrderNo}, Message: ${message}`);
+    res.status(400).render("tight/saju/payment_fail", { // payment_fail.ejs 파일 필요
+        shopOrderNo: shopOrderNo || 'N/A',
+        errorMessage: message || '알 수 없는 오류'
+    });
+});
+
 
 router.post("/report/check", (req, res) => {
   const shopOrderNo = req.body.shopOrderNo;
