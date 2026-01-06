@@ -1,16 +1,10 @@
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const OPENAI_API_URL = 'https://api.openai.com/v1/responses';
 
 class GptClient {
-  /**
-   * ChatGPT 프롬프트 호출 함수
-   * @param {Array} messages - [{ role: "system" | "user" | "assistant", content: string }]
-   * @param {string} model - 예: "gpt-4" 또는 "gpt-3.5-turbo"
-   * @returns {Promise<string>} - 응답 메시지 반환
-   */
-  async callChatGpt(messages, model = 'gpt-4o') {
+  async callChatGpt(messages, model = 'gpt-4.1-mini') {
     if (!OPENAI_API_KEY) {
-      throw new Error('환경변수 OPENAI_API_KEY가 설정되지 않았습니다. .env에 설정 후 서버를 재시작하세요.');
+      throw new Error('OPENAI_API_KEY가 없습니다.');
     }
 
     const response = await fetch(OPENAI_API_URL, {
@@ -21,9 +15,11 @@ class GptClient {
       },
       body: JSON.stringify({
         model,
-        messages,
-        temperature: 0.8,
-        max_tokens: 5000
+        input: messages.map(m => ({
+          role: m.role,
+          content: [{ type: "text", text: m.content }]
+        })),
+        max_output_tokens: 5000
       }),
     });
 
@@ -33,7 +29,7 @@ class GptClient {
     }
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content ?? '';
+    return data.output_text ?? '';
   }
 }
 
