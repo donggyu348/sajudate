@@ -2,7 +2,7 @@
 <html lang="ko">
 
 <%- include('./../common/header') %>
-
+<script src="https://js.tosspayments.com/v2/standard"></script>
 <body class="bg-gray-100">
 
         <div class="w-full max-w-[480px] mx-auto">
@@ -89,21 +89,14 @@
                                 </div>
                             </div>
 
-                            <!-- 결제 수단 버튼 -->
-                            <div class="mt-10 space-y-3">
-                                <button onclick="validateAndSubmit('easypay')"
-                                    class="w-full bg-bluePrimary text-white text-lg font-bold
-       py-4 rounded-xl shadow-lg active:scale-[0.99]"
->
-                                    <span>카드 결제</span>
-                                    <span class="flex items-center gap-2">
-                                        <!-- <img src="/assets/images/common/kpay_logo.png" alt="KPay"
-                                            style="height:1em; width:auto;" class="align-middle pointer-events-none" /> -->
-                                        <!-- <img src="/assets/images/common/npay_logo.svg" alt="NPay"
-                                            style="height:1em; width:auto;" class="align-middle pointer-events-none" /> -->
-                                    </span>
-                                </button>
-                            </div>
+                            <div id="payment-method" class="mt-10"></div>
+<div id="agreement"></div>
+<div class="mt-6">
+    <button id="payment-button" class="w-full bg-bluePrimary text-white text-lg font-bold py-4 rounded-xl shadow-lg">
+        결제하기
+    </button>
+</div>
+                        
                             <div class="mt-10 space-y-3" style="margin-top: 12px;">
                                 <button onclick="validateAndSubmit('kakakopay')"
                                     class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center"
@@ -181,6 +174,65 @@
     </body>
 
     <script>
+
+        const amount = "<%= goodsInfo.price %>";
+const shopOrderNo = "<%= shopOrderNo %>";
+const goodsName = "<%= goodsInfo.title %>";
+const reportHistoryId = "<%= reportHistoryId %>";
+
+async function main() {
+    const button = document.getElementById("payment-button");
+
+    // 2. 토스페이먼츠 초기화 (발급받으신 클라이언트 키를 입력하세요)
+    const clientKey = "test_gck_5OWRapdA8ddnkOv2617A8o1zEqZK";
+    const customerKey = "USER_" + reportHistoryId; 
+
+    const tossPayments = TossPayments(clientKey);
+    const widgets = tossPayments.widgets({ customerKey });
+
+    // 3. 결제 금액 설정
+    await widgets.setAmount({
+        currency: "KRW",
+        value: amount,
+    });
+
+    // 4. 결제 수단 및 약관 영역 렌더링
+    await widgets.renderPaymentMethods({
+        selector: "#payment-method",
+        variantKey: "DEFAULT",
+    });
+    await widgets.renderAgreement({
+        selector: "#agreement",
+        variantKey: "AGREEMENT",
+    });
+
+    // 5. 버튼 클릭 시 결제 요청
+    button.addEventListener("click", async function () {
+        // 기존에 있던 휴대폰 번호/비밀번호 입력값 가져오기 로직
+        const telF = document.querySelector("input[name='buyerTelF']").value.trim();
+        const telB = document.querySelector("input[name='buyerTelB']").value.trim();
+        const pw = document.querySelector("input[name='buyerPW']").value.trim();
+
+        // 유효성 검사 (기존 로직 활용)
+        if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB) || !/^\d{4}$/.test(pw)) {
+            alert("휴대폰 번호와 비밀번호를 정확히 입력해 주세요.");
+            return;
+        }
+
+        // 실제 결제 요청 실행
+        await widgets.requestPayment({
+            orderId: shopOrderNo,
+            orderName: goodsName,
+            // 성공 시 서버 콜백 주소로 번호와 비번을 쿼리스트링으로 전달
+            successUrl: window.location.origin + "/api/payments/callback-toss" + 
+                        `?tel=010${telF}${telB}&pw=${pw}`,
+            failUrl: window.location.origin + "/saju/payment?error=fail",
+        });
+    });
+}
+
+// 함수 실행
+main();
         function validateAndSubmit(pay) {
             const telF = document.querySelector("input[name=\"buyerTelF\"]").value.trim();
             const telB = document.querySelector("input[name=\"buyerTelB\"]").value.trim();
