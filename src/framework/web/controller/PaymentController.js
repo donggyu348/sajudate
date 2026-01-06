@@ -178,6 +178,8 @@ const PaymentController = {
         });
       }
 
+
+
       /* -----------------------------------------------------
        * 🟡 KakaoPay (세션 기반)
        * ----------------------------------------------------- */
@@ -214,6 +216,34 @@ const PaymentController = {
    * - authorizationId 수신
    * - shopOrderNo로 DB update (AUTH_DONE)
    */
+
+
+  // PaymentController.js 파일의 PaymentController 객체 안에 추가
+async callbackToss(req, res) {
+  try {
+    // 토스가 성공 시 보내주는 기본 파라미터 + 우리가 커스텀하게 보낸 tel, pw
+    const { paymentKey, orderId, amount, tel, pw } = req.query;
+
+    // 서비스에 승인 처리를 맡깁니다. (2번 단계에서 작성)
+    const approveResponse = await PaymentService.approveTossPayment({
+      paymentKey,
+      orderId,
+      amount: Number(amount),
+      userTelNo: tel,
+      userPw: pw
+    });
+
+    // 승인 성공 시 결과 페이지로 리다이렉트
+    return res.redirect(
+      303,
+      `/saju/payment_success?shopOrderNo=${encodeURIComponent(orderId)}`
+    );
+  } catch (error) {
+    console.error("[Toss Callback Error]", error);
+    // 실패 시 에러 메시지와 함께 결제 페이지로 돌려보냅니다.
+    return res.redirect('/saju/payment?error=approve_failed&msg=' + encodeURIComponent(error.message));
+  }
+},
  async callback(req, res) {
   try {
     // 🔥 EasyPay 실제 파라미터 매핑

@@ -64,6 +64,32 @@ class PaymentService {
     return { shopOrderNo };
   }
 
+// PaymentService.js 클래스 내부에 추가
+async approveTossPayment(payload) {
+  const { paymentKey, orderId, amount, userTelNo, userPw } = payload;
+
+  // 1. 이미 구현된 TossPaymentsClient를 통해 토스 서버에 승인 요청을 보냅니다.
+  const result = await TossPaymentsClient.confirmPayment({
+    paymentKey,
+    orderId,
+    amount
+  });
+
+  // 2. DB 상태 업데이트: 결제 정보에 인증 ID(paymentKey)를 기록합니다.
+  await this.handleCallback(orderId, paymentKey);
+
+  // 3. DB 상태 업데이트: 최종 승인 완료 처리 및 사용자 입력 정보(번호, 비번) 저장
+  // PaymentTransactionRepository를 사용하여 결제 상태를 APPROVED로 변경합니다.
+  await PaymentTransactionRepository.updateByShopOrderNo(orderId, {
+    userTelNo,
+    userPw,
+    paymentStatus: PaymentStatus.APPROVED,
+    approvalDate: new Date()
+  });
+
+  return result;
+}
+
   /* =========================================================
    * 🔵 EASY PAY
    * ========================================================= */
