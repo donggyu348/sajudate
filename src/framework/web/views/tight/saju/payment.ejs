@@ -89,15 +89,14 @@
                                 </div>
                             </div>
 
-                            <div id="payment-method" class="mt-10"></div>
-<div id="agreement"></div>
-<div class="mt-6">
-    <button id="payment-button" class="w-full bg-bluePrimary text-white text-lg font-bold py-4 rounded-xl shadow-lg">
-        결제하기
-    </button>
-</div>
-                        
+                         
                             <div class="mt-10 space-y-3" style="margin-top: 12px;">
+
+                                <button onclick="requestTossCardPayment()"
+        class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center"
+        style="background-color: #0064ff;">
+        <span style="color: white;">카드 결제 (신용/체크)</span>
+    </button>
                                 <button onclick="validateAndSubmit('kakakopay')"
                                     class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center"
                                     style="background-color: #FFEB00;">
@@ -108,7 +107,11 @@
                                     </span>
                                     <span style="color: black; margin-right: 20px; margin-bottom: 1.5px;">결제</span>
                                 </button>
+
+
                             </div>
+
+                            
 
 
                             <!-- 체크박스 -->
@@ -174,65 +177,65 @@
     </body>
 
     <script>
+// 전역 변수 설정 (EJS 변수 주입)
+    const amountValue = Number("<%= goodsInfo.price %>");
+    const shopOrderNo = "<%= shopOrderNo %>";
+    const goodsName = "<%= goodsInfo.title %>";
+    const reportHistoryId = "<%= reportHistoryId %>";
 
-        const amount = "<%= goodsInfo.price %>";
-const shopOrderNo = "<%= shopOrderNo %>";
-const goodsName = "<%= goodsInfo.title %>";
-const reportHistoryId = "<%= reportHistoryId %>";
-
-async function main() {
-    const button = document.getElementById("payment-button");
-
-    // 2. 토스페이먼츠 초기화 (발급받으신 클라이언트 키를 입력하세요)
-    const clientKey = "test_gck_5OWRapdA8ddnkOv2617A8o1zEqZK";
-    const customerKey = "USER_" + reportHistoryId; 
-
+    // 1. 토스페이먼츠 초기화 (Standard SDK v2)
+    const clientKey = "test_ck_Z1aOwX7K8m7Dblpmn0GAVyQxzvNP"; // 실제 상점 키로 변경하세요
     const tossPayments = TossPayments(clientKey);
-    const widgets = tossPayments.widgets({ customerKey });
-
-    // 3. 결제 금액 설정
-    await widgets.setAmount({
-        currency: "KRW",
-        value: amount,
+    
+    // 2. 결제 객체 준비
+    const payment = tossPayments.payment({ 
+        customerKey: "USER_" + reportHistoryId 
     });
 
-    // 4. 결제 수단 및 약관 영역 렌더링
-    await widgets.renderPaymentMethods({
-        selector: "#payment-method",
-        variantKey: "DEFAULT",
-    });
-    await widgets.renderAgreement({
-        selector: "#agreement",
-        variantKey: "AGREEMENT",
-    });
-
-    // 5. 버튼 클릭 시 결제 요청
-    button.addEventListener("click", async function () {
-        // 기존에 있던 휴대폰 번호/비밀번호 입력값 가져오기 로직
+    // 카드 결제 버튼 클릭 시 실행될 함수
+    async function requestTossCardPayment() {
+        // 입력값 가져오기
         const telF = document.querySelector("input[name='buyerTelF']").value.trim();
         const telB = document.querySelector("input[name='buyerTelB']").value.trim();
         const pw = document.querySelector("input[name='buyerPW']").value.trim();
 
-        // 유효성 검사 (기존 로직 활용)
-        if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB) || !/^\d{4}$/.test(pw)) {
-            alert("휴대폰 번호와 비밀번호를 정확히 입력해 주세요.");
+        // 유효성 검사
+        if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB)) {
+            alert("휴대폰 번호를 정확히 입력해 주세요 (4자리씩)");
+            return;
+        }
+        if (!/^\d{4}$/.test(pw)) {
+            alert("비밀번호는 숫자 4자리로 입력해 주세요");
             return;
         }
 
-        // 실제 결제 요청 실행
-        await widgets.requestPayment({
-            orderId: shopOrderNo,
-            orderName: goodsName,
-            // 성공 시 서버 콜백 주소로 번호와 비번을 쿼리스트링으로 전달
-            successUrl: window.location.origin + "/api/payments/callback-toss" + 
-                        `?tel=010${telF}${telB}&pw=${pw}`,
-            failUrl: window.location.origin + "/saju/payment?error=fail",
-        });
-    });
-}
+        const fullTel = `010${telF}${telB}`;
 
-// 함수 실행
-main();
+        // 3. 결제창 띄우기 (Redirect 방식)
+        try {
+            await payment.requestPayment({
+                method: "CARD", // 카드 및 간편결제 통합창
+                amount: {
+                    currency: "KRW",
+                    value: amountValue
+                },
+                orderId: shopOrderNo,
+                orderName: goodsName,
+                // 성공 시 이동할 URL (서버 승인 로직 경로)
+                successUrl: window.location.origin + "/api/payments/callback-toss" + 
+                            `?tel=${fullTel}&pw=${pw}&historyId=${reportHistoryId}`,
+                failUrl: window.location.origin + "/saju/payment?error=fail",
+                customerMobilePhone: fullTel,
+                card: {
+                    flowMode: "DEFAULT", // 통합창 모드
+                    useCardPoint: false
+                }
+            });
+        } catch (error) {
+            console.error("결제 요청 실패:", error);
+            alert("결제창을 여는 중 오류가 발생했습니다.");
+        }
+    }
         function validateAndSubmit(pay) {
             const telF = document.querySelector("input[name=\"buyerTelF\"]").value.trim();
             const telB = document.querySelector("input[name=\"buyerTelB\"]").value.trim();

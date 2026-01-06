@@ -10,7 +10,7 @@ import paymentService from "../../service/PaymentService.js";
 import { PaymentStatus } from "../../enums/Payment.js";
 import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
-
+import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 const router = express.Router();
 //미리보기 렌더링
 // [추가 시작: 이 블록을 파일 상단에 추가하세요]
@@ -254,10 +254,11 @@ router.post("/payment", async (req, res) => {
     goodsType: goodsType,
     ...(userIdx ? { userIdx } : {})
   });
-
+const shopOrderNo = generateShopOrderNo();
   res.render("tight/saju/payment", {
     reportHistoryId: result.result.id,
-    goodsInfo: goodsType
+    goodsInfo: goodsType,
+    shopOrderNo: shopOrderNo, // <<-- 이 부분이 추가되어야 에러가 안 납니다!
   });
 });
 
