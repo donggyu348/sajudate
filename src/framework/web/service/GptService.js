@@ -2490,7 +2490,6 @@ function safeJsonParseLooser(input, tag = "UNKNOWN") {
     return JSON.parse(core);
   } catch (err) {
     console.error(`[${tag}] JSON.parse failed. Preview(200):`, cleaned.slice(0, 200));
-    console.error(`[${tag}] firstIdx=`, firstJsonStartIndex(cleaned), ` lastIdx=`, lastJsonEndIndex(cleaned));
     throw err;
   }
 }

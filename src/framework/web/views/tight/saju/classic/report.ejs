@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
+
+
+<%
+  // 일간 한글 변환 매핑
+  const STEM_TO_FILE = {
+    "甲":"갑목","乙":"을목","丙":"병화","丁":"정화","戊":"무토",
+    "己":"기토","庚":"경금","辛":"신금","壬":"임수","癸":"계수",
+    "갑":"갑목","을":"을목","병":"병화","정":"정화","무":"무토",
+    "기":"기토","경":"경금","신":"신금","임":"임수","계":"계수"
+  };
+  const myDayStem = STEM_TO_FILE[saju.day.gan] || "갑목";
+  
+  // 성별 변환
+  const g = String(userInfo.gender).trim();
+  let genderKey = (["여","여자","여성","female","woman"].includes(g)) ? "woman" : "man";
+%>
 <style>
     .report-section {
   margin-top: 64px;
@@ -160,6 +176,27 @@
           <!-- ✅ 여기부터가 소제목 + 내용 (항상 출력됨) -->
           <div class="report-section">
 
+            <% if (item.title.includes("사주로 보는 주의해야 할 연애 유형")) { %>
+              <div class="w-full mb-8">
+                <img src="/assets/images/tight/classic/report/<%= genderKey %>/<%= myDayStem %>.png" 
+                     class="w-full h-auto object-cover rounded-lg" 
+                     onerror="this.style.display='none';" />
+              </div>
+            <% } %>
+                        <% if (item.title.includes("조심해야 할 건강 포인트")) { %>
+              <div class="w-full mb-8">
+                <img src="/assets/images/tight/classic/report/<%= myDayStem %>.png" 
+                     class="w-full h-auto object-cover rounded-lg" 
+                     onerror="this.style.display='none';" />
+              </div>
+            <% } %>
+                        <% if (item.title.includes("돈이 들어오는 방식")) { %>
+              <div class="w-full mb-8">
+                <img src="/assets/images/tight/classic/report/<%= myDayStem %>1.png" 
+                     class="w-full h-auto object-cover rounded-lg" 
+                     onerror="this.style.display='none';" />
+              </div>
+            <% } %>
             <!-- 소제목 -->
             <div class="report-subtitle">
               <%= item.title %>
