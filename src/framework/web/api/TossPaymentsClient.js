@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // 시크릿 키 (상점 관리자에서 발급받은 실제 키 사용)
-const SECRET_KEY = "test_sk_AQ92ymxN3495e5JRDnG4VajRKXvd"; 
+const SECRET_KEY = "live_sk_4yKeq5bgrpekleJXRl1J8GX0lzW6"; 
 const ENCODED_KEY = Buffer.from(SECRET_KEY + ":").toString("base64");
 
 class TossPaymentsClient {
