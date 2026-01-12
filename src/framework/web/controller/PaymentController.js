@@ -178,6 +178,35 @@ const PaymentController = {
         });
       }
 
+      /* -----------------------------------------------------
+ * 🟢 TossPayments (추가 필요)
+ * ----------------------------------------------------- */
+if (payMethod === "TOSS") {
+  // 토스는 이지페이처럼 별도의 서버 API 호출(register)이 필수는 아니지만,
+  // 우리 DB에 주문 정보를 먼저 생성(READY 상태)해야 금액 변조를 막을 수 있습니다.
+  const shopOrderNo = `TOSS-${Date.now()}`; // 또는 CommonUtils.generateShopOrderNo()
+
+  await PaymentService.registerTossReady({
+    ...basePayload,
+    shopOrderNo,
+    amount: finalAmount // 여기서 100원이 적용됨
+  });
+
+  await ReportHistoryService.updateById({
+    id: reportHistoryId,
+    shopOrderNo: shopOrderNo
+  });
+
+  return res.status(200).json({
+    code: 200,
+    message: "토스 결제 준비 성공",
+    data: { 
+      shopOrderNo, 
+      amount: finalAmount // 프론트엔드에 100원을 내려줌
+    }
+  });
+}
+
 
 
       /* -----------------------------------------------------
