@@ -4,6 +4,10 @@ import { DeviceType } from "../enums/Payment.js";
 import { Platform } from "../enums/Platform.js";
 import { GoodsType } from "../enums/Goods.js";
 import StatusCode from "../enums/StatusCode.js"; // StatusCode import 추가
+// PaymentController.js 상단에 추가
+import PaymentTransactionRepository from "../repository/PaymentTransactionRepository.js";
+import { PaymentStatus } from "../enums/Payment.js";
+import GptService from "../service/GptService.js"; // 치트키 로직에서 사용하므로 필요
 const PaymentController = {
   /**
    * [1] 결제 등록 처리
