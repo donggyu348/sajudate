@@ -192,50 +192,61 @@
         customerKey: "USER_" + reportHistoryId 
     });
 
-    // 카드 결제 버튼 클릭 시 실행될 함수
-    async function requestTossCardPayment() {
-        // 입력값 가져오기
-        const telF = document.querySelector("input[name='buyerTelF']").value.trim();
-        const telB = document.querySelector("input[name='buyerTelB']").value.trim();
-        const pw = document.querySelector("input[name='buyerPW']").value.trim();
+   async function requestTossCardPayment() {
+    // 1. 입력값 가져오기 및 유효성 검사
+    const telF = document.querySelector("input[name='buyerTelF']").value.trim();
+    const telB = document.querySelector("input[name='buyerTelB']").value.trim();
+    const pw = document.querySelector("input[name='buyerPW']").value.trim();
 
-        // 유효성 검사
-        if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB)) {
-            alert("휴대폰 번호를 정확히 입력해 주세요 (4자리씩)");
-            return;
-        }
-        if (!/^\d{4}$/.test(pw)) {
-            alert("비밀번호는 숫자 4자리로 입력해 주세요");
-            return;
-        }
-
-        const fullTel = `010${telF}${telB}`;
-
-        // 3. 결제창 띄우기 (Redirect 방식)
-        try {
-            await payment.requestPayment({
-                method: "CARD", // 카드 및 간편결제 통합창
-                amount: {
-                    currency: "KRW",
-                    value: amountValue
-                },
-                orderId: shopOrderNo,
-                orderName: goodsName,
-                // 성공 시 이동할 URL (서버 승인 로직 경로)
-                successUrl: window.location.origin + "/api/payments/callback-toss" + 
-                            `?tel=${fullTel}&pw=${pw}&historyId=${reportHistoryId}`,
-                failUrl: window.location.origin + "/saju/payment?error=fail",
-                customerMobilePhone: fullTel,
-                card: {
-                    flowMode: "DEFAULT", // 통합창 모드
-                    useCardPoint: false
-                }
-            });
-        } catch (error) {
-            console.error("결제 요청 실패:", error);
-            alert("결제창을 여는 중 오류가 발생했습니다.");
-        }
+    if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB)) {
+        alert("휴대폰 번호를 정확히 입력해 주세요 (4자리씩)");
+        return;
     }
+    if (!/^\d{4}$/.test(pw)) {
+        alert("비밀번호는 숫자 4자리로 입력해 주세요");
+        return;
+    }
+
+    const fullTel = `010${telF}${telB}`;
+
+    try {
+        // 2. 서버에 결제 등록 요청 (여기서 금액이 100원으로 결정됨)
+        const response = await axios.post("/api/payments/register", {
+            userTelNo: fullTel,
+            userPw: pw,
+            payMethod: "TOSS", // 서버 컨트롤러에 TOSS 분기 처리가 되어있어야 함
+            reportHistoryId: reportHistoryId
+        });
+
+        if (response.data.code !== 200) {
+            throw new Error(response.data.message);
+        }
+
+        const { shopOrderNo, amount } = response.data.data;
+
+        // 3. 서버에서 받은 금액(amount)과 주문번호(shopOrderNo)로 결제창 호출
+        await payment.requestPayment({
+            method: "CARD",
+            amount: {
+                currency: "KRW",
+                value: amount // 서버가 준 100원(또는 원래금액) 반영
+            },
+            orderId: shopOrderNo, // 서버가 생성한 고유 주문번호
+            orderName: goodsName,
+            successUrl: window.location.origin + "/api/payments/callback-toss" + 
+                        `?tel=${fullTel}&pw=${pw}&historyId=${reportHistoryId}`,
+            failUrl: window.location.origin + "/saju/payment?error=fail",
+            customerMobilePhone: fullTel,
+            card: {
+                flowMode: "DEFAULT",
+                useCardPoint: false
+            }
+        });
+    } catch (error) {
+        console.error("결제 준비 실패:", error);
+        alert("결제 준비 중 오류가 발생했습니다: " + (error.response?.data?.message || error.message));
+    }
+}
         function validateAndSubmit(pay) {
             const telF = document.querySelector("input[name=\"buyerTelF\"]").value.trim();
             const telB = document.querySelector("input[name=\"buyerTelB\"]").value.trim();
