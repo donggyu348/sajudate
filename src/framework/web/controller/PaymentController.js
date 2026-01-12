@@ -182,28 +182,36 @@ const PaymentController = {
  * 🟢 TossPayments (추가 필요)
  * ----------------------------------------------------- */
 // PaymentController.js의 register 함수 내 적절한 위치에 추가
-if (payMethod === "TOSS") {
-  const shopOrderNo = `TOSS-${Date.now()}`; // 고유 주문번호 생성
+// src/framework/web/controller/PaymentController.js 의 register 함수 내부
 
-  // DB에 결제 대기 상태로 저장 (금액은 계산된 finalAmount 사용)
+/* -----------------------------------------------------
+ * 🟢 TossPayments 분기 추가
+ * ----------------------------------------------------- */
+if (payMethod === "TOSS") {
+  // 1. 주문번호 생성 (finalAmount는 이미 위에서 100원으로 계산됨)
+  const shopOrderNo = `TOSS-${Date.now()}`; 
+
+  // 2. DB에 결제 대기 데이터 생성
   await PaymentTransactionRepository.createPayment({
     ...basePayload,
     shopOrderNo,
-    amount: finalAmount, // 여기서 100원이 적용됨
-    paymentStatus: PaymentStatus.READY
+    amount: finalAmount, // 100원이 적용된 금액
+    paymentStatus: PaymentStatus.READY // 결제 준비 상태
   });
 
+  // 3. 보고서 히스토리에 주문번호 업데이트
   await ReportHistoryService.updateById({
     id: reportHistoryId,
     shopOrderNo: shopOrderNo
   });
 
+  // 4. 성공 응답 (프론트엔드로 100원과 주문번호를 보냄)
   return res.status(200).json({
     code: 200,
-    message: "토스 거래 준비 성공",
+    message: "토스 거래등록 성공",
     data: { 
       shopOrderNo, 
-      amount: finalAmount // 프론트엔드로 100원 전달
+      amount: finalAmount 
     }
   });
 }
