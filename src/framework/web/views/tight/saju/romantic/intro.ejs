@@ -3,7 +3,8 @@
 <%- include('./../../common/header') %>
 
 <body>
- 
+ <div class="frame-wrap">
+
 <div class="relative w-full max-w-[448px] mx-auto overflow-hidden video-stage">
 
   <!-- 배경 영상 -->
@@ -29,15 +30,17 @@
     </p>
 
   </div>
-
-
-</div>
-
   <!-- 하단 고정 CTA 배너 -->
 <div class="cta-wrapper">
   <a href="/saju/romantic/input" class="cta-wood">
     <span class="cta-text">무료 사주 보러가기</span>
   </a>
+</div>
+
+</div>
+
+
+
 </div>
 
 </body>
@@ -71,8 +74,14 @@
   };
 </script>
 <style>
+
+
+.frame-wrap {
+  display: flex;
+  justify-content: center;
+}
 .cta-wrapper {
-  position: fixed;
+  position: absolute;
   left: 50%;
   transform: translateX(-50%);
   bottom: 32px;
