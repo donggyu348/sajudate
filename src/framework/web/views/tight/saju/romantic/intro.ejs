@@ -4,49 +4,41 @@
 
 <body>
  
-<div class="flex flex-col w-full max-w-[480px] mx-auto">
-    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+<div class="relative w-full max-w-[448px] mx-auto overflow-hidden video-stage">
 
-        <%- include('./../../common/common') %>
+  <!-- 배경 영상 -->
+  <video
+    src="/assets/images/tight/romantic/intro.mp4"
+  class="absolute inset-0 w-full h-full object-cover"
+  autoplay
+  muted
+  loop
+  playsinline
+  ></video>
 
-        <div id="container">
+  <!-- 텍스트 오버레이 -->
+<div class="absolute inset-0 flex flex-col justify-center px-6 text-center overlay-wrap">
 
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/intro_1.png" class="w-full h-auto object-cover" />
-                <img src="/assets/images/svg/2.svg" class="absolute top-0 left-0 w-full h-auto" />
-            </div>
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/intro_2.png" class="w-full h-auto object-cover" />
-                <img src="/assets/images/svg/4.svg" class="absolute top-[20%] left-0 w-full h-auto" />
-            </div>
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/intro_3.png" class="w-full h-auto object-cover" />
-            </div>
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/intro_4.png" class="w-full h-auto object-cover" />
-                <img src="/assets/images/svg/1.svg" class="absolute top-[-5%] left-0 w-full h-auto" />
-            </div>
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/intro_5.png" class="w-full h-auto object-cover" />
-            </div>
+    <h1 class="romantic-title">
+      연화의 연애사주
+    </h1>
 
-        
+    <p class="romantic-sub">
+      당신이 마주할,<br/>
+      인연의 비밀
+    </p>
 
-        </div>
+  </div>
 
-           <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50">
-    <a href="/saju/romantic/input" class="block w-full" >
-        <img src="/assets/images/tight/romantic/index_banner2.png"
-             alt="지금 보러가기"
-             class="w-full h-auto object-cover"
-             />
-    </a>
-    <div class="pb-[env(safe-area-inset-bottom)]"></div>
-</div>
+
 </div>
 
-
-
+  <!-- 하단 고정 CTA 배너 -->
+<div class="cta-wrapper">
+  <a href="/saju/romantic/input" class="cta-wood">
+    <span class="cta-text">무료 사주 보러가기</span>
+  </a>
+</div>
 
 </body>
 <script>
@@ -78,4 +70,149 @@
     startCountdown(4 * 60 * 60);
   };
 </script>
+<style>
+.cta-wrapper {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 32px;
+
+  width: calc(100% - 64px);   /* 모바일 여백 */
+  max-width: 448px;           /* 🔥 영상과 동일 */
+
+  padding: 0;
+  z-index: 9999;
+}
+@media (min-width: 768px) {
+  .cta-wrapper {
+    bottom: 32px;            /* PC에서 조금 더 여유 */
+  }
+}
+.video-stage {
+  aspect-ratio: 9 / 16;   /* 모바일 기준 */
+  max-height: 100vh;
+}
+.cta-wood {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  max-width: 100%;
+  height: 56px;
+  padding: 0 20px;
+
+  font-family: 'Pretendard', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+
+  color: #2b1d12; /* 나무 위 먹색 */
+
+  background:
+    linear-gradient(
+      180deg,
+      #e6cfa5 0%,
+      #d2b07a 50%,
+      #b8935f 100%
+    );
+
+  border-radius: 12px; /* 네모 + 라운딩 */
+
+  box-shadow:
+    0 8px 20px rgba(40,25,15,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    inset 0 -2px 0 rgba(90,60,30,0.35);
+
+  text-decoration: none;
+}
+.cta-wood::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,0.04),
+      rgba(255,255,255,0.04) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+  .overlay-wrap {
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.55) 0%,
+    rgba(0,0,0,0.25) 35%,
+    rgba(0,0,0,0.0) 70%
+  );
+
+    padding-top: 60px;
+  padding-bottom: 140px; /* CTA 공간 확보 */
+}
+
+.romantic-title {
+  font-family: 'GyeonggiBatang', serif;
+  font-size: clamp(36px, 8vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+    margin-top: 20px; /* 🔥 여기로 위치 조절 */
+
+
+  color: #fffaf2; /* 거의 화이트 */
+
+  text-shadow:
+    0 2px 6px rgba(40,25,15,0.6),
+    0 10px 30px rgba(0,0,0,0.45);
+}
+
+
+/* 서브 카피 */
+.romantic-sub {
+  font-family: 'Pretendard', sans-serif;
+  font-size: clamp(15px, 3.8vw, 18px);
+  line-height: 1.6;
+
+  color: #f6e3b5; /* 연한 골드 */
+
+  text-shadow:
+  0 1px 2px rgba(0,0,0,0.35),
+    0 0 12px rgba(60,40,20,0.45); /* 🔥 핵심 */}
+.overlay-wrap {
+  background: linear-gradient(
+    to top,
+    rgba(40, 25, 15, 0.75) 0%,
+    rgba(40, 25, 15, 0.45) 40%,
+    rgba(40, 25, 15, 0.0) 75%
+  );
+}
+
+.romantic-title {
+  position: relative;
+}
+
+.romantic-title::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+
+  width: 110%;
+  height: 18px;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0,0,0,0.35) 0%,
+    rgba(0,0,0,0.0) 70%
+  );
+
+  z-index: -1;
+}
+
+</style>
 </html>
