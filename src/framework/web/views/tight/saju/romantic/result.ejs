@@ -193,7 +193,7 @@ function H(v){
                 <img src="/assets/images/tight/romantic/result_9.png" class="w-full h-auto object-cover" />
             </div>
 
-            <form method="POST" action="<%= userInfo.name === '테스트' ? '/saju/skip-payment' : '/saju/payment' %>" class="w-full">
+            <form method="POST" action="<%= userInfo.name === '관리자' ? '/saju/skip-payment' : '/saju/payment' %>" class="w-full">
                 <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
                 <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />
                 <input type="hidden" name="goodsType" value='ROMANTIC' />

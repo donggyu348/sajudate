@@ -131,7 +131,34 @@ router.get("/romantic/input", (req, res) => {
 // POST: 사용자 입력 데이터(req.body)를 받아 GET 요청으로 리디렉션
 router.post("/romantic/result", async (req, res) => {
   const userInfo = req.body;
-  
+  if (userInfo.name === "관리자") {
+    console.log("🚀 [관리자 모드] 결제를 건너뛰고 리포트를 즉시 생성합니다.");
+    try {
+      const shopOrderNo = `FREE-ADMIN-${Date.now()}`;
+      
+      // 1) 리포트 내역 생성
+      const created = await reportHistoryService.registerReportHistory({
+        userInfo,
+        sampleInfo: await gptService.callSample(userInfo),
+        shopOrderNo,
+        goodsType: GoodsType.ROMANTIC // 연애사주
+      });
+
+      // 2) 실제 리포트(GPT) 내용 생성
+      const reportInfo = await gptService.callReport(userInfo, GoodsType.ROMANTIC.code);
+
+      // 3) DB 업데이트
+      await reportHistoryService.updateById({
+        id: created.result.id,
+        reportInfo
+      });
+
+      // 4) 바로 리포트 결과 페이지로 리다이렉트
+      return res.redirect(`/saju/report?shopOrderNo=${shopOrderNo}`);
+    } catch (error) {
+      console.error("관리자 모드 생성 오류:", error);
+    }
+  }
   try {
     // 사용자 정보를 JSON 문자열로 변환 후 URL 인코딩
     const encodedUserInfo = encodeURIComponent(JSON.stringify(userInfo));
@@ -209,6 +236,8 @@ router.post("/skip-payment", async (req, res) => {
       userInfo,
       sampleInfo: sample,
       shopOrderNo,
+        goodsType: GoodsType.ROMANTIC, // 🔥 이 한 줄
+
       ...(userIdx ? { userIdx } : {})
     });
 

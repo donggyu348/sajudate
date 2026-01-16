@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
-
 <head>
   <style>
+    :root {
+      --gold: #d4af37;
+      --white-soft: rgba(255,255,255,0.6);
+      --white-dim: rgba(255,255,255,0.35);
+    }
+
     body {
       margin: 0;
       background: #000;
@@ -13,30 +18,21 @@
     }
 
     /* ===== STAGE ===== */
-.stage {
-  max-width: 480px;
-  height: 100vh;
-  margin: 0 auto;
-  position: relative;
-  background:
-    linear-gradient(
-      180deg,
-      #060101 0%,
-      #090202 25%,
-      #070101 50%,
-      #050000 75%,
-      #030000 100%
-    );
-}
+    .stage {
+      max-width: 480px;
+      height: 100vh;
+      margin: 0 auto;
+      position: relative;
+      background: linear-gradient(
+        180deg,
+        #060101 0%,
+        #090202 25%,
+        #070101 50%,
+        #050000 75%,
+        #030000 100%
+      );
+    }
 
-
-
-
-
-
-
-
-    /* 비네트 */
     .stage::after {
       content: "";
       position: absolute;
@@ -58,9 +54,9 @@
     }
 
     .question-sub {
-      font-size: 12px;
-      letter-spacing: 0.12em;
-      opacity: 0.5;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      opacity: 0.55;
       margin-bottom: 10px;
     }
 
@@ -68,17 +64,12 @@
       font-size: 24px;
       font-weight: 600;
       line-height: 1.5;
+      letter-spacing: -0.01em;
     }
 
     /* ===== STEP ===== */
-    .step {
-      display: none;
-    }
-    .step.active {
-          overflow: visible;
-
-      display: block;
-    }
+    .step { display: none; }
+    .step.active { display: block; }
 
     /* ===== INPUT AREA ===== */
     .input-area {
@@ -95,7 +86,7 @@
     @keyframes fadeUp {
       from {
         opacity: 0;
-        transform: translate(-50%, 16px);
+        transform: translate(-50%, 14px);
       }
       to {
         opacity: 1;
@@ -103,21 +94,39 @@
       }
     }
 
-    /* ===== TEXT INPUT ===== */
+    /* ===== INPUT ===== */
     .input {
       width: 100%;
       background: transparent;
       border: none;
-      border-bottom: 1px solid rgba(255,255,255,0.35);
-      padding: 8px 6px;
+      border-bottom: 1px solid var(--white-dim);
+      padding: 10px 6px;
       font-size: 20px;
       color: #fff;
       outline: none;
       text-align: center;
+      letter-spacing: 0.02em;
+      transition: border-color 0.3s ease;
     }
 
     .input::placeholder {
-      color: rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.35);
+    }
+
+    .input:focus {
+      border-bottom-color: var(--gold);
+    }
+
+    /* ===== SELECT ===== */
+    select.input {
+      appearance: none;
+      text-align-last: center;
+      cursor: pointer;
+    }
+
+    select option {
+      background-color: #111;
+      color: #fff;
     }
 
     /* ===== CHOICE BUTTON ===== */
@@ -128,15 +137,16 @@
       border-radius: 14px;
       padding: 16px;
       margin-bottom: 12px;
-      color: #fff;
+      color: var(--white-soft);
       font-size: 16px;
       text-align: center;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
     }
 
     .choice-btn.active {
-      background: #fff;
-      color: #000;
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 14px rgba(212,175,55,0.25);
       font-weight: 700;
     }
 
@@ -150,36 +160,28 @@
       max-width: 420px;
       height: 52px;
       border-radius: 26px;
-      border: none;
-      background: rgba(255,255,255,0.9);
-      color: #000;
-      font-size: 16px;
+      border: 1px solid var(--gold);
+      background: transparent;
+      color: var(--gold);
+      font-size: 15px;
       font-weight: 700;
+      letter-spacing: 0.12em;
       z-index: 5;
+      transition: all 0.3s ease;
     }
 
-    /* ===== LOADING ===== */
-    #loading {
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(6px);
+    .next-btn:hover {
+      background: var(--gold);
+      color: #000;
     }
 
-    select {
-  background-color: transparent;
-  color: #fff;
-}
-
-select option {
-  background-color: #111;
-  color: #fff;
-}
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px rgba(10,10,10,0.55) inset;
-  -webkit-text-fill-color: #fff;
-}
-
+    /* ===== AUTOFILL ===== */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0px 1000px rgba(10,10,10,0.6) inset;
+      -webkit-text-fill-color: #fff;
+    }
   </style>
 </head>
 
@@ -189,7 +191,7 @@ input:-webkit-autofill:focus {
 
   <!-- 질문 -->
   <div class="question-layer">
-    <p class="question-sub">29금 에로스 사주</p>
+    <p class="question-sub">연애 사주</p>
     <h1 id="questionTitle" class="question-title">당신의 이름은?</h1>
   </div>
 
@@ -201,7 +203,7 @@ input:-webkit-autofill:focus {
     <p id="loading-title" class="mt-4 text-sm">사주를 분석중입니다</p>
   </div>
 
-  <form id="sajuForm" method="POST" action="/saju/classic/result">
+  <form id="sajuForm" method="POST" action="/saju/romantic/result">
 
     <!-- hidden 유지 -->
     <input type="hidden" name="gender" id="genderInput">
@@ -237,7 +239,7 @@ input:-webkit-autofill:focus {
     <section class="step">
       <div class="input-area">
         <select name="birthTime" class="input">
-          <option value="99">모름</option>
+          <option value="unknown">모름</option>
           <option value="00">조자</option>
           <option value="02">축</option>
           <option value="04">인</option>
