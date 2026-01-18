@@ -10,10 +10,16 @@
         <%- include('./../../common/common') %>
 
         <div id="container">
-            <div class="relative w-full max-w-[448px] mx-auto">
+<div class="relative w-full mx-auto">
                 <img src="/assets/images/tight/romantic/result_1.png" class="w-full h-auto object-cover" />
-                <img src="/assets/images/svg/4.svg" class="absolute top-[-15%] left-0 w-full h-auto" />
-                <%
+                <div class="absolute top-[80%] left-[42%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
+                    <p class="text-xl"><%= userInfo.name; %></p>
+                </div>
+       
+                <img src="/assets/images/tight/romantic/result_2.png" class="w-full h-auto object-cover" />
+                <img src="/assets/images/tight/romantic/result_3.png" class="w-full h-auto object-cover" />
+
+          <!--      <%
 const STEM_TO_HANJA = {
   '갑':'甲','을':'乙','병':'丙','정':'丁','무':'戊',
   '기':'己','경':'庚','신':'辛','임':'壬','계':'癸'
@@ -34,7 +40,6 @@ function H(v){
 %>
 
                 
-                <!-- 십성 1열-->
                 <div class="absolute top-[52%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
                     <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[0]; %></p>
                 </div>
@@ -45,7 +50,6 @@ function H(v){
                     <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[0][2]); %></p>
                 </div>
 
-                <!-- 십성 2열-->
                 <div class="absolute top-[52%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
                     <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[1]; %></p>
                 </div>
@@ -56,7 +60,6 @@ function H(v){
                     <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[1][2]); %></p>
                 </div>
 
-                <!-- 십성 3열-->
                 <div class="absolute top-[52%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
                     <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[2]; %></p>
                 </div>
@@ -67,7 +70,6 @@ function H(v){
                     <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[2][2]); %></p>
                 </div>
 
-                <!-- 십성 4열-->
                 <div class="absolute top-[52%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
                     <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[3]; %></p>
                 </div>
@@ -97,7 +99,8 @@ function H(v){
                     <p class="text-sm"><%= sample.fiveElements.elements.목; %></p>
                 </div>
             </div>
-
+        -->
+        
   <%
     const g = String(userInfo.gender).trim(); // 실제 들어오는 값: "남성"
 
@@ -119,8 +122,7 @@ function H(v){
 
     // 🔥 이미지 파일 경로 (네가 준 배열 그대로 유지하되 gender 반영됨)
     const dayMasterImages = [
-        `/assets/images/tight/romantic/${stemKey}1.png`,
-        `/assets/images/tight/romantic/result/${genderKey}/${stemKey}1.png`,
+        `/assets/images/tight/romantic/result/${genderKey}1/${stemKey}.png`,
     ];
 %>
 
@@ -137,99 +139,148 @@ function H(v){
 <% } %>
             <div class="relative w-full max-w-[448px] mx-auto">
                 <img src="/assets/images/tight/romantic/result_4.png" class="w-full h-auto object-cover" />
-                <img src="/assets/images/svg/3.gif"
-                     class="unlock-btn absolute top-[40%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
-                <div class="absolute top-[66.3%] left-[7%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
+                <div class="absolute top-[65%] left-[42%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
                     <p class="text-xl"><%= userInfo.name; %></p>
                 </div>
-                <img src="/assets/images/svg/3.gif"
-                     class="unlock-btn absolute top-[80%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
+       
             </div>
 
+
+            <%
+/* 두 번째 이미지용 */
+const secondImagePath =
+  stemKey
+    ? `/assets/images/tight/romantic/result/${genderKey}/${stemKey}.png`
+    : null;
+%>
+
+<% if (secondImagePath) { %>
+  <div class="relative w-full max-w-[448px] mx-auto">
+    <img src="<%= secondImagePath %>" class="w-full h-auto object-cover"/>
+  </div>
+<% } %>
+
+
+    
             <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_5_1.png" class="w-full h-auto object-cover" />
-            </div>
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_5_2.png" class="w-full h-auto object-cover" />
-            </div>
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_5_3.png" class="w-full h-auto object-cover" />
-                <img src="/assets/images/svg/3.gif"
-                     class="unlock-btn absolute top-[40%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
+                <img src="/assets/images/tight/romantic/result_5.png" class="w-full h-auto object-cover" />
+          
                 <div class="absolute top-[14.7%] left-[5%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
                     <p class="text-xl"><%= userInfo.name; %></p>
                 </div>
             </div>
-
+ 
             <div class="relative w-full max-w-[448px] mx-auto">
                 <img src="/assets/images/tight/romantic/result_6.png" class="w-full h-auto object-cover" />
-                <img src="/assets/images/svg/3.gif"
-                     class="unlock-btn absolute top-[40%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
-                <div class="absolute top-[20.7%] left-[5%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-xl"><%= userInfo.name; %></p>
-                </div>
-            </div>
-
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_7_1.png" class="w-full h-auto object-cover" />
-            </div>
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_7_2.png" class="w-full h-auto object-cover" />
-            </div>
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_7_3.png" class="w-full h-auto object-cover" />
-                <img src="/assets/images/svg/3.gif"
-                     class="unlock-btn absolute top-[40%] left-1/2 transform -translate-x-1/2 w-[50%] h-auto" />
-                <div class="absolute top-[12%] left-[5%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-xl"><%= userInfo.name; %></p>
-                </div>
-            </div>
-
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_8.png" class="w-full h-auto object-cover" />
-            </div>
-
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_9.png" class="w-full h-auto object-cover" />
+          
             </div>
 
             <form method="POST" action="<%= userInfo.name === '관리자' ? '/saju/skip-payment' : '/saju/payment' %>" class="w-full">
                 <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
                 <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />
                 <input type="hidden" name="goodsType" value='ROMANTIC' />
-                <button  id="result10-button" type="submit" class="relative w-full max-w-[448px] mx-auto p-0 border-0 bg-transparent"
-                        style="background: none;">
-                    <img src="/assets/images/tight/romantic/result_10.png" class="w-full h-auto object-cover" />
-                </button>              
+             
             </form>
-
-            <div id="floating-btn">
+<div id="floating-btn">
   <img src="/assets/images/tight/romantic/index_banner2.png" />
+
+  <!-- 이미지 상단 오버레이 -->
+  <div id="countdown-overlay">
+    <span class="countdown-label">할인 종료까지</span>
+    <span id="countdown-time">60:00:000</span>
+  </div>
 </div>
 
-            
-        </div>
 
     </div>
 </div>
 <style>
  #floating-btn {
   position: fixed;
-  bottom: 10px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 200%;
+  width: 100%;
   max-width: 448px;
   z-index: 9999;
-  transition: opacity 0.3s ease; /* 부드러운 사라짐 */
 }
 
-#floating-btn.hide {
-  opacity: 0;
-  pointer-events: none;
+/* 이미지 */
+#floating-btn img {
+  width: 100%;
+  display: block;
 }
+
+/* 🔥 이미지 상단 오버레이 */
+#countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px; /* ⬅️ 기존 28px → 40px */
+  pointer-events: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* 텍스트 간격 */
+}
+
+/* "할인 종료까지" */
+.countdown-label {
+  color: rgba(255,255,255,0.8);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* 카운터 */
+#countdown-time {
+  color: #E6C27A;
+  font-size: 14px;          /* 🔥 크게 */
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+
+
+
 </style>
 <script>
+ // 1시간 = 3600000ms
+let remainingTime = 60 * 60 * 1000;
+let lastTimestamp = performance.now();
+
+function updateCountdown(now) {
+  const delta = now - lastTimestamp;
+  lastTimestamp = now;
+  remainingTime -= delta;
+
+  if (remainingTime < 0) remainingTime = 0;
+
+  const ms = Math.floor(remainingTime % 1000);
+  const totalSeconds = Math.floor(remainingTime / 1000);
+  const seconds = totalSeconds % 60;
+  const minutes = Math.floor(totalSeconds / 60);
+
+  const formatted =
+    String(minutes).padStart(2, "0") + ":" +
+    String(seconds).padStart(2, "0") + ":" +
+    String(ms).padStart(3, "0");
+
+  document.getElementById("countdown-time").innerText = formatted;
+
+  if (remainingTime > 0) {
+    requestAnimationFrame(updateCountdown);
+  } else {
+    // 0초 도달 시 (선택)
+    document.getElementById("countdown-time").innerText = "00:00:000";
+  }
+}
+
+requestAnimationFrame(updateCountdown);
+
   $(document).ready(function() {
     $(".unlock-btn").on("click", function() {
       $("form").submit();

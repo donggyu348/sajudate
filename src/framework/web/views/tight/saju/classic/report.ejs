@@ -1,180 +1,225 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
+
+
+<%
+  // 일간 한글 변환 매핑
+  const STEM_TO_FILE = {
+    "甲":"갑목","乙":"을목","丙":"병화","丁":"정화","戊":"무토",
+    "己":"기토","庚":"경금","辛":"신금","壬":"임수","癸":"계수",
+    "갑":"갑목","을":"을목","병":"병화","정":"정화","무":"무토",
+    "기":"기토","경":"경금","신":"신금","임":"임수","계":"계수"
+  };
+  const myDayStem = STEM_TO_FILE[saju.day.gan] || "갑목";
+  
+  // 성별 변환
+  const g = String(userInfo.gender).trim();
+  let genderKey = (["여","여자","여성","female","woman"].includes(g)) ? "woman" : "man";
+%>
 <style>
-  .report-bg {
-    background:
-      radial-gradient(
-        120% 80% at 50% 0%,
-        #1a0a10 0%,
-        #0b0b0d 60%,
-        #070707 100%
-      );
-  }
-
-  .report-chapter {
-    border: 1px solid rgba(255,255,255,0.25);
-    color: #fff;
-    font-size: 13px;
-    padding: 4px 14px;
-    border-radius: 9999px;
-    display: inline-block;
-  }
-
-  .report-title {
-    font-size: 20px;
-    line-height: 1.3;
-    font-weight: 700;
-    color: #ffffff;
-    white-space: pre-line;
-  }
-
-  .report-content {
-    font-size: 16px;
-    line-height: 1.9;
-    color: #d1d1d1;
-    white-space: pre-line;
-  }
-
-  .highlight {
-    color: #ff4d8d;
-    font-weight: 600;
-  }
-.report-top-spacer {
-  height: 32px; /* 여기 숫자만 조절 */
+    .report-section {
+  margin-top: 64px;
 }
 
-  /* ===== CHAPTER PROGRESS ===== */
-.chapter-progress-wrap {
-  margin-top: 96px;
-  margin-bottom: 64px;
-}
-
-.chapter-progress {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.chapter-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 9999px;
-  background: rgba(255,255,255,0.25);
-}
-
-.chapter-dot.active {
-  background: #ff4d8d;
-  width: 18px;
-}
-
-.chapter-title {
-  font-size: 26px;
+/* 소제목 (2-1, 2-2 역할) */
+.report-subtitle {
+  font-size: 22px;
   font-weight: 700;
-  line-height: 1.3;
+  color: #111;
+  padding-left: 12px;
+  border-left: 4px solid #8b5e3c; /* 사주/한지 느낌 */
+  margin-bottom: 24px;
+}
 
-  background: linear-gradient(
-    90deg,
-    #ffffff 0%,
-    #f3e6c8 50%,
-    #ffffff 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* 내용 */
+.report-content {
+  font-size: 18px;
+  line-height: 1.9;
+  color: #2a2a2a;
+}
+
+   .report-paper-light {
+  background-color: #f4efe4;
+
+  background-image:
+    radial-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,0.8),
+      rgba(0,0,0,0.03)
+    );
+
+  background-size: 4px 4px, 100% 100%;
+  background-repeat: repeat;
+
+  /* ✅ 핵심 */
+  color: #1a1a1a;
 }
 
 
-
-
-
-.chapter-sub {
-  margin-top: 12px;
-  font-size: 14px;
-  color: rgba(255,255,255,0.55);
+/* 천간지지 테이블 */
+.saju-table {
+  position: absolute;
+  top: 40%;
+  left: 57%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  grid-template-rows: repeat(2, auto);
+  gap: 10px 25px;
+  font-weight: bold;
+  font-size: clamp(16px, 2.5vw, 18px);
+  text-align: center;
+  z-index: 10;
 }
 
+/* 오행 위치 */
+.five {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: clamp(20px, 3vw, 22px);
+  text-align: center;
+  z-index: 10;
+}
+
+.fire  { top: 68%; left: 49.6%; color: #000; }
+.wood  { top: 76%; left: 74%; color: #000; }
+.earth { top: 92%; left: 65.5%; color: #000; }
+.metal { top: 92%; left: 34%; color: #000; }
+.water { top: 76%; left: 26%; color: #000; }
 </style>
 
-<body class="page-classic">
+<body>
   
-<div class="flex flex-col w-full max-w-[480px] mx-auto ">
-    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl " >
-        <%- include('./../../common/common') %>
+<div class="flex flex-col w-full max-w-[480px] mx-auto">
+    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
 
+        <%- include('./../../common/common') %>
 
         <div id="container">
 
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <div class="relative">
+<div class="relative w-full max-w-[448px] mx-auto overflow-visible">
 
-     
-                <div class="relative w-full max-w-[448px] mx-auto report-bg pb-32">
-                    <div class="report-top-spacer"></div>
+  <!-- 이미지 -->
+  <img
+    src="/assets/images/tight/classic/report_01.png"
+    class="w-full h-auto object-cover"
+  />
 
+  <!-- ✅ 오버레이 전체 래퍼 -->
+  <div class="absolute inset-0 pointer-events-none">
 
-   
-                 <% 
-    const chapters = [...new Set(reportInfo.map(r => r.chapter))];
-    const totalChapters = chapters.length;
-    let currentChapter = '';
-  %>
+    <!-- 1️⃣ 이름 / 생년월일 / 출생시 -->
+    <div
+      class="absolute top-[24%] left-[10%] w-[80%]
+             text-center text-[clamp(10px,2vw,14px)]
+             text-black whitespace-nowrap">
+      성함: <%= userInfo.name %>님 |
+      생년월일: <%= userInfo.birthdate %> |
+      출생시:
+      <%= {
+        "00": "자시", "02": "축시", "04": "인시", "06": "묘시", "08": "진시",
+        "10": "사시", "12": "오시", "14": "미시", "16": "신시", "18": "유시",
+        "20": "술시", "22": "해시", "24": "야자시", "unknown": "모름"
+      }[userInfo.birthTime] || "모름" %>
+    </div>
+
+    <!-- 2️⃣ 천간지지 -->
+      <div class="saju-table">
+
+    <div><%= saju.hour.gan || "" %></div>
+        <div><%= saju.day.gan %></div>
+        <div><%= saju.month.gan %></div>
+        <div><%= saju.year.gan %></div>
+
+        <div><%= saju.hour.ji || "" %></div>
+        <div><%= saju.day.ji %></div>
+        <div><%= saju.month.ji %></div>
+        <div><%= saju.year.ji %></div>
+    </div>
+
+      <div class="five fire"><span><%= saju.fiveElements.화 %></span></div>
+      <div class="five wood"><span><%= saju.fiveElements.목 %></span></div>
+      <div class="five earth"><span><%= saju.fiveElements.토 %></span></div>
+      <div class="five metal"><span><%= saju.fiveElements.금 %></span></div>
+      <div class="five water"><span><%= saju.fiveElements.수 %></span></div>
+
+  </div>
+</div>
+
+<div class="relative">
+  <% let currentChapter = ''; %>
+
   <% reportInfo.forEach((item, index) => { %>
+
     <% if (item.chapter !== currentChapter) { %>
       <% currentChapter = item.chapter; %>
 
-<%
-  const chapterIndex = chapters.indexOf(item.chapter);
-%>
+      <div class="report-paper-light pb-32">
 
-<div class="px-8 chapter-progress-wrap ">
+        <!-- 챕터 아이콘 -->
+        <div class="ml-auto w-[80px]">
+          <img src="/assets/images/tight/classic/report_header_icon.png" />
+        </div>
 
-  <!-- 진행바 -->
-  <div class="chapter-progress">
-    <% for (let i = 0; i < totalChapters; i++) { %>
-      <div class="chapter-dot <%= i <= chapterIndex ? 'active' : '' %>"></div>
-    <% } %>
-  </div>
+        <!-- 챕터 제목 -->
+        <div class="inline-block ml-8 px-4 py-1 border border-gray-700 text-gray-800 text-sm rounded-full">
+          <%= item.chapter %>
+        </div>
 
-  <!-- 챕터 타이틀 -->
-  <div class="chapter-title">
-    <%= item.chapter %>
-  </div>
-
-  <!-- 서브 카피 (선택) -->
-  <div class="chapter-sub">
-     <%= chapterIndex + 1 %> / <%= totalChapters %>
-  </div>
-
-</div>
-
-<div class="mt-16 space-y-24 px-8">
-
+        <!-- 챕터 내용 시작 -->
+        <div class="mt-10 mr-8 ml-8 space-y-16">
     <% } %>
 
-<div>
+          <!-- ✅ 여기부터가 소제목 + 내용 (항상 출력됨) -->
+          <div class="report-section">
 
-  <% if (item.title && item.title !== item.chapter) { %>
-    <div class="report-title">
-      <%= item.title %>
-    </div>
-  <% } %>
+            <% if (item.title.includes("사주로 보는 주의해야 할 연애 유형")) { %>
+              <div class="w-full mb-8">
+                <img src="/assets/images/tight/classic/report/<%= genderKey %>/<%= myDayStem %>.png" 
+                     class="w-full h-auto object-cover rounded-lg" 
+                     onerror="this.style.display='none';" />
+              </div>
+            <% } %>
+                        <% if (item.title.includes("조심해야 할 건강 포인트")) { %>
+              <div class="w-full mb-8">
+                <img src="/assets/images/tight/classic/report/<%= myDayStem %>.png" 
+                     class="w-full h-auto object-cover rounded-lg" 
+                     onerror="this.style.display='none';" />
+              </div>
+            <% } %>
+                        <% if (item.title.includes("돈이 들어오는 방식")) { %>
+              <div class="w-full mb-8">
+                <img src="/assets/images/tight/classic/report/<%= myDayStem %>1.png" 
+                     class="w-full h-auto object-cover rounded-lg" 
+                     onerror="this.style.display='none';" />
+              </div>
+            <% } %>
+            <!-- 소제목 -->
+            <div class="report-subtitle">
+              <%= item.title %>
+            </div>
 
-  <p class="report-content mt-12">
-    <%= item.content %>
-  </p>
+            <!-- 내용 -->
+            <div class="report-content whitespace-pre-line">
+              <%= item.content %>
+            </div>
 
-</div>
+          </div>
 
-
-    <%
+    <% 
       const nextItem = reportInfo[index + 1];
       if (!nextItem || nextItem.chapter !== currentChapter) {
     %>
-      </div>
+        </div> <!-- 챕터 내용 끝 -->
+      </div>   <!-- report-paper-light 끝 -->
     <% } %>
+
   <% }); %>
 </div>
+
 
             </div>
         </div>
@@ -183,7 +228,4 @@
 </div>
 
 </body>
-
-
-
 </html>

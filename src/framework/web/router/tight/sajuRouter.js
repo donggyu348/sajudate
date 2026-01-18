@@ -25,6 +25,7 @@ const processGetResult = async (req, res, goodsType) => {
   try {
     const userInfoJson = decodeURIComponent(encodedUserInfo);
     const userInfo = JSON.parse(userInfoJson);
+const sample = await gptService.callSample(userInfo);
 
     // 1. 사주 분석 결과 재계산
     const saju = getFourPillars(userInfo);
@@ -40,7 +41,10 @@ const processGetResult = async (req, res, goodsType) => {
     res.render(`tight/saju/${goodsType.code.toLowerCase()}/result`, {
       userInfo: userInfo,
       saju,        // 🔥 이것만 있으면 됨
-      todayDate: todayDate
+      todayDate: todayDate,
+      sample,
+            sampleInfo: sample   // ✅ 이 줄이 이번 에러의 정답
+
     });
   } catch (error) {
     console.error(`Error processing ${goodsType.code} GET result:`, error);
