@@ -1,0 +1,46 @@
+<div class="ticket-page" style="padding: 40px 20px; text-align: center;">
+  <h2>사주 티켓 등록</h2>
+  <p style="color: #666; margin-bottom: 30px;">문자로 받으신 티켓 번호를 입력해 주세요.</p>
+  
+  <div style="max-width: 400px; margin: 0 auto;">
+    <input type="text" id="ticketCodeInput" placeholder="티켓 번호 입력" 
+           style="width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; font-size: 16px;">
+    
+    <button onclick="handleTicketVerify()" 
+            style="width: 100%; padding: 15px; background: #000; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+      리포트 확인하기
+    </button>
+  </div>
+</div>
+
+<script>
+async function handleTicketVerify() {
+    const code = document.getElementById('ticketCodeInput').value.trim().toUpperCase();
+    
+    if (code.length < 8) {
+        return alert("문자로 받으신 티켓 코드 8자리를 정확히 입력해주세요.");
+    }
+
+    try {
+        const response = await fetch('/api/payments/verify-ticket', { // 라우터 설정에 맞춰 경로 확인 필요
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+        });
+        
+        const result = await response.json();
+
+        if (result.success) {
+            alert(`${result.serviceName} 티켓이 확인되었습니다!\n정보 입력 페이지로 이동합니다.`);
+            // 티켓 코드를 가지고 해당 서비스 입력창으로 이동
+            const target = result.serviceType.toLowerCase(); // 'romantic' 또는 'classic'
+            location.href = `/saju/${target}/input?ticket=${code}`;
+        } else {
+            alert(result.message || "유효하지 않거나 이미 사용된 티켓입니다.");
+        }
+    } catch (error) {
+        console.error("Ticket verify error:", error);
+        alert("서버 통신 중 오류가 발생했습니다.");
+    }
+}
+</script>
