@@ -3445,7 +3445,6 @@ ${pillars.isUnknownTime
 
       // ✅ 4) 챕터별로 프롬프트 조합 시 계산값 삽입
       for (let i = 0; i < promtParts.length; i++) {
-        const lengthGuide = "\n[주의] 각 섹션의 내용은 1200~1500자 내외로 상세하되 응답이 중간에 끊기지 않도록 JSON 형식을 엄수하라.";
         const fullSystemPrompt = `
 ${promtParts[i]}
 
@@ -3463,7 +3462,8 @@ ${yearContext}
         ]);
 
         const cleanedResponse = preClean(String(response));
-let parsed = safeJsonParseLooser(cleanedResponse, `REPORT_PART_${i}`);
+        let parsed;
+
         try {
           parsed = safeJsonParseLooser(cleanedResponse, "REPORT");
         } catch {
