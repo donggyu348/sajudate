@@ -3445,6 +3445,7 @@ ${pillars.isUnknownTime
 
       // ✅ 4) 챕터별로 프롬프트 조합 시 계산값 삽입
       for (let i = 0; i < promtParts.length; i++) {
+        const lengthGuide = "\n[주의] 각 섹션의 내용은 1200~1500자 내외로 상세하되 응답이 중간에 끊기지 않도록 JSON 형식을 엄수하라.";
         const fullSystemPrompt = `
 ${promtParts[i]}
 
@@ -3462,8 +3463,7 @@ ${yearContext}
         ]);
 
         const cleanedResponse = preClean(String(response));
-        let parsed;
-
+let parsed = safeJsonParseLooser(cleanedResponse, `REPORT_PART_${i}`);
         try {
           parsed = safeJsonParseLooser(cleanedResponse, "REPORT");
         } catch {
@@ -3919,36 +3919,45 @@ function findFirstJsonBlock(s) {
 
 // 4) 관대한 파서(추출 → 정규화 → 파싱)
 function safeJsonParseLooser(input, tag = "UNKNOWN") {
+  // 1. 기본 청소 및 불필요한 제어 문자 제거
   let cleaned = preClean(input);
-
-  // 가장 먼저 스택 기반으로 시도
+  
+  // 2. JSON 블록 추출
   let core = findFirstJsonBlock(cleaned);
-
-  // 실패하면 인덱스 기반
   if (!core) {
     try { core = extractJsonObject(cleaned); } catch (e) { /* noop */ }
   }
 
-  // 그래도 실패하면 전체 시도
   if (!core) {
     console.warn(`[${tag}] JSON block not isolated. Fallback to full string parse.`);
     core = cleaned;
   }
 
-  // 스마트쿼트 → ASCII
+  // 3. 특수 쿼트(“” ‘’) 표준화 및 제어 문자 제거
   core = core.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
+  core = core.replace(/[\u0000-\u001F\u007F-\u009F]/g, ""); 
 
-  // 값 문자열 내 개행/제어문자 정리(필요 최소치)
-  core = core.replace(/:(\s*)"([^"]*)"/g, (match, space, p1) => {
-    let v = p1.replace(/\r?\n/g, " ").replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+  // 4. [핵심] 값 내부의 실제 줄바꿈을 \\n 문자열로 치환하는 강력한 정규식
+  // 값 내부의 "를 제외한 모든 문자([\s\S]*?)를 찾고 줄바꿈만 치환함
+  core = core.replace(/:(\s*)"([\s\S]*?)"(?=\s*[,}\]])/g, (match, space, p1) => {
+    // 실제 줄바꿈을 제이슨 표준인 \n 문자열로 변환
+    let v = p1.replace(/\r?\n/g, "\\n");
     return `:${space}"${v}"`;
   });
 
   try {
     return JSON.parse(core);
   } catch (err) {
-    console.error(`[${tag}] JSON.parse failed. Preview(200):`, cleaned.slice(0, 200));
-    throw err;
+    try {
+      // 파싱 실패 시 마지막 수단: 모든 실제 줄바꿈을 공백으로 날려버림
+      console.warn(`[${tag}] 재시도: 모든 줄바꿈 강제 제거 후 파싱`);
+      let retryCore = core.replace(/\r?\n/g, " ");
+      return JSON.parse(retryCore);
+    } catch (e2) {
+      console.error(`[${tag}] 모든 파싱 시도 실패. 에러 메시지: ${err.message}`);
+      console.error(`[${tag}] 문제 데이터 미리보기:`, core.slice(0, 500));
+      throw err;
+    }
   }
 }
 
