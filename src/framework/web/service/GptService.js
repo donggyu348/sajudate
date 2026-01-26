@@ -3366,12 +3366,18 @@ ${pillars.isUnknownTime
 // ✅ 1. 각 챕터 생성을 위한 Promise 배열 생성
       const reportPromises = promtParts.map(async (prompt, i) => {
 const fullSystemPrompt = `${prompt}\n\n${contextInfo}\n${yearContext}`.trim();
+const systemMessage = `당신은 사주 보고서 생성기입니다. 
+제공된 [사주 데이터]를 분석하여, [작성 양식 및 사전]에서 가장 적합한 번호의 문구들을 '복사'해서 완성하세요.
+절대 지시사항이나 가이드라인 문구를 답변에 포함하지 마세요. 
+최종 결과는 반드시 JSON { "chapter": "...", "sections": [{ "title": "...", "content": "..." }] } 형식이어야 합니다.`;
 
 return GptClient.callChatGpt([
-  { role: "system", content: fullSystemPrompt },
-  { role: "user", content: JSON.stringify(sajuJsonForGPT) },
-  { role: "user", content: "다른 설명은 하지 말고 반드시 지정된 JSON 구조로만 답변해줘. 분석은 하지말고 프롬프트에 명시된대로 출력해줘" } // 이 문구 추가
-], 'gpt-4o-mini').then(response => {
+    { role: "system", content: systemMessage },
+    { role: "user", content: `[작성 양식 및 사전]:\n${prompt}` },
+    { role: "user", content: `[분석할 사용자의 사주 데이터]:\n${JSON.stringify(sajuJsonForGPT)}` },
+    { role: "user", content: "위 사주 데이터를 분석해서 양식의 빈칸을 채운 최종 보고서 내용만 출력해." }
+  ], 'gpt-4o-mini');
+}).then(response => {
  if (response.includes("죄송합니다") || response.includes("처리할 수 없습니다")) {
         console.error(`[GPT_LOG] 챕터 ${i} 답변 거부됨`);
         return { parsed: { sections: [] }, index: i };
