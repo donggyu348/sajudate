@@ -3269,85 +3269,6 @@ function extractJsonObject(text) {
  */
 class GptService {
 
-  // async callReport(userInfo, goodsType) {
-
-  //   let promtParts;
-  //   if (goodsType === GoodsType.PREMIUM_SAJU) {
-  //     promtParts = PREMIUM_REPORT_PROMPT_PARTS;
-
-  //   } else if (goodsType === GoodsType.CLASSIC) {
-  //     promtParts = CLASSIC_REPORT_PROMPT_PARTS;
-
-  //   } else if (goodsType === GoodsType.ROMANTIC) {
-  //     promtParts = ROMANTIC_REPORT_PROMPT_PARTS;
-  //   }
-
-  //   try {
-
-  //     let result = [];
-  //     for (let i = 0; i < promtParts.length; i++) {
-  //       const response = await GptClient.callChatGpt(
-  //         [
-  //           { role: "system", content: promtParts[i] },
-  //           { role: "user", content: JSON.stringify(userInfo) }
-  //         ]
-  //       );
-
-  //       const cleanedResponse = response
-  //         .replace(/```json\s*/gi, "")
-  //         .replace(/```/g, "")
-  //         .replace(/^\s+/, "")
-  //         .replace(/\s+$/, "");
-
-  //       let parsed;
-  //       try {
-  //         parsed = JSON.parse(cleanedResponse);
-  //       } catch (e) {
-  //         console.warn("GPT 응답이 JSON 형식이 아님. JSON 본문만 추출 시도 중...");
-  //         const jsonOnly = extractJsonObject(cleanedResponse);
-  //         parsed = JSON.parse(jsonOnly);
-  //       }
-
-  //       if (Array.isArray(parsed) && parsed[0]?.sections) {
-  //         parsed.forEach(chapter => {
-  //           chapter.sections.forEach(section => {
-  //             result.push({
-  //               chapter: chapter.chapter,
-  //               title: section.title,
-  //               content: section.content
-  //             });
-  //           });
-  //         });
-  //       } else if (Array.isArray(parsed) && parsed[0]?.title && parsed[0]?.content) {
-  //         result = result.concat(parsed);
-  //       } else if (parsed?.sections) {
-  //         // ROMANTIC 보호 로직: 챕터/타이틀이 뒤바뀐 경우를 보정
-  //         let chapterValue = parsed.chapter;
-  //         if (goodsType === GoodsType.ROMANTIC) {
-  //           const expectedChapter = extractRomanticChapterTitleFromPrompt(promtParts[i]) || parsed.chapter;
-  //           // 섹션 제목 패턴(예: "1-1. ...")이 chapter에 들어간 경우 또는 chapter가 비정상일 때 교정
-  //           const looksLikeSectionTitle = typeof chapterValue === "string" && /^\d+-\d+\.\s/.test(chapterValue);
-  //           if (!chapterValue || looksLikeSectionTitle) {
-  //             chapterValue = expectedChapter;
-  //           }
-  //         }
-  //         parsed.sections.forEach(section => {
-  //           result.push({
-  //             chapter: chapterValue,
-  //             title: section.title,
-  //             content: section.content
-  //           });
-  //         });
-  //       }
-
-  //     }
-  //     console.log(result);
-  //     return result;
-  //   } catch (error) {
-  //     console.error("Error calling GPT:", error);
-  //     throw error;
-  //   }
-  // }
 
   async callReport(userInfo, goodsType) {
     const typeCode = (typeof goodsType === 'object') ? goodsType.code : goodsType;
@@ -3442,35 +3363,41 @@ ${pillars.isUnknownTime
       let result = [];
       const currentYear = new Date().getFullYear();
       const yearContext = `\n\n[CONTEXT] The current year for this analysis is ${currentYear}. All predictions and timeline references must be based on this year.`;
-
-      // ✅ 4) 챕터별로 프롬프트 조합 시 계산값 삽입
-      for (let i = 0; i < promtParts.length; i++) {
+// ✅ 1. 각 챕터 생성을 위한 Promise 배열 생성
+      const reportPromises = promtParts.map(async (prompt, i) => {
         const fullSystemPrompt = `
-${promtParts[i]}
+${prompt}
 
 ${contextInfo}
 [참고] GPT 분석을 위해 필요한 SAJU_JSON 데이터를 사용자 메시지에 담아 제공합니다.
 ${yearContext}
-      `.trim();
+        `.trim();
 
+        // 속도 향상을 위해 'gpt-4o-mini' 사용 추천
         const response = await GptClient.callChatGpt([
           { role: "system", content: fullSystemPrompt },
-          // !!! 수정: userInfo 대신 SAJU_JSON 구조를 JSON 문자열로 보낸다.
           { role: "user", content: JSON.stringify(sajuJsonForGPT) },
           { role: "user", content: "이 보고서는 반드시 SAJU_JSON 데이터를 직접 분석해 작성해야 하며, 예시문을 그대로 사용하거나 비슷하게 작성하면 안된다." }
-
-        ]);
+        ]); 
 
         const cleanedResponse = preClean(String(response));
         let parsed;
 
         try {
-          parsed = safeJsonParseLooser(cleanedResponse, "REPORT");
+          parsed = safeJsonParseLooser(cleanedResponse, `REPORT_CH_${i}`);
         } catch {
           const jsonOnly = extractJsonObject(cleanedResponse);
-          parsed = safeJsonParseLooser(jsonOnly, "REPORT-FORCED");
+          parsed = safeJsonParseLooser(jsonOnly, `REPORT-FORCED_CH_${i}`);
         }
+        
+        return { parsed, promptPart: prompt };
+      });
 
+      // ✅ 2. 모든 챕터를 동시에 병렬 실행 및 대기
+      const rawResults = await Promise.all(reportPromises);
+
+      // ✅ 3. 병렬 실행 결과를 기존 result 배열에 취합
+      rawResults.forEach(({ parsed, promptPart }) => {
         if (Array.isArray(parsed) && parsed[0]?.sections) {
           parsed.forEach((chapter) => {
             chapter.sections.forEach((section) => {
@@ -3485,8 +3412,8 @@ ${yearContext}
           result = result.concat(parsed);
         } else if (parsed?.sections) {
           let chapterValue = parsed.chapter;
-          if (goodsType === GoodsType.ROMANTIC) {
-            const expectedChapter = extractRomanticChapterTitleFromPrompt(promtParts[i]) || parsed.chapter;
+          if (typeCode === 'ROMANTIC' || typeCode === GoodsType.ROMANTIC.code) {
+            const expectedChapter = extractRomanticChapterTitleFromPrompt(promptPart) || parsed.chapter;
             const looksLikeSectionTitle = typeof chapterValue === "string" && /^\d+-\d+\.\s/.test(chapterValue);
             if (!chapterValue || looksLikeSectionTitle) {
               chapterValue = expectedChapter;
@@ -3500,14 +3427,20 @@ ${yearContext}
             });
           });
         }
-      }
+      });
 
       return result;
-    } catch (error) {
+
+} catch (error) {
       console.error("Error calling GPT:", error);
       throw error;
     }
-  }
+
+    
+  } // callRepo
+
+
+      // 취합된 최종 결과 반환
 
   // async callSample(userInfo, goods) {
   //   try {
