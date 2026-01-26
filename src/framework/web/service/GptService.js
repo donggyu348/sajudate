@@ -3270,7 +3270,7 @@ function extractJsonObject(text) {
 class GptService {
 
 
-  async callReport(userInfo, goodsType) {
+async callReport(userInfo, goodsType) {
     const typeCode = (typeof goodsType === 'object') ? goodsType.code : goodsType;
     let promtParts;
 // 2. 추출한 typeCode를 사용하여 비교합니다.
@@ -3363,65 +3363,72 @@ ${pillars.isUnknownTime
       let result = [];
       const currentYear = new Date().getFullYear();
       const yearContext = `\n\n[CONTEXT] The current year for this analysis is ${currentYear}. All predictions and timeline references must be based on this year.`;
-// ✅ 1. 각 챕터 생성을 위한 Promise 배열 생성
-      const reportPromises = promtParts.map(async (prompt, i) => {
-const fullSystemPrompt = `${prompt}\n\n${contextInfo}\n${yearContext}`.trim();
-const systemMessage = `당신은 사주 보고서 생성기입니다. 
-제공된 [사주 데이터]를 분석하여, [작성 양식 및 사전]에서 가장 적합한 번호의 문구들을 '복사'해서 완성하세요.
-절대 지시사항이나 가이드라인 문구를 답변에 포함하지 마세요. 
-최종 결과는 반드시 JSON { "chapter": "...", "sections": [{ "title": "...", "content": "..." }] } 형식이어야 합니다.`;
 
-return GptClient.callChatGpt([
-    { role: "system", content: systemMessage },
-    { role: "user", content: `[작성 양식 및 사전]:\n${prompt}` },
-    { role: "user", content: `[분석할 사용자의 사주 데이터]:\n${JSON.stringify(sajuJsonForGPT)}` },
-    { role: "user", content: "위 사주 데이터를 분석해서 양식의 빈칸을 채운 최종 보고서 내용만 출력해." }
-  ], 'gpt-4o-mini').then(response => {
- if (response.includes("죄송합니다") || response.includes("처리할 수 없습니다")) {
-        console.error(`[GPT_LOG] 챕터 ${i} 답변 거부됨`);
-        return { parsed: { sections: [] }, index: i };
+      // ✅ 4) 챕터별로 프롬프트 조합 시 계산값 삽입
+      for (let i = 0; i < promtParts.length; i++) {
+        const lengthGuide = "\n[주의] 각 섹션의 내용은 1200~1500자 내외로 상세하되 응답이 중간에 끊기지 않도록 JSON 형식을 엄수하라.";
+        const fullSystemPrompt = `
+${promtParts[i]}
+
+${contextInfo}
+[참고] GPT 분석을 위해 필요한 SAJU_JSON 데이터를 사용자 메시지에 담아 제공합니다.
+${yearContext}
+      `.trim();
+
+        const response = await GptClient.callChatGpt([
+          { role: "system", content: fullSystemPrompt },
+          // !!! 수정: userInfo 대신 SAJU_JSON 구조를 JSON 문자열로 보낸다.
+          { role: "user", content: JSON.stringify(sajuJsonForGPT) },
+          { role: "user", content: "이 보고서는 반드시 SAJU_JSON 데이터를 직접 분석해 작성해야 하며, 예시문을 그대로 사용하거나 비슷하게 작성하면 안된다." }
+
+        ]);
+
+        const cleanedResponse = preClean(String(response));
+let parsed = safeJsonParseLooser(cleanedResponse, `REPORT_PART_${i}`);
+        try {
+          parsed = safeJsonParseLooser(cleanedResponse, "REPORT");
+        } catch {
+          const jsonOnly = extractJsonObject(cleanedResponse);
+          parsed = safeJsonParseLooser(jsonOnly, "REPORT-FORCED");
+        }
+
+        if (Array.isArray(parsed) && parsed[0]?.sections) {
+          parsed.forEach((chapter) => {
+            chapter.sections.forEach((section) => {
+              result.push({
+                chapter: chapter.chapter,
+                title: section.title,
+                content: section.content,
+              });
+            });
+          });
+        } else if (Array.isArray(parsed) && parsed[0]?.title && parsed[0]?.content) {
+          result = result.concat(parsed);
+        } else if (parsed?.sections) {
+          let chapterValue = parsed.chapter;
+          if (goodsType === GoodsType.ROMANTIC) {
+            const expectedChapter = extractRomanticChapterTitleFromPrompt(promtParts[i]) || parsed.chapter;
+            const looksLikeSectionTitle = typeof chapterValue === "string" && /^\d+-\d+\.\s/.test(chapterValue);
+            if (!chapterValue || looksLikeSectionTitle) {
+              chapterValue = expectedChapter;
+            }
+          }
+          parsed.sections.forEach((section) => {
+            result.push({
+              chapter: chapterValue,
+              title: section.title,
+              content: section.content,
+            });
+          });
+        }
       }
-      
-      const cleanedResponse = preClean(String(response));
-      let parsed;
-      try {
-        parsed = safeJsonParseLooser(cleanedResponse, `CH_${i}`);
-      } catch (e) {
-        // 파싱 실패 시 서버가 죽지 않게 빈 배열 리턴
-        parsed = { sections: [] }; 
-      }
-      return { parsed, promptPart: prompt, index: i };
-    });
-});
 
-// ✅ 2. 모든 챕터를 동시에 실행하고 기다립니다.
-const rawResults = await Promise.all(reportPromises);
-
-// ✅ 3. 병렬 결과는 끝나는 순서가 뒤섞이므로, index 순으로 정렬 후 result에 넣습니다.
-rawResults.sort((a, b) => a.index - b.index).forEach(({ parsed, promptPart }) => {
-  if (Array.isArray(parsed) && parsed[0]?.sections) {
-    parsed.forEach((chapter) => {
-      chapter.sections.forEach((section) => {
-        result.push({ chapter: chapter.chapter, title: section.title, content: section.content });
-      });
-    });
-  } else if (parsed?.sections) {
-    let chapterValue = parsed.chapter || (typeCode === 'ROMANTIC' ? extractRomanticChapterTitleFromPrompt(promptPart) : "");
-    parsed.sections.forEach((section) => {
-      result.push({ chapter: chapterValue, title: section.title, content: section.content });
-    });
-  }
-});
-
-return result; // 마지막에 result 반환
-
-} catch (error) {
+      return result;
+    } catch (error) {
       console.error("Error calling GPT:", error);
       throw error;
     }
-
-    
-  } // callRepo
+  }
 
 
       // 취합된 최종 결과 반환
