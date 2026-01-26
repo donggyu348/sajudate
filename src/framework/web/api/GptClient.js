@@ -27,7 +27,7 @@ class GptClient {
             model,
             messages,
             temperature: 0.8,
-            max_tokens: 5000
+            max_tokens: 7000
           }),
         });
 
