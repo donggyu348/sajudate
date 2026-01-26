@@ -1595,6 +1595,7 @@ const ROMANTIC_REPORT_PROMPT_PREFIX = `
 - "chapter"는 아래 지정된 장 제목을 그대로 복사해 사용(오탈자/변형 금지. ex. 제 1장 연애운).
 - "sections[].title"은 내가 주는 섹션 제목을 그대로 복사해 사용(순서 유지, 누락 금지).
 - "sections[].content"는 각 섹션별 작성 가이드를 충실히 반영해 4~6문장으로 작성.
+
 `;
 
 const ROMANTIC_REPORT_PROMPT_PARTS = [
@@ -3270,17 +3271,19 @@ function extractJsonObject(text) {
 class GptService {
 
 
-async callReport(userInfo, goodsType) {
-    const typeCode = (typeof goodsType === 'object') ? goodsType.code : goodsType;
+ async callReport(userInfo, goodsType) {
     let promtParts;
-// 2. 추출한 typeCode를 사용하여 비교합니다.
-    if (typeCode === 'PREMIUM_SAJU' || typeCode === GoodsType.PREMIUM_SAJU.code) {
-      promtParts = PREMIUM_REPORT_PROMPT_PARTS;
-    } else if (typeCode === 'CLASSIC' || typeCode === GoodsType.CLASSIC.code) {
-      promtParts = CLASSIC_REPORT_PROMPT_PARTS;
-    } else if (typeCode === 'ROMANTIC' || typeCode === GoodsType.ROMANTIC.code) {
-      promtParts = ROMANTIC_REPORT_PROMPT_PARTS;
-    }
+
+    const gCode = typeof goodsType === 'string' ? goodsType : goodsType.code;
+
+if (gCode === "CLASSIC" || gCode === "CLASSIC_BUNDLE") {
+    promtParts = CLASSIC_REPORT_PROMPT_PARTS;
+  } else if (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE") {
+    promtParts = ROMANTIC_REPORT_PROMPT_PARTS;
+  } else if (gCode === "PREMIUM_SAJU") {
+    promtParts = PREMIUM_REPORT_PROMPT_PARTS;
+  }
+
     try {
       // ✅ 1) 사주 계산 (새 로직 적용)
       const pillars = getFourPillars(userInfo);
@@ -3339,7 +3342,6 @@ async callReport(userInfo, goodsType) {
         futurePartner: { job: "", appearance: [], personality: [], feature: [] },
         hourUnknown: pillars.isUnknownTime,  // 시간 미상 인지 가능하게
 
-
         // 추가 컨텍스트도 함께 보냅니다.
         userInfo: userInfo,
         currentYear: new Date().getFullYear(),
@@ -3350,15 +3352,12 @@ async callReport(userInfo, goodsType) {
 
       // ✅ 3) GPT에게 넘길 user context 구성
       const contextInfo = `
-[사용자 사주 요약]
-이름: ${userInfo.name}
-성별: ${userInfo.gender}
-생년월일시: ${pillarSummary}
-${pillars.isUnknownTime
-          ? "\n⚠ 태어난 시간이 확인되지 않아 시주는 참고용으로만 활용해야 합니다.\n"
-          : ""
-        }
-`;
+        [사용자 사주 요약]
+        이름: ${userInfo.name}
+        성별: ${userInfo.gender}
+        생년월일시: ${pillarSummary}
+        ${pillars.isUnknownTime ? "\n⚠ 태어난 시간이 확인되지 않아 시주는 참고용으로만 활용해야 합니다.\n"  : "" }
+      `;
 
       let result = [];
       const currentYear = new Date().getFullYear();
@@ -3366,31 +3365,32 @@ ${pillars.isUnknownTime
 
       // ✅ 4) 챕터별로 프롬프트 조합 시 계산값 삽입
       for (let i = 0; i < promtParts.length; i++) {
-        const lengthGuide = "\n[주의] 각 섹션의 내용은 1200~1500자 내외로 상세하되 응답이 중간에 끊기지 않도록 JSON 형식을 엄수하라.";
         const fullSystemPrompt = `
-${promtParts[i]}
+        ${promtParts[i]}
 
-${contextInfo}
-[참고] GPT 분석을 위해 필요한 SAJU_JSON 데이터를 사용자 메시지에 담아 제공합니다.
-${yearContext}
-      `.trim();
+        ${contextInfo}
+        [참고] GPT 분석을 위해 필요한 SAJU_JSON 데이터를 사용자 메시지에 담아 제공합니다.
+        ${yearContext}`.trim();
 
         const response = await GptClient.callChatGpt([
           { role: "system", content: fullSystemPrompt },
           // !!! 수정: userInfo 대신 SAJU_JSON 구조를 JSON 문자열로 보낸다.
           { role: "user", content: JSON.stringify(sajuJsonForGPT) },
-          { role: "user", content: "이 보고서는 반드시 SAJU_JSON 데이터를 직접 분석해 작성해야 하며, 예시문을 그대로 사용하거나 비슷하게 작성하면 안된다." }
 
         ]);
 
-        const cleanedResponse = preClean(String(response));
-let parsed = safeJsonParseLooser(cleanedResponse, `REPORT_PART_${i}`);
-        try {
-          parsed = safeJsonParseLooser(cleanedResponse, "REPORT");
-        } catch {
-          const jsonOnly = extractJsonObject(cleanedResponse);
-          parsed = safeJsonParseLooser(jsonOnly, "REPORT-FORCED");
-        }
+const cleanedResponse = preClean(String(response));
+
+// JSON만 강제 컷
+const jsonOnly = forceJsonOnly(cleanedResponse);
+
+if (!jsonOnly) {
+  throw new Error("GPT 응답에서 JSON을 찾지 못했습니다.");
+}
+
+// 파싱은 단 한 번
+const parsed = safeJsonParseLooser(jsonOnly, "REPORT");
+
 
         if (Array.isArray(parsed) && parsed[0]?.sections) {
           parsed.forEach((chapter) => {
@@ -3426,6 +3426,88 @@ let parsed = safeJsonParseLooser(cleanedResponse, `REPORT_PART_${i}`);
       return result;
     } catch (error) {
       console.error("Error calling GPT:", error);
+      throw error;
+    }
+  }
+
+  async callSample(userInfo, goods) {
+    try {
+      // 1️⃣ 사주 4주 계산 (연/월/일/시 + 띠)
+      const fixedUser = {
+        ...userInfo,
+        birthDate: userInfo.birthDate || userInfo.birthdate,
+      };
+      const pillars = getFourPillars(fixedUser);
+
+      // 2️⃣ deterministic table을 사용하여 십성, 운성, 귀인 등 미리보기에 필요한 데이터를 생성합니다.
+      const deterministicTable = buildDeterministicTenGodTable(fixedUser);
+      const hGan = pillars.hour.gan ?? "-";
+      const hJi = pillars.hour.ji ?? "-";
+
+      // 기본 데이터 배열을 시-일-월-년 순서로 초기화
+      const tenGodTable = {
+        headerRows: ["시주", "일주", "월주", "년주"], // EJS에서 이 순서대로 출력됨
+        columns: ["십성", "천간", "지지", "십성", "십이운성", "십이신살", "귀인"],
+        data: [
+          // index 0: 시주
+          ["", hGan, hJi, "", "", "", ""],
+          // index 1: 일주
+          ["", pillars.day.gan, pillars.day.ji, "", "", "", ""],
+          // index 2: 월주
+          ["", pillars.month.gan, pillars.month.ji, "", "", "", ""],
+          // index 3: 년주
+          ["", pillars.year.gan, pillars.year.ji, "", "", "", ""],
+        ],
+      };
+
+      // 계산된 천간/지지를 유지하면서 나머지 십성/운성 데이터를 덮어씌웁니다.
+      for (let i = 0; i < 4; i++) {
+        const detRow = deterministicTable.data[i];
+        const currentPillarRow = tenGodTable.data[i];
+
+        currentPillarRow[0] = detRow[0]; // 십성 (시주)
+        currentPillarRow[3] = detRow[3]; // 십성 (일주/월주/년주의 십성)
+        currentPillarRow[4] = detRow[4]; // 십이운성
+        currentPillarRow[5] = detRow[5]; // 십이신살
+        currentPillarRow[6] = detRow[6]; // 귀인
+      }
+
+      // 3️⃣ 최종 결과 구조에 계산된 데이터를 정확히 매핑합니다.
+      const result = {
+        tenGodTable,
+        luckCycle: [],
+        fiveElements: {
+          elements: pillars.fiveElements,
+          gainFrom: "",
+          lossFrom: ""
+        },
+        moneySteps: [],
+        zodiacSign: pillars.zodiac,
+        // 오늘 운세도 GPT 호출 없이 샘플 데이터에서 가져오도록 강제 (GPT 호출은 유료 페이지에서만)
+        todayLimit: "청명선생이 당신의 사주팔자를 깊이 분석했습니다. 지금 정통사주를 확인하고 운명에 숨겨진 비밀을 밝혀보세요.",
+        futurePartner: { job: "", appearance: [], personality: [], feature: [] },
+      };
+
+      const stemKey = STEM_TO_KR_KEY[pillars.day.gan];
+      if (goods?.code === GoodsType.CLASSIC.code && stemKey) {
+        try {
+          const genderLabel = normalizeGenderLabel(userInfo.gender);
+          const prompt = buildClassicStemSamplePrompt({ stemKey, genderLabel });
+          const response = await GptClient.callChatGpt([
+            { role: "system", content: prompt }
+          ]);
+          result.stemDescription = cleanGptText(response);
+        } catch (err) {
+          console.error("Error generating stem description:", err);
+          result.stemDescription = "";
+        }
+      } else {
+        result.stemDescription = "";
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error in callSample:", error);
       throw error;
     }
   }
