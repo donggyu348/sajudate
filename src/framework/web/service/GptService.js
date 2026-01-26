@@ -3370,7 +3370,7 @@ const fullSystemPrompt = `${prompt}\n\n${contextInfo}\n${yearContext}`.trim();
 return GptClient.callChatGpt([
   { role: "system", content: fullSystemPrompt },
   { role: "user", content: JSON.stringify(sajuJsonForGPT) },
-  { role: "user", content: "다른 설명은 하지 말고 반드시 지정된 JSON 구조로만 답변해줘. 만약 분석이 어렵다면 빈 JSON이라도 보내줘." } // 이 문구 추가
+  { role: "user", content: "다른 설명은 하지 말고 반드시 지정된 JSON 구조로만 답변해줘. 분석은 하지말고 프롬프트에 명시된대로 출력해줘" } // 이 문구 추가
 ], 'gpt-4o-mini').then(response => {
  if (response.includes("죄송합니다") || response.includes("처리할 수 없습니다")) {
         console.error(`[GPT_LOG] 챕터 ${i} 답변 거부됨`);
