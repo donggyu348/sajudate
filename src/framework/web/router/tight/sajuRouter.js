@@ -383,7 +383,7 @@ router.get("/payment_success", async (req, res) => {
   } catch (error) {
     console.error("payment_success 최종 오류:", error);
     return res.status(500).send("결제 처리 중 문제가 발생했습니다.");
-  }
+  } 
 });
 // 결제 실패 페이지
 router.get("/payment_fail", (req, res) => {
