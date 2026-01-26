@@ -395,22 +395,50 @@ router.get("/payment_fail", (req, res) => {
     });
 });
 
-router.post("/report/check", async (req, res) => {
-  try {
-    const { shopOrderNo } = req.body;
-    const reportHistory = await ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
+router.post("/report/check", (req, res) => {
+  const shopOrderNo = req.body.shopOrderNo;
 
-    if (!reportHistory || !reportHistory.reportInfo) {
-      return res.json({ status: "PENDING" });
-    }
+  ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo)
+    .then(async reportHistory => {
+      if (!reportHistory.reportInfo) {
 
-    // 여기서 sendReportLink를 호출하면 3초마다 문자가 가므로 삭제해야 합니다!
-    return res.json({ status: "DONE" });
-  } catch (err) {
-    res.status(500).json({ status: "ERROR" });
-  }
+        res.status(200).json({
+          code: 200,
+          status: "PENDING", // 명시적 상태
+          message: "리포트 생성 중",
+          data: null
+        });
+      } else {
+
+        const paymentTransaction = await PaymentService.getPaymentTransaction(shopOrderNo);
+
+        let domain = "http://sajudate.store";
+        if (paymentTransaction.platform === Platform.JUJANGSO.code) {
+          domain = "https://saju-maeul.kr";
+        }
+
+        console.log("5번 goodstype", reportHistory.goodsType);
+        await sendReportLink(paymentTransaction.userTelNo, shopOrderNo, reportHistory.goodsType, domain);
+
+        res.status(200).json({
+          code: 200,
+          status: "DONE", // 완료 상태
+          message: "리포트 생성 완료",
+          data: reportHistory.reportInfo
+        });
+      }
+    })
+    .catch(err => {
+      console.error("Error fetching reportHistory:", err);
+      res.status(500).json({
+        code: 500,
+        status: "ERROR",
+        message: "서버 오류가 발생했습니다.",
+        data: null
+      });
+    });
+
 });
-
 router.post("/review/check", async (req, res) => {
   const { userTelNo, userPw } = req.body;
   

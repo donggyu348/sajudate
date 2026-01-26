@@ -64,30 +64,42 @@ $(document).ready(function() {
       // 당근마켓 픽셀
       window.karrotPixel.track('Purchase');
   }
-console.log("서버에서 이미 생성을 시작했습니다. 상태 체크를 시작합니다.");
 
-  // 생성 요청(ajax) 없이 바로 setInterval을 실행합니다.
-  const intervalId = setInterval(() => {
-    $.ajax({
-      url: "/saju/report/check",
-      method: "POST",
-      data: { shopOrderNo: shopOrderNo }, // 주문번호 전달
+  //  리포트 생성 요청
+  $.ajax({
+    url: "/api/gpt/report",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ shopOrderNo }),
 
-      success: function (res) {
-console.log("서버 응답:", res); // 응답 구조 확인용        
-        // 서버 응답이 DONE이면 결과 페이지로 이동
-        if (res.status === "DONE") {
-          console.log("리포트 완성! 페이지를 이동합니다.");
-          clearInterval(intervalId);
-          window.location.href = "/saju/report?shopOrderNo=" + shopOrderNo;
-        }
-      },
+    success: function () {
+      console.log("Report generation started");
 
-      error: function (err) {
-        console.error("상태 체크 중 오류 발생:", err);
-      }
-    });
-  }, 3000); // 3초 간격으로 확인
+      const intervalId = setInterval(() => {
+        $.ajax({
+          url: "/saju/report/check",
+          method: "POST",
+          data: { shopOrderNo },
+
+          success: function (res) {
+            if (res.status === "DONE") {
+              clearInterval(intervalId);
+              window.location.href = "/saju/report?shopOrderNo=" + shopOrderNo;
+            }
+          },
+
+          error: function (err) {
+            console.error("Failed to check report status", err);
+          }
+        });
+      }, 10000);
+    },
+
+    error: function (err) {
+      console.error("Failed to start report generation:", err);
+      alert('보고서 생성 중 문제가 발생했습니다. 고객센터로 문의해주세요.');
+    }
+  });
 
 });
 </script>
