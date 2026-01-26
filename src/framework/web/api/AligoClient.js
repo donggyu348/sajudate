@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const ALIGO_API_URL = "https://apis.aligo.in/send/";
-const API_KEY = 'h6r60s71qevby01c0gt8nz82byjqoofl';
-const USER_ID = 'immsp349';
-const SENDER_PHONE = '01083787452'; // e.g., '025114560'
+const API_KEY = 'u9xd862znkdca6btq56r8qjpji88r5oa';
+const USER_ID = 'ldg9742';
+const SENDER_PHONE = '01055989742'; // e.g., '025114560'
 
 class AligoClient {
   /**
