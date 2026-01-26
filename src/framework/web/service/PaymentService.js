@@ -87,9 +87,11 @@
     approvalDate: new Date()
   });
 
-  // 3. (선택사항) 결제 완료 후 리포트 생성 및 문자 발송 로직이 필요하다면 여기서 호출
-  // const tx = await PaymentTransactionRepository.findByShopOrderNo(orderId);
-  // await this.generateReportAndSendEmail(tx.id);
+const tx = await PaymentTransactionRepository.findByShopOrderNo(orderId);
+  if (tx) {
+    // 비동기로 실행하여 사용자 응답 속도에 영향을 주지 않도록 함
+    this.generateReportAndSendEmail(tx.id).catch(err => console.error("[SMS Error]", err));
+  }
 
   return result;
 }
