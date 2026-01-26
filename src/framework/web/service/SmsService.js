@@ -14,7 +14,7 @@ export async function sendReportLink(receiver, shopOrderNo, goodsType, domain) {
     throw new Error("receiver와 shopOrderNo 필수입니다.");
   }
 
-  const message = `프리미엄 사주를 결제해주셔서 감사합니다.\n아래 링크에서 리포트를 확인하세요.\n ${domain}/saju/report?shopOrderNo=${shopOrderNo}`;
+  const message = `프리미엄 사주를 결제해주셔서 감사합니다.\n아래 링크에서 리포트를 확인하세요.\n${domain}/saju/report?shopOrderNo=${shopOrderNo}`;
 
   const reqData = {
     receivers: [receiver],
