@@ -3365,71 +3365,45 @@ ${pillars.isUnknownTime
       const yearContext = `\n\n[CONTEXT] The current year for this analysis is ${currentYear}. All predictions and timeline references must be based on this year.`;
 // ✅ 1. 각 챕터 생성을 위한 Promise 배열 생성
       const reportPromises = promtParts.map(async (prompt, i) => {
-        const fullSystemPrompt = `
-${prompt}
+const fullSystemPrompt = `${prompt}\n\n${contextInfo}\n${yearContext}`.trim();
 
-${contextInfo}
-[참고] GPT 분석을 위해 필요한 SAJU_JSON 데이터를 사용자 메시지에 담아 제공합니다.
-${yearContext}
-        `.trim();
+  return GptClient.callChatGpt([
+    { role: "system", content: fullSystemPrompt },
+    { role: "user", content: JSON.stringify(sajuJsonForGPT) },
+    { role: "user", content: "핵심 위주로 상세히 작성하되, 불필요한 서술은 생략할 것." }
+  ], 'gpt-4o-mini').then(response => {
+    const cleanedResponse = preClean(String(response));
+    let parsed;
+    try {
+      parsed = safeJsonParseLooser(cleanedResponse, `REPORT_CH_${i}`);
+    } catch {
+      parsed = safeJsonParseLooser(extractJsonObject(cleanedResponse), `REPORT-FORCED_CH_${i}`);
+    }
+    // 순서 정렬을 위해 index(i)를 포함해서 리턴합니다.
+    return { parsed, promptPart: prompt, index: i };
+  });
+});
 
-        // 속도 향상을 위해 'gpt-4o-mini' 사용 추천
-        const response = await GptClient.callChatGpt([
-          { role: "system", content: fullSystemPrompt },
-          { role: "user", content: JSON.stringify(sajuJsonForGPT) },
-          { role: "user", content: "이 보고서는 반드시 SAJU_JSON 데이터를 직접 분석해 작성해야 하며, 예시문을 그대로 사용하거나 비슷하게 작성하면 안된다." }
-        ]); 
+// ✅ 2. 모든 챕터를 동시에 실행하고 기다립니다.
+const rawResults = await Promise.all(reportPromises);
 
-        const cleanedResponse = preClean(String(response));
-        let parsed;
-
-        try {
-          parsed = safeJsonParseLooser(cleanedResponse, `REPORT_CH_${i}`);
-        } catch {
-          const jsonOnly = extractJsonObject(cleanedResponse);
-          parsed = safeJsonParseLooser(jsonOnly, `REPORT-FORCED_CH_${i}`);
-        }
-        
-        return { parsed, promptPart: prompt };
+// ✅ 3. 병렬 결과는 끝나는 순서가 뒤섞이므로, index 순으로 정렬 후 result에 넣습니다.
+rawResults.sort((a, b) => a.index - b.index).forEach(({ parsed, promptPart }) => {
+  if (Array.isArray(parsed) && parsed[0]?.sections) {
+    parsed.forEach((chapter) => {
+      chapter.sections.forEach((section) => {
+        result.push({ chapter: chapter.chapter, title: section.title, content: section.content });
       });
+    });
+  } else if (parsed?.sections) {
+    let chapterValue = parsed.chapter || (typeCode === 'ROMANTIC' ? extractRomanticChapterTitleFromPrompt(promptPart) : "");
+    parsed.sections.forEach((section) => {
+      result.push({ chapter: chapterValue, title: section.title, content: section.content });
+    });
+  }
+});
 
-      // ✅ 2. 모든 챕터를 동시에 병렬 실행 및 대기
-      const rawResults = await Promise.all(reportPromises);
-
-      // ✅ 3. 병렬 실행 결과를 기존 result 배열에 취합
-      rawResults.forEach(({ parsed, promptPart }) => {
-        if (Array.isArray(parsed) && parsed[0]?.sections) {
-          parsed.forEach((chapter) => {
-            chapter.sections.forEach((section) => {
-              result.push({
-                chapter: chapter.chapter,
-                title: section.title,
-                content: section.content,
-              });
-            });
-          });
-        } else if (Array.isArray(parsed) && parsed[0]?.title && parsed[0]?.content) {
-          result = result.concat(parsed);
-        } else if (parsed?.sections) {
-          let chapterValue = parsed.chapter;
-          if (typeCode === 'ROMANTIC' || typeCode === GoodsType.ROMANTIC.code) {
-            const expectedChapter = extractRomanticChapterTitleFromPrompt(promptPart) || parsed.chapter;
-            const looksLikeSectionTitle = typeof chapterValue === "string" && /^\d+-\d+\.\s/.test(chapterValue);
-            if (!chapterValue || looksLikeSectionTitle) {
-              chapterValue = expectedChapter;
-            }
-          }
-          parsed.sections.forEach((section) => {
-            result.push({
-              chapter: chapterValue,
-              title: section.title,
-              content: section.content,
-            });
-          });
-        }
-      });
-
-      return result;
+return result; // 마지막에 result 반환
 
 } catch (error) {
       console.error("Error calling GPT:", error);
