@@ -354,7 +354,24 @@ router.get("/payment_success", async (req, res) => {
     if (reportHistory.reportInfo) {
       return res.redirect("/saju/report?shopOrderNo=" + shopOrderNo);
     }
-
+// 중복 실행 방지를 위해 GptService 내부나 gptRouter와 동일한 로직을 탑니다.
+    const goodsTypeObject = GoodsType[reportHistory.goodsType];
+    
+    // 비동기로 실행 (기다리지 않고 바로 페이지 렌더링)
+    (async () => {
+      try {
+        // 이미 생성 중인지 체크하는 로직이 GptService나 DB 업데이트에 있으면 안전합니다.
+        console.log(`[SERVER_START] 결제 승인 즉시 GPT 호출: ${shopOrderNo}`);
+        const response = await gptService.callReport(reportHistory.userInfo, goodsTypeObject);
+        await reportHistoryService.updateById({
+          id: reportHistory.id,
+          reportInfo: response
+        });
+        console.log(`[SERVER_SUCCESS] GPT 생성 완료: ${shopOrderNo}`);
+      } catch (err) {
+        console.error("[SERVER_ERROR] 즉시 실행 GPT 오류:", err);
+      }
+    })();
     // 아직 리포트 생성 중이라면 대기 페이지(로딩창) 렌더링
     const fileDir = Platform[reportHistory.platform].fileDir;
     return res.render(`${fileDir}/saju/payment_success`, {
