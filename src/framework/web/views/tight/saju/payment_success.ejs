@@ -74,8 +74,7 @@ console.log("서버에서 이미 생성을 시작했습니다. 상태 체크를 
       data: { shopOrderNo: shopOrderNo }, // 주문번호 전달
 
       success: function (res) {
-        console.log("리포트 상태 체크 중...", res.status);
-        
+console.log("서버 응답:", res); // 응답 구조 확인용        
         // 서버 응답이 DONE이면 결과 페이지로 이동
         if (res.status === "DONE") {
           console.log("리포트 완성! 페이지를 이동합니다.");
