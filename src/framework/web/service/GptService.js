@@ -3376,8 +3376,7 @@ return GptClient.callChatGpt([
     { role: "user", content: `[작성 양식 및 사전]:\n${prompt}` },
     { role: "user", content: `[분석할 사용자의 사주 데이터]:\n${JSON.stringify(sajuJsonForGPT)}` },
     { role: "user", content: "위 사주 데이터를 분석해서 양식의 빈칸을 채운 최종 보고서 내용만 출력해." }
-  ], 'gpt-4o-mini');
-}).then(response => {
+  ], 'gpt-4o-mini').then(response => {
  if (response.includes("죄송합니다") || response.includes("처리할 수 없습니다")) {
         console.error(`[GPT_LOG] 챕터 ${i} 답변 거부됨`);
         return { parsed: { sections: [] }, index: i };
