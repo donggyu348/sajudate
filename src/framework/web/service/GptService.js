@@ -3367,21 +3367,26 @@ ${pillars.isUnknownTime
       const reportPromises = promtParts.map(async (prompt, i) => {
 const fullSystemPrompt = `${prompt}\n\n${contextInfo}\n${yearContext}`.trim();
 
-  return GptClient.callChatGpt([
-    { role: "system", content: fullSystemPrompt },
-    { role: "user", content: JSON.stringify(sajuJsonForGPT) },
-    { role: "user", content: "핵심 위주로 상세히 작성하되, 불필요한 서술은 생략할 것." }
-  ], 'gpt-4o-mini').then(response => {
-    const cleanedResponse = preClean(String(response));
-    let parsed;
-    try {
-      parsed = safeJsonParseLooser(cleanedResponse, `REPORT_CH_${i}`);
-    } catch {
-      parsed = safeJsonParseLooser(extractJsonObject(cleanedResponse), `REPORT-FORCED_CH_${i}`);
-    }
-    // 순서 정렬을 위해 index(i)를 포함해서 리턴합니다.
-    return { parsed, promptPart: prompt, index: i };
-  });
+return GptClient.callChatGpt([
+  { role: "system", content: fullSystemPrompt },
+  { role: "user", content: JSON.stringify(sajuJsonForGPT) },
+  { role: "user", content: "다른 설명은 하지 말고 반드시 지정된 JSON 구조로만 답변해줘. 만약 분석이 어렵다면 빈 JSON이라도 보내줘." } // 이 문구 추가
+], 'gpt-4o-mini').then(response => {
+ if (response.includes("죄송합니다") || response.includes("처리할 수 없습니다")) {
+        console.error(`[GPT_LOG] 챕터 ${i} 답변 거부됨`);
+        return { parsed: { sections: [] }, index: i };
+      }
+      
+      const cleanedResponse = preClean(String(response));
+      let parsed;
+      try {
+        parsed = safeJsonParseLooser(cleanedResponse, `CH_${i}`);
+      } catch (e) {
+        // 파싱 실패 시 서버가 죽지 않게 빈 배열 리턴
+        parsed = { sections: [] }; 
+      }
+      return { parsed, promptPart: prompt, index: i };
+    });
 });
 
 // ✅ 2. 모든 챕터를 동시에 실행하고 기다립니다.
