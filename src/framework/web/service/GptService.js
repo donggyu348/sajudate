@@ -3256,14 +3256,7 @@ function extractRomanticChapterTitleFromPrompt(promptStr) {
   return null;
 }
 
-function extractJsonObject(text) {
-  const firstBrace = text.indexOf("{");
-  const lastBrace = text.lastIndexOf("}");
-  if (firstBrace === -1 || lastBrace === -1 || firstBrace >= lastBrace) {
-    throw new Error("유효한 JSON 영역을 찾을 수 없습니다.");
-  }
-  return text.substring(firstBrace, lastBrace + 1);
-}
+
 
 /**
  * GptService: Handles ChatGPT prompt calls for 사주 리포트
