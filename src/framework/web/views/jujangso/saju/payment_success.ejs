@@ -93,7 +93,7 @@ $(document).ready(function() {
             console.error("Failed to check report status", err);
           }
         });
-      }, 10000); // 3초 간격으로 체크
+      }, 3000); // 3초 간격으로 체크
     },
     error: function (err) {
       console.error("Failed to start report generation:", err);
