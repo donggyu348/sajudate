@@ -10,7 +10,7 @@ import { PaymentStatus } from "../../enums/Payment.js";
 import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
-import { coupons as Coupons } from "../../orm/models/coupons.js"; // 티켓 DB 접근을 위해 필요
+import { coupons as Coupons } from "../../orm/sequelize.js";
 import { GoodsType } from "../../enums/Goods.js";
 const router = express.Router();
 //미리보기 렌더링
