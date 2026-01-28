@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../sequelize.js";
 import { Platform } from "../../enums/Platform.js";
-export default (sequelize, DataTypes) => {
+z
 const Users = sequelize.define("Users", {
   id: {
     type: DataTypes.BIGINT.UNSIGNED,
@@ -73,5 +73,4 @@ const Users = sequelize.define("Users", {
   ]
 });
 
-return Users;
-};
+export default Users;

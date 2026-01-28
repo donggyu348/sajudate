@@ -1,10 +1,16 @@
 // src/framework/web/orm/models/coupons.js
+import { DataTypes } from "sequelize";
+import sequelize from "../sequelize.js"; // 상단에서 인스턴스를 직접 가져옵니다.
 
-export default (sequelize, DataTypes) => {
-    return sequelize.define('coupons', {
-        code: { type: DataTypes.STRING, unique: true, allowNull: false }, // 쿠폰 코드
-        isUsed: { type: DataTypes.BOOLEAN, defaultValue: false },        // 사용 여부
-        type: { type: DataTypes.STRING, defaultValue: 'FREE' },         // 쿠폰 종류
-        receivedPhone: { type: DataTypes.STRING }                       // 발급받은 번호
-    });
-};
+const Coupons = sequelize.define('coupons', {
+    code: { type: DataTypes.STRING, unique: true, allowNull: false },
+    isUsed: { type: DataTypes.BOOLEAN, defaultValue: false },
+    type: { type: DataTypes.STRING, defaultValue: 'FREE' },
+    receivedPhone: { type: DataTypes.STRING },
+    goodsType: { type: DataTypes.STRING } // 아까 추가한 컬럼
+}, {
+    tableName: 'COUPONS',
+    timestamps: true
+});
+
+export default Coupons;
