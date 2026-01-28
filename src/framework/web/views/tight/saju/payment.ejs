@@ -5,275 +5,237 @@
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
+
 <body class="bg-gray-100">
 
-        <div class="w-full max-w-[480px] mx-auto">
-            <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+    <div class="w-full max-w-[480px] mx-auto">
+        <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+            <div class="max-w-md w-full sm:border-x text-left bg-white min-h-screen">
 
+                <div class="flex items-center justify-center border-b relative py-3">
+                    <a href="/s/bluemoonladysaju/result" class="absolute left-4">
+                        <svg class="w-5 h-5 text-gray-800" viewBox="0 0 1024 1024" fill="currentColor">
+                            <path d="M724 218.3V141c0-6.7-7.7-10.4-12.9-6.3L260.3 486.8c-16.4 12.8-16.4 37.5 0 50.3l450.8 352.1c5.3 4.1 12.9.4 12.9-6.3v-77.3c0-4.9-2.3-9.6-6.1-12.6l-360-281 360-281.1c3.8-3 6.1-7.7 6.1-12.6z"></path>
+                        </svg>
+                    </a>
+                    <h2 class="text-lg font-bold">결제하기</h2>
+                </div>
 
-                    <div class="max-w-md w-full sm:border-x text-left bg-white">
-
-                        <!-- 네비게이션 헤더 -->
-                        <div class="flex items-center justify-center border-b relative py-3">
-                            <a href="/s/bluemoonladysaju/result" class="absolute left-4">
-                                <svg class="w-5 h-5 text-gray-800" viewBox="0 0 1024 1024" fill="currentColor">
-                                    <!-- SVG PATH 생략 가능 -->
-                                </svg>
-                            </a>
-                            <h2 class="text-lg font-bold">결제하기</h2>
-                        </div>
-
-                        <!-- 결제 폼 -->
-                        <div class="p-6 space-y-6">
-
-                            <!-- 휴대폰 번호 입력 -->
-                            <div>
-                                <p class="text-lg font-bold">휴대폰 번호</p>
-                                <p class="text-xs text-gray-600 mt-1">사주 결과 확인 및 안내 메시지 발송에 이용됩니다.</p>
-                                <div class="flex gap-2 mt-2">
-                                    <select class="w-1/4 border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50"
-                                        disabled>
-                                        <option>010</option>
-                                    </select>
-                                    <input type="tel" name="buyerTelF" maxlength="4"
-                                        class="w-1/4 border border-gray-200 rounded-lg
-       px-3 py-2 text-sm bg-gray-50 focus:bg-white"
- />
-                                    <input type="tel" name="buyerTelB" maxlength="4"
-                                       class="w-1/4 border border-gray-200 rounded-lg
-       px-3 py-2 text-sm bg-gray-50 focus:bg-white"
- />
-                                </div>
-                            </div>
-
-                            <!-- 비밀번호 -->
-                            <div>
-                                <p class="text-lg font-bold mt-6">비밀번호 <span class="text-xs">(숫자 4자리)</span></p>
-                              <input type="password" name="buyerPW" maxlength="4"
- class="w-full border border-gray-200 rounded-lg
-        px-3 py-2 mt-2 text-sm bg-gray-50 focus:bg-white" />
-
-                            </div>
-
-                            <!-- 결제 내역 -->
-<div class="pt-6 mt-6 border-t border-gray-200 space-y-4
-            rounded-xl bg-gray-50 px-4 pb-4">
-                                <div class="flex justify-between">
-                                    <p>
-                                        <%= goodsInfo.title.toLocaleString(); %>
-                                    </p>
-                                    <p>
-                                        <%= goodsInfo.originalPrice.toLocaleString(); %>원
-                                    </p>
-                                </div>
-                                <div class="flex justify-between text-blue-600 font-pretendard-regular">
-                                    <p>얼리버드 특별 할인</p>
-                                    <div class="flex items-center gap-2">
-                                        <span
-                                            class="text-xs bg-blue-600 text-white rounded-full px-2 h-5 flex items-center">
-                                            -<%= Math.floor((goodsInfo.discountPrice / goodsInfo.originalPrice) * 100)
-                                                %>%
-                                        </span>
-                                        <span>-<%= goodsInfo.discountPrice.toLocaleString(); %>원</span>
-                                    </div>
-                                </div>
-<div class="flex justify-between items-center
-            bg-white rounded-lg px-4 py-3 mt-3 font-bold">
-                                    <p>최종 결제금액</p>
-                                    <p class="text-xl">
-                                        <%= goodsInfo.price.toLocaleString(); %>원
-                                    </p>
-                                </div>
-                            </div>
-
-                         
-                            <div class="mt-10 space-y-3" style="margin-top: 12px;">
-
-                                <button onclick="requestTossCardPayment()"
-        class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center"
-        style="background-color: #0064ff;">
-        <span style="color: white;">카드 결제 (신용/체크)</span>
-    </button>
-                             <!--   <button onclick="validateAndSubmit('kakakopay')"
-                                    class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center"
-                                    style="background-color: #FFEB00;">
-                                    <span class="flex items-center gap-2">
-                                        <img src="/assets/images/kakao.png" alt="KPay"
-                                            style="height:1.5em; width:auto;"
-                                            class="align-middle pointer-events-none" />
-                                    </span>
-                                    <span style="color: black; margin-right: 20px; margin-bottom: 1.5px;">결제</span>
-                                </button>
--->
-
-                            </div>
-
-                            
-
-
-                            <!-- 체크박스 -->
-                            <!-- 개인정보 수집 동의 -->
-                            <div x-data="{ show: false }" class="my-4 text-sm">
-                                <div class="flex items-center cursor-pointer" @click="show = !show">
-                                    <input type="checkbox" class="w-4 h-4 mr-2" checked />
-                                    <span class="font-pretendard-regular">개인정보 이용 동의</span>
-                                    <span class="ml-2 underline text-gray-400">자세히 보기</span>
-                                </div>
-
-                                <div x-show="show" x-collapse
-                                    class="mt-3 border p-5 rounded bg-gray-50 leading-relaxed">
-                                    <p>
-                                        프리미엄 운세 컨텐츠 개인정보 수집 및 이용 안내<br>
-                                        <!--                        회사는 고객님의 개인정보를 소중히 관리하며, 개인정보보호 관련 법령을 준수하여 아래와 같이 처리합니다.<br><br>-->
-
-                                        1. 수집항목 : 이름, 휴대폰번호, 성별, 생년월일, 태어난시간<br><br>
-                                        2. 개인정보의 수집 목적<br>
-                                        - 운세 컨텐츠 제공 및 다시보기<br>
-                                        - 오류문의 등 고객지원 및 운영<br>
-                                        - 컨텐츠 발송 및 안내<br>
-                                        - 쿠폰 및 컨텐츠 소멸 및 안내<br><br>
-                                        3. 개인정보의 보유 및 이용 기간<br>
-                                        - 운세 콘텐츠 제공 및 고객지원: 30일<br>
-                                        - 운세 다시보기 서비스 제공: 30일 (휴대폰번호 및 비밀번호를 통한 인증)<br>
-                                        - 서비스 품질 개선 및 고객 관리 목적: 최대 5년 보관 후 파기<br>
-                                        - 쿠폰 및 컨텐츠의 소멸 안내: 최대 5년 보관 후 파기<br><br>
-
-                                        ※ 개인정보 수집 및 이용에 대해서는 거부 할 수 있으며, 거부 시에는 서비스 이용이 불가능해요.<br>
-                                        ※ 개인정보 보유기간 종료 후에는 정보가 즉시 파기되어 다시보기가 불가능해요.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- 결제 동의 -->
-                            <div x-data="{ show: false }" class="my-4 text-sm">
-                                <div class="flex items-center cursor-pointer" @click="show = !show">
-                                    <input type="checkbox" class="w-4 h-4 mr-2" checked />
-                                    <span class="font-pretendard-regular">결제 진행 동의</span>
-                                    <span class="ml-2 underline text-gray-400">자세히 보기</span>
-                                </div>
-
-                                <div x-show="show" x-collapse
-                                    class="mt-3 border p-5 rounded bg-gray-50 leading-relaxed">
-                                    <p>
-                                        ○ 구매하신 운세서비스의 유료결과 다시보기는 구매일로부터 30일 동안 이용하실 수 있어요.<br>
-                                        ○ 프리미엄 운세는 구매 즉시 사용이 시작되거나 서비스에 즉시 적용되는 디지털 콘텐츠로,<br>
-                                        &nbsp;&nbsp;「전자상거래법 제17조 제2항 제1호」에 따라 청약 철회가 제한돼요.<br>
-                                        ○ 사주 운세 서비스 이용 중 오류 발생시, 고객센터로 해당 내용을 전달해 주시면 처리해 드려요.
-                                    </p>
-                                </div>
-                            </div>
-
-   
-
+                <div class="p-6 space-y-6">
+                    <div>
+                        <p class="text-lg font-bold">휴대폰 번호</p>
+                        <p class="text-xs text-gray-600 mt-1">사주 결과 확인 및 안내 메시지 발송에 이용됩니다.</p>
+                        <div class="flex gap-2 mt-2">
+                            <select class="w-1/4 border border-gray-300 rounded px-2 py-1 text-sm bg-gray-50" disabled><option>010</option></select>
+                            <input type="tel" name="buyerTelF" maxlength="4" class="w-1/4 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:bg-white" />
+                            <input type="tel" name="buyerTelB" maxlength="4" class="w-1/4 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:bg-white" />
                         </div>
                     </div>
 
-                    <%- include('./../common/footer') %>
-            </div>
+                    <div>
+                        <p class="text-lg font-bold mt-6">비밀번호 <span class="text-xs">(숫자 4자리)</span></p>
+                        <input type="password" name="buyerPW" maxlength="4" class="w-full border border-gray-200 rounded-lg px-3 py-2 mt-2 text-sm bg-gray-50 focus:bg-white" />
+                    </div>
+
+                    <hr class="border-gray-100 my-6">
+
+                    <div>
+                        <p class="text-lg font-bold mb-4">상품 선택</p>
+                        <div class="space-y-3">
+                            <div onclick="selectOption('single')" id="card-single" class="goods-card is-selected">
+                                <div class="flex items-center gap-3">
+                                    <div class="radio-dot"></div>
+                                    <div>
+                                        <p class="text-[11px] font-bold ">기본 패키지</p>
+                                        <p class="font-bold text-gray-800"><%= goodsInfo.title %></p>
+                                    </div>
+                                </div>
+                                <p class="font-bold text-gray-900"><%= goodsInfo.price.toLocaleString() %>원</p>
+                            </div>
+
+                            <% if (typeof bundleInfo !== 'undefined' && bundleInfo) { 
+                                let targetTitle = (goodsInfo.code === 'CLASSIC') ? '신년사주' : '연애사주';
+                                let bundleBenefit = (goodsInfo.code === 'CLASSIC') ? '연애사주 무료 쿠폰' : '신년사주 무료 쿠폰';
+                            %>
+                            
+          <div onclick="selectOption('bundle')" id="card-bundle" class="goods-card relative border-2 border-pink-400 bg-pink-50/30">
+
+
+    
+    <div class="flex items-center gap-3">
+        <div class="radio-dot border-pink-400"></div>
+        <div>
+            <p class="text-[11px] font-bold text-blue-600">특별 번들 패키지</p>
+            <p class="font-bold text-gray-800"><%= goodsInfo.title %> + <%= targetTitle %></p>
+            <p class="text-[11px] text-pink-500 mt-0.5"><%= bundleBenefit %> 증정</p>
         </div>
-    </body>
+    </div>
+                                    <p class="font-bold text-gray-900"><%= bundleInfo.price.toLocaleString() %>원</p>
+
+    </div>
+
+                            <div id="bundle-notice" class="hidden animate-fade-in mt-3">
+                                <div class="rounded-xl border border-pink-100 bg-pink-50/50 p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-pink-500">🎫</span>
+                                        <p class="font-bold text-pink-600 text-sm">특별 번들 혜택 안내</p>
+                                    </div>
+                                    <ul class="space-y-1 text-[12px] text-gray-600">
+                                        <li>• 결제 완료 후 즉시 <b>문자(SMS)</b>로 티켓 코드가 발송됩니다.</li>
+                                        <li>• 발급된 티켓은 <b>지인에게 선물</b>이 가능합니다.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 mt-6 border-t border-gray-200 space-y-4 rounded-xl bg-gray-50 px-4 pb-4">
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <p id="detail-title"><%= goodsInfo.title %></p>
+                            <p id="detail-original-price"><%= goodsInfo.originalPrice.toLocaleString() %>원</p>
+                        </div>
+                        
+                        <div id="discount-row" class="flex justify-between text-blue-600 text-sm">
+                            <p>특별 할인</p>
+                            <div class="flex items-center gap-2">
+                                <span id="detail-discount-rate" class="text-[10px] bg-blue-600 text-white rounded-full px-2 h-4 flex items-center">
+                                    -<%= Math.floor((goodsInfo.discountPrice / goodsInfo.originalPrice) * 100) %>%
+                                </span>
+                                <span id="detail-discount-price">-<%= goodsInfo.discountPrice.toLocaleString() %>원</span>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-white rounded-lg px-4 py-3 mt-3 font-bold">
+                            <p>최종 결제금액</p>
+                            <p id="final-price-display" class="text-xl text-blue-600">
+                                <%= goodsInfo.price.toLocaleString() %>원
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 space-y-3">
+                        <button onclick="requestTossCardPayment()" class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center" style="background-color: #0064ff;">
+                            <span style="color: white;">카드 결제 (신용/체크)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <%- include('./../common/footer') %>
+        </div>
+    </div>
+
+    <style>
+        .goods-card { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-radius: 12px; border: 1.5px solid #f3f4f6; cursor: pointer; transition: all 0.2s; }
+        .goods-card.is-selected { border-color: #0064ff; background-color: #f0f7ff; }
+        .radio-dot { width: 18px; height: 18px; border: 2px solid #d1d5db; border-radius: 50%; position: relative; }
+        .is-selected .radio-dot { border-color: #0064ff; }
+        .is-selected .radio-dot::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: #0064ff; border-radius: 50%; }
+
+        /* 번들 전용 흔들림 애니메이션 (주의 집중) */
+@keyframes soft-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+.best-badge-anim {
+    animation: soft-bounce 2s infinite ease-in-out;
+}
+
+/* 번들 선택 시 보더 색상 차별화 */
+#card-bundle.is-selected {
+    border-color: #ec4899 !important; /* 핑크색 강조 */
+    background-color: #fff1f2 !important;
+}
+    </style>
 
     <script>
-// 전역 변수 설정 (EJS 변수 주입)
-    const amountValue = Number("<%= goodsInfo.price %>");
-    const shopOrderNo = "<%= shopOrderNo %>";
-    const goodsName = "<%= goodsInfo.title %>";
-    const reportHistoryId = "<%= reportHistoryId %>";
+        const GOODS_MAP = <%- JSON.stringify(goodsTypeMap) %>;
+        let finalGoodsCode = "<%= goodsInfo.code %>";
+        const goodsNameBase = "<%= goodsInfo.title %>";
+        const reportHistoryId = "<%= reportHistoryId %>";
 
-    // 1. 토스페이먼츠 초기화 (Standard SDK v2)
-    const clientKey = "live_ck_yZqmkKeP8gB9OlXz5ggnrbQRxB9l"; // 실제 상점 키로 변경하세요
-    const tossPayments = TossPayments(clientKey);
-    
-    // 2. 결제 객체 준비
-    const payment = tossPayments.payment({ 
-        customerKey: "USER_" + reportHistoryId 
-    });
+        const tossPayments = TossPayments("live_ck_yZqmkKeP8gB9OlXz5ggnrbQRxB9l");
+        const payment = tossPayments.payment({ customerKey: "USER_" + reportHistoryId });
 
-   async function requestTossCardPayment() {
-    // 1. 입력값 가져오기 및 유효성 검사
-    const telF = document.querySelector("input[name='buyerTelF']").value.trim();
-    const telB = document.querySelector("input[name='buyerTelB']").value.trim();
-    const pw = document.querySelector("input[name='buyerPW']").value.trim();
+        function selectOption(type) {
+            const singleCard = document.getElementById('card-single');
+            const bundleCard = document.getElementById('card-bundle');
+            const notice = document.getElementById('bundle-notice');
+            const finalPriceDisplay = document.getElementById('final-price-display');
+            
+            // 상세 내역 요소들
+            const dTitle = document.getElementById('detail-title');
+            const dOriginal = document.getElementById('detail-original-price');
+            const dDiscountRow = document.getElementById('discount-row');
+            const dDiscountPrice = document.getElementById('detail-discount-price');
+            const dDiscountRate = document.getElementById('detail-discount-rate');
 
-    if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB)) {
-        alert("휴대폰 번호를 정확히 입력해 주세요 (4자리씩)");
-        return;
-    }
-    if (!/^\d{4}$/.test(pw)) {
-        alert("비밀번호는 숫자 4자리로 입력해 주세요");
-        return;
-    }
+            singleCard.classList.remove('is-selected');
+            if (bundleCard) bundleCard.classList.remove('is-selected');
+            if (notice) notice.classList.add('hidden');
 
-    const fullTel = `010${telF}${telB}`;
+            if (type === 'single') {
+                singleCard.classList.add('is-selected');
+                finalGoodsCode = "<%= goodsInfo.code %>";
+            } else if (bundleCard) {
+                bundleCard.classList.add('is-selected');
+                if (notice) notice.classList.remove('hidden');
+                finalGoodsCode = "<%= goodsInfo.code %>_BUNDLE";
+            }
 
-    try {
-        // 2. 서버에 결제 등록 요청 (여기서 금액이 100원으로 결정됨)
-        const response = await axios.post("/api/payments/register", {
-            userTelNo: fullTel,
-            userPw: pw,
-            payMethod: "TOSS", // 서버 컨트롤러에 TOSS 분기 처리가 되어있어야 함
-            reportHistoryId: reportHistoryId
-        });
-
-        if (response.data.code !== 200) {
-            throw new Error(response.data.message);
+            const data = GOODS_MAP[finalGoodsCode];
+            if (data) {
+                finalPriceDisplay.innerText = data.price.toLocaleString() + "원";
+                dTitle.innerText = data.title;
+                dOriginal.innerText = data.originalPrice.toLocaleString() + "원";
+                
+                // 할인 금액이 있을 때만 할인 로우 노출
+                if (data.discountPrice > 0) {
+                    dDiscountRow.classList.remove('hidden');
+                    dDiscountPrice.innerText = "-" + data.discountPrice.toLocaleString() + "원";
+                    dDiscountRate.innerText = "-" + Math.floor((data.discountPrice / data.originalPrice) * 100) + "%";
+                } else {
+                    dDiscountRow.classList.add('hidden');
+                }
+            }
         }
 
-        const { shopOrderNo, amount } = response.data.data;
+        async function requestTossCardPayment() {
+            const telF = document.querySelector("input[name='buyerTelF']").value.trim();
+            const telB = document.querySelector("input[name='buyerTelB']").value.trim();
+            const pw = document.querySelector("input[name='buyerPW']").value.trim();
 
-        // 3. 서버에서 받은 금액(amount)과 주문번호(shopOrderNo)로 결제창 호출
-        await payment.requestPayment({
-            method: "CARD",
-            amount: {
-                currency: "KRW",
-                value: amount // 서버가 준 100원(또는 원래금액) 반영
-            },
-            orderId: shopOrderNo, // 서버가 생성한 고유 주문번호
-            orderName: goodsName,
-            successUrl: window.location.origin + "/api/payments/callback-toss" + 
-                        `?tel=${fullTel}&pw=${pw}&historyId=${reportHistoryId}`,
-            failUrl: window.location.origin + "/saju/payment?error=fail",
-            customerMobilePhone: fullTel,
-            card: {
-                flowMode: "DEFAULT",
-                useCardPoint: false
-            }
-        });
-    } catch (error) {
-        console.error("결제 준비 실패:", error);
-        alert("결제 준비 중 오류가 발생했습니다: " + (error.response?.data?.message || error.message));
-    }
-}
-        function validateAndSubmit(pay) {
-            const telF = document.querySelector("input[name=\"buyerTelF\"]").value.trim();
-            const telB = document.querySelector("input[name=\"buyerTelB\"]").value.trim();
-            const pw = document.querySelector("input[name=\"buyerPW\"]").value.trim();
-            let payMethod;
-            if (pay === "easypay") {
-                payMethod = "EASYPAY";
-            } else if (pay === "kakakopay") {
-                payMethod = "KAKAOPAY"
-            }
-
-            if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB)) {
-                alert("휴대폰 번호를 정확히 입력해 주세요 (4자리씩)");
-                return;
-            }
-            if (!/^\d{4}$/.test(pw)) {
-                alert("비밀번호는 숫자 4자리로 입력해 주세요");
+            if (!/^\d{4}$/.test(telF) || !/^\d{4}$/.test(telB) || !/^\d{4}$/.test(pw)) {
+                alert("휴대폰 번호와 비밀번호(4자리)를 정확히 입력해 주세요.");
                 return;
             }
 
-            const data = {
-                userTelNo: `010${telF}${telB}`,
-                userPw: pw,
-                payMethod: payMethod,
-                reportHistoryId: "<%= reportHistoryId %>"
-            };
-            requestRegisterPayment(data);
+            const fullTel = `010${telF}${telB}`;
 
-            fbq("track", "InitiateCheckout");
+            try {
+                const response = await axios.post("/api/payments/register", {
+                    userTelNo: fullTel, userPw: pw, payMethod: "TOSS",
+                    reportHistoryId: reportHistoryId, goodsCode: finalGoodsCode
+                });
+
+                if (response.data.code !== 200) throw new Error(response.data.message);
+
+                const { shopOrderNo, amount } = response.data.data;
+                await payment.requestPayment({
+                    method: "CARD",
+                    amount: { currency: "KRW", value: amount },
+                    orderId: shopOrderNo,
+                    orderName: GOODS_MAP[finalGoodsCode].title,
+                    successUrl: window.location.origin + "/api/payments/callback-toss" + 
+                                `?tel=${fullTel}&pw=${pw}&historyId=${reportHistoryId}`,
+                    failUrl: window.location.origin + "/saju/payment?error=fail",
+                    customerMobilePhone: fullTel,
+                    card: { flowMode: "DEFAULT", useCardPoint: false }
+                });
+            } catch (error) {
+                alert("결제 준비 중 오류가 발생했습니다.");
+            }
         }
     </script>
-
+</body>
 </html>

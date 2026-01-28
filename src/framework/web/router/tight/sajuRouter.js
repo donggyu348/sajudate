@@ -278,20 +278,33 @@ router.post("/payment", async (req, res) => {
 
   const userInfo = JSON.parse(req.body.userInfo);
   const sample = JSON.parse(req.body.sample);
-  const goodsType = GoodsType[req.body.goodsType];
-  const userIdx = req.session?.user?.id || null;
 
-  const result = await reportHistoryService.registerReportHistory({
-    userInfo: userInfo,
+  // 🔹 기본 상품 코드 (ROMANTIC / CLASSIC)
+  const baseGoodsCode = req.body.goodsType;
+
+  // 🔹 GoodsType에서 꺼내기
+  const goodsInfo = GoodsType[baseGoodsCode];
+  const bundleInfo = GoodsType[`${baseGoodsCode}_BUNDLE`]; // ⭐ 핵심
+
+  if (!goodsInfo) {
+    console.error("❌ 잘못된 goodsType:", baseGoodsCode);
+    return res.status(400).send("Invalid goodsType");
+  }
+
+  const result = await ReportHistoryService.registerReportHistory({
+    userInfo,
     sampleInfo: sample,
-    goodsType: goodsType,
-    ...(userIdx ? { userIdx } : {})
+  goodsType: goodsInfo,        // 🔥 GoodsType 객체 그대로
+    platform: goodsInfo.platform
   });
-const shopOrderNo = generateShopOrderNo();
+
   res.render("tight/saju/payment", {
     reportHistoryId: result.result.id,
-    goodsInfo: goodsType,
-    shopOrderNo: shopOrderNo, // <<-- 이 부분이 추가되어야 에러가 안 납니다!
+
+    // 🔥 payment.ejs에서 쓰는 데이터들
+    goodsInfo,        // 기본 상품
+    bundleInfo,       // 번들 상품
+    goodsTypeMap: GoodsType // 전체 가격표 (프론트 JS용)
   });
 });
 
@@ -482,7 +495,15 @@ router.post("/review/check", async (req, res) => {
     });
   }
 });
-
+router.get("/ticket", (req, res) => {
+    try {
+        // tight/saju/ticket.ejs 파일을 찾아서 보여줍니다.
+        res.render("tight/common/ticket");
+    } catch (error) {
+        console.error("티켓 페이지 렌더링 에러:", error);
+        res.status(500).send("페이지를 로드할 수 없습니다.");
+    }
+});
 router.post("/report/:pageNum", (req, res) => {
   const pageNum = req.params.pageNum;
   const { userInfo, reportInfo, sampleInfo } = req.body;

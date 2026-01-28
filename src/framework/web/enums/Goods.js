@@ -27,5 +27,25 @@ export const GoodsType = Object.freeze({
     discountPrice: 21100,
     price: 34900,
     platform: Platform.TIGHT
+  },
+   CLASSIC_BUNDLE: {
+    code: "CLASSIC_BUNDLE",
+    title: '29금 사주 (+연애사주 무료티켓 증정)',
+    originalPrice: 149800,
+    discountPrice: 100000,
+    price: 49800,
+    platform: Platform.TIGHT,
+    giveTicket: "ROMANTIC" // 이 상품을 사면 ROMANTIC 티켓을 줌
+  },
+  
+  // [추가] 연애사주 구매 시 29금 사주 티켓 증정 번들
+  ROMANTIC_BUNDLE: {
+    code: "ROMANTIC_BUNDLE",
+    title: '연애사주 (+29금 사주 무료티켓 증정)',
+    originalPrice: 149800,
+    discountPrice: 100000,
+    price: 49800,
+    platform: Platform.TIGHT,
+    giveTicket: "CLASSIC" // 이 상품을 사면 CLASSIC 티켓을 줌
   }
 });
