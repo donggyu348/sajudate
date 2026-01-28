@@ -223,6 +223,7 @@
 
         // 3. 서버에서 받은 금액(amount)과 주문번호(shopOrderNo)로 결제창 호출
         await payment.requestPayment({
+            method: "CARD",
             amount: {
                 currency: "KRW",
                 value: amount // 서버가 준 100원(또는 원래금액) 반영
