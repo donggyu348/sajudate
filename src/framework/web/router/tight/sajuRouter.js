@@ -1,7 +1,6 @@
 import express from "express";
 import gptService from "../../service/GptService.js";
 import reportHistoryService from "../../service/ReportHistoryService.js";
-import { GoodsType } from "../../enums/Goods.js";
 import { sendReportLink } from "../../service/SmsService.js";
 import PaymentService from "../../service/PaymentService.js";
 import { Platform } from "../../enums/Platform.js";
