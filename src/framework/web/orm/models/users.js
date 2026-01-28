@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../sequelize.js";
 import { Platform } from "../../enums/Platform.js";
-z
+
 const Users = sequelize.define("Users", {
   id: {
     type: DataTypes.BIGINT.UNSIGNED,
