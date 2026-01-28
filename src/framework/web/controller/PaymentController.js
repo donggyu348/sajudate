@@ -206,7 +206,8 @@ if (payMethod === "TOSS") {
   // 3. 보고서 히스토리에 주문번호 업데이트
   await ReportHistoryService.updateById({
     id: reportHistoryId,
-    shopOrderNo: shopOrderNo
+    shopOrderNo: shopOrderNo,
+    goodsType: req.body.goodsType // 👈 프론트에서 보낸 'ROMANTIC_BUNDLE' 등을 DB에 덮어씁니다.
   });
 
   // 4. 성공 응답 (프론트엔드로 100원과 주문번호를 보냄)
