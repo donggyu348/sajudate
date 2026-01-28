@@ -263,34 +263,32 @@ const tx = await PaymentTransactionRepository.findByShopOrderNo(orderId);
       return { message: "입금 확인 완료", shopOrderNo: payment.shopOrderNo };
     }
 
-    async generateReportAndSendEmail(paymentId) {
-      const payment = await PaymentTransactionRepository.findByIdWithReportHistory(paymentId);
-      if (!payment) throw new Error("결제정보 없음");
+ async generateReportAndSendEmail(paymentId) {
+    const payment = await PaymentTransactionRepository.findByIdWithReportHistory(paymentId);
+    if (!payment) throw new Error("결제정보 없음");
 
-      if (payment.paymentStatus !== PaymentStatus.APPROVED)
+    if (payment.paymentStatus !== PaymentStatus.APPROVED)
         throw new Error("승인 완료 상태가 아님");
 
-      const reportHistory = payment.reportHistory;
-      let reportInfo = reportHistory.reportInfo;
+    const reportHistory = payment.reportHistory;
+    let reportInfo = reportHistory.reportInfo;
+    const userInfo = reportHistory.userInfo || {};
+    const shopOrderNo = payment.shopOrderNo;
 
-      const goodsType = GoodsType[reportHistory.goodsType];
-      const userInfo = reportHistory.userInfo || {};
-      const shopOrderNo = payment.shopOrderNo;
-if (reportHistory.goodsType.includes('_BUNDLE')) {
-        // 1. 8자리 랜덤 티켓 코드 생성
+    // 🔥 [교정] 번들 체크를 최상단으로 옮겨서 GPT 호출(GoodsType 조회)을 방지합니다.
+    if (reportHistory.goodsType.includes('_BUNDLE')) {
         const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-let giftType = '1'; // 기본값 클래식
-    let giftName = '클래식 사주';
+        let giftType = '1'; 
+        let giftName = '신년운세';
 
-    if (reportHistory.goodsType === 'CLASSIC_BUNDLE') {
-        giftType = '2'; // 로맨틱 상품 번호
-        giftName = '로맨틱 연애사주';
-    } else if (reportHistory.goodsType === 'ROMANTIC_BUNDLE') {
-        giftType = '1'; // 클래식 상품 번호
-        giftName = '클래식 운세사주';
-    }
-        // 2. 티켓 DB 저장 (실제 제공할 서비스 타입을 goodsType에 저장)
-        // 예: CLASSIC_BUNDLE을 사면 실제론 CLASSIC 보고서를 볼 수 있게 'CLASSIC' 저장
+        if (reportHistory.goodsType === 'CLASSIC_BUNDLE') {
+            giftType = '2'; 
+            giftName = '로맨틱 연애사주';
+        } else if (reportHistory.goodsType === 'ROMANTIC_BUNDLE') {
+            giftType = '1'; 
+            giftName = '신년 운세사주';
+        }
+
         const { coupons: Coupons } = await import("../orm/sequelize.js");
         await Coupons.create({
             code: ticketCode,
@@ -300,27 +298,31 @@ let giftType = '1'; // 기본값 클래식
             receivedPhone: payment.userTelNo || userInfo.tel
         });
 
-        // 3. 알리고를 통한 티켓 번호 문자 발송
         const targetPhone = payment.userTelNo || userInfo.tel;
         const msg = `[티켓발급] 번들 구매 감사드립니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 보고서가 생성됩니다.`;
+        
+        const AligoClient = (await import("../api/AligoClient.js")).default; 
         await AligoClient.sendSms(targetPhone, msg);
 
-        return { message: "번들 티켓 발송 완료" };
+        return { message: "번들 티켓 발송 완료" }; // 여기서 끝내야 GPT 에러가 안 납니다.
     }
-      if (!reportInfo) {
+
+    // --- 이 아래는 일반 단품 결제시에만 실행됩니다 ---
+    const goodsType = GoodsType[reportHistory.goodsType]; 
+    if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${reportHistory.goodsType}`);
+
+    if (!reportInfo) {
         const generated = await GptService.callReport(userInfo, goodsType);
         await ReportHistoryService.updateById({ id: reportHistory.id, reportInfo: generated });
         reportInfo = generated;
-      }
-
-      let targetAddress = payment.userTelNo || userInfo.phone;
-      if (!targetAddress) throw new Error("발송할 연락처 없음");
-
-      const platformInfo = Platform[payment.platform];
-      await sendReportLink(targetAddress, shopOrderNo, reportHistory.goodsType, platformInfo.domain, userInfo.name || "고객");
-
-      return { message: "결과 문자 발송됨" };
     }
+
+    let targetAddress = payment.userTelNo || userInfo.phone;
+    const platformInfo = Platform[payment.platform];
+    await sendReportLink(targetAddress, shopOrderNo, reportHistory.goodsType, platformInfo.domain, userInfo.name || "고객");
+
+    return { message: "결과 문자 발송됨" };
+}
 
     async findApprovedTransactionForReview({ userTelNo, userPw, platform }) {
       const tx = await PaymentTransactionRepository.findApprovedOneByTelAndPw({
