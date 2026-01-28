@@ -16,4 +16,5 @@ router.get("/daily-summary", PaymentController.getDailySales);
 router.get("/sales-history", PaymentController.getSalesHistory);
 
 router.get("/callback-toss", PaymentController.callbackToss);
+router.post("/verify-ticket", PaymentController.verifyTicket);
 export default router;

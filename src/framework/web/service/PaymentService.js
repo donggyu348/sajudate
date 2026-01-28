@@ -276,7 +276,29 @@ const tx = await PaymentTransactionRepository.findByShopOrderNo(orderId);
       const goodsType = GoodsType[reportHistory.goodsType];
       const userInfo = reportHistory.userInfo || {};
       const shopOrderNo = payment.shopOrderNo;
+if (reportHistory.goodsType.includes('_BUNDLE')) {
+        // 1. 8자리 랜덤 티켓 코드 생성
+        const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
+        // 2. 티켓 DB 저장 (실제 제공할 서비스 타입을 goodsType에 저장)
+        // 예: CLASSIC_BUNDLE을 사면 실제론 CLASSIC 보고서를 볼 수 있게 'CLASSIC' 저장
+        const targetGoodsType = reportHistory.goodsType.replace('_BUNDLE', ''); 
+        
+        await Coupons.create({
+            code: ticketCode,
+            isUsed: false,
+            type: 'BUNDLE',
+            goodsType: targetGoodsType, 
+            receivedPhone: payment.userTelNo || userInfo.tel
+        });
+
+        // 3. 알리고를 통한 티켓 번호 문자 발송
+        const targetPhone = payment.userTelNo || userInfo.tel;
+        const msg = `[티켓발급] 번들 구매 감사드립니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 보고서가 생성됩니다.`;
+        await AligoClient.sendSms(targetPhone, msg);
+
+        return { message: "번들 티켓 발송 완료" };
+    }
       if (!reportInfo) {
         const generated = await GptService.callReport(userInfo, goodsType);
         await ReportHistoryService.updateById({ id: reportHistory.id, reportInfo: generated });
