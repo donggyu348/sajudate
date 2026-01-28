@@ -279,16 +279,24 @@ const tx = await PaymentTransactionRepository.findByShopOrderNo(orderId);
 if (reportHistory.goodsType.includes('_BUNDLE')) {
         // 1. 8자리 랜덤 티켓 코드 생성
         const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+let giftType = '1'; // 기본값 클래식
+    let giftName = '클래식 사주';
 
+    if (reportHistory.goodsType === 'CLASSIC_BUNDLE') {
+        giftType = '2'; // 로맨틱 상품 번호
+        giftName = '로맨틱 연애사주';
+    } else if (reportHistory.goodsType === 'ROMANTIC_BUNDLE') {
+        giftType = '1'; // 클래식 상품 번호
+        giftName = '클래식 운세사주';
+    }
         // 2. 티켓 DB 저장 (실제 제공할 서비스 타입을 goodsType에 저장)
         // 예: CLASSIC_BUNDLE을 사면 실제론 CLASSIC 보고서를 볼 수 있게 'CLASSIC' 저장
-        const targetGoodsType = reportHistory.goodsType.replace('_BUNDLE', ''); 
-        
+        const { coupons: Coupons } = await import("../orm/sequelize.js");
         await Coupons.create({
             code: ticketCode,
             isUsed: false,
             type: 'BUNDLE',
-            goodsType: targetGoodsType, 
+            goodsType: giftType, 
             receivedPhone: payment.userTelNo || userInfo.tel
         });
 

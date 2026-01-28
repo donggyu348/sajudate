@@ -174,14 +174,12 @@
             if (bundleCard) bundleCard.classList.remove('is-selected');
             if (notice) notice.classList.add('hidden');
 
-            if (type === 'single') {
-                singleCard.classList.add('is-selected');
-                finalGoodsCode = "<%= goodsInfo.code %>";
-            } else if (bundleCard) {
-                bundleCard.classList.add('is-selected');
-                if (notice) notice.classList.remove('hidden');
-                finalGoodsCode = "<%= goodsInfo.code %>_BUNDLE";
-            }
+if (type === 'single') {
+    finalGoodsCode = "<%= goodsInfo.code %>"; // CLASSIC 또는 ROMANTIC
+} else if (type === 'bundle') {
+    // 현재 페이지 상품이 CLASSIC이면 CLASSIC_BUNDLE, ROMANTIC이면 ROMANTIC_BUNDLE이 됨
+    finalGoodsCode = "<%= goodsInfo.code %>" + "_BUNDLE"; 
+}
 
             const data = GOODS_MAP[finalGoodsCode];
             if (data) {
