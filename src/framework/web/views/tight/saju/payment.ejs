@@ -175,8 +175,10 @@
             if (notice) notice.classList.add('hidden');
 
 if (type === 'single') {
+    singleCard.classList.add('is-selected'); // 테두리 생기게 함
     finalGoodsCode = "<%= goodsInfo.code %>"; // CLASSIC 또는 ROMANTIC
 } else if (type === 'bundle') {
+    bundleCard.classList.add('is-selected'); // 테두리 생기게 함
     // 현재 페이지 상품이 CLASSIC이면 CLASSIC_BUNDLE, ROMANTIC이면 ROMANTIC_BUNDLE이 됨
     finalGoodsCode = "<%= goodsInfo.code %>" + "_BUNDLE"; 
 }
@@ -213,7 +215,7 @@ if (type === 'single') {
             try {
                 const response = await axios.post("/api/payments/register", {
                     userTelNo: fullTel, userPw: pw, payMethod: "TOSS",
-                    reportHistoryId: reportHistoryId, goodsCode: finalGoodsCode
+                    reportHistoryId: reportHistoryId, goodsCode: finalGoodsCode,goodsType: finalGoodsCode  // 서버 DB 업데이트용
                 });
 
                 if (response.data.code !== 200) throw new Error(response.data.message);
