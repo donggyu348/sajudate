@@ -281,7 +281,8 @@ nextBtn.onclick = () => {
   } else {
     const form = document.getElementById('sajuForm');
     const nameValue = document.querySelector('input[name="name"]').value;
-
+$(form).find('input[name="goodsType"]').remove();
+    $('<input>').attr({type: 'hidden', name: 'goodsType', value: '1'}).appendTo(form);
     // 1. 관리자/테스트 치트키 로직 (데이터 유지 제출)
     if (nameValue === "관리자" || nameValue === "테스트") {
       form.action = "/saju/skip-payment";

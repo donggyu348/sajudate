@@ -358,7 +358,9 @@ const urlParams = new URLSearchParams(window.location.search);
       gender: $("#genderInput").val(),
       birthdate: $("input[name='birthdate']").val()?.trim(),
       birthTime: $("select[name='birthTime']").val(),
-      birthType: $("#birthTypeInput").val()
+      birthType: $("#birthTypeInput").val(),
+      goodsType: "2" // 🔥 [추가] 로맨틱 사주 상품 번호를 명시합니다.
+
     };
 
     if (!data.name || !data.gender || !/^\d{8}$/.test(data.birthdate)) {
@@ -371,7 +373,8 @@ const urlParams = new URLSearchParams(window.location.search);
   // 🔥 이 두 줄이 없으면 무조건 다시 터짐
   $form.find('input[name="userInfo"]').remove();
   $form.find('input[name="sample"]').remove();
-
+$form.find('input[name="goodsType"]').remove(); // 기존꺼 중복 방지 삭제
+  
   $form.attr("action", "/saju/skip-payment");
 
   $('<input>', {
@@ -385,49 +388,13 @@ const urlParams = new URLSearchParams(window.location.search);
     name: 'sample',
     value: '{}'
   }).appendTo($form);
-
+  $('<input>').attr({type: 'hidden', name: 'goodsType', value: '2'}).appendTo($form);
   $form[0].submit();
 }
   document.getElementById("sajuForm").submit();
 
   }
-  function submitTightForm() {
-    const data = {
-      name: $("input[name='name']").val()?.trim(),
-      gender: $("#genderInput").val(),
-      birthdate: $("input[name='birthdate']").val()?.trim(),
-      birthTime: $("select[name='birthTime']").val(),
-      birthType: $("#birthTypeInput").val()
-    };
-
-    if (!data.name || !data.gender || !/^\d{8}$/.test(data.birthdate)) return;
-
-    const $form = $("#sajuForm");
-
-    // 1. 관리자/테스트 치트키 로직 (기존 유지)
-    if (data.name === "관리자" || data.name === "테스트") {
-      $form.attr("action", "/saju/skip-payment");
-      $('<input>').attr({type: 'hidden', name: 'userInfo', value: JSON.stringify(data)}).appendTo($form);
-      $('<input>').attr({type: 'hidden', name: 'sample', value: '{}'}).appendTo($form);
-      $form[0].submit();
-      return;
-    }
-
-    // 2. 🔥 [핵심 추가] 티켓 번호가 있는 경우
-    if (ticketCode) {
-      // 결제창(/saju/payment) 대신 바로 결과 생성 라우터로 전송
-      // 쿼리 스트링에 ticket 번호를 붙여서 보냅니다.
-      $form.attr("action", `/saju/romantic/result?ticket=${ticketCode}`);
-      $form[0].submit();
-      return;
-    }
-
-    // 3. 일반 결제 흐름 (기존 유지)
-    $form.attr("action", "/saju/payment"); // 결제 선택 페이지로 이동
-    $('<input>').attr({type: 'hidden', name: 'userInfo', value: JSON.stringify(data)}).appendTo($form);
-    $('<input>').attr({type: 'hidden', name: 'sample', value: '{}'}).appendTo($form);
-    $form[0].submit();
-  }
+ 
 </script>
 
 </body>
