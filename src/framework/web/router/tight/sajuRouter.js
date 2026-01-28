@@ -11,6 +11,8 @@ import { PaymentStatus } from "../../enums/Payment.js";
 import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
+import { coupons as Coupons } from "../../orm/models/coupons.js"; // 티켓 DB 접근을 위해 필요
+import { GoodsType } from "../../enums/Goods.js";
 const router = express.Router();
 //미리보기 렌더링
 // [추가 시작: 이 블록을 파일 상단에 추가하세요]
@@ -74,6 +76,30 @@ router.post("/classic/result", async (req, res) => {
   console.log(req.body);   // ← 이게 핵심
 
   const userInfo = req.body;
+  const ticketCode = req.query.ticket; // 프론트에서 쿼리로 넘겨준다고 가정
+if (ticketCode) {
+    const ticket = await Coupons.findOne({ where: { code: ticketCode, isUsed: false } });
+    if (ticket) {
+      console.log("🚀 티켓 인증 성공: 결제 건너뛰고 보고서 생성");
+      
+      // 1) 티켓 즉시 사용 처리
+      await ticket.update({ isUsed: true });
+
+      // 2) 리포트 내역 및 GPT 생성 (테스트 모드 로직과 유사하게 처리)
+      const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
+      const created = await reportHistoryService.registerReportHistory({
+        userInfo,
+        sampleInfo: await gptService.callSample(userInfo),
+        shopOrderNo,
+        goodsType: GoodsType.CLASSIC
+      });
+
+      const reportInfo = await gptService.callReport(userInfo, GoodsType.CLASSIC.code);
+      await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+
+      return res.redirect(`/saju/report?shopOrderNo=${shopOrderNo}`);
+    }
+  }
   // 🔥 [추가] 이름이 '테스트'인 경우 결제 없이 바로 리포트 생성 및 이동
   if (userInfo.name === "테스트") {
     console.log("🚀 [테스트 모드] 결제를 건너뛰고 리포트를 즉시 생성합니다.");
@@ -135,6 +161,31 @@ router.get("/romantic/input", (req, res) => {
 // POST: 사용자 입력 데이터(req.body)를 받아 GET 요청으로 리디렉션
 router.post("/romantic/result", async (req, res) => {
   const userInfo = req.body;
+  const ticketCode = req.query.ticket; // 프론트에서 쿼리로 넘겨준다고 가정
+  // 🎫 [추가] 티켓 번호가 있는 경우 로직
+  if (ticketCode) {
+    const ticket = await Coupons.findOne({ where: { code: ticketCode, isUsed: false } });
+    if (ticket) {
+      console.log("🚀 티켓 인증 성공: 결제 건너뛰고 보고서 생성");
+      
+      // 1) 티켓 즉시 사용 처리
+      await ticket.update({ isUsed: true });
+
+      // 2) 리포트 내역 및 GPT 생성 (테스트 모드 로직과 유사하게 처리)
+      const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
+      const created = await reportHistoryService.registerReportHistory({
+        userInfo,
+        sampleInfo: await gptService.callSample(userInfo),
+        shopOrderNo,
+        goodsType: GoodsType.CLASSIC
+      });
+
+      const reportInfo = await gptService.callReport(userInfo, GoodsType.CLASSIC.code);
+      await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+
+      return res.redirect(`/saju/report?shopOrderNo=${shopOrderNo}`);
+    }
+  }
   if (userInfo.name === "관리자") {
     console.log("🚀 [관리자 모드] 결제를 건너뛰고 리포트를 즉시 생성합니다.");
     try {

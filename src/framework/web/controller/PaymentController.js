@@ -352,7 +352,30 @@ async callbackToss(req, res) {
       });
     }
   },
+// src/framework/web/controller/PaymentController.js 내부에 추가
+async verifyTicket(req, res) {
+    try {
+        const { ticketCode } = req.body;
+        // 사용되지 않은 티켓 조회
+        const { coupons: Coupons } = await import("../orm/sequelize.js");
+        const ticket = await Coupons.findOne({ where: { code: ticketCode, isUsed: false } });
 
+        if (!ticket) {
+            return res.status(400).json({ code: 400, message: "유효하지 않거나 이미 사용된 티켓입니다." });
+        }
+
+        return res.status(200).json({
+            code: 200,
+            data: { 
+                goodsType: ticket.goodsType, 
+                ticketCode: ticket.code 
+            }
+        });
+    } catch (error) {
+        console.error("티켓 검증 오류:", error);
+        return res.status(500).json({ code: 500, message: "티켓 인증 중 서버 오류가 발생했습니다." });
+    }
+},
   async getApproveList(req, res) {
     try {
       const { page, platform } = req.query;
