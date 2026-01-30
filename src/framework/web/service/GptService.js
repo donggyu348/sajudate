@@ -3365,24 +3365,38 @@ if (gCode === "CLASSIC" || gCode === "CLASSIC_BUNDLE") {
         [참고] GPT 분석을 위해 필요한 SAJU_JSON 데이터를 사용자 메시지에 담아 제공합니다.
         ${yearContext}`.trim();
 
-        const response = await GptClient.callChatGpt([
-          { role: "system", content: fullSystemPrompt },
-          // !!! 수정: userInfo 대신 SAJU_JSON 구조를 JSON 문자열로 보낸다.
-          { role: "user", content: JSON.stringify(sajuJsonForGPT) },
+let parsed = null;
+let retryCount = 0;
 
-        ]);
+while (retryCount <= 2 && !parsed) {
+  try {
+    const response = await GptClient.callChatGpt([
+      { role: "system", content: fullSystemPrompt + "\n[중요: 반드시 JSON 형식으로만 답변하세요.]" },
+      { role: "user", content: JSON.stringify(sajuJsonForGPT) },
+    ]);
 
-const cleanedResponse = preClean(String(response));
-
-// JSON만 강제 컷
-const jsonOnly = forceJsonOnly(cleanedResponse);
-
-if (!jsonOnly) {
-  throw new Error("GPT 응답에서 JSON을 찾지 못했습니다.");
+    const cleanedResponse = preClean(String(response));
+    
+    // 1차 파싱 시도
+    try {
+      parsed = safeJsonParseLooser(cleanedResponse, `REPORT-CH-${i}`);
+    } catch (e) {
+      // 파싱 실패 시 JSON 블록만 강제 추출 후 2차 시도
+      const jsonOnly = forceJsonOnly(cleanedResponse);
+      if (jsonOnly) {
+        parsed = safeJsonParseLooser(jsonOnly, `REPORT-FORCED-CH-${i}`);
+      }
+    }
+  } catch (err) {
+    retryCount++;
+    console.error(`[타이트 챕터 ${i} 시도 ${retryCount}] 실패:`, err.message);
+    if (retryCount > 2) throw err; // 3번 실패 시 에러 상위 전달
+    await new Promise(res => setTimeout(res, 500)); // 0.5초 후 재시도
+  }
 }
 
-// 파싱은 단 한 번
-const parsed = safeJsonParseLooser(jsonOnly, "REPORT");
+
+
 
 
         if (Array.isArray(parsed) && parsed[0]?.sections) {

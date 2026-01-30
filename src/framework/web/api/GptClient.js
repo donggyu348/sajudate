@@ -26,8 +26,10 @@ class GptClient {
           body: JSON.stringify({
             model,
             messages,
-            temperature: 0.8,
-            max_tokens: 5000
+            temperature: 0.7,
+            max_tokens: 4096,
+            response_format: { type: "json_object" } // 모델 수준에서 JSON 출력 강제            
+
           }),
         });
 
