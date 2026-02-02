@@ -88,10 +88,15 @@
     approvalDate: new Date()
   });
 
-const tx = await PaymentTransactionRepository.findByShopOrderNo(orderId);
-  if (tx) {
-    // 비동기로 실행하여 사용자 응답 속도에 영향을 주지 않도록 함
-    this.generateReportAndSendEmail(tx.id).catch(err => console.error("[SMS Error]", err));
+const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory(orderId);
+  if (tx && tx.reportHistory) {
+      await ReportHistoryService.updateById({
+          id: tx.reportHistory.id,
+          goodsType: goodsType // 여기서 ROMANTIC_BUNDLE로 확실히 박아줌
+      });
+      
+      // 업데이트된 최신 정보를 바탕으로 리포트/티켓 발송 실행
+      this.generateReportAndSendEmail(tx.id).catch(err => console.error("[SMS Error]", err));
   }
 
   return result;
