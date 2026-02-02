@@ -414,16 +414,16 @@ router.get("/payment_success", async (req, res) => {
     /**
      * ③ 결과 확인 및 GPT 호출
      */
-    if (reportHistory.reportInfo) {
+   if (reportHistory.reportInfo) {
       return res.redirect("/saju/report?shopOrderNo=" + shopOrderNo);
     }
 
-    // 비동기로 GPT 호출
+    // 비동기 GPT 호출 (기존 유지)
     (async () => {
       try {
+        const goodsTypeObject = GoodsType[reportHistory.goodsType];
         console.log(`[SERVER_START] 결제 승인 즉시 GPT 호출: ${shopOrderNo}`);
-        // 🔥 핵심: goodsConfig(객체)를 넘겨야 GptService에서 .code를 읽을 수 있음
-        const response = await gptService.callReport(reportHistory.userInfo, goodsConfig);
+        const response = await gptService.callReport(reportHistory.userInfo, goodsTypeObject);
         await reportHistoryService.updateById({
           id: reportHistory.id,
           reportInfo: response
@@ -434,34 +434,21 @@ router.get("/payment_success", async (req, res) => {
       }
     })();
 
-let finalFileDir = 'tight'; 
+    // 🔥 [핵심 수정] 예전 잘 되던 로직을 더 안전하게 복구
+    // 1. 플랫폼 객체에서 fileDir을 가져옵니다. (없으면 'tight' 기본값)
+    const platformConfig = Platform[reportHistory.platform] || Platform.TIGHT;
+    const fileDir = platformConfig.fileDir || 'tight';
 
-    try {
-      // DB에서 가져온 플랫폼 값 확인 (소문자/대문자/공백 모두 방어)
-      const dbPlatform = String(reportHistory?.platform || paymentInfo?.platform || "TIGHT").trim().toUpperCase();
-      
-      console.log(`🚀 [DEBUG] DB 플랫폼 값: "${dbPlatform}"`);
+    // 2. 경로를 명확한 '문자열'로 조립합니다.
+    const renderPath = `${fileDir}/saju/payment_success`;
+    
+    console.log(`🚀 [DEBUG] 최종 렌더링 경로: ${renderPath}`);
 
-      // Platform 객체에서 매칭되는 폴더 찾기
-      if (dbPlatform === "JUJANGSO") {
-        finalFileDir = "jujangso";
-      } else {
-        // 기본값은 tight
-        finalFileDir = "tight";
-      }
-    } catch (e) {
-      console.error("플랫폼 판별 중 에러 발생, 기본값 tight 사용");
-    }
-
-    // 2. 경로를 문자열로 명확히 조립
-    const successPagePath = `${finalFileDir}/saju/payment_success`;
-    console.log(`🚀 [최종 경로 확인] : "${successPagePath}"`);
-
-    // 3. 렌더링 호출
-    return res.render(successPagePath, {
+    // 3. 렌더링 실행 (데이터가 undefined여도 죽지 않게 강제 변환)
+    return res.render(renderPath, {
       shopOrderNo: String(shopOrderNo || ""),
-      goodsPrice: Number(goodsConfig ? goodsConfig.price : 0), 
-      goodsType: String(targetGoodsType || "")
+      goodsPrice: GoodsType[reportHistory.goodsType]?.price || 0,
+      goodsType: String(reportHistory.goodsType || "")
     });
 
   } catch (error) {
