@@ -212,7 +212,7 @@ console.log(`[LOG 2][TOSS_REGISTER] DB 저장 시도 - shopOrderNo: ${shopOrderN
   await ReportHistoryService.updateById({
     id: reportHistoryId,
     shopOrderNo: shopOrderNo,
-goodsType: reportHistory.goodsType
+goodsType: goodsType
   });
 
   // 4. 성공 응답 (프론트엔드로 100원과 주문번호를 보냄)
