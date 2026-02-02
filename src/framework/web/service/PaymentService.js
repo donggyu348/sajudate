@@ -104,8 +104,7 @@ const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory
       console.log(` [DEBUG] 발송 시도 - txId: ${tx.id}, 타입: ${goodsType}`);
       
       // 비동기로 실행하되, 순서를 보장하기 위해 필요한 경우 await를 걸 수도 있습니다.
-      this.generateReportAndSendEmail(tx.id).catch(err => console.error("[SMS Error]", err));
-  }
+this.generateReportAndSendEmail(tx.id, goodsType).catch(err => console.error("[SMS Error]", err));  }
 
   return result;
 }
@@ -277,8 +276,8 @@ const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory
       return { message: "입금 확인 완료", shopOrderNo: payment.shopOrderNo };
     }
 
-async generateReportAndSendEmail(paymentId) {
-    const payment = await PaymentTransactionRepository.findByIdWithReportHistory(paymentId);
+async generateReportAndSendEmail(paymentId, passedGoodsType) { 
+      const payment = await PaymentTransactionRepository.findByIdWithReportHistory(paymentId);
     if (!payment) throw new Error("결제정보 없음");
 
     if (payment.paymentStatus !== PaymentStatus.APPROVED)
@@ -288,9 +287,9 @@ async generateReportAndSendEmail(paymentId) {
     let reportInfo = reportHistory.reportInfo;
     const userInfo = reportHistory.userInfo || {};
     const shopOrderNo = payment.shopOrderNo;
-
+const finalType = passedGoodsType || reportHistory?.goodsType || payment.goodsType;
     // 1. 상품 정보 확인 (ROMANTIC_BUNDLE 등 모든 타입이 GoodsType에 정의되어 있어야 함)
-    const goodsType = GoodsType[reportHistory.goodsType]; 
+const goodsType = GoodsType[finalType];
     if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${reportHistory.goodsType}`);
 
     // 2. GPT 리포트 생성 (번들이라도 리포트를 먼저 생성함)
