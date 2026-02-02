@@ -9,7 +9,7 @@ const Coupons = sequelize.define('coupons', {
     receivedPhone: { type: DataTypes.STRING },
     goodsType: { type: DataTypes.STRING } // 아까 추가한 컬럼
 }, {
-    tableName: 'COUPONS',
+    tableName: 'coupons',
     timestamps: true
 });
 
