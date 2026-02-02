@@ -205,6 +205,7 @@ console.log(`[LOG 2][TOSS_REGISTER] DB 저장 시도 - shopOrderNo: ${shopOrderN
         userPw: req.body.userPw,  
     amount: finalAmount,
     goodsType: goodsType, // 👈 여기서 유실되는지 확인 // 100원이 적용된 금액
+    goods_type: goodsType,   // 🔥 추가: DB 컬럼명과 직접 매핑
     paymentStatus: PaymentStatus.READY // 결제 준비 상태
   });
 
@@ -212,7 +213,8 @@ console.log(`[LOG 2][TOSS_REGISTER] DB 저장 시도 - shopOrderNo: ${shopOrderN
   await ReportHistoryService.updateById({
     id: reportHistoryId,
     shopOrderNo: shopOrderNo,
-goodsType: goodsType
+goodsType: goodsType,
+goods_type: goodsType    // 🔥 추가: DB 컬럼명과 직접 매핑
   });
 
   // 4. 성공 응답 (프론트엔드로 100원과 주문번호를 보냄)
