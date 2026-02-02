@@ -434,13 +434,17 @@ router.get("/payment_success", async (req, res) => {
     })();
 
     // 페이지 렌더링
-    const fileDir = Platform[reportHistory.platform].fileDir;
-    return res.render(`${fileDir}/saju/payment_success`, {
-      shopOrderNo,
-      // 🔥 변수 사용: GoodsType[...]을 다시 조회하지 않고 안전하게 이미 찾은 goodsConfig 사용
-      goodsPrice: goodsConfig.price, 
-      goodsType: targetGoodsType
-    });
+const platformKey = (reportHistory.platform || 'TIGHT').toUpperCase();
+const platformInfo = Platform[platformKey] || Platform.TIGHT;
+const fileDir = platformInfo.fileDir || 'tight'; 
+
+console.log(` [DEBUG] 렌더링 시도 경로: ${fileDir}/saju/payment_success`);
+
+return res.render(`${fileDir}/saju/payment_success`, {
+    shopOrderNo,
+    goodsPrice: goodsConfig.price, 
+    goodsType: targetGoodsType
+});
 
   } catch (error) {
     console.error("payment_success 최종 오류:", error);
