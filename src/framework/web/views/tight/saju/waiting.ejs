@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<style>
+    body { background: #000; color: #fff; font-family: sans-serif; }
+    .wait-box {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        height: 100svh; text-align: center; padding: 0 24px;
+    }
+    .loader {
+        width: 48px; height: 48px; border: 3px solid #fff; border-bottom-color: transparent;
+        border-radius: 50%; animation: rotation 1s linear infinite; margin-bottom: 32px;
+    }
+    @keyframes rotation { 0% { transform: rotate(0deg) } 100% { transform: rotate(360deg) } }
+    .title { font-size: 22px; font-weight: 600; margin-bottom: 12px; color: #d4af37; }
+    .desc { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.6; }
+</style>
+
+<body>
+    <div class="wait-box">
+        <div class="loader"></div>
+        <div class="title">천문의 기운을 읽고 있습니다</div>
+        <div class="desc">
+            GPT가 당신의 사주 데이터를 정밀하게 분석 중입니다.<br>
+            분석은 보통 5~10분 정도 소요됩니다.
+        </div>
+    </div>
+
+    <script>
+        const shopOrderNo = "<%= shopOrderNo %>";
+        
+        // 3초마다 서버에 "다 됐어?"라고 물어보는 폴링(Polling) 로직
+const checkInterval = setInterval(async () => {
+    try {
+        // 🚀 티켓 전용 API로 호출
+        const res = await fetch(`/saju/api/check-ticket-report?shopOrderNo=${shopOrderNo}`);
+        const data = await res.json();
+
+        if (data.status === "DONE") {
+            clearInterval(checkInterval);
+            location.href = `/saju/report?shopOrderNo=${shopOrderNo}`;
+        }
+    } catch (err) {
+        console.error("체크 중 에러:", err);
+    }
+}, 3000);
+    </script>
+</body>
+</html>
