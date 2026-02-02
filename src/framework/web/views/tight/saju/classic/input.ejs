@@ -299,6 +299,7 @@ $(form).find('input[name="goodsType"]').remove();
       // action 주소 변경 (서버가 티켓을 인지하도록)
       form.action = `/saju/classic/result?ticket=${ticketCode}`;
     }
+    form.submit();
   }
 };
 
