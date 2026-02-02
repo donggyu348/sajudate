@@ -76,7 +76,7 @@ router.post("/classic/result", async (req, res) => {
   console.log(req.body);   // ← 이게 핵심
 
   const userInfo = req.body;
-  const ticketCode = req.query.ticket; // 프론트에서 쿼리로 넘겨준다고 가정
+const ticketCode = req.query.ticket || req.body.ticketCode || req.body.ticket;
 if (ticketCode) {
     const ticket = await CouponsModel.findOne({ where: { code: ticketCode, isUsed: false } });
     if (ticket) {
@@ -161,8 +161,7 @@ router.get("/romantic/input", (req, res) => {
 // POST: 사용자 입력 데이터(req.body)를 받아 GET 요청으로 리디렉션
 router.post("/romantic/result", async (req, res) => {
   const userInfo = req.body;
-  const ticketCode = req.query.ticket; // 프론트에서 쿼리로 넘겨준다고 가정
-  // 🎫 [추가] 티켓 번호가 있는 경우 로직
+const ticketCode = req.query.ticket || req.body.ticketCode || req.body.ticket;  // 🎫 [추가] 티켓 번호가 있는 경우 로직
  if (ticketCode) {
     const ticket = await CouponsModel.findOne({ where: { code: ticketCode, isUsed: false } });
     if (ticket) {
