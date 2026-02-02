@@ -12,6 +12,7 @@ import { getFourPillars } from "../../service/sajuCalService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
 import Coupons from "../../orm/models/coupons.js";
+const router = express.Router();
 const CouponsModel = Coupons;
 //미리보기 렌더링
 // [추가 시작: 이 블록을 파일 상단에 추가하세요]
