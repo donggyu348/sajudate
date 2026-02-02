@@ -12,8 +12,8 @@ import { getFourPillars } from "../../service/sajuCalService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
 import db from "../../orm/sequelize.js";
-const CouponsModel = db.coupons || db.default?.models?.coupons;
-const router = express.Router();
+const dbModels = db.default?.models || db.models || db;
+const CouponsModel = dbModels.coupons;const router = express.Router();
 //미리보기 렌더링
 // [추가 시작: 이 블록을 파일 상단에 추가하세요]
 // URL 쿼리 파라미터에서 사용자 정보를 추출하고 유효성 검사를 수행하는 함수
