@@ -379,7 +379,8 @@ const urlParams = new URLSearchParams(window.location.search);
       birthdate: $("input[name='birthdate']").val()?.trim(),
       birthTime: $("select[name='birthTime']").val(),
       birthType: $("#birthTypeInput").val(),
-      goodsType: "2" // 🔥 [추가] 로맨틱 사주 상품 번호를 명시합니다.
+      goodsType: "2",
+      ticket: ticketCode // 👈 이 줄만 추가 (상단에 선언된 ticketCode 변수 활용) // 🔥 [추가] 로맨틱 사주 상품 번호를 명시합니다.
 
     };
 
@@ -410,7 +411,18 @@ $form.find('input[name="goodsType"]').remove(); // 기존꺼 중복 방지 삭�
   }).appendTo($form);
   $('<input>').attr({type: 'hidden', name: 'goodsType', value: '2'}).appendTo($form);
   $form[0].submit();
+  return;
 }
+if (ticketCode) {
+    const $form = $("#sajuForm");
+    $form.find('input[name="ticket"]').remove(); 
+    $form.find('input[name="goodsType"]').remove();
+
+    $('<input>', { type: 'hidden', name: 'ticket', value: ticketCode }).appendTo($form);
+    $('<input>', { type: 'hidden', name: 'goodsType', value: '2' }).appendTo($form);
+
+    $form.attr("action", "/saju/romantic/result?ticket=" + ticketCode);
+  }
   document.getElementById("sajuForm").submit();
 
   }
