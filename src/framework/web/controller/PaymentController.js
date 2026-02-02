@@ -104,6 +104,7 @@ console.log("[DEBUG 1] 프론트 수신 goodsType:", goodsType);
       const reportHistory = await ReportHistoryService.getReportHistoryById(reportHistoryId);
       console.log("[DEBUG 2] DB 기존 goodsType:", reportHistory.goodsType);
       if (!reportHistory) return res.status(404).json({ code: 404, message: "ReportHistory not found" });
+      const goodsType = req.body.goodsType || reportHistory.goodsType;
       /* -----------------------------------------------------
          * 🔥 [추가] 치트키 체크: 이름이 "테스트"이면 결제 패스
          * ----------------------------------------------------- */
