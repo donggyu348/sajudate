@@ -316,14 +316,22 @@ if (finalType && finalType.includes('_BUNDLE')) {
             giftName = '신년 운세사주';
         }
 
-        const { coupons: Coupons } = await import("../orm/sequelize.js");
-        await Coupons.create({
-            code: ticketCode,
-            isUsed: false,
-            type: 'BUNDLE',
-            goodsType: giftType, 
-            receivedPhone: payment.userTelNo || userInfo.tel
-        });
+const dbModule = await import("../orm/sequelize.js");
+// 모델이 default 안에 있거나 직접 등록되어 있을 수 있으므로 모두 체크합니다.
+const Coupons = dbModule.coupons || dbModule.default?.models?.coupons || dbModule.default?.coupons;
+
+if (!Coupons) {
+    console.error("❌ [ERROR] Coupons 모델을 찾을 수 없습니다. DB 설정을 확인하세요.");
+} else {
+    await Coupons.create({
+        code: ticketCode,
+        isUsed: false,
+        type: 'BUNDLE',
+        goodsType: giftType, 
+        receivedPhone: payment.userTelNo || userInfo.tel
+    });
+    console.log(`✅ [TICKET] 티켓 발급 성공: ${ticketCode} (${giftName})`);
+}
 
         // 문자 하단에 붙을 추가 문구 생성
         ticketAddMsg = `\n\n[번들혜택] ${giftName} 무료 티켓이 발급되었습니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 사용 가능합니다.`;
