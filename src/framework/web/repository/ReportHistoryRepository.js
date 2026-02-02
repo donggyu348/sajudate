@@ -6,16 +6,32 @@ class ReportHistoryRepository {
     return await ReportHistory.create(data);
   }
 
-  async updateByShopOrderNo(shopOrderNo, updateData) {
+async updateByShopOrderNo(shopOrderNo, updateData) {
+    if (updateData.goodsType && !updateData.goods_type) {
+      updateData.goods_type = updateData.goodsType;
+    }
     return await ReportHistory.update(updateData, {
       where: { shopOrderNo },
     });
   }
 
-  async updateById(id, updateData) {
-    return await ReportHistory.update(updateData, {
+async updateById(id, updateData) {
+    if (updateData.goodsType && !updateData.goods_type) {
+      updateData.goods_type = updateData.goodsType;
+    }
+
+    console.log(`[Repo] ReportHistory 업데이트 시도 ID: ${id}, 데이터:`, updateData);
+
+    const [affectedRows] = await ReportHistory.update(updateData, {
       where: { id },
     });
+
+    console.log(`[Repo] 업데이트 결과 (영향받은 행): ${affectedRows}`);
+
+    if (affectedRows > 0) {
+      return await this.findById(id);
+    }
+    return null;
   }
 
   async findByShopOrderNo(shopOrderNo) {
