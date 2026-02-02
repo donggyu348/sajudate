@@ -163,24 +163,21 @@ router.post("/romantic/result", async (req, res) => {
   const userInfo = req.body;
   const ticketCode = req.query.ticket; // 프론트에서 쿼리로 넘겨준다고 가정
   // 🎫 [추가] 티켓 번호가 있는 경우 로직
-  if (ticketCode) {
-    const ticket = await Coupons.findOne({ where: { code: ticketCode, isUsed: false } });
+ if (ticketCode) {
+    const ticket = await CouponsModel.findOne({ where: { code: ticketCode, isUsed: false } });
     if (ticket) {
-      console.log("🚀 티켓 인증 성공: 결제 건너뛰고 보고서 생성");
-      
-      // 1) 티켓 즉시 사용 처리
+      console.log("🚀 연애사주 티켓 인증 성공");
       await ticket.update({ isUsed: true });
 
-      // 2) 리포트 내역 및 GPT 생성 (테스트 모드 로직과 유사하게 처리)
       const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
       const created = await reportHistoryService.registerReportHistory({
         userInfo,
         sampleInfo: await gptService.callSample(userInfo),
         shopOrderNo,
-        goodsType: GoodsType.CLASSIC
+        goodsType: GoodsType.ROMANTIC // 👈 CLASSIC에서 ROMANTIC으로 수정 필수!
       });
 
-      const reportInfo = await gptService.callReport(userInfo, GoodsType.CLASSIC.code);
+      const reportInfo = await gptService.callReport(userInfo, GoodsType.ROMANTIC.code);
       await reportHistoryService.updateById({ id: created.result.id, reportInfo });
 
       return res.redirect(`/saju/report?shopOrderNo=${shopOrderNo}`);
@@ -567,6 +564,35 @@ router.get("/ticket", (req, res) => {
         console.error("티켓 페이지 렌더링 에러:", error);
         res.status(500).send("페이지를 로드할 수 없습니다.");
     }
+});
+/* 티켓 코드 검증 및 리다이렉트 */
+router.get("/ticket/verify", async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.status(400).send("티켓 코드를 입력해주세요.");
+
+  try {
+    const ticket = await CouponsModel.findOne({ where: { code, isUsed: false } });
+    if (!ticket) {
+      return res.send("<script>alert('유효하지 않거나 이미 사용된 티켓입니다.'); history.back();</script>");
+    }
+
+    // PaymentService에서 설정한 giftType 대조
+    // '1' = 정통 사주(Classic), '2' = 로맨틱 연애사주(Romantic)
+    let targetPath = "";
+    if (ticket.goodsType === '1') {
+      targetPath = "/saju/classic/input";
+    } else if (ticket.goodsType === '2') {
+      targetPath = "/saju/romantic/input";
+    } else {
+      targetPath = "/saju/classic/input"; // 기본값
+    }
+
+    // 티켓 번호를 쿼리스트링에 담아 해당 입력창으로 리다이렉트
+    return res.redirect(`${targetPath}?ticket=${code}`);
+  } catch (error) {
+    console.error("티켓 검증 오류:", error);
+    res.status(500).send("서버 오류가 발생했습니다.");
+  }
 });
 router.post("/report/:pageNum", (req, res) => {
   const pageNum = req.params.pageNum;
