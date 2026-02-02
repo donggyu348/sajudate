@@ -434,21 +434,18 @@ router.get("/payment_success", async (req, res) => {
       }
     })();
 
-    // 🔥 [핵심 수정] 예전 잘 되던 로직을 더 안전하게 복구
-    // 1. 플랫폼 객체에서 fileDir을 가져옵니다. (없으면 'tight' 기본값)
-    const platformConfig = Platform[reportHistory.platform] || Platform.TIGHT;
+const platformKey = (reportHistory.platform || 'TIGHT').toUpperCase(); // 대문자로 변환
+    const platformConfig = Platform[platformKey] || Platform.TIGHT;
     const fileDir = platformConfig.fileDir || 'tight';
 
-    // 2. 경로를 명확한 '문자열'로 조립합니다.
     const renderPath = `${fileDir}/saju/payment_success`;
     
     console.log(`🚀 [DEBUG] 최종 렌더링 경로: ${renderPath}`);
 
-    // 3. 렌더링 실행 (데이터가 undefined여도 죽지 않게 강제 변환)
     return res.render(renderPath, {
       shopOrderNo: String(shopOrderNo || ""),
-      goodsPrice: GoodsType[reportHistory.goodsType]?.price || 0,
-      goodsType: String(reportHistory.goodsType || "")
+      goodsPrice: goodsConfig.price || 0,
+      goodsType: String(targetGoodsType || "")
     });
 
   } catch (error) {
