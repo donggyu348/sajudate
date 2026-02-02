@@ -14,7 +14,7 @@
       background: #000;
       color: #fff;
       font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      overflow: hidden;
+      overflow: auto;
     }
 
     /* ===== STAGE ===== */
@@ -182,6 +182,26 @@
       -webkit-box-shadow: 0 0 0px 1000px rgba(10,10,10,0.6) inset;
       -webkit-text-fill-color: #fff;
     }
+    /* 모바일 안전 영역 대응 */
+.stage {
+  height: 100svh; /* iOS, 최신 안드로이드 대응 */
+}
+
+/* 다음 버튼을 고정 바처럼 */
+.next-btn {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 키보드 올라와도 가려지지 않게 */
+@supports (height: 100dvh) {
+  .stage {
+    height: 100dvh;
+  }
+}
+
   </style>
 </head>
 
@@ -394,7 +414,19 @@ $form.find('input[name="goodsType"]').remove(); // 기존꺼 중복 방지 삭�
   document.getElementById("sajuForm").submit();
 
   }
- 
+ // 엔터로 다음 스텝
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    const activeStep = document.querySelector(".step.active");
+
+    // select 열려있을 땐 막기
+    if (document.activeElement.tagName === "SELECT") return;
+
+    e.preventDefault();
+    document.getElementById("nextBtn").click();
+  }
+});
+
 </script>
 
 </body>
