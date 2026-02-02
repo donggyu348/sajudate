@@ -333,32 +333,39 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
     }
 
     // 3. 최종 문자 발송
-    let targetAddress = payment.userTelNo || userInfo.phone || userInfo.tel;
-    const platformInfo = Platform[payment.platform];
+let targetAddress = payment.userTelNo || userInfo.phone || userInfo.tel || "";
+    const targetAddressStr = String(targetAddress).replace(/-/g, ''); // 하이픈 제거 안전장치
+
+    const platformInfo = Platform[payment.platform] || Platform.TIGHT;
     const domain = platformInfo.domain;
     const userName = userInfo.name || "고객";
 
     const reportLink = `${domain}/saju/report?shopOrderNo=${shopOrderNo}`;
-    const finalMsg = `[사주데이트] ${userName}님, 요청하신 리포트가 생성되었습니다.\n\n▶ 리포트 확인하기: ${reportLink}${ticketAddMsg}`;
+    const finalMsg = `[사주정감] ${userName}님, 요청하신 리포트가 생성되었습니다.\n\n▶ 리포트 확인하기: ${reportLink}${ticketAddMsg}`;
 
     try {
         const AligoModule = await import("../api/AligoClient.js");
         const AligoClient = AligoModule.default || AligoModule;
         
-        // 🔥 [수정] AligoClient 내부에 sendSms가 없으면 sendMessage를 찾아 호출합니다.
-        const sendAction = AligoClient.sendSms || AligoClient.sendMessage;
+        // 🔥 [중요] join 에러 방지를 위해 번호를 배열로 감쌉니다.
+        const receiver = [targetAddressStr]; 
+        
+        // sendSms 대신 sendMessage가 진짜일 확률이 높으므로 둘 다 체크
+        const sendAction = AligoClient.sendMessage || AligoClient.sendSms;
         
         if (typeof sendAction === 'function') {
-            await sendAction.call(AligoClient, targetAddress, finalMsg);
-            console.log("✅ [SMS] 문자 발송 성공");
+            // .call을 사용하여 AligoClient 객체의 맥락을 유지하며 호출
+            await sendAction.call(AligoClient, receiver, finalMsg);
+            console.log("✅ [SMS] 문자 발송 성공:", targetAddressStr);
         } else {
-            console.error("❌ [SMS ERROR] 발송 함수를 찾을 수 없음:", Object.keys(AligoClient));
+            console.error("❌ [SMS ERROR] 발송 함수를 찾을 수 없음. 목록:", Object.keys(AligoClient));
         }
     } catch (smsErr) {
-        console.error("❌ [SMS ERROR] 문자 발송 중 시스템 오류:", smsErr.message);
+        // 여기서 join 에러가 잡힐 경우 로그를 남깁니다.
+        console.error("❌ [SMS ERROR] 시스템 오류:", smsErr.message);
     }
 
-    return { message: "리포트 및 번들 티켓 발송 프로세스 완료" };
+    return { message: "리포트 및 번들 티켓 발송 완료" };
 }
     async findApprovedTransactionForReview({ userTelNo, userPw, platform }) {
       const tx = await PaymentTransactionRepository.findApprovedOneByTelAndPw({

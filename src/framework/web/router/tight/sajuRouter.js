@@ -434,22 +434,30 @@ router.get("/payment_success", async (req, res) => {
       }
     })();
 
-    // 페이지 렌더링
-const platformKey = (reportHistory.platform || 'TIGHT').toUpperCase();
-const platformInfo = Platform[platformKey] || Platform.TIGHT;
-const fileDir = String(platformInfo.fileDir || 'tight');
-console.log(` [DEBUG] 렌더링 시도 경로: ${fileDir}/saju/payment_success`);
+const rawPlatform = reportHistory.platform || 'TIGHT';
+    const platformKey = String(rawPlatform).toUpperCase();
+    
+    // 2. Platform 설정에서 정보를 가져오되, 실패 시 'tight' 객체를 강제 지정합니다.
+    const platformInfo = Platform[platformKey] || { fileDir: 'tight' };
+    
+    // 3. 🔥 [핵심] 경로 문자열을 미리 완성하고 로그를 찍습니다.
+    // 변수를 String()으로 감싸서 undefined가 절대 들어가지 않게 합니다.
+    const fileDir = String(platformInfo.fileDir || 'tight');
+    const viewPath = fileDir + "/saju/payment_success";
 
-return res.render(`${fileDir}/saju/payment_success`, {
-    shopOrderNo,
-    goodsPrice: goodsConfig.price, 
-    goodsType: targetGoodsType
-});
+    console.log(`🚀 [RENDER_DEBUG] 최종 경로: ${viewPath}`);
+
+    // 4. render 호출 (전달하는 인자값들도 undefined 방지 처리)
+    return res.render(viewPath, {
+      shopOrderNo: String(shopOrderNo || ""),
+      goodsPrice: Number(goodsConfig.price || 0), 
+      goodsType: String(targetGoodsType || "")
+    });
 
   } catch (error) {
     console.error("payment_success 최종 오류:", error);
     return res.status(500).send("결제 처리 중 문제가 발생했습니다.");
-  } 
+  }
 });
 // 결제 실패 페이지
 router.get("/payment_fail", (req, res) => {
