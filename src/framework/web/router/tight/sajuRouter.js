@@ -80,24 +80,29 @@ const ticketCode = req.query.ticket || req.body.ticketCode || req.body.ticket;
 if (ticketCode) {
     const ticket = await CouponsModel.findOne({ where: { code: ticketCode, isUsed: false } });
     if (ticket) {
-      console.log("🚀 티켓 인증 성공: 결제 건너뛰고 보고서 생성");
-      
-      // 1) 티켓 즉시 사용 처리
+      console.log("🚀 티켓 인증 성공: 대기 페이지로 먼저 이동합니다.");
       await ticket.update({ isUsed: true });
-
-      // 2) 리포트 내역 및 GPT 생성 (테스트 모드 로직과 유사하게 처리)
       const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
+
+      // [A] 리포트 내역 먼저 생성 (GPT 안 기다림)
       const created = await reportHistoryService.registerReportHistory({
         userInfo,
-        sampleInfo: await gptService.callSample(userInfo),
+        sampleInfo: {}, // 일단 빈 값으로 생성
         shopOrderNo,
         goodsType: GoodsType.CLASSIC
       });
 
-      const reportInfo = await gptService.callReport(userInfo, GoodsType.CLASSIC.code);
-      await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+      // [B] 백그라운드에서 GPT 생성 시작 (await를 제거함)
+      gptService.callReport(userInfo, GoodsType.CLASSIC.code)
+        .then(async (reportInfo) => {
+          // 완료되면 DB만 업데이트
+          await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+          console.log(`✅ [${shopOrderNo}] GPT 리포트 생성 완료`);
+        })
+        .catch(err => console.error("GPT 백그라운드 생성 에러:", err));
 
-      return res.redirect(`/saju/report?shopOrderNo=${shopOrderNo}`);
+      // [C] 사용자는 즉시 대기 페이지로 보냄 (프록시 에러 방지)
+      return res.redirect(`/saju/waiting?shopOrderNo=${shopOrderNo}`);
     }
   }
   // 🔥 [추가] 이름이 '테스트'인 경우 결제 없이 바로 리포트 생성 및 이동
@@ -162,24 +167,32 @@ router.get("/romantic/input", (req, res) => {
 router.post("/romantic/result", async (req, res) => {
   const userInfo = req.body;
 const ticketCode = req.query.ticket || req.body.ticketCode || req.body.ticket;  // 🎫 [추가] 티켓 번호가 있는 경우 로직
- if (ticketCode) {
+if (ticketCode) {
     const ticket = await CouponsModel.findOne({ where: { code: ticketCode, isUsed: false } });
     if (ticket) {
-      console.log("🚀 연애사주 티켓 인증 성공");
+      console.log("🚀 티켓 인증 성공: 대기 페이지로 먼저 이동합니다.");
       await ticket.update({ isUsed: true });
-
       const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
+
+      // [A] 리포트 내역 먼저 생성 (GPT 안 기다림)
       const created = await reportHistoryService.registerReportHistory({
         userInfo,
-        sampleInfo: await gptService.callSample(userInfo),
+        sampleInfo: {}, // 일단 빈 값으로 생성
         shopOrderNo,
-        goodsType: GoodsType.ROMANTIC // 👈 CLASSIC에서 ROMANTIC으로 수정 필수!
+        goodsType: GoodsType.ROMANTIC
       });
 
-      const reportInfo = await gptService.callReport(userInfo, GoodsType.ROMANTIC.code);
-      await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+      // [B] 백그라운드에서 GPT 생성 시작 (await를 제거함)
+      gptService.callReport(userInfo, GoodsType.ROMANTIC.code)
+        .then(async (reportInfo) => {
+          // 완료되면 DB만 업데이트
+          await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+          console.log(`✅ [${shopOrderNo}] GPT 리포트 생성 완료`);
+        })
+        .catch(err => console.error("GPT 백그라운드 생성 에러:", err));
 
-      return res.redirect(`/saju/report?shopOrderNo=${shopOrderNo}`);
+      // [C] 사용자는 즉시 대기 페이지로 보냄 (프록시 에러 방지)
+      return res.redirect(`/saju/waiting?shopOrderNo=${shopOrderNo}`);
     }
   }
   if (userInfo.name === "관리자") {
@@ -317,7 +330,25 @@ router.post("/skip-payment", async (req, res) => {
 router.get("/review", (req, res) => {
   res.render("tight/saju/review");
 });
+router.get("/api/check-ticket-report", async (req, res) => {
+    const { shopOrderNo } = req.query;
+    try {
+        const report = await reportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
+        // ticket으로 생성된 경우 reportInfo가 채워졌는지만 확인
+        if (report && report.reportInfo) {
+            return res.json({ status: "DONE" });
+        }
+        return res.json({ status: "WAITING" });
+    } catch (err) {
+        return res.json({ status: "ERROR" });
+    }
+});
 
+/* 2. 티켓 전용 대기 페이지 라우터 */
+router.get("/waiting", (req, res) => {
+    const { shopOrderNo } = req.query;
+    res.render("tight/saju/waiting", { shopOrderNo });
+});
 router.post("/payment", async (req, res) => {
 
   const userInfo = JSON.parse(req.body.userInfo);
