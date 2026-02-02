@@ -434,17 +434,26 @@ router.get("/payment_success", async (req, res) => {
       }
     })();
 
-const platformKey = (reportHistory.platform || 'TIGHT').toUpperCase(); // 대문자로 변환
-    const platformConfig = Platform[platformKey] || Platform.TIGHT;
-    const fileDir = platformConfig.fileDir || 'tight';
+let fileDir = 'tight';
 
+    // 2. 만약 DB에 platform 정보가 있고 그 값이 'JUJANGSO'라면 경로를 바꿉니다.
+    // .toUpperCase()와 .trim()을 사용하여 데이터 오차를 방지합니다.
+    if (reportHistory && reportHistory.platform) {
+        const platformCheck = String(reportHistory.platform).trim().toUpperCase();
+        if (platformCheck === 'JUJANGSO') {
+            fileDir = 'jujangso';
+        }
+    }
+
+    // 3. 경로를 직접 조립합니다. (이제 절대 undefined가 될 수 없습니다)
     const renderPath = `${fileDir}/saju/payment_success`;
     
     console.log(`🚀 [DEBUG] 최종 렌더링 경로: ${renderPath}`);
 
+    // 4. 렌더링 실행
     return res.render(renderPath, {
       shopOrderNo: String(shopOrderNo || ""),
-      goodsPrice: goodsConfig.price || 0,
+      goodsPrice: goodsConfig ? goodsConfig.price : 0,
       goodsType: String(targetGoodsType || "")
     });
 
