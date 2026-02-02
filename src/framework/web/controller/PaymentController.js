@@ -94,7 +94,7 @@ const PaymentController = {
       const TEST_PHONE_NUMBER = [
         "01055989742",   "01058389701" , "01033336666"
       ];
-      const TEST_AMOUNT = 100;
+      const TEST_AMOUNT = 1;
 
       const { payMethod, reportHistoryId, userTelNo } = req.body;
       if (!payMethod) return res.status(400).json({ code: 400, message: "payMethod is required" });
