@@ -82,6 +82,7 @@
   await PaymentTransactionRepository.updateByShopOrderNo(orderId, {
     userTelNo,
     userPw,
+    goodsType,
     authorizationId: paymentKey, // 토스의 paymentKey를 저장
     paymentStatus: PaymentStatus.APPROVED,
     approvalDate: new Date()
