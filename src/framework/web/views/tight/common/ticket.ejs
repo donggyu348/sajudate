@@ -164,4 +164,15 @@
 }
 
 </style>
+<script>
+function handleTicketVerify() {
+  const ticketCode = document.getElementById('ticketCodeInput').value.trim();
+  if (!ticketCode) {
+    alert('티켓 코드를 입력해주세요.');
+    return;
+  }
+  // 서버의 검증 라우터로 이동 (서버가 티켓 타입에 맞춰 classic/romantic으로 보내줌)
+  window.location.href = `/saju/ticket/verify?code=${encodeURIComponent(ticketCode)}`;
+}
+</script>
 </body>
