@@ -97,13 +97,14 @@ const PaymentController = {
       const TEST_AMOUNT = 100;
 
       const { payMethod, reportHistoryId, userTelNo } = req.body;
-console.log("[DEBUG 1] 프론트 수신 goodsType:", goodsType);
       if (!payMethod) return res.status(400).json({ code: 400, message: "payMethod is required" });
       if (!reportHistoryId) return res.status(400).json({ code: 400, message: "reportHistoryId is required" });
 
       const reportHistory = await ReportHistoryService.getReportHistoryById(reportHistoryId);
       if (!reportHistory) return res.status(404).json({ code: 404, message: "ReportHistory not found" });
       const goodsType = req.body.goodsType || reportHistory.goodsType;
+      console.log("[DEBUG 1] 프론트 수신 goodsType:", goodsType);
+
             console.log("[DEBUG 2] DB 기존 goodsType:", reportHistory.goodsType);
 
       /* -----------------------------------------------------
