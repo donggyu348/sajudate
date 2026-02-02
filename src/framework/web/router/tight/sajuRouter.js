@@ -11,9 +11,8 @@ import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
-import db from "../../orm/sequelize.js";
-const dbModels = db.default?.models || db.models || db;
-const CouponsModel = dbModels.coupons;const router = express.Router();
+import Coupons from "../../orm/models/coupons.js";
+const CouponsModel = Coupons;
 //미리보기 렌더링
 // [추가 시작: 이 블록을 파일 상단에 추가하세요]
 // URL 쿼리 파라미터에서 사용자 정보를 추출하고 유효성 검사를 수행하는 함수
@@ -571,7 +570,7 @@ router.get("/ticket/verify", async (req, res) => {
   if (!code) return res.status(400).send("티켓 코드를 입력해주세요.");
 
   try {
-    const ticket = await CouponsModel.findOne({ where: { code, isUsed: false } });
+const ticket = await Coupons.findOne({ where: { code: code, isUsed: false } });
     if (!ticket) {
       return res.send("<script>alert('유효하지 않거나 이미 사용된 티켓입니다.'); history.back();</script>");
     }
