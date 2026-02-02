@@ -238,25 +238,22 @@ router.get("/report", async (req, res) => {
 
     if (!reportHistory) return res.status(404).send("리포트를 찾을 수 없습니다.");
 
-    const userInfo = reportHistory.userInfo;
-    const dbGoodsType = String(reportHistory.goodsType || "").toUpperCase();
-
-    // 🚀 [수정 핵심] 번들(BUNDLE) 포함 여부로 경로 결정
+    // [수정 핵심] '1' 또는 'CLASSIC' 포함 시 classic으로, '2' 또는 'ROMANTIC' 포함 시 romantic으로
+    const gType = String(reportHistory.goodsType || "").toUpperCase();
     let reportPath;
-    
-    if (dbGoodsType.includes("ROMANTIC")) {
-      // ROMANTIC 또는 ROMANTIC_BUNDLE 모두 이 경로를 사용
+
+    if (gType.includes("ROMANTIC") || gType === "2") {
       reportPath = "tight/saju/romantic/report";
     } else {
-      // CLASSIC 또는 CLASSIC_BUNDLE, 혹은 그 외 모든 경우 기본 경로
+      // '1'이거나 'CLASSIC'이거나 그 외 모든 경우는 기본 classic 경로 사용
       reportPath = "tight/saju/classic/report";
     }
 
-    console.log(`📌 [REPORT] 주문번호: ${shopOrderNo}, GoodsType: ${dbGoodsType} -> 경로: ${reportPath}`);
+    console.log(`📌 [DEBUG] 최종 경로 결정: ${reportPath} (입력값: ${gType})`);
 
-    const saju = getFourPillars(userInfo);
+    const saju = getFourPillars(reportHistory.userInfo);
 
-    res.render(reportPath, {
+    return res.render(reportPath, {
       reportInfo: reportHistory.reportInfo,
       userInfo: reportHistory.userInfo,
       todayDate: {
@@ -269,8 +266,8 @@ router.get("/report", async (req, res) => {
       saju 
     });
   } catch (error) {
-    console.error("보고서 출력 오류:", error);
-    res.status(500).send("보고서를 로드하는 중 오류가 발생했습니다.");
+    console.error("보고서 렌더링 에러:", error);
+    res.status(500).send("보고서 로딩 중 오류가 발생했습니다.");
   }
 });
 
