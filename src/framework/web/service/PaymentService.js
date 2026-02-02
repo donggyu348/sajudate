@@ -276,8 +276,8 @@ this.generateReportAndSendEmail(tx.id, goodsType).catch(err => console.error("[S
       return { message: "입금 확인 완료", shopOrderNo: payment.shopOrderNo };
     }
 
-async generateReportAndSendEmail(paymentId, passedGoodsType) { 
-      const payment = await PaymentTransactionRepository.findByIdWithReportHistory(paymentId);
+async generateReportAndSendEmail(paymentId, passedGoodsType) {
+    const payment = await PaymentTransactionRepository.findByIdWithReportHistory(paymentId);
     if (!payment) throw new Error("결제정보 없음");
 
     if (payment.paymentStatus !== PaymentStatus.APPROVED)
@@ -287,71 +287,79 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
     let reportInfo = reportHistory.reportInfo;
     const userInfo = reportHistory.userInfo || {};
     const shopOrderNo = payment.shopOrderNo;
-const finalType = passedGoodsType || reportHistory?.goodsType || payment.goodsType;
-    // 1. 상품 정보 확인 (ROMANTIC_BUNDLE 등 모든 타입이 GoodsType에 정의되어 있어야 함)
-    console.log(" [LOG 5] 최종 타입 확인:", finalType); // 🔍 여기서 undefined가 찍히는지 꼭 보세요!
-const goodsType = GoodsType[finalType];
+    const finalType = passedGoodsType || reportHistory?.goodsType || payment.goodsType;
+
+    console.log(" [LOG 5] 최종 타입 확인:", finalType);
+    const goodsType = GoodsType[finalType];
     if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${finalType}`);
 
-    // 2. GPT 리포트 생성 (번들이라도 리포트를 먼저 생성함)
+    // 1. GPT 리포트 생성
     if (!reportInfo) {
-        // GptService.callReport 내부에서 goodsType.code를 참조하므로 객체를 넘겨줌
         const generated = await GptService.callReport(userInfo, goodsType);
         await ReportHistoryService.updateById({ id: reportHistory.id, reportInfo: generated });
         reportInfo = generated;
     }
 
-    // 3. 번들인 경우 티켓 생성 로직 진행 (문자 발송 전 티켓 번호 확보)
+    // 2. 번들인 경우 티켓 생성 로직
     let ticketAddMsg = "";
-if (finalType && finalType.includes('_BUNDLE')) {
-          const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-        let giftType = '1'; // 기본 신년운세
-        let giftName = '신년운세';
+    if (finalType && finalType.includes('_BUNDLE')) {
+        const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+        let giftType = (finalType === 'CLASSIC_BUNDLE') ? '2' : '1';
+        let giftName = (finalType === 'CLASSIC_BUNDLE') ? '로맨틱 연애사주' : '신년 운세사주';
 
-        if (finalType === 'CLASSIC_BUNDLE') {
-            giftType = '2'; 
-            giftName = '로맨틱 연애사주';
-        } else if (finalType === 'ROMANTIC_BUNDLE') {
-            giftType = '1'; 
-            giftName = '신년 운세사주';
+        try {
+            // 🔥 [수정] 모델 파일을 직접 import 하여 경로 및 대소문자 문제를 방지합니다.
+            const CouponsModule = await import("../orm/models/coupons.js");
+            const Coupons = CouponsModule.default; 
+
+            if (Coupons) {
+                await Coupons.create({
+                    code: ticketCode,
+                    isUsed: false,
+                    type: 'BUNDLE',
+                    goodsType: giftType, 
+                    receivedPhone: payment.userTelNo || userInfo.tel
+                });
+                console.log(`✅ [TICKET] 티켓 발급 성공: ${ticketCode}`);
+            } else {
+                throw new Error("Coupons 모델 로드 실패");
+            }
+        } catch (dbErr) {
+            console.error("❌ [TICKET ERROR] DB 저장 중 에러 (테이블명 확인 필수):", dbErr.message);
+            // 티켓 생성이 실패해도 리포트 문자는 보낼 수 있도록 throw 하지 않고 진행합니다.
         }
 
-const dbModule = await import("../orm/sequelize.js");
-// 모델이 default 안에 있거나 직접 등록되어 있을 수 있으므로 모두 체크합니다.
-const Coupons = dbModule.coupons || dbModule.default?.models?.coupons || dbModule.default?.coupons;
-
-if (!Coupons) {
-    console.error("❌ [ERROR] Coupons 모델을 찾을 수 없습니다. DB 설정을 확인하세요.");
-} else {
-    await Coupons.create({
-        code: ticketCode,
-        isUsed: false,
-        type: 'BUNDLE',
-        goodsType: giftType, 
-        receivedPhone: payment.userTelNo || userInfo.tel
-    });
-    console.log(`✅ [TICKET] 티켓 발급 성공: ${ticketCode} (${giftName})`);
-}
-
-        // 문자 하단에 붙을 추가 문구 생성
         ticketAddMsg = `\n\n[번들혜택] ${giftName} 무료 티켓이 발급되었습니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 사용 가능합니다.`;
     }
 
-    // 4. 최종 문자 발송 (리포트 링크 + 티켓 문구)
+    // 3. 최종 문자 발송
     let targetAddress = payment.userTelNo || userInfo.phone || userInfo.tel;
     const platformInfo = Platform[payment.platform];
     const domain = platformInfo.domain;
     const userName = userInfo.name || "고객";
 
-    // 기존 sendReportLink 로직을 확장하여 직접 발송 (티켓 문구 포함을 위해)
     const reportLink = `${domain}/saju/report?shopOrderNo=${shopOrderNo}`;
     const finalMsg = `[사주데이트] ${userName}님, 요청하신 리포트가 생성되었습니다.\n\n▶ 리포트 확인하기: ${reportLink}${ticketAddMsg}`;
 
-    const AligoClient = (await import("../api/AligoClient.js")).default; 
-    await AligoClient.sendSms(targetAddress, finalMsg);
+    try {
+        const AligoModule = await import("../api/AligoClient.js");
+        const AligoClient = AligoModule.default || AligoModule;
+        
+        // 🔥 [수정] AligoClient 내부에 sendSms가 없으면 sendMessage를 찾아 호출합니다.
+        const sendAction = AligoClient.sendSms || AligoClient.sendMessage;
+        
+        if (typeof sendAction === 'function') {
+            await sendAction.call(AligoClient, targetAddress, finalMsg);
+            console.log("✅ [SMS] 문자 발송 성공");
+        } else {
+            console.error("❌ [SMS ERROR] 발송 함수를 찾을 수 없음:", Object.keys(AligoClient));
+        }
+    } catch (smsErr) {
+        console.error("❌ [SMS ERROR] 문자 발송 중 시스템 오류:", smsErr.message);
+    }
 
-    return { message: "리포트 및 번들 티켓 발송 완료" };
-  }
+    return { message: "리포트 및 번들 티켓 발송 프로세스 완료" };
+}
     async findApprovedTransactionForReview({ userTelNo, userPw, platform }) {
       const tx = await PaymentTransactionRepository.findApprovedOneByTelAndPw({
         userTelNo,
