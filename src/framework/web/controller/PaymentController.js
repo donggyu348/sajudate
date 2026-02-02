@@ -271,7 +271,7 @@ goodsType: reportHistory.goodsType
 async callbackToss(req, res) {
   try {
     // 1. 토스가 리다이렉트 시 보내주는 파라미터 + 프론트에서 붙인 tel, pw
-    const { paymentKey, orderId, amount, tel, pw } = req.query;
+    const { paymentKey, orderId, amount, tel, pw, goodsType } = req.query;
 
     // 2. 서비스의 승인 로직 호출
     await PaymentService.approveTossPayment({
@@ -279,7 +279,8 @@ async callbackToss(req, res) {
       orderId,
       amount: Number(amount),
       userTelNo: tel,
-      userPw: pw
+      userPw: pw,
+      goodsType: goodsType // 👈 서비스로 전달
     });
 
     // 3. 승인 성공 시 결과 페이지로 리다이렉트 (기존 성공 페이지 활용)
