@@ -226,8 +226,8 @@ if (type === 'single') {
                     amount: { currency: "KRW", value: amount },
                     orderId: shopOrderNo,
                     orderName: GOODS_MAP[finalGoodsCode].title,
-                    successUrl: window.location.origin + "/api/payments/callback-toss" + 
-                                `?tel=${fullTel}&pw=${pw}&historyId=${reportHistoryId}`,
+        successUrl: window.location.origin + "/api/payments/callback-toss" + 
+                        `?tel=${fullTel}&pw=${pw}&historyId=${reportHistoryId}&goodsType=${finalGoodsCode}`,
                     failUrl: window.location.origin + "/saju/payment?error=fail",
                     customerMobilePhone: fullTel,
                     card: { flowMode: "DEFAULT", useCardPoint: false }
