@@ -363,32 +363,31 @@ router.get("/payment_success", async (req, res) => {
     const { shopOrderNo, pg_token } = req.query;
     if (!shopOrderNo) return res.status(400).send("주문번호가 없습니다.");
 
-    // 1. DB에서 결제 정보와 리포트 기록을 즉시 조회
     let paymentInfo = await PaymentService.getPaymentTransaction(shopOrderNo);
     const reportHistory = await ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
 
     if (!paymentInfo || !reportHistory) {
       return res.status(404).send("결제 정보를 찾을 수 없습니다.");
     }
-const goodsConfig = GoodsType[reportHistory.goodsType];
-if (!goodsConfig) {
-        console.error("❌ GoodsType 정의 누락:", reportHistory.goodsType);
-        return res.status(500).send("지원하지 않는 상품 타입입니다.");
+
+    // 1. [보완] goodsType이 비어있을 경우 paymentInfo에서 가져오는 안전장치
+    // 로그에 "GoodsType 정의 누락:" 뒤에 아무것도 안 찍히는 현상을 방지합니다.
+    const targetGoodsType = reportHistory.goodsType || paymentInfo.goodsType;
+    const goodsConfig = GoodsType[targetGoodsType];
+
+    if (!goodsConfig) {
+        console.error("❌ GoodsType 정의 누락. 입력값:", targetGoodsType);
+        return res.status(500).send(`상품 정보(Type: ${targetGoodsType})를 찾을 수 없습니다.`);
     }
+
     /**
-     * 🔥 [핵심 수정] tid 누락 방지 및 중복 승인 에러 원천 차단
+     * ② 결제 승인 로직 (기존 유지)
      */
-    // ① 이미 승인 완료(APPROVED)된 경우라면 API 호출 없이 즉시 다음 단계로 진행
     if (paymentInfo.paymentStatus === PaymentStatus.APPROVED) {
         console.log(`[${shopOrderNo}] 이미 승인 완료된 주문입니다.`);
     } 
-    // ② 아직 승인 전(READY)이고 카카오 토큰(pg_token)이 온 경우에만 승인 시도
     else if (pg_token && paymentInfo.paymentStatus === PaymentStatus.READY) {
-      
-      // [개선] DB에 저장된 tid를 최우선으로 사용하고, 없으면 세션에서 가져옴
       const tid = paymentInfo.tid || (req.session?.kakaoPay?.tid);
-      
-      // 로그의 -400 에러(tid null)를 방지하기 위한 안전장치
       if (!tid) {
         console.error(`[${shopOrderNo}] TID를 찾을 수 없어 승인 요청을 중단합니다.`);
       } else {
@@ -400,11 +399,8 @@ if (!goodsConfig) {
             partner_user_id: `USER_${shopOrderNo}`,
             pg_token 
           });
-
-          // 승인 성공 시 즉시 DB 업데이트
           await PaymentService.updatePaymentStatus(shopOrderNo, PaymentStatus.APPROVED);
         } catch (kakaoError) {
-          // -702(이미 완료됨) 에러 발생 시 정상 승인으로 간주
           if (kakaoError.message.includes("-702")) {
             await PaymentService.updatePaymentStatus(shopOrderNo, PaymentStatus.APPROVED);
           } else {
@@ -415,20 +411,17 @@ if (!goodsConfig) {
     }
 
     /**
-     * ③ 결과 확인 및 페이지 렌더링 (가만히 기다리면 보고서가 나오는 구간)
+     * ③ 결과 확인 및 GPT 호출
      */
-    // 리포트(GPT 결과)가 이미 생성되어 있다면 보고서로 바로 이동
     if (reportHistory.reportInfo) {
       return res.redirect("/saju/report?shopOrderNo=" + shopOrderNo);
     }
-// 중복 실행 방지를 위해 GptService 내부나 gptRouter와 동일한 로직을 탑니다.
-    const goodsTypeObject = GoodsType[reportHistory.goodsType];
-    
-    // 비동기로 실행 (기다리지 않고 바로 페이지 렌더링)
+
+    // 비동기로 GPT 호출
     (async () => {
       try {
-        // 이미 생성 중인지 체크하는 로직이 GptService나 DB 업데이트에 있으면 안전합니다.
         console.log(`[SERVER_START] 결제 승인 즉시 GPT 호출: ${shopOrderNo}`);
+        // 🔥 핵심: goodsConfig(객체)를 넘겨야 GptService에서 .code를 읽을 수 있음
         const response = await gptService.callReport(reportHistory.userInfo, goodsConfig);
         await reportHistoryService.updateById({
           id: reportHistory.id,
@@ -439,12 +432,14 @@ if (!goodsConfig) {
         console.error("[SERVER_ERROR] 즉시 실행 GPT 오류:", err);
       }
     })();
-    // 아직 리포트 생성 중이라면 대기 페이지(로딩창) 렌더링
+
+    // 페이지 렌더링
     const fileDir = Platform[reportHistory.platform].fileDir;
     return res.render(`${fileDir}/saju/payment_success`, {
       shopOrderNo,
-goodsPrice: goodsConfig.price,
-      goodsType: reportHistory.goodsType
+      // 🔥 변수 사용: GoodsType[...]을 다시 조회하지 않고 안전하게 이미 찾은 goodsConfig 사용
+      goodsPrice: goodsConfig.price, 
+      goodsType: targetGoodsType
     });
 
   } catch (error) {
