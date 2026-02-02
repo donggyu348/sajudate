@@ -269,7 +269,7 @@ const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory
       return { message: "입금 확인 완료", shopOrderNo: payment.shopOrderNo };
     }
 
- async generateReportAndSendEmail(paymentId) {
+async generateReportAndSendEmail(paymentId) {
     const payment = await PaymentTransactionRepository.findByIdWithReportHistory(paymentId);
     if (!payment) throw new Error("결제정보 없음");
 
@@ -281,10 +281,23 @@ const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory
     const userInfo = reportHistory.userInfo || {};
     const shopOrderNo = payment.shopOrderNo;
 
-    // 🔥 [교정] 번들 체크를 최상단으로 옮겨서 GPT 호출(GoodsType 조회)을 방지합니다.
+    // 1. 상품 정보 확인 (ROMANTIC_BUNDLE 등 모든 타입이 GoodsType에 정의되어 있어야 함)
+    const goodsType = GoodsType[reportHistory.goodsType]; 
+    if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${reportHistory.goodsType}`);
+
+    // 2. GPT 리포트 생성 (번들이라도 리포트를 먼저 생성함)
+    if (!reportInfo) {
+        // GptService.callReport 내부에서 goodsType.code를 참조하므로 객체를 넘겨줌
+        const generated = await GptService.callReport(userInfo, goodsType);
+        await ReportHistoryService.updateById({ id: reportHistory.id, reportInfo: generated });
+        reportInfo = generated;
+    }
+
+    // 3. 번들인 경우 티켓 생성 로직 진행 (문자 발송 전 티켓 번호 확보)
+    let ticketAddMsg = "";
     if (reportHistory.goodsType.includes('_BUNDLE')) {
         const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-        let giftType = '1'; 
+        let giftType = '1'; // 기본 신년운세
         let giftName = '신년운세';
 
         if (reportHistory.goodsType === 'CLASSIC_BUNDLE') {
@@ -304,32 +317,25 @@ const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory
             receivedPhone: payment.userTelNo || userInfo.tel
         });
 
-        const targetPhone = payment.userTelNo || userInfo.tel;
-        const msg = `[티켓발급] 번들 구매 감사드립니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 보고서가 생성됩니다.`;
-        
-        const AligoClient = (await import("../api/AligoClient.js")).default; 
-        await AligoClient.sendSms(targetPhone, msg);
-
-        return { message: "번들 티켓 발송 완료" }; // 여기서 끝내야 GPT 에러가 안 납니다.
+        // 문자 하단에 붙을 추가 문구 생성
+        ticketAddMsg = `\n\n[번들혜택] ${giftName} 무료 티켓이 발급되었습니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 사용 가능합니다.`;
     }
 
-    // --- 이 아래는 일반 단품 결제시에만 실행됩니다 ---
-    const goodsType = GoodsType[reportHistory.goodsType]; 
-    if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${reportHistory.goodsType}`);
-
-    if (!reportInfo) {
-        const generated = await GptService.callReport(userInfo, goodsType);
-        await ReportHistoryService.updateById({ id: reportHistory.id, reportInfo: generated });
-        reportInfo = generated;
-    }
-
-    let targetAddress = payment.userTelNo || userInfo.phone;
+    // 4. 최종 문자 발송 (리포트 링크 + 티켓 문구)
+    let targetAddress = payment.userTelNo || userInfo.phone || userInfo.tel;
     const platformInfo = Platform[payment.platform];
-    await sendReportLink(targetAddress, shopOrderNo, reportHistory.goodsType, platformInfo.domain, userInfo.name || "고객");
+    const domain = platformInfo.domain;
+    const userName = userInfo.name || "고객";
 
-    return { message: "결과 문자 발송됨" };
-}
+    // 기존 sendReportLink 로직을 확장하여 직접 발송 (티켓 문구 포함을 위해)
+    const reportLink = `${domain}/saju/report?shopOrderNo=${shopOrderNo}`;
+    const finalMsg = `[사주데이트] ${userName}님, 요청하신 리포트가 생성되었습니다.\n\n▶ 리포트 확인하기: ${reportLink}${ticketAddMsg}`;
 
+    const AligoClient = (await import("../api/AligoClient.js")).default; 
+    await AligoClient.sendSms(targetAddress, finalMsg);
+
+    return { message: "리포트 및 번들 티켓 발송 완료" };
+  }
     async findApprovedTransactionForReview({ userTelNo, userPw, platform }) {
       const tx = await PaymentTransactionRepository.findApprovedOneByTelAndPw({
         userTelNo,
