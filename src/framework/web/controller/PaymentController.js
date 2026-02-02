@@ -199,6 +199,8 @@ if (payMethod === "TOSS") {
   await PaymentTransactionRepository.createPayment({
     ...basePayload,
     shopOrderNo,
+    userTelNo: req.body.userTelNo, // 👈 추가: 문자 발송을 위한 번호 저장
+        userPw: req.body.userPw,  
     amount: finalAmount, // 100원이 적용된 금액
     paymentStatus: PaymentStatus.READY // 결제 준비 상태
   });
@@ -207,7 +209,7 @@ if (payMethod === "TOSS") {
   await ReportHistoryService.updateById({
     id: reportHistoryId,
     shopOrderNo: shopOrderNo,
-    goodsType: req.body.goodsType // 👈 프론트에서 보낸 'ROMANTIC_BUNDLE' 등을 DB에 덮어씁니다.
+goodsType: reportHistory.goodsType
   });
 
   // 4. 성공 응답 (프론트엔드로 100원과 주문번호를 보냄)
