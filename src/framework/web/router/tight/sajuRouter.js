@@ -434,23 +434,33 @@ router.get("/payment_success", async (req, res) => {
       }
     })();
 
-const rawPlatform = reportHistory.platform || 'TIGHT';
-    const platformKey = String(rawPlatform).toUpperCase();
-    
-    // 2. Platform 설정에서 정보를 가져오되, 실패 시 'tight' 객체를 강제 지정합니다.
-    const platformInfo = Platform[platformKey] || { fileDir: 'tight' };
-    
-    // 3. 🔥 [핵심] 경로 문자열을 미리 완성하고 로그를 찍습니다.
-    // 변수를 String()으로 감싸서 undefined가 절대 들어가지 않게 합니다.
-    const fileDir = String(platformInfo.fileDir || 'tight');
-    const viewPath = fileDir + "/saju/payment_success";
+let finalFileDir = 'tight'; 
 
-    console.log(`🚀 [RENDER_DEBUG] 최종 경로: ${viewPath}`);
+    try {
+      // DB에서 가져온 플랫폼 값 확인 (소문자/대문자/공백 모두 방어)
+      const dbPlatform = String(reportHistory?.platform || paymentInfo?.platform || "TIGHT").trim().toUpperCase();
+      
+      console.log(`🚀 [DEBUG] DB 플랫폼 값: "${dbPlatform}"`);
 
-    // 4. render 호출 (전달하는 인자값들도 undefined 방지 처리)
-    return res.render(viewPath, {
+      // Platform 객체에서 매칭되는 폴더 찾기
+      if (dbPlatform === "JUJANGSO") {
+        finalFileDir = "jujangso";
+      } else {
+        // 기본값은 tight
+        finalFileDir = "tight";
+      }
+    } catch (e) {
+      console.error("플랫폼 판별 중 에러 발생, 기본값 tight 사용");
+    }
+
+    // 2. 경로를 문자열로 명확히 조립
+    const successPagePath = `${finalFileDir}/saju/payment_success`;
+    console.log(`🚀 [최종 경로 확인] : "${successPagePath}"`);
+
+    // 3. 렌더링 호출
+    return res.render(successPagePath, {
       shopOrderNo: String(shopOrderNo || ""),
-      goodsPrice: Number(goodsConfig.price || 0), 
+      goodsPrice: Number(goodsConfig ? goodsConfig.price : 0), 
       goodsType: String(targetGoodsType || "")
     });
 
