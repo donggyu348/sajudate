@@ -68,7 +68,7 @@
 
   async approveTossPayment(payload) {
   const { paymentKey, orderId, amount, userTelNo, userPw,goodsType } = payload;
-
+console.log(`[LOG 4][Service_Approve] 시작 - orderId: ${orderId}, goodsType: ${goodsType}`);
   // 1. 토스 서버에 최종 승인 요청 (TossPaymentsClient 활용)
   // TossPaymentsClient.confirmPayment가 내부적으로 axios post를 호출해야 합니다.
   const result = await TossPaymentsClient.confirmPayment({
