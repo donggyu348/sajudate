@@ -370,7 +370,11 @@ router.get("/payment_success", async (req, res) => {
     if (!paymentInfo || !reportHistory) {
       return res.status(404).send("결제 정보를 찾을 수 없습니다.");
     }
-
+const goodsConfig = GoodsType[reportHistory.goodsType];
+if (!goodsConfig) {
+        console.error("❌ GoodsType 정의 누락:", reportHistory.goodsType);
+        return res.status(500).send("지원하지 않는 상품 타입입니다.");
+    }
     /**
      * 🔥 [핵심 수정] tid 누락 방지 및 중복 승인 에러 원천 차단
      */
@@ -425,7 +429,7 @@ router.get("/payment_success", async (req, res) => {
       try {
         // 이미 생성 중인지 체크하는 로직이 GptService나 DB 업데이트에 있으면 안전합니다.
         console.log(`[SERVER_START] 결제 승인 즉시 GPT 호출: ${shopOrderNo}`);
-        const response = await gptService.callReport(reportHistory.userInfo, goodsTypeObject);
+        const response = await gptService.callReport(reportHistory.userInfo, goodsConfig);
         await reportHistoryService.updateById({
           id: reportHistory.id,
           reportInfo: response
@@ -439,7 +443,7 @@ router.get("/payment_success", async (req, res) => {
     const fileDir = Platform[reportHistory.platform].fileDir;
     return res.render(`${fileDir}/saju/payment_success`, {
       shopOrderNo,
-      goodsPrice: GoodsType[reportHistory.goodsType].price,
+goodsPrice: goodsConfig.price,
       goodsType: reportHistory.goodsType
     });
 

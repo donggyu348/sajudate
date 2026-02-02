@@ -3265,17 +3265,19 @@ class GptService {
 
 
  async callReport(userInfo, goodsType) {
-    let promtParts;
+let promtParts;
+    // goodsType이 객체일 수도 있고 문자열일 수도 있으므로 안전하게 code 추출
+    const gCode = typeof goodsType === 'string' ? goodsType : (goodsType?.code || goodsType); 
 
-    const gCode = typeof goodsType === 'string' ? goodsType : goodsType.code;
-
-if (gCode === "CLASSIC" || gCode === "CLASSIC_BUNDLE") {
-    promtParts = CLASSIC_REPORT_PROMPT_PARTS;
-  } else if (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE") {
-    promtParts = ROMANTIC_REPORT_PROMPT_PARTS;
-  } else if (gCode === "PREMIUM_SAJU") {
-    promtParts = PREMIUM_REPORT_PROMPT_PARTS;
-  }
+    if (gCode === "CLASSIC" || gCode === "CLASSIC_BUNDLE") {
+        promtParts = CLASSIC_REPORT_PROMPT_PARTS;
+    } else if (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE") {
+        promtParts = ROMANTIC_REPORT_PROMPT_PARTS;
+    } else if (gCode === "PREMIUM_SAJU") {
+        promtParts = PREMIUM_REPORT_PROMPT_PARTS;
+    } else {
+        throw new Error(`지원하지 않는 상품 코드입니다: ${gCode}`);
+    }
 
     try {
       // ✅ 1) 사주 계산 (새 로직 적용)
