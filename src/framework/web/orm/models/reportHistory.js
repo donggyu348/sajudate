@@ -25,9 +25,11 @@ const ReportHistory = sequelize.define("ReportHistory", {
     unique: false,
     comment: "상점 주문번호 (가맹점 고유값)",
   },
-  goodsType: {
-    type: DataTypes.ENUM(...Object.values(GoodsType).map((v) => v.code.toUpperCase())),
-    allowNull: false,
+goodsType: {
+    // 1. 타입을 STRING으로 잠시 바꿔서 테스트해보거나, ENUM 정의가 완벽한지 확인하세요.
+    type: DataTypes.STRING(50), 
+    allowNull: true, // ⚠️ 테스트를 위해 우선 true로 바꿉니다. (값이 안 들어가는 원인 파악용)
+    field: "goods_type", // 🔥 이 줄을 추가해서 DB 컬럼명과 강제로 연결하세요.
     comment: "상품타입",
   },
   userInfo: {
