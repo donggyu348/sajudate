@@ -437,8 +437,7 @@ router.get("/payment_success", async (req, res) => {
     // 페이지 렌더링
 const platformKey = (reportHistory.platform || 'TIGHT').toUpperCase();
 const platformInfo = Platform[platformKey] || Platform.TIGHT;
-const fileDir = platformInfo.fileDir || 'tight'; 
-
+const fileDir = String(platformInfo.fileDir || 'tight');
 console.log(` [DEBUG] 렌더링 시도 경로: ${fileDir}/saju/payment_success`);
 
 return res.render(`${fileDir}/saju/payment_success`, {
