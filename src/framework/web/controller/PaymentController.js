@@ -97,6 +97,7 @@ const PaymentController = {
       const TEST_AMOUNT = 1;
 
       const { payMethod, reportHistoryId, userTelNo } = req.body;
+      console.log(`[LOG 1][register] 수신 데이터 - goodsType: ${goodsType}, reportHistoryId: ${reportHistoryId}`);
       if (!payMethod) return res.status(400).json({ code: 400, message: "payMethod is required" });
       if (!reportHistoryId) return res.status(400).json({ code: 400, message: "reportHistoryId is required" });
 
@@ -198,14 +199,14 @@ const PaymentController = {
 if (payMethod === "TOSS") {
   // 1. 주문번호 생성 (finalAmount는 이미 위에서 100원으로 계산됨)
   const shopOrderNo = `TOSS-${Date.now()}`; 
-console.log("[DEBUG 3] Toss 분기 진입 - 최종 사용 goodsType:", goodsType || reportHistory.goodsType);
-  // 2. DB에 결제 대기 데이터 생성
+console.log(`[LOG 2][TOSS_REGISTER] DB 저장 시도 - shopOrderNo: ${shopOrderNo}, goodsType: ${goodsType}`);  // 2. DB에 결제 대기 데이터 생성
   await PaymentTransactionRepository.createPayment({
     ...basePayload,
     shopOrderNo,
     userTelNo: req.body.userTelNo, // 👈 추가: 문자 발송을 위한 번호 저장
         userPw: req.body.userPw,  
-    amount: finalAmount, // 100원이 적용된 금액
+    amount: finalAmount,
+    goodsType: goodsType, // 👈 여기서 유실되는지 확인 // 100원이 적용된 금액
     paymentStatus: PaymentStatus.READY // 결제 준비 상태
   });
 
@@ -272,8 +273,10 @@ async callbackToss(req, res) {
   try {
     // 1. 토스가 리다이렉트 시 보내주는 파라미터 + 프론트에서 붙인 tel, pw
     const { paymentKey, orderId, amount, tel, pw, goodsType } = req.query;
-console.log("[DEBUG 콜백 수신]", { orderId, goodsType }); // 여기서 goodsType이 찍히는지 확인하세요.
-    // 2. 서비스의 승인 로직 호출
+console.log(`[LOG 3][callbackToss] 수신 쿼리 - orderId: ${orderId}, goodsType: ${goodsType}`);    // 2. 서비스의 승인 로직 호출
+if (!goodsType) {
+            console.error(`[CRITICAL] 토스 콜백에서 goodsType이 누락되었습니다! (orderId: ${orderId})`);
+        }
     await PaymentService.approveTossPayment({
       paymentKey,
       orderId,

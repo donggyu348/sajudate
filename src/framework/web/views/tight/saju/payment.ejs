@@ -211,7 +211,10 @@ if (type === 'single') {
             }
 
             const fullTel = `010${telF}${telB}`;
-
+console.log(" [FRONT] 전송 데이터 확인:", { 
+        goodsCode: finalGoodsCode, 
+        goodsType: finalGoodsCode 
+    });
             try {
                 const response = await axios.post("/api/payments/register", {
                     userTelNo: fullTel, userPw: pw, payMethod: "TOSS",
