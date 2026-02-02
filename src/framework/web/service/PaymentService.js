@@ -332,9 +332,8 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
         ticketAddMsg = `\n\n[번들혜택] ${giftName} 무료 티켓이 발급되었습니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 사용 가능합니다.`;
     }
 
-    // 3. 최종 문자 발송
-let targetAddress = payment.userTelNo || userInfo.phone || userInfo.tel || "";
-    const targetAddressStr = String(targetAddress).replace(/-/g, ''); // 하이픈 제거 안전장치
+  const rawAddress = payment.userTelNo || userInfo.phone || userInfo.tel || "";
+    const targetAddressStr = String(rawAddress).replace(/-/g, ''); // 하이픈 제거
 
     const platformInfo = Platform[payment.platform] || Platform.TIGHT;
     const domain = platformInfo.domain;
@@ -347,22 +346,15 @@ let targetAddress = payment.userTelNo || userInfo.phone || userInfo.tel || "";
         const AligoModule = await import("../api/AligoClient.js");
         const AligoClient = AligoModule.default || AligoModule;
         
-        // 🔥 [중요] join 에러 방지를 위해 번호를 배열로 감쌉니다.
-        const receiver = [targetAddressStr]; 
+        // 🔥 [중요] AligoClient.js 정의에 따라 객체 형태로 인자를 전달해야 합니다.
+await AligoClient.sendMessage({
+            receivers: [String(targetAddressStr)], // 반드시 배열로 감싸기
+            message: String(finalMsg)              // 반드시 문자열로 전달
+        });
         
-        // sendSms 대신 sendMessage가 진짜일 확률이 높으므로 둘 다 체크
-        const sendAction = AligoClient.sendMessage || AligoClient.sendSms;
-        
-        if (typeof sendAction === 'function') {
-            // .call을 사용하여 AligoClient 객체의 맥락을 유지하며 호출
-            await sendAction.call(AligoClient, receiver, finalMsg);
-            console.log("✅ [SMS] 문자 발송 성공:", targetAddressStr);
-        } else {
-            console.error("❌ [SMS ERROR] 발송 함수를 찾을 수 없음. 목록:", Object.keys(AligoClient));
-        }
+        console.log("✅ [SMS] 알리고 발송 성공:", targetAddressStr);
     } catch (smsErr) {
-        // 여기서 join 에러가 잡힐 경우 로그를 남깁니다.
-        console.error("❌ [SMS ERROR] 시스템 오류:", smsErr.message);
+        console.error("❌ [SMS ERROR] 알리고 호출 실패:", smsErr.message);
     }
 
     return { message: "리포트 및 번들 티켓 발송 완료" };
