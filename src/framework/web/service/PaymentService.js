@@ -290,7 +290,7 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
 const finalType = passedGoodsType || reportHistory?.goodsType || payment.goodsType;
     // 1. 상품 정보 확인 (ROMANTIC_BUNDLE 등 모든 타입이 GoodsType에 정의되어 있어야 함)
 const goodsType = GoodsType[finalType];
-    if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${reportHistory.goodsType}`);
+    if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${finalType}`);
 
     // 2. GPT 리포트 생성 (번들이라도 리포트를 먼저 생성함)
     if (!reportInfo) {
@@ -302,15 +302,15 @@ const goodsType = GoodsType[finalType];
 
     // 3. 번들인 경우 티켓 생성 로직 진행 (문자 발송 전 티켓 번호 확보)
     let ticketAddMsg = "";
-    if (reportHistory.goodsType.includes('_BUNDLE')) {
-        const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+if (finalType && finalType.includes('_BUNDLE')) {
+          const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
         let giftType = '1'; // 기본 신년운세
         let giftName = '신년운세';
 
-        if (reportHistory.goodsType === 'CLASSIC_BUNDLE') {
+        if (finalType === 'CLASSIC_BUNDLE') {
             giftType = '2'; 
             giftName = '로맨틱 연애사주';
-        } else if (reportHistory.goodsType === 'ROMANTIC_BUNDLE') {
+        } else if (finalType === 'ROMANTIC_BUNDLE') {
             giftType = '1'; 
             giftName = '신년 운세사주';
         }
