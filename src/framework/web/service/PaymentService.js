@@ -89,13 +89,21 @@ console.log(`[LOG 4][Service_Approve] 시작 - orderId: ${orderId}, goodsType: $
   });
 
 const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory(orderId);
-  if (tx && tx.reportHistory) {
-      await ReportHistoryService.updateById({
-          id: tx.reportHistory.id,
-          goodsType: goodsType // 여기서 ROMANTIC_BUNDLE로 확실히 박아줌
-      });
+  
+  if (tx) {
+      // 리포트 히스토리에도 확실히 박아줌
+      if (tx.reportHistory) {
+          await ReportHistoryService.updateById({
+              id: tx.reportHistory.id,
+              goodsType: goodsType // 전달받은 원본 값을 직접 넣어주는 게 가장 안전함
+          });
+      }
+
+      // 4. 🔥 [중요] tx.id만 보내지 말고, 이미 알고 있는 goodsType을 직접 활용하도록 함수를 수정하거나
+      // 아래와 같이 최신화된 tx 정보를 바탕으로 실행되게 합니다.
+      console.log(` [DEBUG] 발송 시도 - txId: ${tx.id}, 타입: ${goodsType}`);
       
-      // 업데이트된 최신 정보를 바탕으로 리포트/티켓 발송 실행
+      // 비동기로 실행하되, 순서를 보장하기 위해 필요한 경우 await를 걸 수도 있습니다.
       this.generateReportAndSendEmail(tx.id).catch(err => console.error("[SMS Error]", err));
   }
 
