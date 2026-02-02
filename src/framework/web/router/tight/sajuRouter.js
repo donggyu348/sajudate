@@ -235,46 +235,46 @@ router.get("/romantic/result", async (req, res) => {
 
 
 router.get("/report", async (req, res) => {
+  try {
+    const shopOrderNo = req.query.shopOrderNo;
+    const reportHistory = await reportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
 
+    if (!reportHistory) return res.status(404).send("리포트를 찾을 수 없습니다.");
 
-  const shopOrderNo = req.query.shopOrderNo;
+    const userInfo = reportHistory.userInfo;
+    const dbGoodsType = String(reportHistory.goodsType || "").toUpperCase();
 
-  const reportHistory = await reportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
-  const userInfo = reportHistory.userInfo; // ✅ 요걸 써야 해
+    // 🚀 [수정 핵심] 번들(BUNDLE) 포함 여부로 경로 결정
+    let reportPath;
+    
+    if (dbGoodsType.includes("ROMANTIC")) {
+      // ROMANTIC 또는 ROMANTIC_BUNDLE 모두 이 경로를 사용
+      reportPath = "tight/saju/romantic/report";
+    } else {
+      // CLASSIC 또는 CLASSIC_BUNDLE, 혹은 그 외 모든 경우 기본 경로
+      reportPath = "tight/saju/classic/report";
+    }
 
-  const today = new Date();
-  const todayDate = {
-    year: today.getFullYear(),
-    month: today.getMonth() + 1,
-    day: today.getDate()
-  };
+    console.log(`📌 [REPORT] 주문번호: ${shopOrderNo}, GoodsType: ${dbGoodsType} -> 경로: ${reportPath}`);
 
-  let reportPath;
-  if (reportHistory.goodsType == GoodsType.CLASSIC.code) {
-    reportPath = "tight/saju/classic/report";
+    const saju = getFourPillars(userInfo);
 
-  } else if (reportHistory.goodsType == GoodsType.ROMANTIC.code) {
-    reportPath = "tight/saju/romantic/report";
-  }
-
-    // ✅ 여기 로그 추가
-  console.log("📌 [REPORT] userInfo =", userInfo);
-  console.log("📌 birthdate =", userInfo.birthdate);
-  console.log("📌 birthTime =", userInfo.birthTime);
-
-  const saju = getFourPillars(userInfo);
-
-  res.render(reportPath,
-    {
+    res.render(reportPath, {
       reportInfo: reportHistory.reportInfo,
       userInfo: reportHistory.userInfo,
-      todayDate: todayDate,
-       sample: reportHistory.sampleInfo,        // sample 로도 접근 가능
-  sampleInfo: reportHistory.sampleInfo, 
-  saju 
-
-    }
-  );
+      todayDate: {
+        year: new Date().getFullYear(),
+        month: new Date().getMonth() + 1,
+        day: new Date().getDate()
+      },
+      sample: reportHistory.sampleInfo,
+      sampleInfo: reportHistory.sampleInfo,
+      saju 
+    });
+  } catch (error) {
+    console.error("보고서 출력 오류:", error);
+    res.status(500).send("보고서를 로드하는 중 오류가 발생했습니다.");
+  }
 });
 
 router.post("/skip-payment", async (req, res) => {
