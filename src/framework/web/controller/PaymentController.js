@@ -272,7 +272,7 @@ async callbackToss(req, res) {
   try {
     // 1. 토스가 리다이렉트 시 보내주는 파라미터 + 프론트에서 붙인 tel, pw
     const { paymentKey, orderId, amount, tel, pw, goodsType } = req.query;
-
+console.log("[DEBUG 콜백 수신]", { orderId, goodsType }); // 여기서 goodsType이 찍히는지 확인하세요.
     // 2. 서비스의 승인 로직 호출
     await PaymentService.approveTossPayment({
       paymentKey,
