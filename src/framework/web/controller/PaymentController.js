@@ -97,16 +97,14 @@ const PaymentController = {
       const TEST_AMOUNT = 1;
 
       const { payMethod, reportHistoryId, userTelNo } = req.body;
-      console.log(`[LOG 1][register] 수신 데이터 - goodsType: ${goodsType}, reportHistoryId: ${reportHistoryId}`);
       if (!payMethod) return res.status(400).json({ code: 400, message: "payMethod is required" });
       if (!reportHistoryId) return res.status(400).json({ code: 400, message: "reportHistoryId is required" });
 
       const reportHistory = await ReportHistoryService.getReportHistoryById(reportHistoryId);
       if (!reportHistory) return res.status(404).json({ code: 404, message: "ReportHistory not found" });
       const goodsType = req.body.goodsType || reportHistory.goodsType;
-      console.log("[DEBUG 1] 프론트 수신 goodsType:", goodsType);
+      console.log(`[LOG 1][register] 수신 데이터 - goodsType: ${goodsType}, reportHistoryId: ${reportHistoryId}`);
 
-            console.log("[DEBUG 2] DB 기존 goodsType:", reportHistory.goodsType);
 
       /* -----------------------------------------------------
          * 🔥 [추가] 치트키 체크: 이름이 "테스트"이면 결제 패스
