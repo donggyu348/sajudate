@@ -10,8 +10,9 @@ import { PaymentStatus } from "../../enums/Payment.js";
 import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
-import Coupons from "../../orm/models/coupons.js"; // 중괄호 {} 를 제거하세요.
 import { GoodsType } from "../../enums/Goods.js";
+import db from "../../orm/sequelize.js";
+const CouponsModel = db.coupons || db.default?.models?.coupons;
 const router = express.Router();
 //미리보기 렌더링
 // [추가 시작: 이 블록을 파일 상단에 추가하세요]
@@ -77,7 +78,7 @@ router.post("/classic/result", async (req, res) => {
   const userInfo = req.body;
   const ticketCode = req.query.ticket; // 프론트에서 쿼리로 넘겨준다고 가정
 if (ticketCode) {
-    const ticket = await Coupons.findOne({ where: { code: ticketCode, isUsed: false } });
+    const ticket = await CouponsModel.findOne({ where: { code: ticketCode, isUsed: false } });
     if (ticket) {
       console.log("🚀 티켓 인증 성공: 결제 건너뛰고 보고서 생성");
       
