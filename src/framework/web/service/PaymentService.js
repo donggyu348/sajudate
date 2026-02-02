@@ -289,6 +289,7 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
     const shopOrderNo = payment.shopOrderNo;
 const finalType = passedGoodsType || reportHistory?.goodsType || payment.goodsType;
     // 1. 상품 정보 확인 (ROMANTIC_BUNDLE 등 모든 타입이 GoodsType에 정의되어 있어야 함)
+    console.log(" [LOG 5] 최종 타입 확인:", finalType); // 🔍 여기서 undefined가 찍히는지 꼭 보세요!
 const goodsType = GoodsType[finalType];
     if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${finalType}`);
 
