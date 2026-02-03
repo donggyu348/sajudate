@@ -59,14 +59,19 @@
                             %>
                             
           <div onclick="selectOption('bundle')" id="card-bundle" class="goods-card relative border-2 border-pink-400 bg-pink-50/30">
-
+<div class="best-badge">BEST</div>
 
     
     <div class="flex items-center gap-3">
         <div class="radio-dot border-pink-400"></div>
         <div>
-            <p class="text-[11px] font-bold text-blue-600">특별 번들 패키지</p>
-            <p class="font-bold text-gray-800"><%= goodsInfo.title %> + <%= targetTitle %></p>
+ <p class="text-[11px] font-bold text-pink-600">
+👑 프리미엄 추천 구성      </p>
+      <p class="font-bold text-gray-800">
+        <%= goodsInfo.title %> + <%= targetTitle %>
+      </p>
+      <p class="text-[12px] text-gray-600 mt-0.5">
+        지금 가장 많이 선택되는 구성
             <p class="text-[11px] text-pink-500 mt-0.5"><%= bundleBenefit %> 증정</p>
         </div>
     </div>
@@ -74,23 +79,42 @@
 
     </div>
 
-                            <div id="bundle-notice" class="hidden animate-fade-in mt-3">
-                                <div class="rounded-xl border border-pink-100 bg-pink-50/50 p-4">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="text-pink-500">🎫</span>
-                                        <p class="font-bold text-pink-600 text-sm">특별 번들 혜택 안내</p>
-                                    </div>
-                                    <ul class="space-y-1 text-[12px] text-gray-600">
-                                        <li>• 결제 완료 후 즉시 <b>문자(SMS)</b>로 티켓 코드가 발송됩니다.</li>
-                                        <li>• 발급된 티켓은 <b>지인에게 선물</b>이 가능합니다.</li>
-                                    </ul>
-                                </div>
-                            </div>
+   <div id="bundle-notice" class="hidden animate-fade-in mt-4">
+  <div class="rounded-2xl border border-pink-200 bg-gradient-to-br from-pink-50 to-white p-5 shadow-sm">
+    
+    <p class="font-bold text-pink-600 mb-3 flex items-center gap-2">
+      🎁 번들 전용 혜택 사용 안내
+    </p>
+
+    <ul class="space-y-2 text-[13px] text-gray-700 leading-relaxed">
+      <li class="flex gap-2">
+        <span>📩</span>
+        <span><b>티켓은 결제 즉시 문자(SMS)로 발송</b>됩니다.</span>
+      </li>
+      <li class="flex gap-2">
+        <span>🎟</span>
+        <span><b>오른쪽 메뉴 → ‘티켓’</b> 메뉴에서 바로 사용 가능합니다.</span>
+      </li>
+      <li class="flex gap-2">
+        <span>🎁</span>
+        <span><b>지인에게 선물</b>도 가능하며, <b>본인이 사용</b>해도 됩니다.</span>
+      </li>
+    </ul>
+
+    <p class="text-[11px] text-pink-400 mt-3">
+      ※ 티켓은 1회 사용 가능 / 유효기간 없음
+    </p>
+  </div>
+</div>
+
                             <% } %>
                         </div>
                     </div>
 
                     <div class="pt-6 mt-6 border-t border-gray-200 space-y-4 rounded-xl bg-gray-50 px-4 pb-4">
+                <p id="bundle-highlight" style="display:none; font-size:12px; color:#ec4899; font-weight:600;">
+  🔥 지금 가장 많이 선택되는 구성입니다
+</p>
                         <div class="flex justify-between text-sm text-gray-600">
                             <p id="detail-title"><%= goodsInfo.title %></p>
                             <p id="detail-original-price"><%= goodsInfo.originalPrice.toLocaleString() %>원</p>
@@ -140,12 +164,52 @@
 .best-badge-anim {
     animation: soft-bounce 2s infinite ease-in-out;
 }
-
+#card-bundle.is-selected {
+  border: 2px solid #ec4899 !important;
+  background: #fff1f2 !important;
+}
 /* 번들 선택 시 보더 색상 차별화 */
 #card-bundle.is-selected {
     border-color: #ec4899 !important; /* 핑크색 강조 */
     background-color: #fff1f2 !important;
 }
+.best-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #ec4899;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  z-index: 20;
+  animation: soft-bounce 2s infinite ease-in-out;
+}
+#card-bundle {
+  padding: 22px 20px !important;   /* 위아래만 더 */
+  margin: 6px 0;                   /* 공간 확보 */
+  border-width: 2px !important;
+  box-shadow: 0 10px 24px rgba(236,72,153,0.18);
+}
+
+.goods-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+#card-bundle {
+  transform: none !important;
+}
+#card-single {
+  padding: 14px 16px;
+  opacity: 0.85;
+}
+#card-bundle .radio-dot {
+  transform: scale(1.2);
+}
+
+
     </style>
 
     <script>
@@ -162,7 +226,8 @@
             const bundleCard = document.getElementById('card-bundle');
             const notice = document.getElementById('bundle-notice');
             const finalPriceDisplay = document.getElementById('final-price-display');
-            
+ const bundleHighlight = document.getElementById('bundle-highlight');
+           
             // 상세 내역 요소들
             const dTitle = document.getElementById('detail-title');
             const dOriginal = document.getElementById('detail-original-price');
@@ -171,8 +236,12 @@
             const dDiscountRate = document.getElementById('detail-discount-rate');
 
             singleCard.classList.remove('is-selected');
-            if (bundleCard) bundleCard.classList.remove('is-selected');
-            if (notice) notice.classList.add('hidden');
+if (bundleCard) bundleCard.classList.remove('is-selected');
+if (notice) notice.classList.add('hidden');
+
+if (type === 'bundle' && notice) {
+    notice.classList.remove('hidden');
+}
 
 if (type === 'single') {
     singleCard.classList.add('is-selected'); // 테두리 생기게 함
@@ -181,6 +250,11 @@ if (type === 'single') {
     bundleCard.classList.add('is-selected'); // 테두리 생기게 함
     // 현재 페이지 상품이 CLASSIC이면 CLASSIC_BUNDLE, ROMANTIC이면 ROMANTIC_BUNDLE이 됨
     finalGoodsCode = "<%= goodsInfo.code %>" + "_BUNDLE"; 
+}
+if (type === 'bundle') {
+  if (bundleHighlight) bundleHighlight.style.display = "block";
+} else {
+  if (bundleHighlight) bundleHighlight.style.display = "none";
 }
 
             const data = GOODS_MAP[finalGoodsCode];
@@ -239,6 +313,13 @@ console.log(" [FRONT] 전송 데이터 확인:", {
                 alert("결제 준비 중 오류가 발생했습니다.");
             }
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+  const bundleCard = document.getElementById("card-bundle");
+  if (bundleCard) {
+    selectOption("bundle");
+  }
+});
     </script>
 </body>
 </html>
