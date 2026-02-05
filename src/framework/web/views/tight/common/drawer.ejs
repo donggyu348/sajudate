@@ -1,65 +1,184 @@
-<div class="drawer-end"><input class="drawer-toggle" id="my-drawer" type="checkbox" />
-    <div class="drawer-side z-40"><label class="drawer-overlay" for="my-drawer"></label>
-        <div class="drawer-content min-h-full bg-base-200">
-            <div class="navbar bg-base-100 border-b-2 border-gray-700">
-                <div class="flex-1"><a class="btn btn-ghost normal-case text-xl"
-                                       href="http://sajudate.store/">
-                        <div class="flex items-center">
-                            <div class="w-9 h-9">
-                                <svg id="fortune" viewbox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M22.707 22.293a.999.999 0 1 1-1.414 1.414l-1-1a.999.999 0 1 1 1.414-1.414l1 1zm.668-8.074L22 15.32V8a1 1 0 0 0-2 0v6.586l-.293-.293a.999.999 0 1 0-1.414 1.414l1.432 1.432-1.35 1.08A1 1 0 0 0 19 20h4a1 1 0 0 0 0-2h-1.149l2.774-2.219a1 1 0 0 0-1.25-1.562zM16 22h-6a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2zm1-5v3a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1zm-2 1h-4v1h4v-1zm2-10v6a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1zm-5 4h-1v1h1v-1zm0-3h-1v1h1V9zm3 3h-1v1h1v-1zm0-3h-1v1h1V9zm15-6v26a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h26a1 1 0 0 1 1 1zM4 8.826A14.09 14.09 0 0 1 8.826 4H4v4.826zM8.826 28A14.09 14.09 0 0 1 4 23.174V28h4.826zM28 23.174A14.09 14.09 0 0 1 23.174 28H28v-4.826zM28 16c0-6.617-5.383-12-12-12S4 9.383 4 16s5.383 12 12 12 12-5.383 12-12zm0-12h-4.826A14.09 14.09 0 0 1 28 8.826V4z"
-                                          fill="#772108"></path>
-                                </svg>
-                            </div>
-                            <div><p class="ml-2">사주정감</p></div>
-                        </div>
-                    </a></div>
-                <div class="flex-none"><label class="btn btn-square btn-ghost" for="my-drawer">
-                        <svg class="w-5 h-5" id="x" stroke="#000" viewbox="0 0 32 32"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path d="m2 2 28 28M2 30 30 2" stroke-width="4"></path>
-                        </svg>
-                    </label></div>
+<style>
+/* =========================
+   Luxury Drawer (CSS only)
+========================= */
+
+/* overlay */
+.luxury-overlay {
+  background: rgba(0,0,0,0.65);
+}
+
+/* drawer 열렸을 때만 blur */
+.drawer-toggle:checked ~ .drawer-side .luxury-overlay {
+  backdrop-filter: blur(2px);
+  background: radial-gradient(
+    circle at top,
+    rgba(0,0,0,0.55),
+    rgba(0,0,0,0.85)
+  );
+}
+
+/* panel */
+.luxury-panel {
+  background: linear-gradient(180deg, #0b0f1a 0%, #05070d 100%);
+  box-shadow: 8px 0 40px rgba(0,0,0,0.65);
+  border-right: 1px solid rgba(212,175,55,0.18);
+}
+
+/* navbar */
+.luxury-panel .navbar {
+  background: transparent;
+  border-bottom: 1px solid rgba(212,175,55,0.18);
+}
+
+/* logo icon */
+.luxury-panel .logo-circle {
+  border-radius: 9999px;
+  background: radial-gradient(circle at top left, #ffd700, #b48a2c);
+  box-shadow: 0 0 14px rgba(212,175,55,0.55);
+}
+
+/* logo text */
+.luxury-panel .logo-text {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #f5f5f5;
+}
+
+/* close button */
+.luxury-panel .close-icon {
+  stroke: rgba(255,255,255,0.7);
+  transition: transform .25s ease, stroke .25s ease;
+}
+.luxury-panel label:hover .close-icon {
+  transform: rotate(90deg);
+  stroke: #ffd700;
+}
+
+/* menu */
+.luxury-menu li {
+  border: none;
+}
+
+.luxury-menu a {
+  position: relative;
+  border-radius: 14px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: all .25s ease;
+}
+
+/* gold accent line */
+.luxury-menu a::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 2px;
+  height: 0%;
+  background: linear-gradient(180deg, #ffd700, #ff8c00);
+  transform: translateY(-50%);
+  transition: height .25s ease;
+  border-radius: 2px;
+}
+
+/* hover */
+.luxury-menu a:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(212,175,55,0.14),
+    rgba(212,175,55,0.02)
+  );
+  color: #ffffff;
+  transform: translateX(4px);
+}
+.luxury-menu a:hover::before {
+  height: 60%;
+}
+
+/* arrow */
+.luxury-menu .arrow {
+  fill: rgba(255,255,255,0.5);
+  transition: transform .25s ease, fill .25s ease;
+}
+.luxury-menu a:hover .arrow {
+  transform: translateX(4px);
+  fill: #ffd700;
+}
+
+/* highlight items */
+.luxury-highlight {
+  color: #ffd700 !important;
+  font-weight: 700;
+}
+</style>
+
+<div class="drawer-end">
+  <input id="my-drawer" type="checkbox" class="drawer-toggle" />
+
+  <div class="drawer-side z-40">
+    <label for="my-drawer" class="drawer-overlay luxury-overlay"></label>
+
+    <div class="drawer-content min-h-full w-72 md:w-96 luxury-panel text-white">
+
+      <!-- header -->
+      <div class="navbar px-4">
+        <div class="flex-1">
+          <a href="http://sajudate.store/" class="flex items-center gap-3">
+            <div class="w-9 h-9 flex items-center justify-center logo-circle">
+              <svg viewBox="0 0 32 32" class="w-5 h-5 fill-black">
+                <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2z"/>
+              </svg>
             </div>
-            <ul class="menu p-2 w-64 md:w-96 text-lg lg:text-2xl">
-                <li class="border-b border-t"><a class="inline-block w-full py-3 lg:py-5"
-                                                 href="/saju/classic/intro">
-                        <div class="flex items-center w-full"><p class="inline-block">신년사주</p>
-                            <div class="w-8 h-8 ml-auto -mr-3">
-                                <svg id="next" viewbox="0 0 139 139" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M84.629 65.592a5.36 5.36 0 0 0-.912-.727L62.108 43.257a5.4 5.4 0 0 0-7.637 7.638l18.611 18.609-18.705 18.707a5.398 5.398 0 1 0 7.634 7.635l21.706-21.703a5.35 5.35 0 0 0 .912-.727 5.373 5.373 0 0 0 1.574-3.912 5.366 5.366 0 0 0-1.574-3.912z"></path>
-                                </svg>
-                            </div>
-                        </div>
-                    </a>
-                </li>
-                <li class="border-b border-t"><a class="inline-block w-full py-3 lg:py-5"
-                                                 href="/saju/romantic/intro">
-                        <div class="flex items-center w-full"><p class="inline-block">연애사주</p>
-                            <div class="w-8 h-8 ml-auto -mr-3">
-                                <svg id="next" viewbox="0 0 139 139" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M84.629 65.592a5.36 5.36 0 0 0-.912-.727L62.108 43.257a5.4 5.4 0 0 0-7.637 7.638l18.611 18.609-18.705 18.707a5.398 5.398 0 1 0 7.634 7.635l21.706-21.703a5.35 5.35 0 0 0 .912-.727 5.373 5.373 0 0 0 1.574-3.912 5.366 5.366 0 0 0-1.574-3.912z"></path>
-                                </svg>
-                            </div>
-                        </div>
-                    </a>
-                </li>
-                <li class="border-b border-t"><a class="inline-block w-full py-4 lg:py-6"
-                                                 href="/saju/ticket">
-                        <div class="flex items-center w-full"><p class="inline-block text-indigo-800">티켓
-                            </p></div>
-                    </a></li>                
-                <li class="border-b border-t"><a class="inline-block w-full py-4 lg:py-6"
-                                                 href="/saju/review">
-                        <div class="flex items-center w-full"><p class="inline-block text-indigo-800">유료 운세 결과
-                                다시보기</p></div>
-                    </a></li>
-                <li class="border-b border-t"><a class="inline-block w-full py-4 lg:py-6"
-                                                 href="tel:07080951558 ">
-                        <div class="flex items-center w-full"><p class="inline-block text-indigo-800">오류 문의</p>
-                        </div>
-                    </a></li>
-            </ul>
+            <span class="logo-text text-lg">사주정감</span>
+          </a>
         </div>
+
+        <div class="flex-none">
+          <label for="my-drawer" class="btn btn-square btn-ghost">
+            <svg viewBox="0 0 32 32" class="w-5 h-5 close-icon">
+              <path d="M2 2 30 30M2 30 30 2" stroke-width="4" fill="none"/>
+            </svg>
+          </label>
+        </div>
+      </div>
+
+      <!-- menu -->
+      <ul class="menu px-3 py-4 luxury-menu text-base md:text-lg">
+
+        <li>
+          <a href="/saju/classic/intro" class="py-4">
+            <span>신년사주</span>
+            <svg viewBox="0 0 139 139" class="w-6 h-6 ml-auto arrow">
+              <path d="M84.629 65.592L62.108 43.257a5.4 5.4 0 0 0-7.637 7.638l18.611 18.609-18.705 18.707a5.398 5.398 0 1 0 7.634 7.635l21.706-21.703a5.37 5.37 0 0 0 0-7.724z"/>
+            </svg>
+          </a>
+        </li>
+
+        <li>
+          <a href="/saju/romantic/intro" class="py-4">
+            <span>연애사주</span>
+            <svg viewBox="0 0 139 139" class="w-6 h-6 ml-auto arrow">
+              <path d="M84.629 65.592L62.108 43.257a5.4 5.4 0 0 0-7.637 7.638l18.611 18.609-18.705 18.707a5.398 5.398 0 1 0 7.634 7.635l21.706-21.703a5.37 5.37 0 0 0 0-7.724z"/>
+            </svg>
+          </a>
+        </li>
+
+        <li>
+          <a href="/saju/ticket" class="py-4 luxury-highlight">
+            티켓
+          </a>
+        </li>
+
+        <li>
+          <a href="/saju/review" class="py-4 luxury-highlight">
+            유료 운세 결과 다시보기
+          </a>
+        </li>
+
+
+      </ul>
     </div>
+  </div>
 </div>
