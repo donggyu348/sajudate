@@ -140,8 +140,9 @@ const PaymentController = {
       const isMobile = /mobile/i.test(userAgent);
       const deviceType = isMobile ? DeviceType.MOBILE : DeviceType.PC;
 
-      let finalAmount = GoodsType[reportHistory.goodsType].price;
-      if (TEST_PHONE_NUMBER.includes(userTelNo)) {
+// 프론트에서 넘겨준 goodsType이 있으면 그것을 쓰고, 없으면 DB 값을 씁니다.
+const currentGoodsType = req.body.goodsType || reportHistory.goodsType;
+let finalAmount = GoodsType[currentGoodsType].price;      if (TEST_PHONE_NUMBER.includes(userTelNo)) {
         console.log(`[TEST MODE] ${userTelNo} → 금액 ${TEST_AMOUNT}원`);
         finalAmount = TEST_AMOUNT;
       }
