@@ -89,6 +89,38 @@ const PaymentController = {
       });
     }
   },
+
+  async getMonthlySales(req, res) {
+    try {
+      const platform = req.query.platform;
+      if (!platform) {
+        return res.status(400).json({ code: 400, message: "platform parameter is required." });
+      }
+
+      const year = req.query.year ? parseInt(req.query.year) : null;
+      const month = req.query.month ? parseInt(req.query.month) : null;
+
+      const totalAmount = await PaymentService.getMonthlySales(platform, year, month);
+
+      return res.status(StatusCode.SUCCESS).json({
+        code: 200,
+        message: "한달 매출 조회 성공",
+        data: {
+          totalAmount,
+          year: year || new Date().getFullYear(),
+          month: month || new Date().getMonth() + 1
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        code: 500,
+        message: "한달 매출 조회 실패",
+        error: error.message
+      });
+    }
+  },
+
  async register(req, res) {
     try {
       const TEST_PHONE_NUMBER = [

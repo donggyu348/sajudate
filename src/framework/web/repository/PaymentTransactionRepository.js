@@ -63,6 +63,45 @@ async getDailyApprovedAmount(platform) {
   // 결과가 null이면 0을 반환하고, 숫자로 형변환하여 리턴
   return Number(result?.totalAmount || 0);
 }
+
+  /**
+   * 한달 매출 조회 (현재 월 기준)
+   */
+  async getMonthlySales(platform, year = null, month = null) {
+    const where = {
+      paymentStatus: PaymentStatus.APPROVED, // 승인된 건만
+    };
+
+    if (platform) {
+      where.platform = platform;
+    }
+
+    // year와 month가 제공되지 않으면 현재 월 사용
+    if (!year || !month) {
+      const now = new Date();
+      year = now.getFullYear();
+      month = now.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+    }
+
+    const result = await PaymentTransaction.findOne({
+      attributes: [
+        [fn('SUM', col('amount')), 'totalAmount']
+      ],
+      where: {
+        ...where,
+        // 현재 월의 첫날부터 마지막 날까지
+        [Op.and]: [
+          literal(`YEAR(approval_date) = ${year}`),
+          literal(`MONTH(approval_date) = ${month}`)
+        ]
+      },
+      raw: true
+    });
+
+    // 결과가 null이면 0을 반환하고, 숫자로 형변환하여 리턴
+    return Number(result?.totalAmount || 0);
+  }
+
   /**
    * 결제 등록 시 INSERT
    */
