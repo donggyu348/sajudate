@@ -29,6 +29,10 @@
       return await PaymentTransactionRepository.getDailySalesHistory({ platform, startDate, endDate });
     }
 
+    async getMonthlySales(platform, year = null, month = null) {
+      return Number(await PaymentTransactionRepository.getMonthlySales(platform, year, month));
+    }
+
     /* =========================================================
     * 무통장 결제 (사용은 안하고 유지만)
     * ========================================================= */
