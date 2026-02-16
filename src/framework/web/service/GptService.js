@@ -3374,20 +3374,62 @@ let retryCount = 0;
 while (retryCount <= 2 && !parsed) {
   try {
     const response = await GptClient.callChatGpt([
-      { role: "system", content: fullSystemPrompt + "\n[중요: 반드시 JSON 형식으로만 답변하세요.]" },
+      { role: "system", content: fullSystemPrompt + "\n[중요: 반드시 JSON 형식으로만 답변하세요.]\n[절대 금지: {묘사 전문}, {사주 특징}, {연결 문구}, {키워드} 같은 플레이스홀더를 그대로 출력하지 마세요. 반드시 사전에서 선택한 실제 내용으로 대체해야 합니다.]" },
       { role: "user", content: JSON.stringify(sajuJsonForGPT) },
     ]);
 
     const cleanedResponse = preClean(String(response));
     
+    // 플레이스홀더 검증: {묘사 전문}, {사주 특징}, {연결 문구}, {키워드} 같은 플레이스홀더가 남아있는지 확인
+    const placeholderPattern = /\{(묘사 전문|사주 특징|연결 문구|키워드)\}/g;
+    if (placeholderPattern.test(cleanedResponse)) {
+      console.warn(`[챕터 ${i}] 플레이스홀더가 남아있습니다. 재시도합니다.`);
+      retryCount++;
+      if (retryCount > 2) {
+        console.error(`[챕터 ${i}] 플레이스홀더 제거 실패. 원본 응답:`, cleanedResponse.substring(0, 500));
+        // 플레이스홀더가 남아있어도 파싱은 시도
+      } else {
+        await new Promise(res => setTimeout(res, 1000)); // 1초 후 재시도
+        continue;
+      }
+    }
+    
     // 1차 파싱 시도
     try {
       parsed = safeJsonParseLooser(cleanedResponse, `REPORT-CH-${i}`);
+      
+      // 파싱 성공 후에도 플레이스홀더 검증
+      const parsedString = JSON.stringify(parsed);
+      if (placeholderPattern.test(parsedString)) {
+        console.warn(`[챕터 ${i}] 파싱된 데이터에 플레이스홀더가 남아있습니다. 재시도합니다.`);
+        parsed = null; // 파싱 결과 무효화
+        retryCount++;
+        if (retryCount > 2) {
+          console.error(`[챕터 ${i}] 플레이스홀더 제거 실패. 파싱된 데이터:`, parsedString.substring(0, 500));
+        } else {
+          await new Promise(res => setTimeout(res, 1000));
+          continue;
+        }
+      }
     } catch (e) {
       // 파싱 실패 시 JSON 블록만 강제 추출 후 2차 시도
       const jsonOnly = forceJsonOnly(cleanedResponse);
       if (jsonOnly) {
         parsed = safeJsonParseLooser(jsonOnly, `REPORT-FORCED-CH-${i}`);
+        
+        // 강제 추출 후에도 플레이스홀더 검증
+        const parsedString = JSON.stringify(parsed);
+        if (placeholderPattern.test(parsedString)) {
+          console.warn(`[챕터 ${i}] 강제 추출된 데이터에 플레이스홀더가 남아있습니다. 재시도합니다.`);
+          parsed = null;
+          retryCount++;
+          if (retryCount > 2) {
+            console.error(`[챕터 ${i}] 플레이스홀더 제거 실패.`);
+          } else {
+            await new Promise(res => setTimeout(res, 1000));
+            continue;
+          }
+        }
       }
     }
   } catch (err) {
@@ -3402,18 +3444,48 @@ while (retryCount <= 2 && !parsed) {
 
 
 
-        if (Array.isArray(parsed) && parsed[0]?.sections) {
+        // 파싱 결과 처리 및 검증
+        if (!parsed) {
+          console.error(`[챕터 ${i}] 파싱 실패: parsed가 null입니다.`);
+          // 파싱 실패 시에도 기본 구조라도 추가하여 장은 표시되도록 함
+          const expectedChapter = goodsType === GoodsType.ROMANTIC 
+            ? extractRomanticChapterTitleFromPrompt(promtParts[i]) 
+            : `제${i + 1}장`;
+          result.push({
+            chapter: expectedChapter || `제${i + 1}장`,
+            title: "내용 생성 중 오류 발생",
+            content: "이 챕터의 내용을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+          });
+        } else if (Array.isArray(parsed) && parsed[0]?.sections) {
           parsed.forEach((chapter) => {
-            chapter.sections.forEach((section) => {
-              result.push({
-                chapter: chapter.chapter,
-                title: section.title,
-                content: section.content,
+            if (chapter.sections && Array.isArray(chapter.sections)) {
+              chapter.sections.forEach((section) => {
+                if (section && (section.title || section.content)) {
+                  const cleanedContent = removePlaceholders(section.content || "");
+                  result.push({
+                    chapter: chapter.chapter || `제${i + 1}장`,
+                    title: section.title || "제목 없음",
+                    content: cleanedContent,
+                  });
+                } else {
+                  console.warn(`[챕터 ${i}] 섹션 데이터가 비어있습니다:`, section);
+                }
               });
-            });
+            } else {
+              console.warn(`[챕터 ${i}] sections 배열이 없거나 비어있습니다:`, chapter);
+            }
           });
         } else if (Array.isArray(parsed) && parsed[0]?.title && parsed[0]?.content) {
-          result = result.concat(parsed);
+          parsed.forEach((item) => {
+            if (item && item.content) {
+              const cleanedContent = removePlaceholders(item.content || "");
+              result.push({
+                chapter: item.chapter || `제${i + 1}장`,
+                title: item.title || "제목 없음",
+                content: cleanedContent,
+              });
+            }
+          });
         } else if (parsed?.sections) {
           let chapterValue = parsed.chapter;
           if (goodsType === GoodsType.ROMANTIC) {
@@ -3423,12 +3495,39 @@ while (retryCount <= 2 && !parsed) {
               chapterValue = expectedChapter;
             }
           }
-          parsed.sections.forEach((section) => {
-            result.push({
-              chapter: chapterValue,
-              title: section.title,
-              content: section.content,
+          
+          if (Array.isArray(parsed.sections) && parsed.sections.length > 0) {
+            parsed.sections.forEach((section) => {
+              if (section && (section.title || section.content)) {
+                const cleanedContent = removePlaceholders(section.content || "");
+                result.push({
+                  chapter: chapterValue || `제${i + 1}장`,
+                  title: section.title || "제목 없음",
+                  content: cleanedContent,
+                });
+              } else {
+                console.warn(`[챕터 ${i}] 섹션 데이터가 비어있습니다:`, section);
+              }
             });
+          } else {
+            console.warn(`[챕터 ${i}] sections 배열이 비어있습니다. parsed 구조:`, JSON.stringify(parsed, null, 2));
+            // sections가 비어있어도 장은 추가
+            result.push({
+              chapter: chapterValue || `제${i + 1}장`,
+              title: "내용 생성 중",
+              content: "이 챕터의 내용을 생성하는 중입니다.",
+            });
+          }
+        } else {
+          // 예상하지 못한 구조일 때 로깅 및 기본값 추가
+          console.error(`[챕터 ${i}] 예상하지 못한 파싱 구조입니다. parsed:`, JSON.stringify(parsed, null, 2));
+          const expectedChapter = goodsType === GoodsType.ROMANTIC 
+            ? extractRomanticChapterTitleFromPrompt(promtParts[i]) 
+            : `제${i + 1}장`;
+          result.push({
+            chapter: expectedChapter || `제${i + 1}장`,
+            title: "내용 생성 중 오류 발생",
+            content: "이 챕터의 내용을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
           });
         }
       }
@@ -3696,6 +3795,47 @@ while (retryCount <= 2 && !parsed) {
 function cutToTwoChars(str) {
   if (!str) return "";
   return str.length > 2 ? str.slice(0, 2) : str;
+}
+
+// 플레이스홀더 제거 및 검증 함수
+function removePlaceholders(content) {
+  if (!content || typeof content !== 'string') return content;
+  
+  const placeholderPattern = /\{(묘사 전문|사주 특징|연결 문구|키워드)\}/g;
+  const hasPlaceholders = placeholderPattern.test(content);
+  
+  if (hasPlaceholders) {
+    console.warn(`[플레이스홀더 발견] 제거 전:`, content.substring(0, 300));
+    
+    // 플레이스홀더만 제거하고 나머지 내용은 유지
+    // 1. 플레이스홀더가 포함된 줄에서 플레이스홀더만 제거
+    let cleanedContent = content.replace(placeholderPattern, '');
+    
+    // 2. "> " 로 시작하는 빈 줄이나 불완전한 줄 제거
+    cleanedContent = cleanedContent
+      .split('\n')
+      .map(line => {
+        // "> " 로 시작하지만 내용이 없는 줄 제거
+        if (line.trim() === '>' || line.trim() === '> ') {
+          return '';
+        }
+        return line;
+      })
+      .filter(line => line.trim().length > 0 || line === '\n') // 완전히 빈 줄만 제거
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n') // 3개 이상의 연속된 줄바꿈을 2개로 제한
+      .trim();
+    
+    if (cleanedContent.length === 0) {
+      console.error(`[플레이스홀더 제거 후 내용이 비어있음]`);
+      return "이 섹션의 내용 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    }
+    
+    console.warn(`[플레이스홀더 제거 완료] 제거 후:`, cleanedContent.substring(0, 300));
+    return cleanedContent;
+  }
+  
+  return content;
 }
 
 
