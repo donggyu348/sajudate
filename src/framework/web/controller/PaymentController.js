@@ -90,6 +90,83 @@ const PaymentController = {
     }
   },
 
+  async getSalesHistoryHourly(req, res) {
+    try {
+      const platform = req.query.platform;
+      const date = req.query.date;
+      if (!platform || !date) {
+        return res.status(400).json({ code: 400, message: "platform, date 파라미터가 필요합니다." });
+      }
+      const data = await PaymentService.getHourlySalesHistory({ platform, date });
+      return res.status(StatusCode.SUCCESS).json({
+        code: 200,
+        message: "시간별 매출 조회 성공",
+        data
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        code: 500,
+        message: "시간별 매출 조회 실패",
+        error: error.message
+      });
+    }
+  },
+
+  async getSalesHistoryMonthly(req, res) {
+    try {
+      const platform = req.query.platform;
+      let startDate = req.query.startDate;
+      let endDate = req.query.endDate;
+      if (!platform || !startDate || !endDate) {
+        return res.status(400).json({ code: 400, message: "platform, startDate, endDate 파라미터가 필요합니다." });
+      }
+      startDate = new Date(startDate);
+      endDate = new Date(endDate);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+      const data = await PaymentService.getMonthlySalesHistory({ platform, startDate, endDate });
+      return res.status(StatusCode.SUCCESS).json({
+        code: 200,
+        message: "월별 매출 조회 성공",
+        data
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        code: 500,
+        message: "월별 매출 조회 실패",
+        error: error.message
+      });
+    }
+  },
+
+  async getSalesCountByGoods(req, res) {
+    try {
+      const platform = req.query.platform;
+      if (!platform) {
+        return res.status(400).json({ code: 400, message: "platform 파라미터가 필요합니다." });
+      }
+      let startDate = req.query.startDate ? new Date(req.query.startDate) : null;
+      let endDate = req.query.endDate ? new Date(req.query.endDate) : null;
+      if (startDate) startDate.setHours(0, 0, 0, 0);
+      if (endDate) endDate.setHours(23, 59, 59, 999);
+      const data = await PaymentService.getSalesCountByGoods({ platform, startDate, endDate });
+      return res.status(StatusCode.SUCCESS).json({
+        code: 200,
+        message: "상품별 판매 수 조회 성공",
+        data
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        code: 500,
+        message: "상품별 판매 수 조회 실패",
+        error: error.message
+      });
+    }
+  },
+
   async getMonthlySales(req, res) {
     try {
       const platform = req.query.platform;

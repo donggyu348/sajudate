@@ -13,7 +13,11 @@ router.post("/list", PaymentController.getApproveList);
 
 router.get("/daily-summary", PaymentController.getDailySales);
 
+router.get("/sales-history/hourly", PaymentController.getSalesHistoryHourly);
+router.get("/sales-history/monthly", PaymentController.getSalesHistoryMonthly);
 router.get("/sales-history", PaymentController.getSalesHistory);
+
+router.get("/sales-count-by-goods", PaymentController.getSalesCountByGoods);
 
 router.get("/monthly-summary", PaymentController.getMonthlySales);
 

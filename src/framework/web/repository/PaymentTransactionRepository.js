@@ -23,14 +23,92 @@ class PaymentTransactionRepository {
 
       return await PaymentTransaction.findAll({
           attributes: [
-              [fn('DATE', col('approval_date')), 'saleDate'], 
+              [fn('DATE', col('approval_date')), 'saleDate'],
               [fn('SUM', col('amount')), 'totalAmount']
           ],
           where,
-          group: ['saleDate'],
-          order: [['saleDate', 'DESC']],
+          group: [fn('DATE', col('approval_date'))],
+          order: [[fn('DATE', col('approval_date')), 'DESC']],
           raw: true
       });
+  }
+
+  /**
+   * 시간별 매출 (특정 일자 0~23시)
+   */
+  async getHourlySalesHistory({ platform, date }) {
+    const sequelize = PaymentTransaction.sequelize;
+    const dateStr = typeof date === 'string' ? date : date.toISOString().slice(0, 10);
+    const rows = await sequelize.query(
+      `SELECT HOUR(approval_date) AS hour, COALESCE(SUM(amount), 0) AS totalAmount
+       FROM PAYMENT_TRANSACTION
+       WHERE payment_status = 'APPROVED'
+         AND DATE(approval_date) = :dateStr
+         ${platform ? 'AND platform = :platform' : ''}
+       GROUP BY HOUR(approval_date)
+       ORDER BY hour`,
+      {
+        replacements: { dateStr, ...(platform && { platform }) },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+    const byHour = Array.from({ length: 24 }, (_, i) => ({ hour: i, totalAmount: 0 }));
+    (rows || []).forEach((r) => {
+      byHour[Number(r.hour)] = { hour: Number(r.hour), totalAmount: Number(r.totalAmount) };
+    });
+    return byHour;
+  }
+
+  /**
+   * 월별 매출 (기간 내 년-월별 집계)
+   */
+  async getMonthlySalesHistory({ platform, startDate, endDate }) {
+    const sequelize = PaymentTransaction.sequelize;
+    const rows = await sequelize.query(
+      `SELECT DATE_FORMAT(approval_date, '%Y-%m') AS yearMonth, COALESCE(SUM(amount), 0) AS totalAmount
+       FROM PAYMENT_TRANSACTION
+       WHERE payment_status = 'APPROVED'
+         AND approval_date BETWEEN :startDate AND :endDate
+         ${platform ? 'AND platform = :platform' : ''}
+       GROUP BY DATE_FORMAT(approval_date, '%Y-%m')
+       ORDER BY yearMonth`,
+      {
+        replacements: { startDate, endDate, ...(platform && { platform }) },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  /**
+   * 상품별 판매 건수 (기간 선택, ReportHistory.goods_type 기준)
+   */
+  async getSalesCountByGoods({ platform, startDate, endDate }) {
+    const sequelize = PaymentTransaction.sequelize;
+    const hasRange = startDate && endDate;
+    const replacements = { platform: platform || null };
+    if (hasRange) {
+      replacements.startDate = startDate;
+      replacements.endDate = endDate;
+    }
+    const whereClause = hasRange
+      ? 'AND pt.approval_date BETWEEN :startDate AND :endDate'
+      : '';
+    const rows = await sequelize.query(
+      `SELECT COALESCE(rh.goods_type, '미분류') AS goodsCode, COUNT(*) AS count
+       FROM PAYMENT_TRANSACTION pt
+       LEFT JOIN REPORT_HISTORY rh ON pt.shop_order_no = rh.shop_order_no
+       WHERE pt.payment_status = 'APPROVED'
+         AND (:platform IS NULL OR pt.platform = :platform)
+         ${whereClause}
+       GROUP BY COALESCE(rh.goods_type, '미분류')
+       ORDER BY count DESC`,
+      {
+        replacements,
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+    return Array.isArray(rows) ? rows : [];
   }
 
 // src/framework/web/repository/PaymentTransactionRepository.js
