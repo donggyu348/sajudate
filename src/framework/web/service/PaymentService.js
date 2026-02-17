@@ -29,6 +29,18 @@
       return await PaymentTransactionRepository.getDailySalesHistory({ platform, startDate, endDate });
     }
 
+    async getHourlySalesHistory({ platform, date }) {
+      return await PaymentTransactionRepository.getHourlySalesHistory({ platform, date });
+    }
+
+    async getMonthlySalesHistory({ platform, startDate, endDate }) {
+      return await PaymentTransactionRepository.getMonthlySalesHistory({ platform, startDate, endDate });
+    }
+
+    async getSalesCountByGoods({ platform, startDate, endDate }) {
+      return await PaymentTransactionRepository.getSalesCountByGoods({ platform, startDate, endDate });
+    }
+
     async getMonthlySales(platform, year = null, month = null) {
       return Number(await PaymentTransactionRepository.getMonthlySales(platform, year, month));
     }

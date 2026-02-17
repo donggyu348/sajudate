@@ -48,6 +48,88 @@
                     </table>
                 </div>
             </div>
+
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">판매량 추세</h3>
+                <p class="text-sm text-gray-500 mb-3">시간별·일별·월별 매출액 추이를 그래프로 확인할 수 있습니다.</p>
+                <div class="flex flex-wrap items-center gap-2 mb-3">
+                    <button type="button" data-trend="hourly"
+                        class="trend-tab-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        시간별
+                    </button>
+                    <button type="button" data-trend="daily"
+                        class="trend-tab-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        일별
+                    </button>
+                    <button type="button" data-trend="monthly"
+                        class="trend-tab-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        월별
+                    </button>
+                </div>
+                <div id="trend-options-hourly" class="trend-options mb-3 hidden flex-wrap items-center gap-2">
+                    <label class="text-sm text-gray-600">날짜</label>
+                    <input type="date" id="trend-hourly-date" class="border border-gray-300 rounded px-3 py-1.5 text-sm" />
+                    <button type="button" id="trend-hourly-apply" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">조회</button>
+                </div>
+                <div id="trend-options-daily" class="trend-options mb-3 hidden flex-wrap items-center gap-2">
+                    <span class="text-sm text-gray-500">최근 30일 기준</span>
+                </div>
+                <div id="trend-options-monthly" class="trend-options mb-3 hidden flex-wrap items-center gap-2">
+                    <span class="text-sm text-gray-500">최근 12개월 기준</span>
+                </div>
+                <div class="h-80">
+                    <canvas id="sales-trend-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-3">상품별 판매 수</h3>
+                <p class="text-sm text-gray-500 mb-3">기간을 선택하면 해당 구간 판매 건수가 집계됩니다.</p>
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <span class="text-sm font-medium text-gray-600">기간:</span>
+                    <button type="button" data-range="all"
+                        class="sales-range-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        전체
+                    </button>
+                    <button type="button" data-range="0"
+                        class="sales-range-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        오늘
+                    </button>
+                    <button type="button" data-range="15"
+                        class="sales-range-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        15일
+                    </button>
+                    <button type="button" data-range="30"
+                        class="sales-range-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        1달
+                    </button>
+                    <button type="button" data-range="60"
+                        class="sales-range-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        2달
+                    </button>
+                    <button type="button" data-range="90"
+                        class="sales-range-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                        3달
+                    </button>
+                    <span id="sales-count-range-label" class="ml-2 text-sm text-gray-500"></span>
+                </div>
+                <div class="overflow-x-auto border rounded-xl shadow-sm">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상품명</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">판매 수</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-count-by-goods-list" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="2" class="text-center text-sm text-gray-500 py-4">기간을 선택하거나 조회 중...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -103,6 +185,10 @@
 </div>
 
 <script>
+  // 상품코드 → 상품명 (서버에서 전달)
+  const GOODS_TITLES = <%- typeof goodsTitles !== 'undefined' ? JSON.stringify(goodsTitles) : '{}' %>;
+  const getGoodsTitle = (code) => (code && GOODS_TITLES[code]) || code || '-';
+
   // 유틸리티: 통화 형식 포매터 함수
   const formatKrw = (n) => {
     try { 
@@ -178,13 +264,216 @@
     });
   };
 
+  // 기능: 상품별 판매 수 조회 및 렌더링 (기간 선택 가능)
+  const fetchSalesCountByGoods = (platform, startDate, endDate, rangeLabel) => {
+    let url = `/api/payments/sales-count-by-goods?platform=${platform}`;
+    if (startDate && endDate) {
+      url += `&startDate=${startDate.toISOString().slice(0, 10)}&endDate=${endDate.toISOString().slice(0, 10)}`;
+    }
+    $('#sales-count-range-label').text(rangeLabel || '');
+    const $list = $('#sales-count-by-goods-list');
+    $list.html('<tr><td colspan="2" class="text-center text-sm text-gray-500 py-4">조회 중...</td></tr>');
+    $.ajax({
+      url,
+      type: 'GET',
+      dataType: 'json',
+      success: function(res) {
+        $list.empty();
+        if (res.data && res.data.length > 0) {
+          let total = 0;
+          res.data.forEach(item => {
+            const title = item.goodsCode ? getGoodsTitle(item.goodsCode) : '미분류';
+            const count = Number(item.count) || 0;
+            total += count;
+            $list.append(`
+              <tr>
+                <td class="px-6 py-3 text-sm text-gray-900">${title}</td>
+                <td class="px-6 py-3 text-right text-sm font-medium text-gray-900">${count.toLocaleString()}건</td>
+              </tr>
+            `);
+          });
+          $list.append(`
+            <tr class="bg-gray-50 font-semibold">
+              <td class="px-6 py-3 text-sm text-gray-900">합계</td>
+              <td class="px-6 py-3 text-right text-sm text-gray-900">${total.toLocaleString()}건</td>
+            </tr>
+          `);
+        } else {
+          $list.append('<tr><td colspan="2" class="text-center text-sm text-gray-500 py-4">해당 기간 판매 내역이 없습니다.</td></tr>');
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('Error fetching sales count by goods:', error);
+        $('#sales-count-by-goods-list').html('<tr><td colspan="2" class="text-center text-sm text-red-500 py-4">조회 오류</td></tr>');
+      }
+    });
+  };
+
+  const getSalesCountRangeParams = (days) => {
+    if (days === 'all') return { start: null, end: null, label: '전체 기간' };
+    const end = new Date();
+    const start = new Date();
+    const n = Number(days);
+    if (n === 0) {
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+      const label = `오늘 (${start.toLocaleDateString('ko-KR')})`;
+      return { start, end, label };
+    }
+    start.setDate(start.getDate() - n);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    const label = `${start.toLocaleDateString('ko-KR')} ~ ${end.toLocaleDateString('ko-KR')}`;
+    return { start, end, label };
+  };
+
+  // ---------- 판매량 추세 차트 ----------
+  let salesTrendChart = null;
+  const PLATFORM_TREND = 'TIGHT';
+
+  function destroyTrendChart() {
+    if (salesTrendChart) {
+      salesTrendChart.destroy();
+      salesTrendChart = null;
+    }
+  }
+
+  function renderTrendChart(labels, values, title) {
+    destroyTrendChart();
+    const ctx = document.getElementById('sales-trend-chart');
+    if (!ctx || typeof Chart === 'undefined') return;
+    salesTrendChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: '매출액 (원)',
+          data: values,
+          backgroundColor: 'rgba(99, 102, 241, 0.5)',
+          borderColor: 'rgb(99, 102, 241)',
+          borderWidth: 1,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: { display: !!title, text: title || '' },
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(v) {
+                if (v >= 10000) return (v / 10000) + '만';
+                return v;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function loadHourlyTrend(dateStr) {
+    const url = `/api/payments/sales-history/hourly?platform=${PLATFORM_TREND}&date=${dateStr}`;
+    $.getJSON(url, function(res) {
+      const data = res.data || [];
+      const labels = data.map(d => d.hour + '시');
+      const values = data.map(d => Number(d.totalAmount) || 0);
+      renderTrendChart(labels, values, dateStr + ' 시간별 매출');
+    }).fail(function() {
+      destroyTrendChart();
+    });
+  }
+
+  function loadDailyTrend() {
+    $.ajax({
+      url: `/api/payments/sales-history?platform=${PLATFORM_TREND}`,
+      type: 'GET',
+      dataType: 'json',
+      success: function(res) {
+        const data = (res.data || []).slice().reverse();
+        const labels = data.map(d => d.saleDate);
+        const values = data.map(d => Number(d.totalAmount) || 0);
+        renderTrendChart(labels, values, '일별 매출 (최근 30일)');
+      },
+      error: function() {
+        destroyTrendChart();
+      }
+    });
+  }
+
+  function loadMonthlyTrend() {
+    const end = new Date();
+    const start = new Date();
+    start.setMonth(start.getMonth() - 11);
+    const startStr = start.toISOString().slice(0, 10);
+    const endStr = end.toISOString().slice(0, 10);
+    $.getJSON(`/api/payments/sales-history/monthly?platform=${PLATFORM_TREND}&startDate=${startStr}&endDate=${endStr}`, function(res) {
+      const data = res.data || [];
+      const labels = data.map(d => d.yearMonth);
+      const values = data.map(d => Number(d.totalAmount) || 0);
+      renderTrendChart(labels, values, '월별 매출 (최근 12개월)');
+    }).fail(function() {
+      destroyTrendChart();
+    });
+  }
+
+  function showTrendTab(tab) {
+    $('.trend-tab-btn').removeClass('bg-indigo-100 border-indigo-400').addClass('bg-white border-gray-300');
+    $('.trend-tab-btn[data-trend="' + tab + '"]').addClass('bg-indigo-100 border-indigo-400').removeClass('bg-white border-gray-300');
+    $('.trend-options').addClass('hidden');
+    $('#trend-options-' + tab).removeClass('hidden');
+    if (tab === 'hourly') {
+      const today = new Date().toISOString().slice(0, 10);
+      $('#trend-hourly-date').val(today);
+      loadHourlyTrend(today);
+    } else if (tab === 'daily') {
+      loadDailyTrend();
+    } else if (tab === 'monthly') {
+      loadMonthlyTrend();
+    }
+  }
 
   $(document).ready(function() {
     const PLATFORM = 'TIGHT'; // 사주정감 플랫폼 코드
-    setList(1); 
-    fetchDailySales(PLATFORM); 
-    fetchMonthlySales(PLATFORM); // 한달 매출 로드
-    fetchSalesHistory(PLATFORM); // 날짜별 매출 기록 로드
+    setList(1);
+    fetchDailySales(PLATFORM);
+    fetchMonthlySales(PLATFORM);
+    fetchSalesHistory(PLATFORM);
+    fetchSalesCountByGoods(PLATFORM, null, null, '전체 기간');
+
+    // Chart.js 로드 후 추세 차트 초기화 (일별 기본)
+    (function loadChartAndInit() {
+      if (typeof Chart !== 'undefined') {
+        showTrendTab('daily');
+        return;
+      }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      s.onload = function() { showTrendTab('daily'); };
+      document.head.appendChild(s);
+    })();
+
+    $('.sales-range-btn').on('click', function() {
+      const range = $(this).data('range');
+      const { start, end, label } = getSalesCountRangeParams(range);
+      $('.sales-range-btn').removeClass('bg-indigo-100 border-indigo-400').addClass('bg-white border-gray-300');
+      $(this).addClass('bg-indigo-100 border-indigo-400').removeClass('bg-white border-gray-300');
+      fetchSalesCountByGoods(PLATFORM, start, end, label);
+    });
+    $('.sales-range-btn[data-range="all"]').addClass('bg-indigo-100 border-indigo-400').removeClass('bg-white border-gray-300');
+
+    $('.trend-tab-btn').on('click', function() {
+      const tab = $(this).data('trend');
+      showTrendTab(tab);
+    });
+    $('#trend-hourly-apply').on('click', function() {
+      const dateStr = $('#trend-hourly-date').val();
+      if (dateStr) loadHourlyTrend(dateStr);
+    });
   });
   
   // setList 함수: ID 'payment-list-body'에만 데이터 삽입하도록 수정
