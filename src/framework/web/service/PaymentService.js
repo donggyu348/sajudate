@@ -22,7 +22,8 @@
     * 공통
     * ========================================================= */
     async getDailySalesSummary(platform) {
-      return Number(await PaymentTransactionRepository.getDailyApprovedAmount(platform));
+      const todayKst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+      return Number(await PaymentTransactionRepository.getDailyApprovedAmount(platform, todayKst));
     }
 
     async getDailySalesHistory({ platform, startDate, endDate }) {
@@ -37,8 +38,8 @@
       return await PaymentTransactionRepository.getMonthlySalesHistory({ platform, startDate, endDate });
     }
 
-    async getSalesCountByGoods({ platform, startDate, endDate }) {
-      return await PaymentTransactionRepository.getSalesCountByGoods({ platform, startDate, endDate });
+    async getSalesCountByGoods({ platform, startDateStr, endDateStr }) {
+      return await PaymentTransactionRepository.getSalesCountByGoods({ platform, startDateStr, endDateStr });
     }
 
     async getMonthlySales(platform, year = null, month = null) {

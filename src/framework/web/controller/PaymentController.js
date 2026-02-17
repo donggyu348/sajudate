@@ -147,11 +147,10 @@ const PaymentController = {
       if (!platform) {
         return res.status(400).json({ code: 400, message: "platform 파라미터가 필요합니다." });
       }
-      let startDate = req.query.startDate ? new Date(req.query.startDate) : null;
-      let endDate = req.query.endDate ? new Date(req.query.endDate) : null;
-      if (startDate) startDate.setHours(0, 0, 0, 0);
-      if (endDate) endDate.setHours(23, 59, 59, 999);
-      const data = await PaymentService.getSalesCountByGoods({ platform, startDate, endDate });
+      // 날짜는 YYYY-MM-DD 문자열로 전달받아 그대로 사용 (KST 기준 일자 비교로 오늘 매출과 일치)
+      const startDateStr = req.query.startDate || null;
+      const endDateStr = req.query.endDate || null;
+      const data = await PaymentService.getSalesCountByGoods({ platform, startDateStr, endDateStr });
       return res.status(StatusCode.SUCCESS).json({
         code: 200,
         message: "상품별 판매 수 조회 성공",

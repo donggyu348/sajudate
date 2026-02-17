@@ -82,17 +82,18 @@ class PaymentTransactionRepository {
 
   /**
    * 상품별 판매 건수 (기간 선택, ReportHistory.goods_type 기준)
+   * startDateStr, endDateStr는 YYYY-MM-DD 문자열 → DATE(approval_date)로 비교해 오늘 매출과 기준 일치
    */
-  async getSalesCountByGoods({ platform, startDate, endDate }) {
+  async getSalesCountByGoods({ platform, startDateStr, endDateStr }) {
     const sequelize = PaymentTransaction.sequelize;
-    const hasRange = startDate && endDate;
+    const hasRange = startDateStr && endDateStr;
     const replacements = { platform: platform || null };
     if (hasRange) {
-      replacements.startDate = startDate;
-      replacements.endDate = endDate;
+      replacements.startDateStr = startDateStr;
+      replacements.endDateStr = endDateStr;
     }
     const whereClause = hasRange
-      ? 'AND pt.approval_date BETWEEN :startDate AND :endDate'
+      ? 'AND DATE(pt.approval_date) BETWEEN :startDateStr AND :endDateStr'
       : '';
     const rows = await sequelize.query(
       `SELECT COALESCE(rh.goods_type, '미분류') AS goodsCode, COUNT(*) AS count
@@ -113,32 +114,37 @@ class PaymentTransactionRepository {
 
 // src/framework/web/repository/PaymentTransactionRepository.js
 
-async getDailyApprovedAmount(platform) {
-  // [수정] 자바스크립트 Date 객체를 생성해서 비교하는 대신, 
-  // DB의 DATE(approval_date) 함수와 현재 날짜(CURDATE)를 직접 비교합니다.
-  const where = {
-    paymentStatus: PaymentStatus.APPROVED, // 승인된 건만
-  };
-
-  if (platform) {
-    where.platform = platform;
+async getDailyApprovedAmount(platform, dateStr = null) {
+  if (dateStr) {
+    const sequelize = PaymentTransaction.sequelize;
+    const rows = await sequelize.query(
+      `SELECT COALESCE(SUM(amount), 0) AS totalAmount
+       FROM PAYMENT_TRANSACTION
+       WHERE payment_status = 'APPROVED'
+         AND DATE(approval_date) = :dateStr
+         ${platform ? 'AND platform = :platform' : ''}`,
+      {
+        replacements: { dateStr, ...(platform && { platform }) },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+    const result = Array.isArray(rows) ? rows[0] : rows;
+    return Number(result?.totalAmount || 0);
   }
 
+  const where = {
+    paymentStatus: PaymentStatus.APPROVED,
+  };
+  if (platform) where.platform = platform;
+
   const result = await PaymentTransaction.findOne({
-    attributes: [
-      [fn('SUM', col('amount')), 'totalAmount']
-    ],
+    attributes: [[fn('SUM', col('amount')), 'totalAmount']],
     where: {
       ...where,
-      // [핵심 포인트] 서버 시간대와 상관없이 DB의 오늘 날짜와 레코드의 날짜를 직접 비교
-      [Op.and]: [
-        literal("DATE(approval_date) = CURDATE()")
-      ]
+      [Op.and]: [literal("DATE(approval_date) = CURDATE()")]
     },
     raw: true
   });
-
-  // 결과가 null이면 0을 반환하고, 숫자로 형변환하여 리턴
   return Number(result?.totalAmount || 0);
 }
 

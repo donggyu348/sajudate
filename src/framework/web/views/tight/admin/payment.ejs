@@ -264,11 +264,20 @@
     });
   };
 
+  // 한국 시간(KST) 기준 YYYY-MM-DD (오늘 기준 통일용)
+  const toKstDateStr = (d) => {
+    if (!d) return '';
+    const s = d.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+    return s; // 'YYYY-MM-DD'
+  };
+
   // 기능: 상품별 판매 수 조회 및 렌더링 (기간 선택 가능)
   const fetchSalesCountByGoods = (platform, startDate, endDate, rangeLabel) => {
     let url = `/api/payments/sales-count-by-goods?platform=${platform}`;
     if (startDate && endDate) {
-      url += `&startDate=${startDate.toISOString().slice(0, 10)}&endDate=${endDate.toISOString().slice(0, 10)}`;
+      const startStr = typeof startDate === 'string' ? startDate : toKstDateStr(startDate);
+      const endStr = typeof endDate === 'string' ? endDate : toKstDateStr(endDate);
+      url += `&startDate=${startStr}&endDate=${endStr}`;
     }
     $('#sales-count-range-label').text(rangeLabel || '');
     const $list = $('#sales-count-by-goods-list');
@@ -315,10 +324,9 @@
     const start = new Date();
     const n = Number(days);
     if (n === 0) {
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
-      const label = `오늘 (${start.toLocaleDateString('ko-KR')})`;
-      return { start, end, label };
+      const kstToday = toKstDateStr(end);
+      const label = `오늘 (${end.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })})`;
+      return { start: kstToday, end: kstToday, label };
     }
     start.setDate(start.getDate() - n);
     start.setHours(0, 0, 0, 0);
