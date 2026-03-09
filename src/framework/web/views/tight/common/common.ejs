@@ -1,19 +1,40 @@
 <%- include('./drawer') %>
 
-<div class="bg-transparent top-0 left-0 z-50 fixed navbar bg-base-100 flex justify-center h-16">
-    <div class="max-w-7xl w-full">
-        <div class="flex-1"><a class="pl-1 btn btn-ghost normal-case text-xl"
-                               href="/saju">
-                <div class="flex items-center">
-                    <img src="/assets/images/tight/logo.png" class="h-10"  alt="로고"/>
-                </div>
-            </a></div>
-        <div class="flex-none"><label class="btn btn-square btn-ghost" for="my-drawer">
-                <svg class="inline-block w-7 h-7 stroke-current" fill="none" viewbox="0 0 24 24"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2"></path>
-                </svg>
-            </label></div>
+<style>
+#main-navbar { transition: transform 0.3s ease-out; }
+#main-navbar.navbar-scroll-hide { transform: translateY(-100%); }
+</style>
+<div id="main-navbar" class="fixed top-0 left-0 right-0 z-50 flex justify-center h-14 px-4" style="background: linear-gradient(to bottom, rgba(12,12,12,0.85) 0%, transparent 100%);">
+    <div class="w-full max-w-[480px] flex items-center justify-between">
+        <a href="/saju" class="flex items-center gap-2 group">
+            <span class="text-white font-semibold text-2xl tracking-tight group-hover:text-amber-400/90 transition-colors" style="font-family: 'Noto Serif KR', 'Georgia', serif;">사주정감</span>
+            <span class="text-amber-400/80 text-xs font-medium tracking-[0.15em] uppercase">Saju</span>
+        </a>
+        <div class="flex items-center gap-1">
+            <a href="javascript:void(0)" class="btn btn-ghost btn-circle btn-sm text-white/90 hover:text-amber-400 hover:bg-white/5" aria-label="알림">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            </a>
+            <label for="my-drawer" class="btn btn-ghost btn-circle btn-sm text-white/90 hover:text-amber-400 hover:bg-white/5 cursor-pointer" aria-label="메뉴">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </label>
+        </div>
     </div>
 </div>
+<script>
+(function() {
+  var nav = document.getElementById('main-navbar');
+  if (!nav) return;
+  var lastY = window.scrollY || window.pageYOffset;
+  var threshold = 60;
+  function onScroll() {
+    var y = window.scrollY || window.pageYOffset;
+    if (y > threshold && y > lastY) {
+      nav.classList.add('navbar-scroll-hide');
+    } else {
+      nav.classList.remove('navbar-scroll-hide');
+    }
+    lastY = y;
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+})();
+</script>
