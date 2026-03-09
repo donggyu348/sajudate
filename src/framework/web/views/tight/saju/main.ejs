@@ -3,140 +3,217 @@
 
 <%- include('./../common/header') %>
 
-<body
-  class="bg-repeat"
-  style="
-    background-image: url('/assets/images/tight/hanji_bg1.png');
-    background-size: cover;
-    background-position: top center;
-  "
->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet">
 
-<!-- Main -->
-<div class="w-full max-w-[480px] mx-auto">
-  <div class="flex flex-col items-center">
+<body class="min-h-screen bg-[#0a0a0b] text-white antialiased" style="font-family: 'Pretendard', -apple-system, sans-serif;">
 
+  <div class="w-full max-w-[480px] mx-auto min-h-screen flex flex-col">
     <%- include('./../common/common') %>
 
-   <!-- ================= HERO SLIDER ================= -->
-<section class="w-full px-4 pt-16">
-  <!-- 히어로 카드 -->
-  <div class="rounded-2xl overflow-hidden shadow-md">
-
-    <div class="swiper heroSwiper h-[520px]">
-      <div class="swiper-wrapper">
-
-        <div class="swiper-slide">
-          <img
-            src="/assets/images/tight/sum2.png"
-            class="w-full h-full object-cover"
-          >
+    <!-- ================= 히어로 슬라이드 (전체 꽉 채움, 페이드) ================= -->
+    <section class="relative w-full aspect-[9/16] max-h-[70vh] flex-shrink-0 overflow-hidden">
+      <div class="swiper heroSwiper absolute inset-0 w-full h-full">
+        <div class="swiper-wrapper">
+          <!-- 1번: 신년 -->
+          <div class="swiper-slide">
+            <img src="/assets/images/tight/classic/신년사주 히어로.png" class="absolute inset-0 w-full h-full object-cover z-0" alt="">
+            <div class="absolute inset-0 z-[1] bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            <div class="absolute inset-0 z-[2] flex flex-col justify-end p-6 pb-12">
+              <p class="font-serif text-amber-400/90 text-sm tracking-widest uppercase mb-2" style="font-family: 'Noto Serif KR', serif;">신년운세</p>
+              <h2 class="text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">올해의 운을 열어드립니다<br>신년 사주</h2>
+              <p class="text-white/70 text-sm mt-2">한 해의 길운과 흐름을 미리 읽어드립니다</p>
+            </div>
+          </div>
+          <!-- 2번: 연애 -->
+          <div class="swiper-slide">
+            <img src="/assets/images/tight/romantic/연애사주 히어로.png" class="absolute inset-0 w-full h-full object-cover z-0" alt="">
+            <div class="absolute inset-0 z-[1] bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            <div class="absolute inset-0 z-[2] flex flex-col justify-end p-6 pb-12">
+              <p class="font-serif text-purple-300/90 text-sm tracking-widest uppercase mb-2" style="font-family: 'Noto Serif KR', serif;">연애운</p>
+              <h2 class="text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">인연과 연애운을 읽어드립니다<br>연애 사주</h2>
+              <p class="text-white/70 text-sm mt-2">진짜 나의 타입과 맞춤 연애운</p>
+            </div>
+          </div>
+          <!-- 3번: 29금 사주 -->
+          <div class="swiper-slide">
+            <img src="/assets/images/tight/29/29금 히어로.png" class="absolute inset-0 w-full h-full object-cover z-0" alt="">
+            <div class="absolute inset-0 z-[1] bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            <div class="absolute inset-0 z-[2] flex flex-col justify-end p-6 pb-12">
+              <p class="font-serif text-rose-400/90 text-sm tracking-widest uppercase mb-2" style="font-family: 'Noto Serif KR', serif;">19+ Only</p>
+              <h2 class="text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">밤에 보는 은밀한 운명,<br>29금 사주</h2>
+              <p class="text-white/70 text-sm mt-2">솔직하고 깊은 연애·관계 운세</p>
+            </div>
+          </div>
         </div>
-                <div class="swiper-slide">
-          <img
-            src="/assets/images/tight/sum1.png"
-            class="w-full h-full object-cover"
-          >
+        <div class="swiper-pagination hero-pagination !bottom-8 z-10"></div>
+      </div>
+      <div class="absolute bottom-0 left-0 right-0 h-24 z-[3] bg-gradient-to-t from-[#0a0a0b] to-transparent pointer-events-none"></div>
+    </section>
+
+    <!-- ================= 퀵 메뉴 (동그란 아이콘) ================= -->
+    <section class="px-4 -mt-2 relative z-10">
+      <div class="flex justify-around gap-2 py-4">
+        <a href="/saju/classic/intro" class="flex flex-col items-center gap-2 group">
+          <div class="w-14 h-14 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-700/30 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/30">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          </div>
+          <span class="text-xs text-zinc-400 font-medium">신년운세</span>
+        </a>
+        <a href="javascript:alert('준비 중입니다');" class="flex flex-col items-center gap-2 group">
+          <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-700/30 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/30">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          </div>
+          <span class="text-xs text-zinc-400 font-medium">궁합</span>
+        </a>
+
+        <a href="/saju/adult/intro" class="flex flex-col items-center gap-2 group">
+          <div class="w-14 h-14 rounded-full bg-gradient-to-br from-rose-500/20 to-rose-700/30 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/30">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+          </div>
+          <span class="text-xs text-zinc-400 font-medium">29금사주</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ================= 지금 가장 핫한 운세 (큰 카드 세로 배치) ================= -->
+    <section class="mt-8 px-4">
+      <h3 class="text-lg font-semibold text-white mb-5 flex items-center gap-2" style="font-family: 'Noto Serif KR', serif;">
+        <span class="w-1 h-5 bg-amber-500 rounded-full"></span>
+        지금 가장 핫한 운세
+      </h3>
+      <div class="space-y-5">
+        <a href="/saju/classic/intro" class="block group">
+          <div class="relative rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-black/40 min-h-[280px] border border-white/5">
+            <img src="/assets/images/tight/classic/신년사주.png" alt="신년운" class="w-full h-full min-h-[280px] object-cover transition-transform duration-500 group-hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+            <span class="absolute top-4 left-4 px-2.5 py-1 rounded-lg bg-amber-500/90 text-xs font-bold text-black">HOT</span>
+            <span class="absolute top-4 right-4 text-sm text-amber-400">★ 4.9</span>
+            <div class="absolute bottom-0 left-0 right-0 p-6">
+              <h2 class="text-2xl font-bold text-white tracking-tight drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">신년운</h2>
+              <p class="text-zinc-400 mt-1.5">올해의 운세, 한 해를 미리 읽어드립니다</p>
+              <p class="text-zinc-500 text-sm mt-2">조회 12.3만</p>
+            </div>
+          </div>
+        </a>
+        <a href="/saju/romantic/intro" class="block group">
+          <div class="relative rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-black/40 min-h-[280px] border border-white/5">
+            <img src="/assets/images/tight/romantic/연애사주.png" alt="연애운" class="w-full h-full min-h-[280px] object-cover transition-transform duration-500 group-hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+            <span class="absolute top-4 left-4 px-2.5 py-1 rounded-lg bg-purple-500/90 text-xs font-bold text-white">신규</span>
+            <span class="absolute top-4 right-4 text-sm text-amber-400">★ 4.8</span>
+            <div class="absolute bottom-0 left-0 right-0 p-6">
+              <h2 class="text-2xl font-bold text-white tracking-tight drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">연애운</h2>
+              <p class="text-zinc-400 mt-1.5">인연과 연애운, 진짜 나의 타입을 알아봅니다</p>
+              <p class="text-zinc-500 text-sm mt-2">조회 8.1만</p>
+            </div>
+          </div>
+        </a>
+        <a href="/saju/adult/intro" class="block group">
+          <div class="relative rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-black/40 min-h-[280px] border border-white/5">
+            <img src="/assets/images/tight/29/29금.png" alt="29금사주" class="w-full h-full min-h-[280px] object-cover transition-transform duration-500 group-hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+            <span class="absolute top-4 left-4 px-2.5 py-1 rounded-lg bg-rose-500/90 text-xs font-bold text-white">19+</span>
+            <span class="absolute top-4 right-4 text-sm text-amber-400">★ 4.7</span>
+            <div class="absolute bottom-0 left-0 right-0 p-6">
+              <h2 class="text-2xl font-bold text-white tracking-tight drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">29금사주</h2>
+              <p class="text-zinc-400 mt-1.5">솔직하고 깊은 연애·관계 운세</p>
+              <p class="text-zinc-500 text-sm mt-2">조회 5.2만</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ================= 이용 후기 (리뷰 칸) ================= -->
+    <section class="mt-12 px-4 pb-32">
+      <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2" style="font-family: 'Noto Serif KR', serif;">
+        <span class="w-1 h-5 bg-purple-500 rounded-full"></span>
+        이용 후기
+      </h3>
+      <div class="space-y-4">
+        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
+            <span class="text-zinc-500 text-xs">2025.03.02</span>
+          </div>
+          <p class="text-zinc-300 text-sm leading-relaxed">연애사주에서 나랑 잘 맞는 타입이 뭔지, 언제 인연이 올지 나와 있어서 좋았어요. 지금 만나는 사람이랑 궁합도 봤는데 말한 대로라서 놀랐어요.</p>
+          <p class="text-zinc-500 text-xs mt-2">연애운 · m***</p>
         </div>
-
-
-    
+        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
+            <span class="text-zinc-500 text-xs">2025.02.28</span>
+          </div>
+          <p class="text-zinc-300 text-sm leading-relaxed">29금 사주 진짜 솔직하게 나와서 부끄럽기도 했는데… 관계나 끌림 같은 거까지 말해주니까 막혀 있던 고민이 풀렸어요. 친구한테도 추천했어요.</p>
+          <p class="text-zinc-500 text-xs mt-2">29금사주 · k***</p>
+        </div>
+        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
+            <span class="text-zinc-500 text-xs">2025.02.22</span>
+          </div>
+          <p class="text-zinc-300 text-sm leading-relaxed">신년사주 보고 올해 몇 월에 조심해야 하는지, 직장·재물 흐름이랑 같이 나와서 계획 세우기 좋았어요. 분량도 많고 설명이 구체적이에요.</p>
+          <p class="text-zinc-500 text-xs mt-2">신년운 · s***</p>
+        </div>
+        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★☆</span>
+            <span class="text-zinc-500 text-xs">2025.02.18</span>
+          </div>
+          <p class="text-zinc-300 text-sm leading-relaxed">연애운에서 이성 끌림이나 호환되는 성격 설명이 진짜 잘 맞았음. 우리끼리만 보는 느낌이라 부담 없이 볼 수 있어서 좋았어요.</p>
+          <p class="text-zinc-500 text-xs mt-2">연애운 · j***</p>
+        </div>
+        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
+            <span class="text-zinc-500 text-xs">2025.02.15</span>
+          </div>
+          <p class="text-zinc-300 text-sm leading-relaxed">29금은 처음 써봤는데 생각보다 깊이 있게 나와서 만족했어요. 연애만 보는 게 아니라 끌림이나 스타일 같은 부분까지 있어서 신기했어요.</p>
+          <p class="text-zinc-500 text-xs mt-2">29금사주 · r***</p>
+        </div>
+        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-3">
+            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
+            <span class="text-zinc-500 text-xs">2025.02.10</span>
+          </div>
+          <p class="text-zinc-300 text-sm leading-relaxed">매년 신년사주만 보는데 올해도 받아봤어요. 월별 운세랑 금년에 피해야 할 일, 좋은 방위까지 나와서 실생활에 바로 참고할 수 있어요.</p>
+          <p class="text-zinc-500 text-xs mt-2">신년운 · h***</p>
+        </div>
+        <a href="/saju/reviews" class="block rounded-2xl border border-dashed border-zinc-600 text-zinc-500 text-center py-6 text-sm hover:border-amber-500/50 hover:text-amber-400/80 transition-colors">
+          후기 더 보기
+        </a>
       </div>
-
-      <div class="swiper-pagination"></div>
-    </div>
-
-  </div>
-</section>
-
-
-<!-- ================= 신뢰 문장 ================= -->
-<section class="w-full text-center pt-6 pb-5">
-  <p class="text-[15px] font-semibold text-[#2e1f14] tracking-[-0.2px]">
-    49,359건의 상담 데이터를 기반으로 분석합니다
-  </p>
-</section>
-
-<!-- ================= 카드 영역 ================= -->
-<section class="w-full px-4 pb-32">
-
-  <!-- 🔹 상단 2개 카드 (신년운 / 연애운) -->
-  <div class="grid grid-cols-2 gap-4">
-
-    <!-- 신년운 -->
-    <a href="/saju/classic/intro" class="block">
-      <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-        <img
-          src="/assets/images/tight/banner1.png"
-          alt="신년운"
-          class="w-full block"
-        >
-      </div>
-    </a>
-
-    <!-- 연애운 -->
-    <a href="/saju/romantic/intro" class="block">
-      <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-        <img
-          src="/assets/images/tight/banner2.png"
-          alt="연애운"
-          class="w-full block"
-        >
-      </div>
-    </a>
-
-  </div>
-
-  <!-- 🔹 하단 재물운 카드 (가로 전체, 끝선 맞춤) -->
-  <div class="mt-4">
-    <a href="javascript:alert('상품 준비중');" class="block w-full">
-      <div class="bg-white rounded-2xl shadow-md overflow-hidden">
-        <img
-          src="/assets/images/tight/banner3.png"
-          alt="재물운"
-          class="w-full block"
-        >
-      </div>
-    </a>
-  </div>
-
-</section>
+    </section>
 
     <%- include('./../common/footer') %>
-
   </div>
-</div>
 
-<!-- ================= SCRIPT ================= -->
-<script>
-  $(document).ready(function () {
-
-    $(".gender-btn").on("click", function () {
-      $(".gender-btn").removeClass("active");
-      $(this).addClass("active");
-      $("#genderInput").val($(this).val());
+  <style>
+    .hero-pagination .swiper-pagination-bullet { background: rgba(255,255,255,0.4); opacity: 1; transition: all 0.3s ease; }
+    .hero-pagination .swiper-pagination-bullet-active { background: #f59e0b; width: 24px; border-radius: 12px; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+  </style>
+  <script>
+    $(document).ready(function () {
+      $(".gender-btn").on("click", function () {
+        $(".gender-btn").removeClass("active");
+        $(this).addClass("active");
+        $("#genderInput").val($(this).val());
+      });
+      $(".birth-type-btn").on("click", function () {
+        $(".birth-type-btn").removeClass("active");
+        $(this).addClass("active");
+        $("#birthTypeInput").val($(this).val());
+      });
     });
-
-    $(".birth-type-btn").on("click", function () {
-      $(".birth-type-btn").removeClass("active");
-      $(this).addClass("active");
-      $("#birthTypeInput").val($(this).val());
+    const heroSwiper = new Swiper(".heroSwiper", {
+      loop: true,
+      effect: "fade",
+      fadeEffect: { crossFade: true },
+      autoplay: { delay: 4500, disableOnInteraction: false },
+      pagination: { el: ".hero-pagination", clickable: true },
     });
-
-  });
-
-  const heroSwiper = new Swiper(".heroSwiper", {
-    loop: true,
-    autoplay: {
-      delay: 4000,
-      disableOnInteraction: false,
-    },
-    pagination: {
-      el: ".swiper-pagination",
-      clickable: true,
-    },
-  });
-</script>
-
+  </script>
 </body>
 </html>

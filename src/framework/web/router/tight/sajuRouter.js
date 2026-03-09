@@ -157,6 +157,12 @@ if (ticketCode) {
 router.get("/romantic/intro", (req, res) => {
   res.render("tight/saju/romantic/intro");
 });
+
+/* 29금사주 인트로 */
+router.get("/adult/intro", (req, res) => {
+  res.render("tight/saju/adult/intro");
+});
+
 /* 연애 사주 입력 */
 router.get("/romantic/input", (req, res) => {
   res.render("tight/saju/romantic/input");
@@ -329,6 +335,10 @@ router.post("/skip-payment", async (req, res) => {
 });
 router.get("/review", (req, res) => {
   res.render("tight/saju/review");
+});
+/** 이용 후기 목록 (메인에서 '후기 더 보기'로 이동) */
+router.get("/reviews", (req, res) => {
+  res.render("tight/saju/reviews");
 });
 router.get("/api/check-ticket-report", async (req, res) => {
     const { shopOrderNo } = req.query;
