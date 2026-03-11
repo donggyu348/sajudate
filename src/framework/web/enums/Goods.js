@@ -54,8 +54,19 @@ export const GoodsType = Object.freeze({
     code: "ADULT",
     title: "29금 사주",
     originalPrice: 49000,
-    discountPrice: 19900,
-    price: 29100,
+    discountPrice: 14100,
+    price: 34900,
     platform: Platform.TIGHT
+  },
+
+  /** 29금 사주 + 연애사주 번들 */
+  ADULT_BUNDLE: {
+    code: "ADULT_BUNDLE",
+    title: "29금 사주 + 연애사주",
+    originalPrice: 67700,
+    discountPrice: 17900,
+    price: 49800,
+    platform: Platform.TIGHT,
+    giveTicket: "ROMANTIC"
   }
 });

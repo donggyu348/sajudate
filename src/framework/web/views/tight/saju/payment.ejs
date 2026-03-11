@@ -54,8 +54,11 @@
                             </div>
 
                             <% if (typeof bundleInfo !== 'undefined' && bundleInfo) { 
-                                let targetTitle = (goodsInfo.code === 'CLASSIC') ? '연애사주' : '신년사주';
-                                let bundleBenefit = (goodsInfo.code === 'CLASSIC') ? '연애사주 무료 쿠폰' : '신년사주 무료 쿠폰';
+                                let targetTitle = '연애사주';
+                                let bundleBenefit = '연애사주 무료 티켓';
+                                if (goodsInfo.code === 'CLASSIC') { targetTitle = '연애사주'; bundleBenefit = '연애사주 무료 쿠폰'; }
+                                else if (goodsInfo.code === 'ROMANTIC') { targetTitle = '신년사주'; bundleBenefit = '신년사주 무료 쿠폰'; }
+                                else if (goodsInfo.code === 'ADULT') { targetTitle = '연애사주'; bundleBenefit = '연애사주 무료 티켓'; }
                             %>
                             
           <div onclick="selectOption('bundle')" id="card-bundle" class="goods-card relative border-2 border-pink-400 bg-pink-50/30">

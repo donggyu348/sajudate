@@ -321,8 +321,11 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
     let ticketAddMsg = "";
     if (finalType && finalType.includes('_BUNDLE')) {
         const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-        let giftType = (finalType === 'CLASSIC_BUNDLE') ? '2' : '1';
-        let giftName = (finalType === 'CLASSIC_BUNDLE') ? '로맨틱 연애사주' : '신년 운세사주';
+        let giftType = '1';
+        let giftName = '신년 운세사주';
+        if (finalType === 'CLASSIC_BUNDLE') { giftType = '2'; giftName = '로맨틱 연애사주'; }
+        else if (finalType === 'ROMANTIC_BUNDLE') { giftType = '1'; giftName = '신년 운세사주'; }
+        else if (finalType === 'ADULT_BUNDLE') { giftType = '2'; giftName = '로맨틱 연애사주'; }
 
         try {
             // 🔥 [수정] 모델 파일을 직접 import 하여 경로 및 대소문자 문제를 방지합니다.

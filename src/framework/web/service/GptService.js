@@ -3387,7 +3387,7 @@ let promtParts;
         promtParts = CLASSIC_REPORT_PROMPT_PARTS;
     } else if (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE") {
         promtParts = ROMANTIC_REPORT_PROMPT_PARTS;
-    } else if (gCode === "ADULT") {
+    } else if (gCode === "ADULT" || gCode === "ADULT_BUNDLE") {
         promtParts = ADULT_REPORT_PROMPT_PARTS;
     } else if (gCode === "PREMIUM_SAJU") {
         promtParts = PREMIUM_REPORT_PROMPT_PARTS;
