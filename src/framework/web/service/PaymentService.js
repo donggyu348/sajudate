@@ -324,7 +324,7 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
         let giftType = '1';
         let giftName = '신년 운세사주';
         if (finalType === 'CLASSIC_BUNDLE') { giftType = '2'; giftName = '로맨틱 연애사주'; }
-        else if (finalType === 'ROMANTIC_BUNDLE') { giftType = '1'; giftName = '신년 운세사주'; }
+        else if (finalType === 'ROMANTIC_BUNDLE') { giftType = '3'; giftName = '29금 사주'; }
         else if (finalType === 'ADULT_BUNDLE') { giftType = '2'; giftName = '로맨틱 연애사주'; }
 
         try {

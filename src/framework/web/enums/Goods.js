@@ -38,15 +38,15 @@ export const GoodsType = Object.freeze({
     giveTicket: "ROMANTIC" // 이 상품을 사면 ROMANTIC 티켓을 줌
   },
   
-  // [추가] 연애사주 구매 시 29금 사주 티켓 증정 번들
+  // 연애사주 + 29금 사주 번들 (연애사주 구매 시 29금 사주 티켓 증정)
   ROMANTIC_BUNDLE: {
     code: "ROMANTIC_BUNDLE",
-    title: '연애사주 (+신년사주 무료티켓 증정)',
-    originalPrice: 149800,
-    discountPrice: 100000,
+    title: '연애사주 + 29금 사주',
+    originalPrice: 67700,
+    discountPrice: 17900,
     price: 49800,
     platform: Platform.TIGHT,
-    giveTicket: "CLASSIC" // 이 상품을 사면 CLASSIC 티켓을 줌
+    giveTicket: "ADULT" // 이 상품을 사면 ADULT(29금) 티켓을 줌
   },
 
   /** 29금 사주 (성인용 연애·관계 운세) */
