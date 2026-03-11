@@ -1,17 +1,50 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
-
-<body class="min-h-screen bg-[#0c0c0c] text-white antialiased">
-  <div class="w-full max-w-[480px] mx-auto min-h-screen flex flex-col">
+<style>
+  body { margin: 0; background: #0a0809; color: #fff; }
+  .adult-intro { max-width: 480px; margin: 0 auto; min-height: 100vh; }
+  .adult-intro__img { width: 100%; display: block; vertical-align: top; }
+  @keyframes adult-bubble-bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    25% { transform: translateY(-6px) scale(1.03); }
+    50% { transform: translateY(0) scale(0.98); }
+    75% { transform: translateY(-3px) scale(1.02); }
+  }
+  .adult-intro__banner-wrap { position: sticky; bottom: 0; left: 0; right: 0; padding: 16px 20px calc(16px + env(safe-area-inset-bottom)); background: linear-gradient(to top, #0a0809 35%, transparent); }
+  .adult-intro__banner-zone { position: relative; max-width: 480px; margin: 0 auto; }
+  .adult-intro__bubble { position: absolute; bottom: 100%; left: 20px; margin-bottom: 8px; padding: 14px 20px; background: linear-gradient(180deg, #fff8f6 0%, #f5e8e4 100%); border: 1px solid rgba(200, 160, 155, 0.4); border-radius: 999px; box-shadow: 0 6px 24px rgba(0,0,0,0.18), 0 2px 10px rgba(168, 95, 110, 0.15); font-size: 15px; color: #4a3c3e; white-space: nowrap; font-weight: 600; animation: adult-bubble-bounce 2s ease-in-out infinite; }
+  .adult-intro__bubble::after { content: ''; position: absolute; top: 100%; left: 28px; border: 6px solid transparent; border-top-color: #f5e8e4; }
+  .adult-intro__bubble strong { color: #b85c6d; font-weight: 700; }
+  .adult-intro__banner { display: block; width: 100%; padding: 20px 24px; background: rgba(45, 38, 42, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; text-decoration: none; text-align: center; transition: background 0.25s ease, border-color 0.25s ease; }
+  .adult-intro__banner:hover { background: rgba(52, 44, 48, 0.98); border-color: rgba(255,255,255,0.12); }
+  .adult-intro__banner-text { font-size: 18px; font-weight: 500; letter-spacing: 0.02em; color: #f2eeeb; }
+  .adult-intro__banner-text .highlight { color: #d4a5b0; font-weight: 600; }
+</style>
+<body class="min-h-screen bg-[#0a0809] text-white antialiased">
+  <div class="adult-intro">
     <%- include('./../../common/common') %>
-    <div class="flex-1 flex flex-col items-center justify-center px-6 py-16">
-      <h1 class="text-2xl font-bold text-white tracking-tight">29금사주</h1>
-      <p class="text-zinc-400 mt-2 text-center">솔직하고 깊은 연애·관계 운세</p>
-      <p class="text-zinc-500 text-sm mt-8 text-center">준비 중입니다. 조금만 기다려 주세요.</p>
-      <a href="/saju" class="mt-10 px-8 py-3 rounded-xl bg-zinc-800 text-white text-sm font-medium hover:bg-zinc-700 transition-colors">
-        메인으로
-      </a>
+
+    <!-- 상세 이미지: 0, 0.1, 0.2, 1 ~ 8 순서 -->
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/0.png" alt="29금 사주" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/0.1.png" alt="" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/0.2.png" alt="" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/1.png" alt="" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/2.png" alt="" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/3.png" alt="" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/4.png" alt="" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/5.png" alt="" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/6.png" alt="" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/7.png" alt="" onerror="this.style.display='none'" />
+    <img class="adult-intro__img" src="/assets/images/tight/29/intro/8.png" alt="" onerror="this.style.display='none'" />
+
+    <div class="adult-intro__banner-wrap">
+      <div class="adult-intro__banner-zone">
+        <div class="adult-intro__bubble">실제 후기 <strong>5,287</strong>개</div>
+        <a href="/saju/adult/input" class="adult-intro__banner">
+          <span class="adult-intro__banner-text">무료로 <span class="highlight">미리보기</span> 확인하기</span>
+        </a>
+      </div>
     </div>
   </div>
 </body>

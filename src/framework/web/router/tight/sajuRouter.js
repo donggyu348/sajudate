@@ -163,6 +163,11 @@ router.get("/adult/intro", (req, res) => {
   res.render("tight/saju/adult/intro");
 });
 
+/* 29금사주 입력 */
+router.get("/adult/input", (req, res) => {
+  res.render("tight/saju/adult/input");
+});
+
 /* 연애 사주 입력 */
 router.get("/romantic/input", (req, res) => {
   res.render("tight/saju/romantic/input");
@@ -247,6 +252,61 @@ router.get("/romantic/result", async (req, res) => {
     return processGetResult(req, res, GoodsType.ROMANTIC);
 });
 
+/* ---------- 29금 사주 결과 ---------- */
+router.post("/adult/result", async (req, res) => {
+  const userInfo = req.body;
+  const ticketCode = req.query.ticket || req.body.ticketCode || req.body.ticket;
+
+  if (ticketCode) {
+    const ticket = await CouponsModel.findOne({ where: { code: ticketCode, isUsed: false } });
+    if (ticket) {
+      await ticket.update({ isUsed: true });
+      const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
+      const created = await reportHistoryService.registerReportHistory({
+        userInfo,
+        sampleInfo: {},
+        shopOrderNo,
+        goodsType: GoodsType.ADULT,
+      });
+      gptService.callReport(userInfo, GoodsType.ADULT.code)
+        .then(async (reportInfo) => {
+          await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+        })
+        .catch((err) => console.error("GPT 백그라운드 생성 에러:", err));
+      return res.redirect(`/saju/waiting?shopOrderNo=${shopOrderNo}`);
+    }
+  }
+
+  if (userInfo.name === "테스트" || userInfo.name === "관리자") {
+    try {
+      const shopOrderNo = `FREE-ADULT-${Date.now()}`;
+      const created = await reportHistoryService.registerReportHistory({
+        userInfo,
+        sampleInfo: await gptService.callSample(userInfo),
+        shopOrderNo,
+        goodsType: GoodsType.ADULT,
+      });
+      const reportInfo = await gptService.callReport(userInfo, GoodsType.ADULT.code);
+      await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+      return res.redirect(`/saju/report?shopOrderNo=${shopOrderNo}`);
+    } catch (error) {
+      console.error("29금 테스트/관리자 모드 생성 오류:", error);
+    }
+  }
+
+  try {
+    const encodedUserInfo = encodeURIComponent(JSON.stringify(userInfo));
+    return res.redirect(`/saju/adult/result?userInfo=${encodedUserInfo}`);
+  } catch (e) {
+    console.error(e);
+    res.redirect("/saju");
+  }
+});
+
+router.get("/adult/result", async (req, res) => {
+  return processGetResult(req, res, GoodsType.ADULT);
+});
+
 
 
 router.get("/report", async (req, res) => {
@@ -256,14 +316,15 @@ router.get("/report", async (req, res) => {
 
     if (!reportHistory) return res.status(404).send("리포트를 찾을 수 없습니다.");
 
-    // [수정 핵심] '1' 또는 'CLASSIC' 포함 시 classic으로, '2' 또는 'ROMANTIC' 포함 시 romantic으로
+    // [수정 핵심] CLASSIC / ROMANTIC / ADULT 에 따라 리포트 뷰 경로 결정
     const gType = String(reportHistory.goodsType || "").toUpperCase();
     let reportPath;
 
-    if (gType.includes("ROMANTIC") || gType === "2") {
+    if (gType.includes("ADULT") || gType === "3") {
+      reportPath = "tight/saju/adult/report";
+    } else if (gType.includes("ROMANTIC") || gType === "2") {
       reportPath = "tight/saju/romantic/report";
     } else {
-      // '1'이거나 'CLASSIC'이거나 그 외 모든 경우는 기본 classic 경로 사용
       reportPath = "tight/saju/classic/report";
     }
 
@@ -294,17 +355,16 @@ router.post("/skip-payment", async (req, res) => {
     const userInfo = JSON.parse(req.body.userInfo);
     const sample = JSON.parse(req.body.sample);
     const userIdx = req.session?.user?.id || null;
+    const goodsTypeCode = req.body.goodsType || "ROMANTIC";
+    const goodsType = GoodsType[goodsTypeCode] || GoodsType.ROMANTIC;
 
-    // 1) 테스트용 shopOrderNo 생성
     const shopOrderNo = `TEST-${Date.now()}`;
 
-    // 2) 우선 reportHistory row 생성 (reportInfo 비어있음)
     const created = await ReportHistoryService.registerReportHistory({
       userInfo,
       sampleInfo: sample,
       shopOrderNo,
-        goodsType: GoodsType.ROMANTIC, // 🔥 이 한 줄
-
+      goodsType,
       ...(userIdx ? { userIdx } : {})
     });
 
@@ -314,8 +374,7 @@ router.post("/skip-payment", async (req, res) => {
       return res.status(500).send("리포트 생성 실패");
     }
 
-    // 3) GPT를 동기적으로 호출 → 기다림
-    const reportInfo = await gptService.callReport(userInfo, GoodsType.ROMANTIC.code);
+    const reportInfo = await gptService.callReport(userInfo, goodsType.code);
 
     // 4) GPT 결과를 DB에 업데이트
     await ReportHistoryService.updateById({
@@ -614,12 +673,14 @@ const ticket = await Coupons.findOne({ where: { code: code, isUsed: false } });
     }
 
     // PaymentService에서 설정한 giftType 대조
-    // '1' = 정통 사주(Classic), '2' = 로맨틱 연애사주(Romantic)
+    // '1' = 정통(Classic), '2' = 연애(Romantic), '3' = 29금(Adult)
     let targetPath = "";
     if (ticket.goodsType === '1') {
       targetPath = "/saju/classic/input";
     } else if (ticket.goodsType === '2') {
       targetPath = "/saju/romantic/input";
+    } else if (ticket.goodsType === '3' || String(ticket.goodsType).toUpperCase() === 'ADULT') {
+      targetPath = "/saju/adult/input";
     } else {
       targetPath = "/saju/classic/input"; // 기본값
     }

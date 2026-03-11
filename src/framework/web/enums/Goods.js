@@ -47,5 +47,15 @@ export const GoodsType = Object.freeze({
     price: 49800,
     platform: Platform.TIGHT,
     giveTicket: "CLASSIC" // 이 상품을 사면 CLASSIC 티켓을 줌
+  },
+
+  /** 29금 사주 (성인용 연애·관계 운세) */
+  ADULT: {
+    code: "ADULT",
+    title: "29금 사주",
+    originalPrice: 49000,
+    discountPrice: 19900,
+    price: 29100,
+    platform: Platform.TIGHT
   }
 });
