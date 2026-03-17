@@ -20,22 +20,22 @@
 
 /* panel */
 .luxury-panel {
-  background: linear-gradient(180deg, #0b0f1a 0%, #05070d 100%);
+  background: linear-gradient(180deg, #1a0f14 0%, #0d070a 100%);
   box-shadow: 8px 0 40px rgba(0,0,0,0.65);
-  border-right: 1px solid rgba(212,175,55,0.18);
+  border-right: 1px solid rgba(244,114,182,0.15);
 }
 
 /* navbar */
 .luxury-panel .navbar {
   background: transparent;
-  border-bottom: 1px solid rgba(212,175,55,0.18);
+  border-bottom: 1px solid rgba(244,114,182,0.15);
 }
 
 /* logo icon */
 .luxury-panel .logo-circle {
   border-radius: 9999px;
-  background: radial-gradient(circle at top left, #ffd700, #b48a2c);
-  box-shadow: 0 0 14px rgba(212,175,55,0.55);
+  background: radial-gradient(circle at top left, #f9a8d4, #be185d);
+  box-shadow: 0 0 14px rgba(244,114,182,0.4);
 }
 
 /* logo text */
@@ -52,7 +52,7 @@
 }
 .luxury-panel label:hover .close-icon {
   transform: rotate(90deg);
-  stroke: #ffd700;
+  stroke: #f9a8d4;
 }
 
 /* menu */
@@ -69,7 +69,7 @@
   transition: all .25s ease;
 }
 
-/* gold accent line */
+/* rose accent line */
 .luxury-menu a::before {
   content: "";
   position: absolute;
@@ -77,7 +77,7 @@
   top: 50%;
   width: 2px;
   height: 0%;
-  background: linear-gradient(180deg, #ffd700, #ff8c00);
+  background: linear-gradient(180deg, #f9a8d4, #be185d);
   transform: translateY(-50%);
   transition: height .25s ease;
   border-radius: 2px;
@@ -87,8 +87,8 @@
 .luxury-menu a:hover {
   background: linear-gradient(
     90deg,
-    rgba(212,175,55,0.14),
-    rgba(212,175,55,0.02)
+    rgba(244,114,182,0.12),
+    rgba(244,114,182,0.02)
   );
   color: #ffffff;
   transform: translateX(4px);
@@ -104,12 +104,12 @@
 }
 .luxury-menu a:hover .arrow {
   transform: translateX(4px);
-  fill: #ffd700;
+  fill: #f9a8d4;
 }
 
 /* highlight items */
 .luxury-highlight {
-  color: #ffd700 !important;
+  color: #f9a8d4 !important;
   font-weight: 700;
 }
 </style>
@@ -127,10 +127,10 @@
         <div class="flex-1">
           <a href="/saju" class="flex items-center gap-3">
             <div class="w-9 h-9 flex items-center justify-center logo-circle">
-              <span class="text-black font-bold text-sm" style="font-family: 'Noto Serif KR', serif;">사</span>
+              <span class="text-black font-bold text-sm" style="font-family: 'Noto Serif KR', serif;">기</span>
             </div>
-            <span class="logo-text text-xl font-semibold" style="font-family: 'Noto Serif KR', serif;">사주정감</span>
-            <span class="text-amber-400/80 text-xs font-medium tracking-widest uppercase">Saju</span>
+            <span class="logo-text text-xl font-semibold" style="font-family: 'Noto Serif KR', serif;">기운소</span>
+            <span class="text-rose-300/80 text-xs font-medium tracking-widest uppercase">Love</span>
           </a>
         </div>
 
@@ -158,6 +158,15 @@
         <li>
           <a href="/saju/romantic/intro" class="py-4">
             <span>연애사주</span>
+            <svg viewBox="0 0 139 139" class="w-6 h-6 ml-auto arrow">
+              <path d="M84.629 65.592L62.108 43.257a5.4 5.4 0 0 0-7.637 7.638l18.611 18.609-18.705 18.707a5.398 5.398 0 1 0 7.634 7.635l21.706-21.703a5.37 5.37 0 0 0 0-7.724z"/>
+            </svg>
+          </a>
+        </li>
+
+        <li>
+          <a href="/saju/reunion/intro" class="py-4">
+            <span>재회사주</span>
             <svg viewBox="0 0 139 139" class="w-6 h-6 ml-auto arrow">
               <path d="M84.629 65.592L62.108 43.257a5.4 5.4 0 0 0-7.637 7.638l18.611 18.609-18.705 18.707a5.398 5.398 0 1 0 7.634 7.635l21.706-21.703a5.37 5.37 0 0 0 0-7.724z"/>
             </svg>
