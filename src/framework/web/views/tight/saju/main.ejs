@@ -77,7 +77,7 @@
     </section>
 
     <!-- ================= 지금 가장 핫한 운세 (큰 카드 세로 배치) ================= -->
-    <section class="mt-8 px-4 pb-28">
+    <section class="mt-8 px-4 pb-12">
       <h3 class="text-lg font-semibold text-white mb-5 flex items-center gap-2" style="font-family: 'Noto Serif KR', serif;">
         <span class="w-1 h-5 bg-amber-500 rounded-full"></span>
         지금 가장 핫한 운세
@@ -121,6 +121,11 @@
         </a>
       </div>
     </section>
+
+    <!-- 후기 섹션 제거 후에도 마지막 카드·푸터 사이 간격 확보 (마진 병합 방지용 블록) -->
+    <div class="w-full max-w-[480px] mx-auto px-4 shrink-0" aria-hidden="true">
+      <div class="h-24 sm:h-28"></div>
+    </div>
 
     <!-- ================= 이용 후기 (비활성, HTML 주석) =================
     <section class="mt-12 px-4 pb-32">
