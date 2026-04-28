@@ -231,7 +231,7 @@ const PREMIUM_REPORT_PROMPT_PREFIX = `너는 50대 중후반의 경험 많은 �
 ]`;
 
 const PREMIUM_REPORT_PROMPT_PARTS = [
-  `${PREMIUM_REPORT_PROMPT_PREFIX}\n제1장: 나의 사주팔자\n제2장: 종합운세\n제3장: 재물 직업운`,
+  `${PREMIUM_REPORT_PROMPT_PREFIX}\n제1장: 나의 사주팔자\n제2장: 정통운세\n제3장: 재물 직업운`,
   `${PREMIUM_REPORT_PROMPT_PREFIX}\n제4장: 연애 결혼\n제5장: 건강운`,
   `${PREMIUM_REPORT_PROMPT_PREFIX}\n제6장: 향후 3년 운\n제7장: 궁금한 점`,
 ];
@@ -245,7 +245,7 @@ const PREMIUM_REPORT_PROMPT_PARTS = [
 // - 내 사주의 3년 전망`,
 //
 //   `${PREMIUM_REPORT_PROMPT_PREFIX}
-// 제2장: 종합운세
+// 제2장: 정통운세
 // - 10년 단위의 대 흐름`,
 //
 //   `${PREMIUM_REPORT_PROMPT_PREFIX}
