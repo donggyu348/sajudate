@@ -30,7 +30,7 @@ export const GoodsType = Object.freeze({
   },
    CLASSIC_BUNDLE: {
     code: "CLASSIC_BUNDLE",
-    title: '신년사주 (+연애사주 무료티켓 증정)',
+    title: '정통사주 (+연애사주 무료티켓 증정)',
     originalPrice: 149800,
     discountPrice: 100000,
     price: 49800,
