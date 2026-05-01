@@ -262,6 +262,8 @@ router.get("/report", async (req, res) => {
 
     if (gType.includes("ROMANTIC") || gType === "2") {
       reportPath = "tight/saju/romantic/report";
+    } else if (gType.includes("ADULT") || gType === "3") {
+      reportPath = "tight/saju/adult/report";
     } else {
       // '1'이거나 'CLASSIC'이거나 그 외 모든 경우는 기본 classic 경로 사용
       reportPath = "tight/saju/classic/report";
@@ -389,7 +391,8 @@ router.post("/payment", async (req, res) => {
     // 🔥 payment.ejs에서 쓰는 데이터들
     goodsInfo,        // 기본 상품
     bundleInfo,       // 번들 상품
-    goodsTypeMap: GoodsType // 전체 가격표 (프론트 JS용)
+    goodsTypeMap: GoodsType, // 전체 가격표 (프론트 JS용)
+    tossClientKey: process.env.TOSS_CLIENT_KEY || "" // Toss 결제위젯용 clientKey
   });
 });
 

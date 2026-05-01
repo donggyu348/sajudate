@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<%- include('./../common/header') %>
+
+<body class="bg-gray-100">
+  <div class="w-full max-w-[480px] mx-auto">
+    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+      <div class="max-w-md w-full sm:border-x text-left bg-white min-h-screen">
+        <div class="flex items-center justify-center border-b relative py-3">
+          <a href="/saju" class="absolute left-4">
+            <svg class="w-5 h-5 text-gray-800" viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M724 218.3V141c0-6.7-7.7-10.4-12.9-6.3L260.3 486.8c-16.4 12.8-16.4 37.5 0 50.3l450.8 352.1c5.3 4.1 12.9.4 12.9-6.3v-77.3c0-4.9-2.3-9.6-6.1-12.6l-360-281 360-281.1c3.8-3 6.1-7.7 6.1-12.6z"></path>
+            </svg>
+          </a>
+          <h2 class="text-lg font-bold">결제 실패</h2>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+            <p class="font-bold text-red-700">결제를 진행할 수 없습니다.</p>
+            <p class="text-sm text-red-700/80 mt-1">
+              잠시 후 다시 시도해 주세요. 동일 문제가 반복되면 고객센터로 문의해 주세요.
+            </p>
+          </div>
+
+          <% if (shopOrderNo) { %>
+            <div class="text-sm text-gray-600">
+              주문번호: <span class="font-mono"><%= shopOrderNo %></span>
+            </div>
+          <% } %>
+
+          <% if (errorMessage) { %>
+            <div class="text-sm text-gray-600">
+              사유: <span class="break-all"><%= errorMessage %></span>
+            </div>
+          <% } %>
+
+          <div class="pt-2">
+            <a href="javascript:history.back()" class="w-full inline-flex items-center justify-center text-white text-lg font-bold py-3 rounded shadow" style="background-color: #0064ff;">
+              결제 페이지로 돌아가기
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include('./../common/footer') %>
+</body>
+</html>
+

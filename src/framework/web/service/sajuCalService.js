@@ -306,6 +306,32 @@ export function getFourPillars(userInfo) {
   if (/^\d{8}$/.test(raw)) raw = `${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
 
   const [y,m,d] = raw.split("-").map(Number);
+  // ✅ 입력이 덜 들어온 경우(예: 이름만 입력)에는 계산을 스킵하고 빈 구조를 반환
+  // 미리보기/티저 화면에서 서버가 죽지 않도록 방어합니다.
+  const makeEmpty = () => ({
+    year: { gan: null, ji: null },
+    month: { gan: null, ji: null },
+    day: { gan: null, ji: null },
+    hour: { gan: null, ji: null },
+    zodiac: "",
+    zodiacSign: "",
+    dayGan: "",
+    fiveElements: { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 },
+    tenGodPillars: { year: null, month: null, day: null, hour: null },
+    daewoon: [],
+    sewun: [],
+    noble: [],
+    spouse: {},
+    relationYM: null,
+    flow: {},
+    gods12: []
+  });
+
+  // ✅ 날짜 유효성 체크 (Invalid time value 방지)
+  if (!raw) return makeEmpty();
+  if (!y || !m || !d || Number.isNaN(y) || Number.isNaN(m) || Number.isNaN(d) || m < 1 || m > 12 || d < 1 || d > 31) {
+    return makeEmpty();
+  }
 
   // 🟦 시간이 숫자가 아니면 = 시간 모름 처리
   let birthTime = userInfo.birthTime;
@@ -324,6 +350,7 @@ const isUnknownTime =
     `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}T${String(t).padStart(2,"0")}:00:00`,
     "Asia/Seoul"
   );
+  if (!date.isValid()) return makeEmpty();
 
   // 연주~일주 계산
   const year = getYearPillar(date);

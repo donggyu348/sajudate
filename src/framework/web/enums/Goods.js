@@ -28,6 +28,14 @@ export const GoodsType = Object.freeze({
     price: 34900,
     platform: Platform.TIGHT
   },
+  ADULT: {
+    code: "ADULT",
+    title: "29금 에로스 사주",
+    originalPrice: 49000,
+    discountPrice: 14100,
+    price: 34900,
+    platform: Platform.TIGHT
+  },
    CLASSIC_BUNDLE: {
     code: "CLASSIC_BUNDLE",
     title: '신년사주 (+연애사주 무료티켓 증정)',
@@ -47,5 +55,14 @@ export const GoodsType = Object.freeze({
     price: 49800,
     platform: Platform.TIGHT,
     giveTicket: "CLASSIC" // 이 상품을 사면 CLASSIC 티켓을 줌
+  },
+  ADULT_BUNDLE: {
+    code: "ADULT_BUNDLE",
+    title: "29금 에로스 사주 (+연애사주 무료티켓 증정)",
+    originalPrice: 67700,
+    discountPrice: 17900,
+    price: 49800,
+    platform: Platform.TIGHT,
+    giveTicket: "ROMANTIC"
   }
 });

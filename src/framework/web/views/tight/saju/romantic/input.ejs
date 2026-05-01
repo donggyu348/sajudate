@@ -1,444 +1,616 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
-<head>
-  <style>
-    :root {
-      --gold: #d4af37;
-      --white-soft: rgba(255,255,255,0.6);
-      --white-dim: rgba(255,255,255,0.35);
-    }
 
-    body {
-      margin: 0;
-      background: #000;
-      color: #fff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      overflow: auto;
-    }
+<style>
+  :root {
+    --wine-0: #090300;
+    --wine-1: #140800;
+    --wine-2: #221000;
+    --ruby: #ff7a1a;
+    --gold: #ff7a1a;
+    --ink: rgba(255,255,255,0.92);
+    --ink-dim: rgba(255,255,255,0.64);
+    --line: rgba(255,255,255,0.14);
+  }
 
-    /* ===== STAGE ===== */
-    .stage {
-      max-width: 480px;
-      height: 100vh;
-      margin: 0 auto;
-      position: relative;
-      background: linear-gradient(
-        180deg,
-        #060101 0%,
-        #090202 25%,
-        #070101 50%,
-        #050000 75%,
-        #030000 100%
-      );
-    }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #000;
+  }
 
-    .stage::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.8) 100%);
-    }
+  body {
+    background:
+      radial-gradient(980px 620px at 50% -10%, rgba(255, 122, 26, 0.30), rgba(0,0,0,0) 62%),
+      radial-gradient(980px 720px at 18% 28%, rgba(255, 122, 26, 0.26), rgba(0,0,0,0) 64%),
+      radial-gradient(820px 540px at 86% 38%, rgba(255, 122, 26, 0.18), rgba(0,0,0,0) 66%),
+      linear-gradient(180deg, var(--wine-2) 0%, var(--wine-1) 56%, var(--wine-0) 100%);
+    color: var(--ink);
+  }
 
-    /* ===== QUESTION ===== */
-    .question-layer {
-      position: absolute;
-      top: 38%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      padding: 0 24px;
-      text-align: center;
-      z-index: 5;
-    }
-
-    .question-sub {
-      font-size: 11px;
-      letter-spacing: 0.22em;
-      opacity: 0.55;
-      margin-bottom: 10px;
-    }
-
-    .question-title {
-      font-size: 24px;
-      font-weight: 600;
-      line-height: 1.5;
-      letter-spacing: -0.01em;
-    }
-
-    /* ===== STEP ===== */
-    .step { display: none; }
-    .step.active { display: block; }
-
-    /* ===== INPUT AREA ===== */
-    .input-area {
-      position: absolute;
-      top: 56%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 48px);
-      max-width: 420px;
-      z-index: 5;
-      animation: fadeUp 0.5s ease;
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translate(-50%, 14px);
-      }
-      to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
-    }
-
-    /* ===== INPUT ===== */
-    .input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--white-dim);
-      padding: 10px 6px;
-      font-size: 20px;
-      color: #fff;
-      outline: none;
-      text-align: center;
-      letter-spacing: 0.02em;
-      transition: border-color 0.3s ease;
-    }
-
-    .input::placeholder {
-      color: rgba(255,255,255,0.35);
-    }
-
-    .input:focus {
-      border-bottom-color: var(--gold);
-    }
-
-    /* ===== SELECT ===== */
-    select.input {
-      appearance: none;
-      text-align-last: center;
-      cursor: pointer;
-    }
-
-    select option {
-      background-color: #111;
-      color: #fff;
-    }
-
-    /* ===== CHOICE BUTTON ===== */
-    .choice-btn {
-      width: 100%;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 12px;
-      color: var(--white-soft);
-      font-size: 16px;
-      text-align: center;
-      transition: all 0.25s ease;
-    }
-
-    .choice-btn.active {
-      border-color: var(--gold);
-      color: var(--gold);
-      box-shadow: 0 0 14px rgba(212,175,55,0.25);
-      font-weight: 700;
-    }
-
-    /* ===== NEXT BUTTON ===== */
-    .next-btn {
-      position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 48px);
-      max-width: 420px;
-      height: 52px;
-      border-radius: 26px;
-      border: 1px solid var(--gold);
-      background: transparent;
-      color: var(--gold);
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      z-index: 5;
-      transition: all 0.3s ease;
-    }
-
-    .next-btn:hover {
-      background: var(--gold);
-      color: #000;
-    }
-
-    /* ===== AUTOFILL ===== */
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus {
-      -webkit-box-shadow: 0 0 0px 1000px rgba(10,10,10,0.6) inset;
-      -webkit-text-fill-color: #fff;
-    }
-    /* 모바일 안전 영역 대응 */
-.stage {
-  height: 100svh; /* iOS, 최신 안드로이드 대응 */
+.saju-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translateY(-4%);
 }
 
-/* 다음 버튼을 고정 바처럼 */
-.next-btn {
-  position: fixed;
-  bottom: calc(20px + env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
+
+
+
+.question-box {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 46px 24px;
 }
 
-/* 키보드 올라와도 가려지지 않게 */
-@supports (height: 100dvh) {
-  .stage {
-    height: 100dvh;
+/* ===== DESKTOP RESPONSIVE ===== */
+@media (min-width: 768px) {
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 16px;
+    background:
+      radial-gradient(1200px 720px at 50% 10%, rgba(255, 122, 26, 0.24), rgba(0,0,0,0) 62%),
+      radial-gradient(1100px 700px at 20% 55%, rgba(255, 122, 26, 0.22), rgba(0,0,0,0) 66%),
+      radial-gradient(980px 640px at 84% 44%, rgba(255, 122, 26, 0.16), rgba(0,0,0,0) 68%),
+      #050200;
+  }
+
+  .saju-wrapper {
+    width: min(520px, 100%);
+    transform: none;
+    align-items: stretch;
+  }
+
+  .question-box {
+    width: 100%;
+    max-width: 520px;
+    border-radius: 24px;
+    background: rgba(0,0,0,0.18);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 26px 80px rgba(0,0,0,0.55);
+    padding: 44px 28px;
   }
 }
 
-  </style>
-</head>
+.question-box::before {
+  content: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0,0,0,0.35) 0%,
+    rgba(0,0,0,0.15) 60%,
+    rgba(0,0,0,0) 100%
+  );
+  z-index: -1;
+  border-radius: 16px;
+}
+
+.q-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.96);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.q-desc {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--ink-dim);
+}
+
+.answer-area {
+  margin-top: 40px;
+}
+
+.history {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  padding: 14px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.18);
+  box-shadow: 0 18px 46px rgba(0,0,0,0.30);
+}
+
+.history-item.dim {
+  opacity: 0.58;
+  filter: saturate(0.85);
+}
+
+.history-q {
+  font-size: 13px;
+  color: rgba(255,255,255,0.72);
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+
+.history-a {
+  font-size: 16px;
+  color: rgba(255,255,255,0.92);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.history-a b {
+  font-weight: 900;
+  color: rgba(255,255,255,0.96);
+}
+
+.answer-area input {
+  width: 100%;
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 14px;
+  padding: 14px 14px;
+  font-size: 18px;
+  color: rgba(255,255,255,0.95);
+  outline: none;
+  text-align: center;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.answer-area input:focus {
+  border-color: rgba(255, 122, 26, 0.92);
+  box-shadow: 0 0 0 5px rgba(255, 122, 26, 0.16);
+  background: rgba(0,0,0,0.28);
+}
+
+.answer-area input::placeholder {
+  color: rgba(255,255,255,0.45);
+}
+
+.select-row {
+  display: flex;
+  gap: 12px;
+}
+
+.select-btn {
+  flex: 1;
+  padding: 14px 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
+  font-size: 16px;
+  color: rgba(255,255,255,0.86);
+  transition: transform 160ms ease, filter 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.select-btn.active {
+  background: rgba(255, 122, 26, 0.20);
+  color: rgba(255,255,255,0.96);
+  border-color: rgba(255, 122, 26, 0.72);
+  box-shadow: 0 0 0 5px rgba(255, 122, 26, 0.12);
+}
+
+.select-btn:active { transform: scale(0.99); }
+.back-btn {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  color: rgba(255,255,255,0.70);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.back-btn:hover {
+  color: rgba(255,255,255,0.9);
+}
+
+.answer-area select {
+  width: 100%;
+  padding: 14px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
+  font-size: 16px;
+  color: rgba(255,255,255,0.90);
+  outline: none;
+}
+
+.next-btn {
+  margin-top: 60px;
+  width: 100%;
+  padding: 16px 0;
+  border-radius: 999px;
+  border: none;
+  background:
+    radial-gradient(420px 140px at 50% 0%, rgba(255,255,255,0.12), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, rgba(255, 122, 26, 0.46) 0%, rgba(132, 48, 0, 0.58) 56%, rgba(24, 10, 0, 0.72) 100%);
+  border: 1px solid rgba(255, 122, 26, 0.78);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.94);
+  letter-spacing: -0.2px;
+  box-shadow: 0 18px 46px rgba(0,0,0,0.55);
+  transition: transform 160ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+
+.next-btn:hover { filter: brightness(1.04); }
+.next-btn:active { transform: translateY(1px); filter: brightness(0.98); }
+
+/* ===== LOADING OVERLAY ===== */
+#loadingOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0a0208;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  animation: overlayIn 400ms ease both;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.loading-orbit {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.loading-orbit .ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.loading-orbit .ring-1 {
+  border-top-color: rgba(232, 54, 110, 0.9);
+  border-right-color: rgba(232, 54, 110, 0.3);
+  animation: spin 1.2s linear infinite;
+}
+
+.loading-orbit .ring-2 {
+  inset: 12px;
+  border-top-color: rgba(255, 180, 210, 0.7);
+  border-left-color: rgba(255, 180, 210, 0.2);
+  animation: spin 1.8s linear infinite reverse;
+}
+
+.loading-orbit .ring-3 {
+  inset: 24px;
+  border-top-color: rgba(200, 140, 255, 0.6);
+  border-right-color: rgba(200, 140, 255, 0.15);
+  animation: spin 2.4s linear infinite;
+}
+
+.loading-orbit .core {
+  position: absolute;
+  inset: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,54,110,0.5) 0%, rgba(180,80,220,0.2) 60%, transparent 100%);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.9); }
+  50%       { opacity: 1;   transform: scale(1.1); }
+}
+
+.loading-text {
+  text-align: center;
+}
+
+.loading-title {
+  font-family: 'Jua', system-ui, sans-serif;
+  font-size: 20px;
+  color: rgba(255, 245, 228, 0.96);
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+}
+
+.loading-dots {
+  font-family: 'Poor Story', system-ui, sans-serif;
+  font-size: 15px;
+  color: rgba(255, 245, 228, 0.55);
+  letter-spacing: 0.04em;
+}
+
+.loading-dots span {
+  animation: blink 1.4s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.2; }
+  40%            { opacity: 1; }
+}
+
+</style>
 
 <body>
 
-<div class="stage">
-
-  <!-- 질문 -->
-  <div class="question-layer">
-    <p class="question-sub">연애 사주</p>
-    <h1 id="questionTitle" class="question-title">당신의 이름은?</h1>
+<div id="loadingOverlay">
+  <div class="loading-orbit">
+    <div class="ring ring-1"></div>
+    <div class="ring ring-2"></div>
+    <div class="ring ring-3"></div>
+    <div class="core"></div>
   </div>
-
-  <!-- 로딩 -->
-  <div id="loading"
-       class="hidden fixed inset-0 z-50
-              flex flex-col items-center justify-center">
-    <div class="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-    <p id="loading-title" class="mt-4 text-sm">사주를 분석중입니다</p>
+  <div class="loading-text">
+    <p class="loading-title">사주를 분석하고 있어요</p>
+    <p class="loading-dots">
+      <span>●</span><span>●</span><span>●</span>
+    </p>
   </div>
+</div>
 
-  <form id="sajuForm" method="POST" action="/saju/romantic/result">
-
-    <!-- hidden 유지 -->
+<div class="saju-wrapper">
+  <form id="sajuForm" method="POST" action="/saju/romantic/result" class="question-box">
+    <button type="button" class="back-btn" id="backBtn">
+  ← 뒤로가기
+</button>
+    <!-- 🔒 기존 hidden 유지 -->
     <input type="hidden" name="gender" id="genderInput">
-    <input type="hidden" name="birthType" id="birthTypeInput">
+    <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
 
-    <!-- STEP 1 이름 -->
-    <section class="step active">
-      <div class="input-area">
-        <input name="name" type="text" class="input" placeholder="이름을 입력하세요">
-      </div>
-    </section>
+    <!-- 🔒 실제 서버로 전송되는 input (기존 name 유지) -->
+    <input type="hidden" name="name">
+    <input type="hidden" name="birthdate" id="birthDateInput">
+    <!-- birthTime은 select에 그대로 name 사용 -->
 
-    <!-- STEP 2 성별 -->
-    <section class="step">
-      <div class="input-area">
-        <button type="button" class="choice-btn" data-gender="남성">남성</button>
-        <button type="button" class="choice-btn" data-gender="여성">여성</button>
-      </div>
-    </section>
+    <div class="question-text">
+      <div class="q-title"></div>
+      <div class="q-desc"></div>
+    </div>
 
-    <!-- STEP 3 생년월일 -->
-    <section class="step">
-      <div class="input-area">
-        <select id="birthTypeInputSelect" class="input" style="margin-bottom:14px">
-          <option value="양력">양력</option>
-          <option value="음력">음력</option>
-        </select>
-        <input name="birthdate" class="input" placeholder="YYYYMMDD">
-      </div>
-    </section>
+    <div class="history" id="history"></div>
+    <div class="answer-area"></div>
 
-    <!-- STEP 4 태어난 시 -->
-    <section class="step">
-      <div class="input-area">
-        <select name="birthTime" class="input">
-                        <option selected value="unknown">모름</option>
-                            <option value="00">조자/朝子 (00:00~01:29)</option>
-                            <option value="02">축/丑 (01:30~03:29)</option>
-                            <option value="04">인/寅 (03:30~05:29)</option>
-                            <option value="06">묘/卯 (05:30~07:29)</option>
-                            <option value="08">진/辰 (07:30~09:29)</option>
-                            <option value="10">사/巳 (09:30~11:29)</option>
-                            <option value="12">오/午 (11:30~13:29)</option>
-                            <option value="14">미/未 (13:30~15:29)</option>
-                            <option value="16">신/申 (15:30~17:29)</option>
-                            <option value="18">유/酉 (17:30~19:29)</option>
-                            <option value="20">술/戌 (19:30~21:29)</option>
-                            <option value="22">해/亥 (21:30~23:29)</option>
-                            <option value="24">야자/夜子 (23:30~23:59)</option>
-        </select>
-      </div>
-    </section>
+    <button type="button" class="next-btn" id="nextBtn">다음으로</button>
 
-    <button type="button" id="nextBtn" class="next-btn">다음으로</button>
   </form>
 </div>
 
 <script>
-  let step = 0;
-  const steps = document.querySelectorAll(".step");
-  const questionTitle = document.getElementById("questionTitle");
+/* ===============================
+    기존 변수 및 티켓 코드 추출
+================================ */
 const urlParams = new URLSearchParams(window.location.search);
-  const ticketCode = urlParams.get('ticket');
-  const questions = [
-    "이름을 알려주세요",
-    "성별을 선택해주세요",
-    "생년월일을 입력해주세요",
-    "몇시에 태어나셨나요?"
-  ];
+const ticketCode = urlParams.get('ticket'); // URL에서 ?ticket=... 값을 가져옴
 
-  function showStep() {
-    steps.forEach((s, i) => s.classList.toggle("active", i === step));
-    questionTitle.innerText = questions[step];
-  }
-
-  /* ===== STEP VALIDATION ===== */
-  function validateStep() {
-    // STEP 0 : 이름
-    if (step === 0) {
-      const nameInput = document.querySelector("input[name='name']");
-      if (!nameInput.value.trim()) {
-        shake(nameInput);
-        nameInput.focus();
-        return false;
-      }
+const steps = [
+  {
+    key: "name",
+    title: "먼저, 어떻게 불러드리면 될까요?",
+    desc: "편하게 사용할 이름이면 됩니다.",
+    render: () => {
+      const current = document.querySelector('input[name="name"]')?.value || "";
+      const v = current ? String(current) : "";
+      return `<input type="text" placeholder="이름을 입력해주세요" value="${escapeHtmlAttr(v)}">`;
+    },
+    validate: () => {
+      const v = document.querySelector('.answer-area input').value.trim();
+      if (!v) return false;
+      document.querySelector('input[name="name"]').value = v; // 데이터 유지
+      return true;
+    },
+    display: () => {
+      const v = document.querySelector('input[name="name"]').value?.trim();
+      return v || "";
+    },
+  },
+  {
+    key: "gender",
+    title: "성별을 알려주세요",
+    desc: "성별에 따라 해석 기준이 달라집니다.",
+    render: () => `
+      <div class="select-row">
+        <button type="button" class="select-btn" data-value="남성">남성</button>
+        <button type="button" class="select-btn" data-value="여성">여성</button>
+      </div>
+    `,
+    validate: () => !!document.getElementById('genderInput').value, // 데이터 유지
+    display: () => document.getElementById('genderInput').value || "",
+  },
+  {
+    key: "birthdate",
+    title: "태어난 날을 알려주세요",
+    desc: "YYYYMMDD 형식으로 입력해주세요.",
+    render: () => {
+      const hidden = document.getElementById('birthDateInput')?.value || ""; // YYYY-MM-DD
+      const v = hidden ? String(hidden).replaceAll("-", "") : "";
+      return `<input type="text" maxlength="8" placeholder="예) 19940517" value="${escapeHtmlAttr(v)}">`;
+    },
+    validate: () => {
+      const v = document.querySelector('.answer-area input').value.trim();
+      if (!v || !/^\d{8}$/.test(v)) return false;
+      const formatted = `${v.slice(0, 4)}-${v.slice(4, 6)}-${v.slice(6, 8)}`;
+      document.getElementById('birthDateInput').value = formatted; // 데이터 유지
+      return true;
+    },
+    display: () => {
+      const hidden = document.getElementById('birthDateInput')?.value || "";
+      if (!hidden) return "";
+      // 보기좋게 YYYY.MM.DD
+      return hidden.replaceAll("-", ".");
+    },
+  },
+  {
+    key: "birthTime",
+    title: "태어난 시를 알고 계신가요?",
+    desc: "모르셔도 괜찮습니다.",
+    render: () => `
+      <select name="birthTime">
+        <option value="unknown">모름</option>
+        <option value="00">조자 (00:00~01:29)</option>
+        <option value="02">축 (01:30~03:29)</option>
+        <option value="04">인 (03:30~05:29)</option>
+        <option value="06">묘 (05:30~07:29)</option>
+        <option value="08">진 (07:30~09:29)</option>
+        <option value="10">사 (09:30~11:29)</option>
+        <option value="12">오 (11:30~13:29)</option>
+        <option value="14">미 (13:30~15:29)</option>
+        <option value="16">신 (15:30~17:29)</option>
+        <option value="18">유 (17:30~19:29)</option>
+        <option value="20">술 (19:30~21:29)</option>
+        <option value="22">해 (21:30~23:29)</option>
+        <option value="24">야자 (23:30~23:59)</option>
+      </select>
+    `,
+    validate: () => true,
+    display: () => {
+      const sel = document.querySelector('.answer-area select');
+      if (!sel) return "";
+      const opt = sel.options[sel.selectedIndex];
+      return opt ? opt.textContent.trim() : "";
     }
+  },
+];
 
-    // STEP 1 : 성별
-    if (step === 1) {
-      if (!$("#genderInput").val()) {
-        shake(document.querySelector(".input-area"));
-        return false;
-      }
-    }
+let stepIndex = 0;
+const qTitle = document.querySelector('.q-title');
+const qDesc = document.querySelector('.q-desc');
+const answerArea = document.querySelector('.answer-area');
+const historyEl = document.getElementById('history');
+const nextBtn = document.getElementById('nextBtn');
+const backBtn = document.getElementById('backBtn');
 
-    // STEP 2 : 생년월일
-    if (step === 2) {
-      const birthdate = $("input[name='birthdate']").val()?.trim();
-      if (!/^\d{8}$/.test(birthdate)) {
-        const input = document.querySelector("input[name='birthdate']");
-        shake(input);
-        input.focus();
-        return false;
-      }
-    }
+function escapeHtmlAttr(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
 
-    // STEP 3 : 태어난 시 → 모름(99)도 허용
-    return true;
-  }
+function appendHistoryItem(stepIdx) {
+  const step = steps[stepIdx];
+  const answer = step.display ? step.display() : "";
+  if (!answer) return;
 
-  /* ===== SHAKE EFFECT ===== */
-  function shake(target) {
-    target.animate(
-      [
-        { transform: "translateX(0)" },
-        { transform: "translateX(-6px)" },
-        { transform: "translateX(6px)" },
-        { transform: "translateX(0)" }
-      ],
-      { duration: 300 }
-    );
-  }
+  // 기존 히스토리를 모두 dim 처리
+  historyEl.querySelectorAll('.history-item').forEach(el => el.classList.add('dim'));
 
-  /* ===== NEXT BUTTON ===== */
-  document.getElementById("nextBtn").onclick = () => {
-    if (!validateStep()) return;
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  item.dataset.stepIndex = String(stepIdx);
+  item.innerHTML = `
+    <p class="history-q">${escapeHtmlAttr(step.title)}</p>
+    <p class="history-a"><b>${escapeHtmlAttr(answer)}</b></p>
+  `;
+  historyEl.appendChild(item);
+}
 
-    if (step < steps.length - 1) {
-      step++;
-      showStep();
-    } else {
-      submitTightForm();
-    }
-  };
+function removeLastHistoryItem() {
+  const items = historyEl.querySelectorAll('.history-item');
+  const last = items[items.length - 1];
+  if (last) last.remove();
 
-  /* ===== GENDER SELECT ===== */
-  $(".choice-btn").on("click", function () {
-    $(".choice-btn").removeClass("active");
-    $(this).addClass("active");
-    $("#genderInput").val($(this).data("gender"));
+  // 마지막만 dim 해제
+  const after = historyEl.querySelectorAll('.history-item');
+  after.forEach(el => el.classList.add('dim'));
+  const newLast = after[after.length - 1];
+  if (newLast) newLast.classList.remove('dim');
+}
+
+function renderStep() {
+  const step = steps[stepIndex];
+  qTitle.textContent = step.title;
+  qDesc.textContent = step.desc || '';
+  answerArea.innerHTML = step.render();
+  backBtn.style.display = stepIndex === 0 ? 'none' : 'block';
+
+  // 현재 스텝 내부의 버튼만 바인딩
+  answerArea.querySelectorAll('.select-btn').forEach(btn => {
+    btn.onclick = () => {
+      answerArea.querySelectorAll('.select-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('genderInput').value = btn.dataset.value;
+    };
   });
 
-  /* ===== BIRTH TYPE ===== */
-  $("#birthTypeInputSelect").on("change", function () {
-    $("#birthTypeInput").val(this.value);
-  }).trigger("change");
+  // gender는 기존 선택값이 있으면 active 복원
+  if (step.key === "gender") {
+    const current = document.getElementById('genderInput').value;
+    if (current) {
+      answerArea.querySelectorAll('.select-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === current);
+      });
+    }
+  }
 
-  /* ===== SUBMIT (기존 로직 유지) ===== */
-  function submitTightForm() {
-    const data = {
-      name: $("input[name='name']").val()?.trim(),
-      gender: $("#genderInput").val(),
-      birthdate: $("input[name='birthdate']").val()?.trim(),
-      birthTime: $("select[name='birthTime']").val(),
-      birthType: $("#birthTypeInput").val(),
-      goodsType: "2",
-      ticket: ticketCode // 👈 이 줄만 추가 (상단에 선언된 ticketCode 변수 활용) // 🔥 [추가] 로맨틱 사주 상품 번호를 명시합니다.
+  nextBtn.textContent = stepIndex === steps.length - 1 ? '기록을 시작합니다' : '다음으로';
+}
 
-    };
+nextBtn.onclick = () => {
+  if (!steps[stepIndex].validate()) {
+    alert('값을 입력해주세요.');
+    return;
+  }
 
-    if (!data.name || !data.gender || !/^\d{8}$/.test(data.birthdate)) {
+  if (stepIndex < steps.length - 1) {
+    appendHistoryItem(stepIndex);
+    stepIndex++;
+    renderStep();
+  } else {
+    // 마지막 스텝 답변도 히스토리에 남기고 제출
+    appendHistoryItem(stepIndex);
+    const form = document.getElementById('sajuForm');
+    const nameValue = document.querySelector('input[name="name"]').value;
+$(form).find('input[name="goodsType"]').remove();
+    $('<input>').attr({type: 'hidden', name: 'goodsType', value: '1'}).appendTo(form);
+    // 1. 관리자/테스트 치트키 로직 (데이터 유지 제출)
+    if (nameValue === "관리자" || nameValue === "테스트") {
+      form.action = "/saju/skip-payment";
+      form.submit();
       return;
     }
 
-    if (data.name === "관리자") {
-  const $form = $("#sajuForm");
+    // 2. 🔥 티켓 번호가 있는 경우: 결과 페이지로 직접 데이터 전송
+// 3. 🔥 티켓 번호가 있는 경우 처리
+    if (ticketCode) {
+      $(form).find('input[name="ticket"]').remove(); // 중복 방지
+      $('<input>').attr({type: 'hidden', name: 'ticket', value: ticketCode}).appendTo(form);
 
-  // 🔥 이 두 줄이 없으면 무조건 다시 터짐
-  $form.find('input[name="userInfo"]').remove();
-  $form.find('input[name="sample"]').remove();
-$form.find('input[name="goodsType"]').remove(); // 기존꺼 중복 방지 삭제
-  
-  $form.attr("action", "/saju/skip-payment");
+      // action 주소 변경 (서버가 티켓을 인지하도록)
+      form.action = `/saju/romantic/result?ticket=${ticketCode}`;
+    }
 
-  $('<input>', {
-    type: 'hidden',
-    name: 'userInfo',
-    value: JSON.stringify(data)
-  }).appendTo($form);
-
-  $('<input>', {
-    type: 'hidden',
-    name: 'sample',
-    value: '{}'
-  }).appendTo($form);
-  $('<input>').attr({type: 'hidden', name: 'goodsType', value: '2'}).appendTo($form);
-  $form[0].submit();
-  return;
-}
-if (ticketCode) {
-    const $form = $("#sajuForm");
-    $form.find('input[name="ticket"]').remove(); 
-    $form.find('input[name="goodsType"]').remove();
-
-    $('<input>', { type: 'hidden', name: 'ticket', value: ticketCode }).appendTo($form);
-    $('<input>', { type: 'hidden', name: 'goodsType', value: '2' }).appendTo($form);
-
-    $form.attr("action", "/saju/romantic/result?ticket=" + ticketCode);
+    // 로딩 오버레이 3초 후 제출
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    setTimeout(() => form.submit(), 3000);
   }
-  document.getElementById("sajuForm").submit();
+};
 
+renderStep();
+backBtn.onclick = () => {
+  if (stepIndex > 0) {
+    removeLastHistoryItem();
+    stepIndex--;
+    renderStep();
   }
- // 엔터로 다음 스텝
-document.addEventListener("keydown", function (e) {
-  if (e.key === "Enter") {
-    const activeStep = document.querySelector(".step.active");
-
-    // select 열려있을 땐 막기
-    if (document.activeElement.tagName === "SELECT") return;
-
-    e.preventDefault();
-    document.getElementById("nextBtn").click();
-  }
-});
-
+};
 </script>
 
 </body>

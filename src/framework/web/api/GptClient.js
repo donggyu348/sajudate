@@ -1,4 +1,3 @@
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 class GptClient {
@@ -7,7 +6,8 @@ class GptClient {
    * 최대 3회까지 재시도 (기본 1회 + 실패시 2회)
    */
   async callChatGpt(messages, model = 'gpt-4o') {
-    if (!OPENAI_API_KEY) {
+    const openAiApiKey = process.env.OPENAI_API_KEY;
+    if (!openAiApiKey) {
       throw new Error('환경변수 OPENAI_API_KEY가 설정되지 않았습니다. .env에 설정 후 서버를 재시작하세요.');
     }
 
@@ -20,7 +20,7 @@ class GptClient {
         const response = await fetch(OPENAI_API_URL, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Authorization': `Bearer ${openAiApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -35,6 +35,10 @@ class GptClient {
 
         if (!response.ok) {
           const errorText = await response.text();
+          // 인증 오류는 재시도해도 해결되지 않으므로 즉시 실패 처리합니다.
+          if (response.status === 401) {
+            throw new Error(`OpenAI API 호출 실패(401): ${errorText}`);
+          }
           throw new Error(`OpenAI API 호출 실패: ${errorText}`);
         }
 
@@ -44,6 +48,11 @@ class GptClient {
       } catch (err) {
         lastError = err;
         console.error(`[GPT ERROR] 시도 ${attempt + 1}회 실패:`, err.message);
+
+        // 인증 실패(401)는 재시도 의미가 없음
+        if (String(err.message || "").includes("OpenAI API 호출 실패(401)")) {
+          throw lastError;
+        }
 
         // 마지막 시도라면 바로 throw
         if (attempt === MAX_RETRIES) {

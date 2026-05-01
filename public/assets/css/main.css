@@ -9151,10 +9151,6 @@ button,
   left: 1rem
 }
 
-.left-\[10\%\] {
-  left: 10%
-}
-
 .left-\[12\%\] {
   left: 12%
 }
@@ -9281,10 +9277,6 @@ button,
 
 .top-\[14\.7\%\] {
   top: 14.7%
-}
-
-.top-\[24\%\] {
-  top: 24%
 }
 
 .top-\[28\%\] {
@@ -9511,6 +9503,11 @@ button,
   margin: 2.5rem
 }
 
+.mx-5 {
+  margin-left: 1.25rem;
+  margin-right: 1.25rem
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto
@@ -9528,10 +9525,6 @@ button,
 
 .-mr-3 {
   margin-right: -0.75rem
-}
-
-.mb-10 {
-  margin-bottom: 2.5rem
 }
 
 .mb-2 {
@@ -9566,20 +9559,12 @@ button,
   margin-left: 1rem
 }
 
-.ml-8 {
-  margin-left: 2rem
-}
-
 .ml-auto {
   margin-left: auto
 }
 
 .mr-2 {
   margin-right: 0.5rem
-}
-
-.mr-8 {
-  margin-right: 2rem
 }
 
 .mt-0 {
@@ -9624,6 +9609,10 @@ button,
 
 .mt-4 {
   margin-top: 1rem
+}
+
+.mt-5 {
+  margin-top: 1.25rem
 }
 
 .mt-6 {
@@ -9750,6 +9739,10 @@ button,
 
 .list-item {
   display: list-item
+}
+
+.\!hidden {
+  display: none !important
 }
 
 .hidden {
@@ -9883,10 +9876,6 @@ button,
   width: 25%
 }
 
-.w-10 {
-  width: 2.5rem
-}
-
 .w-12 {
   width: 3rem
 }
@@ -9965,14 +9954,6 @@ button,
 
 .w-\[75\%\] {
   width: 75%
-}
-
-.w-\[80\%\] {
-  width: 80%
-}
-
-.w-\[80px\] {
-  width: 80px
 }
 
 .w-\[this-is\\\\\] {
@@ -10062,6 +10043,10 @@ button,
 
 .shrink {
   flex-shrink: 1
+}
+
+.shrink-0 {
+  flex-shrink: 0
 }
 
 .flex-grow {
@@ -10417,6 +10402,10 @@ button,
   grid-template-columns: repeat(2, minmax(0, 1fr))
 }
 
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr))
+}
+
 .flex-row {
   flex-direction: row
 }
@@ -10663,12 +10652,6 @@ button,
   --tw-space-y-reverse: 0;
   margin-top: calc(2.5rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(2.5rem * var(--tw-space-y-reverse))
-}
-
-.space-y-16 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-y-reverse: 0;
-  margin-top: calc(4rem * calc(1 - var(--tw-space-y-reverse)));
-  margin-bottom: calc(4rem * var(--tw-space-y-reverse))
 }
 
 .space-y-2 > :not([hidden]) ~ :not([hidden]) {
@@ -11220,6 +11203,11 @@ button,
   border-color: rgb(244 114 182 / var(--tw-border-opacity))
 }
 
+.border-red-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(254 202 202 / var(--tw-border-opacity))
+}
+
 .border-rose-400\/20 {
   border-color: rgb(251 113 133 / 0.2)
 }
@@ -11230,11 +11218,6 @@ button,
 
 .border-violet-400\/20 {
   border-color: rgb(167 139 250 / 0.2)
-}
-
-.border-white {
-  --tw-border-opacity: 1;
-  border-color: rgb(255 255 255 / var(--tw-border-opacity))
 }
 
 .border-white\/10 {
@@ -11362,6 +11345,11 @@ button,
 
 .bg-pink-50\/30 {
   background-color: rgb(253 242 248 / 0.3)
+}
+
+.bg-red-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 242 242 / var(--tw-bg-opacity))
 }
 
 .bg-red-600 {
@@ -11645,6 +11633,11 @@ button,
   padding: 2rem
 }
 
+.px-0 {
+  padding-left: 0px;
+  padding-right: 0px
+}
+
 .px-1 {
   padding-left: 0.25rem;
   padding-right: 0.25rem
@@ -11725,6 +11718,11 @@ button,
   padding-bottom: 1rem
 }
 
+.py-5 {
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem
+}
+
 .pb-10 {
   padding-bottom: 2.5rem
 }
@@ -11745,6 +11743,10 @@ button,
   padding-bottom: 6rem
 }
 
+.pb-28 {
+  padding-bottom: 7rem
+}
+
 .pb-32 {
   padding-bottom: 8rem
 }
@@ -11759,10 +11761,6 @@ button,
 
 .pb-6 {
   padding-bottom: 1.5rem
-}
-
-.pb-\[calc\(env\(safe-area-inset-bottom\)\+16px\)\] {
-  padding-bottom: calc(env(safe-area-inset-bottom) + 16px)
 }
 
 .pb-\[env\(safe-area-inset-bottom\)\] {
@@ -11807,6 +11805,10 @@ button,
 
 .pt-4 {
   padding-top: 1rem
+}
+
+.pt-5 {
+  padding-top: 1.25rem
 }
 
 .pt-6 {
@@ -11881,6 +11883,10 @@ button,
   font-family: ChosunKm, serif
 }
 
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace
+}
+
 .font-pretendard-bold {
   font-family: Pretendard-Bold, sans-serif
 }
@@ -11943,10 +11949,6 @@ button,
   font-size: 26px
 }
 
-.text-\[clamp\(10px\2c 2vw\2c 14px\)\] {
-  font-size: clamp(10px,2vw,14px)
-}
-
 .text-\[clamp\(18px\2c 4\.5vw\2c 20px\)\] {
   font-size: clamp(18px,4.5vw,20px)
 }
@@ -11974,6 +11976,10 @@ button,
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem
+}
+
+.font-black {
+  font-weight: 900
 }
 
 .font-bold {
@@ -12075,6 +12081,14 @@ button,
 
 .leading-5 {
   line-height: 1.25rem
+}
+
+.leading-6 {
+  line-height: 1.5rem
+}
+
+.leading-7 {
+  line-height: 1.75rem
 }
 
 .leading-relaxed {
@@ -12224,6 +12238,15 @@ button,
 .text-red-500 {
   --tw-text-opacity: 1;
   color: rgb(239 68 68 / var(--tw-text-opacity))
+}
+
+.text-red-700 {
+  --tw-text-opacity: 1;
+  color: rgb(185 28 28 / var(--tw-text-opacity))
+}
+
+.text-red-700\/80 {
+  color: rgb(185 28 28 / 0.8)
 }
 
 .text-rose-200 {
@@ -12545,6 +12568,18 @@ button,
 .ring {
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
   --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)
+}
+
+.ring-1 {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)
+}
+
+.ring-2 {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)
 }
 

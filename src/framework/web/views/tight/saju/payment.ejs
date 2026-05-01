@@ -6,7 +6,13 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
 
-<body class="bg-gray-100">
+<body
+  class="bg-gray-100"
+  data-toss-client-key="<%= typeof tossClientKey !== 'undefined' ? tossClientKey : '' %>"
+  data-goods-code="<%= goodsInfo.code %>"
+  data-goods-title="<%= goodsInfo.title %>"
+  data-report-history-id="<%= reportHistoryId %>"
+>
 
     <div class="w-full max-w-[480px] mx-auto">
         <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
@@ -139,8 +145,11 @@
                     </div>
 
                     <div class="mt-8 space-y-3">
-                        <button onclick="requestTossCardPayment()" class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center" style="background-color: #0064ff;">
-                            <span style="color: white;">카드 결제 (신용/체크)</span>
+                        <div id="payment-method" class="rounded-xl bg-white border border-gray-200 p-4"></div>
+                        <div id="agreement" class="rounded-xl bg-white border border-gray-200 p-4"></div>
+
+                        <button onclick="requestTossWidgetPayment()" class="w-full text-white text-lg font-bold py-3 rounded shadow flex items-center justify-center" style="background-color: #0064ff;">
+                            <span style="color: white;">결제하기</span>
                         </button>
                     </div>
                 </div>
@@ -212,14 +221,18 @@
 
     </style>
 
+    <script id="goods-type-map" type="application/json"><%- JSON.stringify(goodsTypeMap) %></script>
     <script>
-        const GOODS_MAP = <%- JSON.stringify(goodsTypeMap) %>;
-        let finalGoodsCode = "<%= goodsInfo.code %>";
-        const goodsNameBase = "<%= goodsInfo.title %>";
-        const reportHistoryId = "<%= reportHistoryId %>";
+        const GOODS_MAP = JSON.parse(document.getElementById("goods-type-map").textContent || "{}");
+        let finalGoodsCode = document.body?.dataset?.goodsCode || "";
+        const goodsNameBase = document.body?.dataset?.goodsTitle || "";
+        const reportHistoryId = document.body?.dataset?.reportHistoryId || "";
 
-        const tossPayments = TossPayments("live_ck_yZqmkKeP8gB9OlXz5ggnrbQRxB9l");
-        const payment = tossPayments.payment({ customerKey: "USER_" + reportHistoryId });
+        const tossClientKey = document.body?.dataset?.tossClientKey || "";
+        const customerKey = "USER_" + reportHistoryId;
+        let widgets = null;
+        let paymentMethodsWidget = null;
+        let agreementWidget = null;
 
         function selectOption(type) {
             const singleCard = document.getElementById('card-single');
@@ -245,11 +258,11 @@ if (type === 'bundle' && notice) {
 
 if (type === 'single') {
     singleCard.classList.add('is-selected'); // 테두리 생기게 함
-    finalGoodsCode = "<%= goodsInfo.code %>"; // CLASSIC 또는 ROMANTIC
+    finalGoodsCode = document.body?.dataset?.goodsCode || ""; // CLASSIC 또는 ROMANTIC
 } else if (type === 'bundle') {
     bundleCard.classList.add('is-selected'); // 테두리 생기게 함
     // 현재 페이지 상품이 CLASSIC이면 CLASSIC_BUNDLE, ROMANTIC이면 ROMANTIC_BUNDLE이 됨
-    finalGoodsCode = "<%= goodsInfo.code %>" + "_BUNDLE"; 
+    finalGoodsCode = (document.body?.dataset?.goodsCode || "") + "_BUNDLE"; 
 }
 if (type === 'bundle') {
   if (bundleHighlight) bundleHighlight.style.display = "block";
@@ -272,9 +285,17 @@ if (type === 'bundle') {
                     dDiscountRow.classList.add('hidden');
                 }
             }
+
+            // 결제위젯 금액도 즉시 반영 (서버에서 테스트번호면 최종 금액이 바뀔 수 있어, 결제 직전 다시 updateAmount도 수행)
+            try {
+                const nextAmount = GOODS_MAP?.[finalGoodsCode]?.price;
+                if (widgets && typeof nextAmount === "number") {
+                    widgets.setAmount({ currency: "KRW", value: nextAmount });
+                }
+            } catch (e) {}
         }
 
-        async function requestTossCardPayment() {
+        async function requestTossWidgetPayment() {
             const telF = document.querySelector("input[name='buyerTelF']").value.trim();
             const telB = document.querySelector("input[name='buyerTelB']").value.trim();
             const pw = document.querySelector("input[name='buyerPW']").value.trim();
@@ -298,16 +319,26 @@ console.log(" [FRONT] 전송 데이터 확인:", {
                 if (response.data.code !== 200) throw new Error(response.data.message);
 
                 const { shopOrderNo, amount } = response.data.data;
-                await payment.requestPayment({
-                    method: "CARD",
-                    amount: { currency: "KRW", value: amount },
+
+                if (!widgets) {
+                    alert("결제 위젯 초기화에 실패했습니다. 잠시 후 다시 시도해주세요.");
+                    return;
+                }
+
+                // 서버에서 테스트 금액(1원) 등으로 바뀌었을 수 있어, 최종 금액을 위젯에 동기화
+                try { await widgets.setAmount({ currency: "KRW", value: amount }); } catch (e) {}
+
+                const successUrl = window.location.origin + "/api/payments/callback-toss" +
+                    `?tel=${encodeURIComponent(fullTel)}` +
+                    `&pw=${encodeURIComponent(pw)}` +
+                    `&historyId=${encodeURIComponent(reportHistoryId)}` +
+                    `&goodsType=${encodeURIComponent(finalGoodsCode)}`;
+
+                await widgets.requestPayment({
                     orderId: shopOrderNo,
                     orderName: GOODS_MAP[finalGoodsCode].title,
-        successUrl: window.location.origin + "/api/payments/callback-toss" + 
-                        `?tel=${fullTel}&pw=${pw}&historyId=${reportHistoryId}&goodsType=${finalGoodsCode}`,
-                    failUrl: window.location.origin + "/saju/payment?error=fail",
-                    customerMobilePhone: fullTel,
-                    card: { flowMode: "DEFAULT", useCardPoint: false }
+                    successUrl,
+                    failUrl: window.location.origin + "/saju/payment_fail?shopOrderNo=" + encodeURIComponent(shopOrderNo),
                 });
             } catch (error) {
                 alert("결제 준비 중 오류가 발생했습니다.");
@@ -319,6 +350,31 @@ console.log(" [FRONT] 전송 데이터 확인:", {
   if (bundleCard) {
     selectOption("bundle");
   }
+
+  if (!tossClientKey) {
+    console.error("[TossPayments] clientKey가 설정되지 않았습니다. (tossClientKey)");
+    return;
+  }
+
+  (async () => {
+    try {
+      const tossPayments = TossPayments(tossClientKey); // 결제위젯 연동 키
+      widgets = tossPayments.widgets({ customerKey });
+
+      const initialAmount = GOODS_MAP?.[finalGoodsCode]?.price ?? 0;
+      await widgets.setAmount({ currency: "KRW", value: initialAmount });
+
+      paymentMethodsWidget = await widgets.renderPaymentMethods({
+        selector: "#payment-method",
+      });
+
+      agreementWidget = await widgets.renderAgreement({
+        selector: "#agreement",
+      });
+    } catch (e) {
+      console.error("[TossPayments] 결제위젯 초기화 실패:", e);
+    }
+  })();
 });
     </script>
 </body>

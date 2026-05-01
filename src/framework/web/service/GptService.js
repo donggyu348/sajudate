@@ -2,6 +2,7 @@ import GptClient from "../api/GptClient.js";
 import { GoodsType } from "../enums/Goods.js";
 import crypto from "crypto";
 import { getFourPillars } from "./sajuCalService.js";
+import { buildAdultReportFromTemplates } from "./adultReportTemplates.js";
 import { Solar } from "lunar-javascript";
 import { toHanja } from "./toHanja.js";
 
@@ -3257,6 +3258,128 @@ function extractRomanticChapterTitleFromPrompt(promptStr) {
   return null;
 }
 
+const ADULT_REPORT_PROMPT_PREFIX = `
+너는 사주(오행/천간지지/계절성/균형/흐름)를 바탕으로 '성인용(29+) 관계 리포트'를 쓰는 분석가다.
+
+말투/스타일(통일):
+- 문체는 반드시 "~합니다/됩니다"의 단정한 보고서 톤으로 통일한다. ("~해요"체, 반말, 이모지 금지)
+- 문장은 짧게. 핵심부터 말한다. 군더더기 수식 최소화.
+- 감성 연애칼럼 톤(설렘/썸/힐링/로맨틱/행복 등) 금지. 점괘·운명론 과장 금지.
+
+핵심 톤:
+- 돌려 말하지 말고, 직설적으로 핵심을 말하라. (단, 아래 금지 항목은 절대 넘지 말 것)
+- 분위기는 관능적이고 대담하지만, 표현은 비노골적이어야 한다.
+- 심리/거리감/긴장/주도권/성적 끌림/선호/경계/합의 같은 '관계의 결'을 중심으로 쓴다.
+
+엄격 금지:
+- 노골적인 성행위 묘사, 자세(체위) 나열, 도구/행위의 직접적 지시, 포르노그래피 수준의 디테일.
+- 강요/비동의/폭력 미화, 특정 개인/집단 혐오/모욕.
+
+표현 가이드:
+- "무드" 같은 간접 표현만 남발하지 말고, 독자가 바로 이해할 단어로 말하라.
+- 성적 끌림/성적 긴장/욕구/선호/경계/합의 같은 단어는 사용 가능하다. (디테일한 행위 묘사는 금지)
+- 너무 과장된 단정/확언은 피하되, 문장은 짧게 끊어 가독성을 높여라.
+
+주제 고정(연애사주화 방지):
+- "연애운/결혼운/썸/소개팅/재회/연락/카톡" 같은 소재로 흐르지 말고, 오직 '성적 친밀감'과 '관계의 긴장감/주도권/경계'에 집중한다.
+- 상대를 조종/중독시키는 표현은 금지한다. 대신 합의와 존중을 전제로, 성숙한 관계에서 통하는 커뮤니케이션/페이스 조절을 제안한다.
+
+사실성:
+- SAJU_JSON에 없는 구체적 사실(직업/사건/경험/특정 행동)을 지어내지 말 것.
+- 전문용어(십신/격국 등) 남발 금지. 필요하면 쉬운 말로 1회만 풀어쓴다.
+
+출력:
+- 반드시 JSON 하나만 출력. 코드펜스/설명문/머리말/꼬리말 금지.
+
+[출력 형식(고정)]
+{
+  "chapter": "아래 지정된 장 제목과 완전히 동일",
+  "sections": [
+    { "title": "아래 지정된 소제목과 완전히 동일", "content": "최소 5문단, 문단당 2~4문장. 줄바꿈 포함." }
+  ]
+}
+
+공통 작성 규칙:
+- sections는 반드시 '지정된 순서대로, 누락 없이' 출력.
+- 각 섹션은 (1) 사주 근거 → (2) 관계에서 드러나는 패턴 → (3) 실전 조언(말/거리/분위기 연출) 순으로 구성.
+`.trim();
+
+const ADULT_REPORT_PROMPT_PARTS = [
+  `${ADULT_REPORT_PROMPT_PREFIX}
+1장. 그 사람의 성적 친밀감 리듬
+
+섹션 제목(순서 고정):
+- 본능의 결: 사주가 말하는 욕망의 방향과 에너지 밀도.
+- 친밀감의 언어: 스킨십/애정표현/거리 조절에서 드러나는 취향.
+- 주도권의 온도: 리드하는 방식과 흔들리는 순간의 패턴.
+- 경계선과 스위치: 켜지는 순간/꺼지는 순간(거절감/흥미)의 조건.
+
+chapter는 반드시 다음과 같이:
+"1장. 그 사람의 성적 친밀감 리듬"
+`,
+
+  `${ADULT_REPORT_PROMPT_PREFIX}
+2장. 당신을 향한 성적 끌림의 온도
+
+섹션 제목(순서 고정):
+- 아우라의 각인: 상대의 머릿속에 남는 당신의 이미지와 무드.
+- 트리거 포인트: 상대가 특히 반응하기 쉬운 분위기/태도/대화의 키.
+- 유혹의 도파민: '쉽지 않아서 더 끌리는' 매력의 작동 방식.
+- 분위기 추천: 과하지 않게 긴장감을 올리는 데이트/공간/동선 제안.
+
+chapter는 반드시 다음과 같이:
+"2장. 당신을 향한 성적 끌림의 온도"
+`,
+
+  `${ADULT_REPORT_PROMPT_PREFIX}
+3장. 합(合): 케미와 긴장감의 밀도
+
+섹션 제목(순서 고정):
+- 싱크로율: 함께 있을 때 '맞는다'고 느끼는 지점(오행의 조화).
+- 베스트 무드: 우리 둘이 가장 자연스럽게 가까워지는 상황 3가지(장면/대화/흐름 중심).
+- 유효기간과 유지법: 불꽃으로 끝나지 않게 하는 감정선/루틴/애프터케어.
+
+chapter는 반드시 다음과 같이:
+"3장. 합(合): 케미와 긴장감의 밀도"
+`,
+
+  `${ADULT_REPORT_PROMPT_PREFIX}
+4장. 마음을 흔드는 29+ 공략법(직설 버전)
+
+섹션 제목(순서 고정):
+- 치명적인 유혹: 상대가 자꾸 생각나게 만드는 말/리듬/여백.
+- 주도권의 설계: 힘겨루기 대신 자연스럽게 리드하는 흐름 만들기.
+- 집착의 스위치: 과하지 않게 소유욕을 건드리는 타이밍과 장치.
+
+chapter는 반드시 다음과 같이:
+"4장. 마음을 흔드는 29+ 공략법(직설 버전)"
+`,
+
+  `${ADULT_REPORT_PROMPT_PREFIX}
+5장. 당신 안의 은밀한 결
+
+섹션 제목(순서 고정):
+- switch on: 욕망이 켜지는 결정적 순간과 조건.
+- 은밀한 취향: 남에게는 말하지 않는 선호/금기의 방향(비노골적).
+- 해방과 균형: 억눌림이 매력이 되지 않게, 건강하게 풀어내는 법.
+
+chapter는 반드시 다음과 같이:
+"5장. 당신 안의 은밀한 결"
+`,
+
+  `${ADULT_REPORT_PROMPT_PREFIX}
+6장. 깊어지는 인연의 조건
+
+섹션 제목(순서 고정):
+- 최적의 파트너: 당신의 리듬을 존중하고 맞춰주는 상대의 특징.
+- 조우의 타이밍: 강하게 끌리는 인연이 들어오는 시기/흐름(연도 기준).
+- 첫인상 시그널: 한 번에 통하는 사람을 알아보는 포인트(분위기/태도 중심).
+
+chapter는 반드시 다음과 같이:
+"6장. 깊어지는 인연의 조건"
+`,
+];
+
 
 
 /**
@@ -3274,6 +3397,8 @@ let promtParts;
         promtParts = CLASSIC_REPORT_PROMPT_PARTS;
     } else if (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE") {
         promtParts = ROMANTIC_REPORT_PROMPT_PARTS;
+    } else if (gCode === "ADULT" || gCode === "ADULT_BUNDLE") {
+        promtParts = ADULT_REPORT_PROMPT_PARTS;
     } else if (gCode === "PREMIUM_SAJU") {
         promtParts = PREMIUM_REPORT_PROMPT_PARTS;
     } else {
@@ -3283,6 +3408,11 @@ let promtParts;
     try {
       // ✅ 1) 사주 계산 (새 로직 적용)
       const pillars = getFourPillars(userInfo);
+
+      // ✅ ADULT: GPT 생성 대신 텍스트 매칭/조립(1장 1절부터 순차 적용)
+      if (gCode === "ADULT" || gCode === "ADULT_BUNDLE") {
+        return buildAdultReportFromTemplates({ userInfo, pillars });
+      }
 
       // ✅ 1.5) GPT에게 보낼 SAJU_JSON 구조 생성 (callSample 로직 참고)
       const fixedUser = { ...userInfo, birthDate: userInfo.birthDate || userInfo.birthdate };

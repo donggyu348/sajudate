@@ -1,8 +1,12 @@
 import axios from "axios";
 
-// 시크릿 키 (상점 관리자에서 발급받은 실제 키 사용)
-const SECRET_KEY = "live_sk_4yKeq5bgrpekleJXRl1J8GX0lzW6"; 
-const ENCODED_KEY = Buffer.from(SECRET_KEY + ":").toString("base64");
+function getEncodedSecretKey() {
+  const secretKey = process.env.TOSS_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("TOSS_SECRET_KEY is not set");
+  }
+  return Buffer.from(secretKey + ":").toString("base64");
+}
 
 class TossPaymentsClient {
   async confirmPayment(payload) {
@@ -10,6 +14,7 @@ class TossPaymentsClient {
     const url = "https://api.tosspayments.com/v1/payments/confirm";
 
     try {
+      const ENCODED_KEY = getEncodedSecretKey();
       const response = await axios.post(
         url,
         { paymentKey, orderId, amount },

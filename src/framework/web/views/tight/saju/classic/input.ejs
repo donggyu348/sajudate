@@ -3,24 +3,38 @@
 <%- include('./../../common/header') %>
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  background: linear-gradient(
-    180deg,
-    rgba(0,0,0,0.55) 0%,
-    rgba(0,0,0,0.35) 40%,
-    rgba(0,0,0,0.55) 100%
-  );
-}
+  :root {
+    --wine-0: #0b0004;
+    --wine-1: #170008;
+    --wine-2: #2a0012;
+    --ruby: #c60f5a;
+    --gold: #e6c38a;
+    --ink: rgba(255,255,255,0.92);
+    --ink-dim: rgba(255,255,255,0.64);
+    --line: rgba(255,255,255,0.14);
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #000;
+  }
+
+  body {
+    background:
+      radial-gradient(980px 620px at 50% -10%, rgba(198, 15, 90, 0.34), rgba(0,0,0,0) 62%),
+      radial-gradient(760px 520px at 18% 28%, rgba(230, 195, 138, 0.10), rgba(0,0,0,0) 62%),
+      linear-gradient(180deg, var(--wine-2) 0%, var(--wine-1) 56%, var(--wine-0) 100%);
+    color: var(--ink);
+  }
 
 .saju-wrapper {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  transform: translateY(-5%);
+  transform: translateY(-4%);
 }
 
 
@@ -30,7 +44,38 @@ html, body {
   position: relative;
   z-index: 1;
   width: 100%;
-  padding: 48px 24px;
+  padding: 46px 24px;
+}
+
+/* ===== DESKTOP RESPONSIVE ===== */
+@media (min-width: 768px) {
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 16px;
+    background:
+      radial-gradient(1200px 720px at 50% 10%, rgba(198, 15, 90, 0.22), rgba(0,0,0,0) 62%),
+      radial-gradient(900px 520px at 20% 55%, rgba(230, 195, 138, 0.10), rgba(0,0,0,0) 62%),
+      #050006;
+  }
+
+  .saju-wrapper {
+    width: min(520px, 100%);
+    transform: none;
+    align-items: stretch;
+  }
+
+  .question-box {
+    width: 100%;
+    max-width: 520px;
+    border-radius: 24px;
+    background: rgba(0,0,0,0.18);
+    border: 1px solid rgba(255,255,255,0.10);
+    box-shadow: 0 26px 80px rgba(0,0,0,0.55);
+    padding: 44px 28px;
+  }
 }
 
 .question-box::before {
@@ -50,33 +95,77 @@ html, body {
 .q-title {
   font-size: 22px;
   font-weight: 600;
-  color: rgba(255,255,255,0.95);
+  color: rgba(255,255,255,0.96);
   line-height: 1.4;
+  letter-spacing: -0.02em;
 }
 
 .q-desc {
   margin-top: 8px;
   font-size: 14px;
-  color: rgba(255,255,255,0.75);
+  color: var(--ink-dim);
 }
 
 .answer-area {
   margin-top: 40px;
 }
 
+.history {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  padding: 14px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.18);
+  box-shadow: 0 18px 46px rgba(0,0,0,0.30);
+}
+
+.history-item.dim {
+  opacity: 0.58;
+  filter: saturate(0.85);
+}
+
+.history-q {
+  font-size: 13px;
+  color: rgba(255,255,255,0.72);
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+
+.history-a {
+  font-size: 16px;
+  color: rgba(255,255,255,0.92);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.history-a b {
+  font-weight: 900;
+  color: rgba(255,255,255,0.96);
+}
+
 .answer-area input {
   width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 1.5px solid rgba(255,255,255,0.35);
-  padding: 14px 4px;
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 14px;
+  padding: 14px 14px;
   font-size: 18px;
   color: rgba(255,255,255,0.95);
   outline: none;
+  text-align: center;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
 .answer-area input:focus {
-  border-bottom-color: #5a4633;
+  border-color: rgba(198, 15, 90, 0.90);
+  box-shadow: 0 0 0 5px rgba(198, 15, 90, 0.14);
+  background: rgba(0,0,0,0.28);
 }
 
 .answer-area input::placeholder {
@@ -92,17 +181,21 @@ html, body {
   flex: 1;
   padding: 14px 0;
   border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.25);
-  background: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
   font-size: 16px;
-  color: #2b2b2b;
+  color: rgba(255,255,255,0.86);
+  transition: transform 160ms ease, filter 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
 .select-btn.active {
-  background: #5a4633;
-  color: #fff;
-  border-color: #5a4633;
+  background: rgba(198, 15, 90, 0.20);
+  color: rgba(255,255,255,0.96);
+  border-color: rgba(230, 195, 138, 0.62);
+  box-shadow: 0 0 0 5px rgba(198, 15, 90, 0.10);
 }
+
+.select-btn:active { transform: scale(0.99); }
 .back-btn {
   position: absolute;
   top: 24px;
@@ -111,7 +204,7 @@ html, body {
   border: none;
   padding: 0;
   font-size: 14px;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255,255,255,0.70);
   cursor: pointer;
   z-index: 2;
 }
@@ -123,11 +216,12 @@ html, body {
 .answer-area select {
   width: 100%;
   padding: 14px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.25);
-  background: rgba(255,255,255,0.4);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.22);
   font-size: 16px;
-  color: #2b2b2b;
+  color: rgba(255,255,255,0.90);
+  outline: none;
 }
 
 .next-btn {
@@ -136,12 +230,20 @@ html, body {
   padding: 16px 0;
   border-radius: 999px;
   border: none;
-  background: #F5EFE6;
+  background:
+    radial-gradient(420px 140px at 50% 0%, rgba(255,255,255,0.12), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, rgba(198, 15, 90, 0.40) 0%, rgba(90, 0, 40, 0.55) 55%, rgba(20, 0, 10, 0.65) 100%);
+  border: 1px solid rgba(230, 195, 138, 0.72);
   font-size: 16px;
   font-weight: 600;
-  color: #2A1F24;
+  color: rgba(255,255,255,0.94);
   letter-spacing: -0.2px;
+  box-shadow: 0 18px 46px rgba(0,0,0,0.55);
+  transition: transform 160ms ease, filter 180ms ease, box-shadow 180ms ease;
 }
+
+.next-btn:hover { filter: brightness(1.04); }
+.next-btn:active { transform: translateY(1px); filter: brightness(0.98); }
 
 </style>
 
@@ -166,6 +268,7 @@ html, body {
       <div class="q-desc"></div>
     </div>
 
+    <div class="history" id="history"></div>
     <div class="answer-area"></div>
 
     <button type="button" class="next-btn" id="nextBtn">다음으로</button>
@@ -185,13 +288,21 @@ const steps = [
     key: "name",
     title: "먼저, 어떻게 불러드리면 될까요?",
     desc: "편하게 사용할 이름이면 됩니다.",
-    render: () => `<input type="text" placeholder="이름을 입력해주세요">`,
+    render: () => {
+      const current = document.querySelector('input[name="name"]')?.value || "";
+      const v = current ? String(current) : "";
+      return `<input type="text" placeholder="이름을 입력해주세요" value="${escapeHtmlAttr(v)}">`;
+    },
     validate: () => {
       const v = document.querySelector('.answer-area input').value.trim();
       if (!v) return false;
       document.querySelector('input[name="name"]').value = v; // 데이터 유지
       return true;
-    }
+    },
+    display: () => {
+      const v = document.querySelector('input[name="name"]').value?.trim();
+      return v || "";
+    },
   },
   {
     key: "gender",
@@ -203,20 +314,31 @@ const steps = [
         <button type="button" class="select-btn" data-value="여성">여성</button>
       </div>
     `,
-    validate: () => !!document.getElementById('genderInput').value // 데이터 유지
+    validate: () => !!document.getElementById('genderInput').value, // 데이터 유지
+    display: () => document.getElementById('genderInput').value || "",
   },
   {
     key: "birthdate",
     title: "태어난 날을 알려주세요",
     desc: "YYYYMMDD 형식으로 입력해주세요.",
-    render: () => `<input type="text" maxlength="8" placeholder="예) 19940517">`,
+    render: () => {
+      const hidden = document.getElementById('birthDateInput')?.value || ""; // YYYY-MM-DD
+      const v = hidden ? String(hidden).replaceAll("-", "") : "";
+      return `<input type="text" maxlength="8" placeholder="예) 19940517" value="${escapeHtmlAttr(v)}">`;
+    },
     validate: () => {
       const v = document.querySelector('.answer-area input').value.trim();
       if (!v || !/^\d{8}$/.test(v)) return false;
       const formatted = `${v.slice(0, 4)}-${v.slice(4, 6)}-${v.slice(6, 8)}`;
       document.getElementById('birthDateInput').value = formatted; // 데이터 유지
       return true;
-    }
+    },
+    display: () => {
+      const hidden = document.getElementById('birthDateInput')?.value || "";
+      if (!hidden) return "";
+      // 보기좋게 YYYY.MM.DD
+      return hidden.replaceAll("-", ".");
+    },
   },
   {
     key: "birthTime",
@@ -240,7 +362,13 @@ const steps = [
         <option value="24">야자 (23:30~23:59)</option>
       </select>
     `,
-    validate: () => true
+    validate: () => true,
+    display: () => {
+      const sel = document.querySelector('.answer-area select');
+      if (!sel) return "";
+      const opt = sel.options[sel.selectedIndex];
+      return opt ? opt.textContent.trim() : "";
+    }
   },
 ];
 
@@ -248,8 +376,47 @@ let stepIndex = 0;
 const qTitle = document.querySelector('.q-title');
 const qDesc = document.querySelector('.q-desc');
 const answerArea = document.querySelector('.answer-area');
+const historyEl = document.getElementById('history');
 const nextBtn = document.getElementById('nextBtn');
 const backBtn = document.getElementById('backBtn');
+
+function escapeHtmlAttr(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function appendHistoryItem(stepIdx) {
+  const step = steps[stepIdx];
+  const answer = step.display ? step.display() : "";
+  if (!answer) return;
+
+  // 기존 히스토리를 모두 dim 처리
+  historyEl.querySelectorAll('.history-item').forEach(el => el.classList.add('dim'));
+
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  item.dataset.stepIndex = String(stepIdx);
+  item.innerHTML = `
+    <p class="history-q">${escapeHtmlAttr(step.title)}</p>
+    <p class="history-a"><b>${escapeHtmlAttr(answer)}</b></p>
+  `;
+  historyEl.appendChild(item);
+}
+
+function removeLastHistoryItem() {
+  const items = historyEl.querySelectorAll('.history-item');
+  const last = items[items.length - 1];
+  if (last) last.remove();
+
+  // 마지막만 dim 해제
+  const after = historyEl.querySelectorAll('.history-item');
+  after.forEach(el => el.classList.add('dim'));
+  const newLast = after[after.length - 1];
+  if (newLast) newLast.classList.remove('dim');
+}
 
 function renderStep() {
   const step = steps[stepIndex];
@@ -258,13 +425,24 @@ function renderStep() {
   answerArea.innerHTML = step.render();
   backBtn.style.display = stepIndex === 0 ? 'none' : 'block';
 
-  document.querySelectorAll('.select-btn').forEach(btn => {
+  // 현재 스텝 내부의 버튼만 바인딩
+  answerArea.querySelectorAll('.select-btn').forEach(btn => {
     btn.onclick = () => {
-      document.querySelectorAll('.select-btn').forEach(b => b.classList.remove('active'));
+      answerArea.querySelectorAll('.select-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('genderInput').value = btn.dataset.value;
     };
   });
+
+  // gender는 기존 선택값이 있으면 active 복원
+  if (step.key === "gender") {
+    const current = document.getElementById('genderInput').value;
+    if (current) {
+      answerArea.querySelectorAll('.select-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === current);
+      });
+    }
+  }
 
   nextBtn.textContent = stepIndex === steps.length - 1 ? '기록을 시작합니다' : '다음으로';
 }
@@ -276,9 +454,12 @@ nextBtn.onclick = () => {
   }
 
   if (stepIndex < steps.length - 1) {
+    appendHistoryItem(stepIndex);
     stepIndex++;
     renderStep();
   } else {
+    // 마지막 스텝 답변도 히스토리에 남기고 제출
+    appendHistoryItem(stepIndex);
     const form = document.getElementById('sajuForm');
     const nameValue = document.querySelector('input[name="name"]').value;
 $(form).find('input[name="goodsType"]').remove();
@@ -306,6 +487,7 @@ $(form).find('input[name="goodsType"]').remove();
 renderStep();
 backBtn.onclick = () => {
   if (stepIndex > 0) {
+    removeLastHistoryItem();
     stepIndex--;
     renderStep();
   }

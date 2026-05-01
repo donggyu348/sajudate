@@ -2,115 +2,289 @@
     <html lang="ko">
     <%- include('./../../common/header') %>
 
-    <body>
-        
-    <div class="flex flex-col w-full max-w-[480px] mx-auto">
-        <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
-
-            <%- include('./../../common/common') %>
-
-            <div id="container">
-                <div class="`relative w-full max-w-[448px] mx-auto`">
-                    <img src="/assets/images/tight/classic/sangse1.jpeg" class="w-full h-auto object-cover pb-16" />
-                    <img src="/assets/images/tight/classic/sangse2.jpeg" class="w-full h-auto object-cover pb-16" />
-                    <img src="/assets/images/tight/classic/sangse3.jpeg" class="w-full h-auto object-cover pb-16" />
-                    <img src="/assets/images/tight/classic/sangse4.jpeg" class="w-full h-auto object-cover pb-16" />
-                    <img src="/assets/images/tight/classic/sangse5.jpeg" class="w-full h-auto object-cover pb-16" />
-
-
-                    <div class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-[480px] px-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-  <a href="/saju/classic/input">
-    <button class="saju-btn">
-      <span class="saju-btn-text">내 사주팔자 확인하기</span>
-    </button>
-  </a>
-</div>
-
-
-            </div>
-
-        </div>
-    </div>
-
-    </body>
-    <script>
-    $(document).ready(function(){
-        window.karrotPixel.track('ViewContent');
-    });
-
-        function startCountdown(duration) {
-            let timer = duration, hours, minutes, seconds;
-            setInterval(function () {
-                hours = parseInt(timer / 3600, 10);
-                minutes = parseInt((timer % 3600) / 60, 10);
-                seconds = parseInt(timer % 60, 10);
-
-                hours = hours < 10 ? "0" + hours : hours;
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-
-                document.getElementById('countdown-timer').textContent = hours + ":" + minutes + ":" + seconds;
-
-                if (--timer < 0) {
-                    timer = 0;
-                }
-            }, 1000);
+    <head>
+      <style>
+        :root {
+          --wine-0: #0b0004;
+          --wine-1: #170008;
+          --wine-2: #2a0012;
+          --ruby: #c60f5a;
+          --gold: #e6c38a;
+          --ink: rgba(255,255,255,0.92);
+          --ink-dim: rgba(255,255,255,0.68);
+          --line: rgba(255,255,255,0.12);
+          --hero-top: 46%;
+          --hero-translate-y: -50%;
         }
-        // Start with e.g., 5 minutes countdown
-        window.onload = function () {
-            startCountdown( 4 * 60 * 60);
-        };
+
+        html, body {
+          margin: 0;
+          padding: 0;
+          background-color: #000 !important;
+          height: 100%;
+          width: 100%;
+          overflow: hidden;
+        }
+
+        body {
+          color: var(--ink);
+          background:
+            radial-gradient(900px 520px at 50% -10%, rgba(198, 15, 90, 0.22), rgba(0,0,0,0) 62%),
+            radial-gradient(760px 520px at 18% 28%, rgba(230, 195, 138, 0.10), rgba(0,0,0,0) 62%),
+            linear-gradient(180deg, var(--wine-2) 0%, var(--wine-1) 56%, var(--wine-0) 100%);
+        }
+
+        .frame-wrap {
+          display: flex;
+          justify-content: center;
+          background-color: #000;
+          height: 100%;
+        }
+
+        .video-stage {
+          position: relative;
+          width: 100%;
+          max-width: 448px;
+          height: 100vh;
+          height: calc(var(--vh, 1vh) * 100);
+          overflow: hidden;
+        }
+
+        .bg-stage {
+          position: absolute;
+          inset: 0;
+          background-image: url('/assets/images/tight/main/slot2.png');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          transform: scale(1.02);
+          filter: saturate(1.02) contrast(1.02);
+        }
+
+        .bg-stage::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse at 50% 22%, rgba(0, 0, 0, 0.10) 0%, rgba(0, 0, 0, 0.55) 66%, rgba(0, 0, 0, 0.90) 100%),
+            linear-gradient(to top, rgba(10, 8, 14, 0.94) 0%, rgba(10, 8, 14, 0.45) 44%, rgba(0, 0, 0, 0.00) 78%);
+        }
+
+        .bg-stage::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background:
+            radial-gradient(1000px 520px at 50% 10%, rgba(198, 15, 90, 0.18), rgba(0,0,0,0) 62%),
+            radial-gradient(900px 520px at 30% 30%, rgba(230, 195, 138, 0.10), rgba(0,0,0,0) 64%);
+          mix-blend-mode: screen;
+          opacity: 0.9;
+        }
+
+        .overlay-wrap {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          text-align: center;
+          padding: 0 24px;
+          pointer-events: none;
+        }
+
+        .hero {
+          position: absolute;
+          left: 50%;
+          top: var(--hero-top);
+          transform: translate(-50%, var(--hero-translate-y));
+          width: min(420px, calc(100% - 40px));
+          z-index: 5;
+          pointer-events: none;
+          animation: heroIn 780ms cubic-bezier(.2,.85,.2,1) both;
+        }
+
+        .age-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 10px;
+          border-radius: 999px;
+          border: 1px solid rgba(230, 195, 138, 0.55);
+          background: rgba(0,0,0,0.40);
+          color: rgba(255,255,255,0.86);
+          font-size: 12px;
+          letter-spacing: 0.02em;
+          margin: 0 auto 10px;
+          width: fit-content;
+          box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        }
+
+        .age-pill b { color: var(--gold); font-weight: 900; }
+
+        .classic-title {
+          font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+          font-size: clamp(30px, 8.2vw, 46px);
+          font-weight: 900;
+          color: rgba(255,255,255,0.96);
+          letter-spacing: -0.05em;
+          margin: 0 0 12px;
+          text-shadow: 0 16px 40px rgba(0,0,0,0.68);
+        }
+
+        .classic-sub {
+          font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+          font-size: clamp(15px, 4.2vw, 19px);
+          line-height: 1.65;
+          color: rgba(255,255,255,0.84);
+          text-shadow: 0 12px 28px rgba(0,0,0,0.62);
+          margin: 0;
+        }
+
+        .spark {
+          display: inline-block;
+          background: linear-gradient(90deg, rgba(230,195,138,0.40) 0%, rgba(255,255,255,0.92) 48%, rgba(198,15,90,0.45) 62%, rgba(230,195,138,0.40) 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          background-size: 220% 100%;
+          animation: shimmer 2.8s ease-in-out infinite;
+        }
+
+        .cta-wrapper {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          bottom: 28px;
+          width: calc(100% - 48px);
+          max-width: 400px;
+          z-index: 10;
+          pointer-events: auto;
+          animation: ctaIn 920ms cubic-bezier(.2,.85,.2,1) 120ms both;
+        }
+
+        .cta-banner {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 4px;
+          width: 100%;
+          min-height: 72px;
+          padding: 18px 18px;
+          border-radius: 14px;
+          text-decoration: none;
+          color: rgba(255,255,255,0.96);
+          background:
+            radial-gradient(420px 140px at 50% 0%, rgba(255,255,255,0.14), rgba(0,0,0,0) 62%),
+            linear-gradient(180deg, rgba(198, 15, 90, 0.40) 0%, rgba(90, 0, 40, 0.55) 55%, rgba(20, 0, 10, 0.65) 100%);
+          border: 1px solid rgba(230, 195, 138, 0.78);
+          box-shadow: 0 20px 52px rgba(0,0,0,0.62);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+        }
+
+        .cta-kicker {
+          font-size: 13px;
+          color: rgba(255,255,255,0.78);
+          letter-spacing: -0.01em;
+        }
+
+        .cta-main {
+          font-size: 18px;
+          font-weight: 900;
+          line-height: 1.2;
+          letter-spacing: -0.03em;
+          text-shadow: 0 12px 26px rgba(0,0,0,0.55);
+        }
+
+        .cta-banner:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 26px 62px rgba(0,0,0,0.70);
+          filter: brightness(1.03);
+        }
+
+        .cta-banner:active { transform: translateY(0px); filter: brightness(0.98); }
+
+        .cta-meta {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 10px;
+          font-size: 12px;
+          color: rgba(255,255,255,0.76);
+          text-shadow: 0 10px 18px rgba(0,0,0,0.55);
+          pointer-events: none;
+        }
+
+        .cta-meta span {
+          padding: 7px 10px;
+          border-radius: 999px;
+          background: rgba(0,0,0,0.44);
+          border: 1px solid rgba(255,255,255,0.10);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          white-space: nowrap;
+        }
+
+        @keyframes heroIn {
+          from { opacity: 0; transform: translate(-50%, calc(var(--hero-translate-y) + 10px)) scale(0.985); }
+          to { opacity: 1; transform: translate(-50%, var(--hero-translate-y)) scale(1); }
+        }
+
+        @keyframes ctaIn {
+          from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        @keyframes shimmer {
+          0% { background-position: 110% 0; opacity: 0.85; }
+          50% { opacity: 1; }
+          100% { background-position: -10% 0; opacity: 0.85; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hero, .cta-wrapper, .spark { animation: none !important; }
+        }
+      </style>
+    </head>
+
+    <body>
+      <div class="frame-wrap">
+        <div class="video-stage">
+          <%- include('./../../common/common') %>
+          <div class="bg-stage" aria-hidden="true"></div>
+
+          <div class="overlay-wrap">
+            <div class="hero">
+              <div class="age-pill" aria-hidden="true"><b>19+</b> 성인용 해석이 포함됩니다</div>
+              <h1 class="classic-title"><span class="spark">끌림</span>이 깊어지는 밤</h1>
+              <p class="classic-sub">관계, 욕망, 경계선까지.<br/>조금 더 솔직한 <span class="spark">나의 패턴</span>을 읽어드려요.</p>
+            </div>
+          </div>
+
+          <div class="cta-wrapper">
+            <a href="/saju/classic/input" class="cta-banner">
+              <span class="cta-kicker">3분이면 끝 · 19+</span>
+              <span class="cta-main">29금 사주 시작하기 →</span>
+            </a>
+
+          </div>
+        </div>
+      </div>
+    <script>
+      function setVh() {
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      }
+      window.addEventListener('resize', setVh);
+      setVh();
+
+      $(document).ready(function(){
+        if (window.karrotPixel) window.karrotPixel.track('ViewContent');
+      });
     </script>
-    <style>
-        
-  /* ✅ 전통 느낌의 고정 버튼 스타일 */
-.saju-btn {
-  position: relative;
-  width: 100%;
-  height: 56px;
-  background: linear-gradient(135deg, #f8f5ec, #efe9d3);
-  border: 2px solid #8b5e3c;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-/* 안쪽 결 강조 */
-.saju-btn::before {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: 10px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(0,0,0,0.02));
-  pointer-events: none;
-}
-
-/* 텍스트 스타일 */
-.saju-btn-text {
-  position: relative;
-  z-index: 1;
-  font-family: 'GyeonggiBatang', serif;
-  font-size: 17px;
-  font-weight: bold;
-  color: #4b2e14;
-  letter-spacing: -0.02em;
-}
-
-/* hover 효과 */
-.saju-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-}
-
-/* 클릭 효과 */
-.saju-btn:active {
-  transform: translateY(1px);
-  background: linear-gradient(135deg, #eee6d4, #e3d3bb);
-}
-
-
-
-    </style>
-
     </html>

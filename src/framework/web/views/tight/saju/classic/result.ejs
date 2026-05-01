@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
    <style>
+    :root{
+      --tight-bg: #000000;
+      --tight-card: #ffffff;
+      --tight-border: rgba(0,0,0,.08);
+      --tight-text: rgba(20,20,24,.92);
+      --tight-sub: rgba(20,20,24,.62);
+      --tight-soft: rgba(20,20,24,.06);
+    }
 
     .saju-floating-btn {
   position: fixed;
@@ -11,22 +19,308 @@
   max-width: 420px;
   z-index: 1000;
 
-  background: linear-gradient(135deg, #f8f5ec, #efe9d3);
-  border: 2px solid #8b5e3c;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, rgba(130,84,255,.22), rgba(255,70,165,.18));
+  border: 1px solid rgba(180,140,255,.35);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
   text-align: center;
-  padding: 14px 0;
+  padding: 12px 14px;
+  backdrop-filter: blur(10px);
 }
 
 .saju-floating-btn .btn-text {
-  font-family: 'GyeonggiBatang', serif;
-  font-size: 18px;
-  font-weight: bold;
-  color: #4b2e14;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
   background: none;
   border: none;
   cursor: pointer;
+}
+
+.tight-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border-radius:999px;
+  background: rgba(0,0,0,.04);
+  border: 1px solid rgba(0,0,0,.06);
+  color: rgba(20,20,24,.78);
+  font-size: 12px;
+  font-weight: 700;
+}
+.tight-card{
+  background: var(--tight-card);
+  border: 1px solid var(--tight-border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.tight-blur{
+  filter: blur(7px);
+  user-select: none;
+  pointer-events: none;
+}
+.tight-fade{
+  position: relative;
+}
+.tight-fade:after{
+  /* 리스트가 잘려 짧아 보이는 문제 방지: 페이드 제거 */
+  display:none;
+}
+.tight-countdown{
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+
+.tight-story{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  border-radius: 0;
+  overflow: hidden;
+  background: #0c0c10;
+  border: none;
+  box-shadow: 0 18px 55px rgba(0,0,0,.35);
+}
+.tight-story::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  /* 요청한 상/하 다크 그라데이션 */
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.8) 0%,
+    rgba(0,0,0,0) 30%,
+    rgba(0,0,0,0) 70%,
+    rgba(0,0,0,0.8) 100%
+  );
+  z-index: 1;
+  pointer-events:none;
+}
+.tight-story img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.02);
+}
+.tight-story img:not(.story-bg-blur){
+  /* 스토리 이미지 전체 블러 (텍스트는 z-index로 위에 있어 선명) */
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  filter: blur(7px);
+  transform: scale(1.08);
+}
+.tight-story .story-bg-blur{
+  position:absolute;
+  inset:-28px;
+  width: calc(100% + 56px);
+  height: calc(100% + 56px);
+  object-fit: cover;
+  filter: blur(18px) saturate(1.05);
+  opacity: .42;
+  transform: scale(1.08);
+  z-index: 0;
+  /* 중앙은 최대한 깨끗하게, 위/아래로 갈수록 '서서히' 블러가 올라오게 (경계선 방지) */
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgba(0,0,0,1) 0%,
+    rgba(0,0,0,.92) 12%,
+    rgba(0,0,0,.55) 22%,
+    rgba(0,0,0,.18) 34%,
+    rgba(0,0,0,0) 48%,
+    rgba(0,0,0,0) 52%,
+    rgba(0,0,0,.18) 66%,
+    rgba(0,0,0,.55) 78%,
+    rgba(0,0,0,.92) 88%,
+    rgba(0,0,0,1) 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0,0,0,1) 0%,
+    rgba(0,0,0,.92) 12%,
+    rgba(0,0,0,.55) 22%,
+    rgba(0,0,0,.18) 34%,
+    rgba(0,0,0,0) 48%,
+    rgba(0,0,0,0) 52%,
+    rgba(0,0,0,.18) 66%,
+    rgba(0,0,0,.55) 78%,
+    rgba(0,0,0,.92) 88%,
+    rgba(0,0,0,1) 100%
+  );
+}
+.tight-story .story-top,
+.tight-story .story-bottom{
+  position:absolute;
+  left:0; right:0;
+  padding: 18px 16px;
+  color: rgba(255,255,255,.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 2;
+}
+.tight-story .story-top{
+  top:0;
+  /* 텍스트 영역은 더 검게(블러해도 경계 덜 튐) */
+  background: linear-gradient(180deg, rgba(0,0,0,.78) 0%, rgba(0,0,0,.48) 38%, rgba(0,0,0,0) 82%);
+}
+.tight-story .story-bottom{
+  display:none;
+}
+.tight-story .story-center{
+  position:absolute;
+  left:0; right:0;
+  top: 12.5%;
+  height: 75%;
+  padding: 22px 18px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  text-align:center;
+  color: rgba(255,255,255,.95);
+  z-index: 2;
+}
+.tight-story .story-center::before{
+  content:"";
+  position:absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  bottom: 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(0,0,0,.62) 0%,
+    rgba(0,0,0,.22) 32%,
+    rgba(0,0,0,.22) 68%,
+    rgba(0,0,0,.62) 100%
+  );
+  border-radius: 18px;
+  z-index: -1;
+  pointer-events:none;
+}
+.tight-story .story-title{
+  font-weight: 900;
+  font-size: 30px;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.75),
+    0 12px 28px rgba(0,0,0,.92);
+  -webkit-text-stroke: 0.6px rgba(0,0,0,.60);
+}
+.tight-story .story-list{
+  margin-top: 14px;
+  font-size: 14px;
+  line-height: 1.85;
+  color: rgba(255,255,255,.92);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.78),
+    0 12px 28px rgba(0,0,0,.92);
+}
+.tight-story .story-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.88);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.tight-story .story-accent{
+  /* 강한 배경 이미지가 많아: 그라데이션 대신 흰색+스트로크로 가독성 확보 */
+  color: #ffffff;
+}
+.tight-story .story-accent-2{
+  color: #ffffff;
+}
+.tight-story .story-lead{
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.85;
+  color: rgba(255,255,255,.90);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.78),
+    0 12px 28px rgba(0,0,0,.92);
+}
+.tight-story .story-divider{
+  width: 44px;
+  height: 2px;
+  margin: 14px auto 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,74,162,.95), rgba(255,255,255,0));
+  opacity: .9;
+}
+.tight-story .story-sub{
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: rgba(255,255,255,.88);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.78),
+    0 10px 22px rgba(0,0,0,.90);
+}
+.tight-story .story-stack{
+  max-width: 360px;
+  margin: 0 auto;
+}
+.tight-story .story-meta{
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.88);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.78),
+    0 12px 26px rgba(0,0,0,.92);
+}
+.tight-story .story-chiprow{
+  margin-top: 14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+}
+.tight-story .story-chip{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.38);
+  border: 1px solid rgba(255,255,255,.16);
+  color: rgba(255,255,255,.86);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.tight-story .story-list > div{
+  margin-top: 6px;
+}
+.tight-story .story-list > div:first-child{
+  margin-top: 0;
+}
+
+/* 스토리(이미지)와 텍스트 섹션을 '붙여 보이게' */
+.tight-bridge{
+  margin-top: -44px;
+  padding-top: 0;
+}
+.tight-bridge-title{
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: rgba(255,255,255,.96);
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.82),
+    0 14px 32px rgba(0,0,0,.92);
 }
 
 .saju-floating-btn::after {
@@ -34,196 +328,461 @@
   display: block;
   height: env(safe-area-inset-bottom);
 }
-
-    /* ✅ 1페이지 전용 이름 영역 */
-.page-stage{
-  position:relative;
-}
-
-/* 이름 기준 박스 */
-.name-anchor{
-  position:absolute;
-  top:29%;
-  left:2%;
-  width:42%;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* 이름 텍스트 */
-.user-name{
-  font-family: 'GyeonggiBatang', serif;
-  font-size: clamp(18px, 4vw, 22px);
-  line-height: 1.2;
-  text-align:center;
-  word-break:keep-all;
-}
-
-  /* ✅ 기본: 모든 페이지는 그냥 이미지 흐름 (건드리지 않음) */
-  .page-stage img{
-    width:100%;
-    height:auto;
-    display:block;
-    object-fit:cover;
-  }
-
-.page2 .saju-stage{
-  position: relative;
-  width: 100%;
-  max-width: 448px;
-  margin: 0 auto;
-}
-
-.page2 .saju-stage > img{
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: contain;
-}
-  /* ✅ 2페이지에서만 테이블/오행 표시 */
-  .page2 .saju-table{
-    position:absolute;
-    bottom:12.5%;
-    left:57%;
-    transform:translateX(-50%);
-width:auto;    display:grid;
-    grid-template-columns: repeat(4, auto);
-    justify-content: center;    grid-template-rows:repeat(2, auto);   /* 2줄 */
-    z-index:2;
-    row-gap: 30px;
-    column-gap: 60px;
-  }
-  .page2 .saju-table div{
-    text-align:center;
-    font-size:clamp(20px, 3vw, 18px);
-    font-weight:bold;
-    background:transparent; /* ✅ 하얀 배경 제거 */
-  padding: 0;        /* 이미 했으면 OK */
-  min-width: 0;  }
-
-  .page2 .five{
-    position:absolute;
-    transform:translate(-50%, -50%);
-    font-weight:bold;
-    text-align:center;
-    font-size:clamp(40px, 4vw, 22px);
-    z-index:2;
-  }
-  .page2 .five span{
-    display:block;
-    font-size:clamp(12px, 3vw, 16px);
-  }
-
-  /* 위치 (2페이지 전용) */
-  .page2 .fire  { top:19.5%; left:50.7%; }
-  .page2 .wood  { top:29.5%; left:74%; }
-  .page2 .earth { top:44%; left:69%; }
-  .page2 .metal { top:44%; left:32.3%; }
-  .page2 .water { top:29.5%; left:27.5%; }
 </style>
 
 <%- include('./../../common/header') %>
 
-<%
-  // ===== 이미지 분기용 데이터 =====
-  const dayGan = saju.dayGan; // "무토"
-  const gender = userInfo.gender;     // '남성' | '여성'
-
-  const getImageSrc = (index) => {
-
-    if (index === 5) {
-      return gender === '남성'
-        ? `/assets/images/tight/classic/sangse/5_man/${dayGan}.png`
-        : `/assets/images/tight/classic/sangse/5_woman/${dayGan}.png`;
-    }
-    if (index === 8) {
-      return `/assets/images/tight/classic/sangse/8/${dayGan}.png`;
-    }
-     if (index === 10) {
-      return `/assets/images/tight/classic/sangse/10/${dayGan}.png`;
-    }
-    return `/assets/images/tight/classic/sangse/${index}.png`;
-  };
-
-  const pages = [1,2,3,4,5,6,7,8,9,10,11,12,13];
-%>
-
 <body>
 
-<div class="flex flex-col w-full max-w-[480px] mx-auto">
+<div class="min-h-screen" style="background: #000;">
+<div class="flex flex-col w-full max-w-[480px] mx-auto pb-28">
   <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
 
     <%- include('./../../common/common') %>
 
-    <!-- ===== 상세 페이지 이미지 루프 ===== -->
-  <% pages.forEach(function(pageIndex){ %>
+    <!-- ===== 상단 히어로(요약 카드/칩) ===== -->
+    <div class="w-full px-5 pt-6">
+      <div class="text-center">
+        <p class="text-xs font-semibold tracking-wide" style="color: rgba(255,255,255,.78);">🌶️ 사주로 보는 나의 밤생활</p>
+        <h1 class="mt-2 text-2xl font-extrabold" style="color:#fff;">29금 에로스 사주</h1>
+      </div>
 
-  <% if (pageIndex === 2) { %>
+      <!-- 프로필 카드 -->
+      <div class="mt-5 tight-card">
+        <div class="px-5 py-5">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl font-black"
+                 style="background: linear-gradient(135deg, rgba(130,84,255,.18), rgba(255,70,165,.14)); border: 1px solid rgba(0,0,0,.06);">
+              <span>🐑</span>
+            </div>
+            <div class="min-w-0">
+              <div class="text-lg font-extrabold" style="color: var(--tight-text);"><%= userInfo.name %></div>
+              <div class="mt-1 text-xs font-semibold" style="color: var(--tight-sub);">
+                <%= (saju && saju.day && saju.dayGan) ? (saju.dayGan + " 일주") : "일주" %>
+                · <%= (userInfo.birthDate || userInfo.birthdate || "") %>
+                · <%= (userInfo.birthType || "") %>
+                · <%= (userInfo.birthTime && userInfo.birthTime !== "unknown") ? (userInfo.birthTime + ":00") : "시간 미상" %>
+                · <%= userInfo.gender || "" %>
+              </div>
+            </div>
+          </div>
 
-  <div class="page2 mb-10">
-    <div class="saju-stage">
-      <img src="<%= getImageSrc(pageIndex) %>" />
+          <div class="mt-5 grid grid-cols-2 gap-3">
+            <div class="tight-card px-4 py-4" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+              <div class="text-xs font-semibold" style="color: var(--tight-sub);">🔥 나는 상위 몇 %?</div>
+              <div class="mt-1 text-base font-extrabold" style="color: var(--tight-text);">본능을 자극하는 야생의 기운</div>
+            </div>
+            <div class="tight-card px-4 py-4" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+              <div class="text-xs font-semibold" style="color: var(--tight-sub);">✨ 상위</div>
+              <div class="mt-1 text-3xl font-black" style="color: var(--tight-text);">
+                <%= (saju && saju.fiveElements) ? (Math.min(12, Math.max(3, Math.round((saju.fiveElements.화 + saju.fiveElements.목 * 0.6 + saju.fiveElements.수 * 0.4) * 1.8)))) : 8 %>%
+              </div>
+            </div>
+          </div>
 
-      <!-- 오행 숫자 -->
-      <div class="five fire"><span><%= saju.fiveElements.화 %></span></div>
-      <div class="five wood"><span><%= saju.fiveElements.목 %></span></div>
-      <div class="five earth"><span><%= saju.fiveElements.토 %></span></div>
-      <div class="five metal"><span><%= saju.fiveElements.금 %></span></div>
-      <div class="five water"><span><%= saju.fiveElements.수 %></span></div>
-
-      <!-- 천간 / 지지 -->
-      <div class="saju-table">
-        <div><%= saju.hour.gan || "" %></div>
-        <div><%= saju.day.gan %></div>
-        <div><%= saju.month.gan %></div>
-        <div><%= saju.year.gan %></div>
-
-        <div><%= saju.hour.ji || "" %></div>
-        <div><%= saju.day.ji %></div>
-        <div><%= saju.month.ji %></div>
-        <div><%= saju.year.ji %></div>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="tight-pill">🍒 매운맛</span>
+            <span class="tight-pill">💖 속궁합</span>
+            <span class="tight-pill">✨ 매력</span>
+            <span class="tight-pill">🧩 케미</span>
+            <span class="tight-pill">🗝️ 취향</span>
+          </div>
+        </div>
+        <div class="px-5 py-4" style="background: rgba(0,0,0,.02); border-top: 1px solid rgba(0,0,0,.06);">
+          <div class="text-sm font-semibold" style="color: var(--tight-text);">이런 내용이 궁금하다면? 🤫</div>
+          <ul class="mt-3 space-y-2 text-sm" style="color: rgba(20,20,24,.72);">
+            <li class="flex gap-2"><span style="opacity:.8;">•</span><span>이성이 몰래 보는 나의 은밀한 첫 인상</span></li>
+            <li class="flex gap-2"><span style="opacity:.8;">•</span><span>끌리는 타입/끌어당기는 타입의 차이</span></li>
+            <li class="flex gap-2"><span style="opacity:.8;">•</span><span>확 달아오르는 조건 vs 급속도로 식는 포인트</span></li>
+            <li class="flex gap-2"><span style="opacity:.8;">•</span><span>안 해보고도 속궁합 케미를 보는 힌트</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-5 flex items-center justify-center" style="color: rgba(255,255,255,.35);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M7 14l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
     </div>
-  </div>
 
-<% } else { %>
+    <!-- (기존 상세 이미지 페이지는 제거됨) -->
 
-  <div class="page-stage max-w-[448px] mx-auto mb-10">
-    <img src="<%= getImageSrc(pageIndex) %>" />
+    <!-- ===== 사주 원국(천간/지지) ===== -->
+    <div class="w-full px-5 mt-4">
+      <div class="tight-card px-5 py-5">
+        <div class="flex items-end justify-between">
+          <div>
+            <div class="text-sm font-semibold" style="color: var(--tight-text);">🧾 사주 원국</div>
+            <div class="mt-1 text-xl font-extrabold" style="color: var(--tight-text);">천간 · 지지</div>
+          </div>
+          <div class="text-right text-xs font-semibold" style="color: var(--tight-sub);">
+            <div><%= userInfo.birthType || "" %> <%= (userInfo.birthDate || userInfo.birthdate || "") %></div>
+            <div><%= (userInfo.birthTime && userInfo.birthTime !== "unknown") ? (userInfo.birthTime + "시") : "시간 미상" %></div>
+          </div>
+        </div>
 
-    <% if (pageIndex === 1) { %>
-      <div class="name-anchor">
-  <p class="user-name">
-    <%= userInfo.name %>
-  </p>
-</div>
+        <div class="mt-4 grid grid-cols-4 gap-2">
+          <div class="text-center text-xs font-semibold" style="color: var(--tight-sub);">시주</div>
+          <div class="text-center text-xs font-semibold" style="color: var(--tight-sub);">일주</div>
+          <div class="text-center text-xs font-semibold" style="color: var(--tight-sub);">월주</div>
+          <div class="text-center text-xs font-semibold" style="color: var(--tight-sub);">년주</div>
 
-    <% } %>
+          <div class="tight-card py-3" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+            <div class="text-center text-lg font-black" style="color: var(--tight-text);"><%= (saju && saju.hour && saju.hour.gan) ? saju.hour.gan : "-" %></div>
+            <div class="mt-1 text-center text-xs font-semibold" style="color: var(--tight-sub);">천간</div>
+          </div>
+          <div class="tight-card py-3" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+            <div class="text-center text-lg font-black" style="color: var(--tight-text);"><%= (saju && saju.day && saju.day.gan) ? saju.day.gan : "-" %></div>
+            <div class="mt-1 text-center text-xs font-semibold" style="color: var(--tight-sub);">천간</div>
+          </div>
+          <div class="tight-card py-3" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+            <div class="text-center text-lg font-black" style="color: var(--tight-text);"><%= (saju && saju.month && saju.month.gan) ? saju.month.gan : "-" %></div>
+            <div class="mt-1 text-center text-xs font-semibold" style="color: var(--tight-sub);">천간</div>
+          </div>
+          <div class="tight-card py-3" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+            <div class="text-center text-lg font-black" style="color: var(--tight-text);"><%= (saju && saju.year && saju.year.gan) ? saju.year.gan : "-" %></div>
+            <div class="mt-1 text-center text-xs font-semibold" style="color: var(--tight-sub);">천간</div>
+          </div>
 
-  </div>
+          <div class="tight-card py-3" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+            <div class="text-center text-lg font-black" style="color: var(--tight-text);"><%= (saju && saju.hour && saju.hour.ji) ? saju.hour.ji : "-" %></div>
+            <div class="mt-1 text-center text-xs font-semibold" style="color: var(--tight-sub);">지지</div>
+          </div>
+          <div class="tight-card py-3" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+            <div class="text-center text-lg font-black" style="color: var(--tight-text);"><%= (saju && saju.day && saju.day.ji) ? saju.day.ji : "-" %></div>
+            <div class="mt-1 text-center text-xs font-semibold" style="color: var(--tight-sub);">지지</div>
+          </div>
+          <div class="tight-card py-3" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+            <div class="text-center text-lg font-black" style="color: var(--tight-text);"><%= (saju && saju.month && saju.month.ji) ? saju.month.ji : "-" %></div>
+            <div class="mt-1 text-center text-xs font-semibold" style="color: var(--tight-sub);">지지</div>
+          </div>
+          <div class="tight-card py-3" style="background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.06);">
+            <div class="text-center text-lg font-black" style="color: var(--tight-text);"><%= (saju && saju.year && saju.year.ji) ? saju.year.ji : "-" %></div>
+            <div class="mt-1 text-center text-xs font-semibold" style="color: var(--tight-sub);">지지</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<% } %>
+    <!-- ===== 미리보기(블러/잠금) ===== -->
+    <div class="w-full mt-2">
+      <div style="background: transparent;">
+        <div class="pt-5 pb-4 px-5">
+          <div class="text-sm font-semibold" style="color: rgba(255,255,255,.85);">👀 미리보기</div>
+          <div class="mt-2 text-2xl font-extrabold" style="color: #fff;">사주로 보는 나의 29금 매력</div>
+        </div>
+        <div class="pb-5 px-0">
+          <%
+            const previewChapters = [
+              {
+                title: "그 사람, 침대 위에서 모습은?",
+                items: [
+                  "본능 설계도: 사주 원국에 박힌 날것의 성적 에너지 분석.",
+                  "은밀한 판타지: 입 밖으로 내지 못한 그 사람만의 금기된 성적 공상.",
+                  "낮이밤이 vs 낮져밤져: 침대 위 주도권 싸움의 승자는 누구인가.",
+                  "주도권 코드: 리드하려는 욕구와 맡기고 싶은 욕구의 균형."
+                ]
+              },
+              {
+                title: "관계를 뜨겁게 해줄 스릴있는 공간은 어디일까?",
+                items: [
+                  "섹슈얼 아우라: 상대의 뇌리에 박힌 당신의 치명적인 이미지.",
+                  "발정 포인트: 그 사람을 즉각적으로 반응하게 만드는 당신만의 자극점.",
+                  "유혹의 도파민: '함부로 할 수 없는' 혹은 '망가뜨리고 싶은' 매력 수치.",
+                  "관계를 뜨겁게 해줄 스릴있는 공간 추천.",
+                  "금지된 분위기: 위험하다고 느낄수록 더 끌리는 이유.",
+                  "도화선 트리거: 한마디/한 장면으로 공기가 바뀌는 순간.",
+                  "절정 타이밍: 밀고 당기는 템포가 가장 잘 맞는 구간."
+                ]
+              },
+              {
+                title: "S/M 코드: 지배하고 싶은 욕구와 정복당하고 싶은 쾌감의 수치",
+                items: [
+                  "육체적 싱크로율: 닿았을 때 전율이 오는 진짜 이유 (오행의 조화).",
+                  "베스트 플레이: 케미를 극대화할 3가지 분위기/상황, 그리고 디테일까지.",
+                  "관계의 유효기간: 하룻밤의 불꽃인가, 영혼까지 잠식할 중독인가."
+                ]
+              },
+              {
+                title: "이성을 무너뜨릴 19금 공략법",
+                items: [
+                  "마약 같은 유혹: 상대를 중독시켜 당신 없이는 만족할 수 없게 만드는 법.",
+                  "주도권 탈환: 관계의 흐름을 당신의 손바닥 위로 가져오는 심리 장치.",
+                  "집착의 스위치: 단순 호감을 넘어 소유욕을 자극하는 트리거.",
+                  "금기 시그널: '하면 안 된다'가 '하고 싶다'로 바뀌는 지점.",
+                  "심리 루프: 자꾸 떠올리게 만드는 여운 설계.",
+                  "확신 유도: 상대가 먼저 다가오게 만드는 한 끗 차이."
+                ]
+              },
+              {
+                title: "육체적 싱크로율: 닿았을 때 전율이 오는 진짜 이유 (오행의 조화).",
+                items: [
+                  "switch on: 성적 본능이 깨어나는 결정적 순간.",
+                  "위험한 취향: 은밀한 성향(Kink) 분석.",
+                  "쾌락의 해방: 억눌린 욕망이 풀릴 때 비로소 선명해지는 당신의 진짜 매력.",
+                  "리미트 해제: 선을 넘는 상상이 현실로 가까워지는 조건.",
+                  "케미 증폭: 작은 디테일이 크게 느껴지는 이유.",
+                  "끝맛: 관계가 지나간 뒤에도 남는 잔상."
+                ]
+              },
+              {
+                title: "베스트 플레이: 우리 둘의 쾌감을 극대화할 3가지 체X와 상황. 그리고 도구까지",
+                items: [
+                  "최적의 파트너: 당신의 취향을 받아내고 리드할 상대의 특징.",
+                  "조우의 타이밍: 이 긴장감이 폭발할 운명적 시기.",
+                  "관상과 성향: 눈빛만 봐도 '잘 하겠다' 싶은 사람의 특징."
+                ]
+              },
+              {
+                title: "집착의 스위치: 단순한 호감을 넘어선 소유욕을 자극하는 트리거",
+                items: [
+                  "집착의 스위치: 단순 호감을 넘어 소유욕을 자극하는 트리거.",
+                  "틈새 연출: '완벽'보다 '빈틈'이 더 위험한 이유.",
+                  "기억 고정: 계속 떠오르게 만드는 문장/시선/타이밍.",
+                  "거리 조절: 가까워질수록 더 달아오르는 리듬 설계.",
+                  "되감기 포인트: 끝난 뒤에도 다시 돌아오게 만드는 한 끗.",
+                  "금기 강화: 하면 안 된다는 감각이 끌림으로 전환되는 순간."
+                ]
+              },
+              {
+                title: "쾌락의 해방: 억눌린 욕망이 풀릴 때 비로소 선명해지는 당신의 진짜 매력",
+                items: [
+                  "쾌락의 해방: 억눌린 욕망이 풀릴 때 비로소 선명해지는 진짜 매력.",
+                  "리미트 해제: 선을 넘는 상상이 현실로 가까워지는 조건.",
+                  "온도 상승: 한 번 스위치가 켜지면 멈추기 어려운 이유.",
+                  "감각 확장: 작은 디테일이 크게 느껴지는 순간의 공기.",
+                  "몰입 유도: 상대가 스스로 깊어지는 흐름 만들기.",
+                  "잔상: 관계가 지나간 뒤에도 오래 남는 끝맛."
+                ]
+              },
+              {
+                title: "마약 같은 유혹: 상대를 중독시켜 당신 없이는 만족할 수 없게 만드는 법",
+                items: [
+                  "주도권 탈환: 관계의 흐름을 당신의 손바닥 위로 가져오는 심리 장치.",
+                  "페이스 메이킹: 속도를 쥐면 결과가 달라지는 이유.",
+                  "선 긋기: 거절이 오히려 끌림을 키우는 타이밍.",
+                  "확신 부여: 불안을 잠재우고 욕망만 남기는 말의 구조.",
+                  "미세 신호: 상대의 반응을 끌어내는 작은 행동의 조합.",
+                  "마무리 설계: 다음을 기대하게 만드는 끝맺음."
+                ]
+              }
+            ];
+          %>
 
+          <div class="space-y-3">
+            <% previewChapters.forEach(function(ch, idx){ %>
+              <% const isStory = (idx === 0 || idx === 2 || idx === 5); %>
+              <% if (isStory) { %>
+                <%
+                  const storyImg =
+                    idx === 0 ? "/assets/images/tight/29/1.png" :
+                    idx === 2 ? "/assets/images/tight/29/2.png" :
+                    "/assets/images/tight/29/3.png";
+                %>
+                <div class="tight-story">
+                  <img class="story-bg-blur" src="<%= storyImg %>" alt="" aria-hidden="true" />
+                  <img src="<%= storyImg %>" alt="미리보기 이미지" />
+                  <div class="story-center">
+                    <% if (idx === 0) { %>
+                      <div class="story-stack">
+                        <div class="story-kicker">STEP 1</div>
+                        <div class="mt-3 story-title">
+                          <span class="story-accent">시작된 본능</span>
+                        </div>
+                        <div class="mt-3 story-title" style="font-size:22px; line-height:1.25;">
+                          그 사람… 밤자리에서의 모습은…?
+                        </div>
+                        <div class="story-divider"></div>
+                        <div class="story-lead" style="margin-top:12px;">
+                          당신은 지배하려는 포식자인가,<br/>
+                          정복당하고 싶은 먹잇감인가.
+                        </div>
+                        <div class="story-chiprow">
+                          <span class="story-chip">사주 원국</span>
+                          <span class="story-chip">성적 에너지</span>
+                          <span class="story-chip">판타지 코드</span>
+                          <span class="story-chip">BDSM</span>
+                        </div>
+                        <div class="story-meta">
+                          당신을 결박하고 흔들어 깨울,<br/>
+                          <span class="story-accent-2" style="font-weight:900;">가장 위험한 온도</span>
+                        </div>
+                      </div>
+                    <% } else { %>
+                      <%
+                        const stepNo = (idx === 2 ? 2 : 3);
+                        const parts = String(ch.title || "").split(":");
+                        const head = (parts[0] || "").trim();
+                        const tail = parts.slice(1).join(":").trim();
+                        const chips = idx === 2
+                          ? ["S/M 코드", "속궁합", "케미", "합(合)"]
+                          : ["베스트 플레이", "중독성", "타이밍", "상대 타입"];
+                      %>
+                      <div class="story-stack">
+                        <div class="story-kicker">STEP <%= stepNo %></div>
+                        <div class="mt-3 story-title">
+                          <span class="story-accent"><%= head || ch.title %></span>
+                        </div>
+                        <% if (tail) { %>
+                          <div class="mt-3 story-title" style="font-size:22px; line-height:1.25;">
+                            <%= tail %>
+                          </div>
+                        <% } %>
+                        <div class="story-divider"></div>
+                        <% if (ch.items && ch.items.length) { %>
+                          <div class="story-lead" style="margin-top:12px;">
+                            <%= ch.items[0] %>
+                          </div>
+                        <% } %>
+                        <div class="story-chiprow">
+                          <% chips.forEach(function(c){ %>
+                            <span class="story-chip"><%= c %></span>
+                          <% }); %>
+                        </div>
+                        <% if (ch.items && ch.items.length > 1) { %>
+                          <div class="story-sub" style="margin-top:12px;">
+                            <% ch.items.slice(1).forEach(function(it){ %>
+                              <div><%= it %></div>
+                            <% }); %>
+                          </div>
+                        <% } %>
+                      </div>
+                    <% } %>
+                  </div>
+                </div>
+              <% } else { %>
+                <!-- 카드 없이: 배경 위에 텍스트만 -->
+                <div class="px-5 pb-10 tight-bridge">
+                  <div class="tight-bridge-title">
+                    <%= ch.title %>
+                  </div>
+                  <div class="mt-2 tight-fade">
+                    <!-- 텍스트 블러 유지 -->
+                    <div class="tight-blur text-sm leading-7" style="color: rgba(255,255,255,.86);">
+                      <ul class="space-y-1">
+                        <% ch.items.forEach(function(it){ %>
+                          <li class="flex gap-2">
+                            <span style="opacity:.9;">-</span>
+                            <span>
+                              <%= it %>
+                            </span>
+                          </li>
+                        <% }); %>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              <% } %>
+            <% }); %>
+          </div>
 
-<% }); %>
+          <div class="mt-5 mx-5" style="background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.12); border-radius: 18px;">
+            <div class="px-4 py-4 flex items-center justify-between gap-3">
+              <div class="text-sm font-semibold" style="color: rgba(255,255,255,.92);">🔒 15,000자 넘는 풀버전</div>
+              <form method="POST" action="/saju/payment" class="shrink-0">
+                <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
+                <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />
+                <input type="hidden" name="goodsType" value="ADULT" />
+                <button type="submit" class="px-4 py-2 rounded-xl text-sm font-extrabold" style="background: linear-gradient(135deg, rgba(130,84,255,.92), rgba(255,70,165,.86)); color:#fff; border: 1px solid rgba(255,255,255,.18);">
+                  잠금해제
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
+    <!-- ===== 리뷰 ===== -->
+    <div class="w-full px-5 mt-6 mb-8">
+      <div class="flex items-end justify-between">
+        <div>
+          <div class="text-sm font-semibold" style="color: rgba(255,255,255,.78);">🗣️ 실제 리뷰</div>
+          <div class="mt-1 text-xl font-extrabold" style="color:#fff;">확인한 사람들 반응</div>
+        </div>
+        <div class="text-xs font-semibold" style="color: rgba(255,255,255,.55);">최근 순</div>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <% const reviews = [
+          { name: "e***", stars: 5, badge: "29금 사주", text: "그냥 자극적인 내용이 아니라, 왜 그런 분위기가 나는지 이유가 있어서 더 무서웠어요. '딱 나'라는 말밖에…" },
+          { name: "m***", stars: 5, badge: "29금 사주", text: "읽다가 혼자 웃었네요. 제 취향이랑 끌리는 타입을 너무 정확히 찔러서… 미리보기만 봤는데도 결제 각." },
+          { name: "h***", stars: 4, badge: "29금 사주", text: "과장된 표현보다 포인트를 잘 정리해줘서 좋았어요. 상대 타입/케미 설명이 특히 현실적입니다." }
+        ]; %>
+
+        <% reviews.forEach(function(r){ %>
+          <div class="tight-card px-4 py-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, rgba(130,84,255,.16), rgba(255,70,165,.12)); border:1px solid rgba(0,0,0,.06);">
+                  <span class="text-xs font-extrabold" style="color: var(--tight-text);"><%= r.name.slice(0,1) %></span>
+                </div>
+                <div>
+                  <div class="text-sm font-extrabold" style="color: var(--tight-text);"><%= r.name %></div>
+                  <div class="text-xs font-semibold" style="color: var(--tight-sub);"><%= r.badge %></div>
+                </div>
+              </div>
+              <div class="text-xs font-extrabold" style="color: rgba(20,20,24,.78);">
+                <span style="letter-spacing:.08em;">
+                  <%= "★★★★★".slice(0, r.stars) %><span style="opacity:.35;"><%= "★★★★★".slice(r.stars) %></span>
+                </span>
+              </div>
+            </div>
+            <p class="mt-3 text-sm leading-6" style="color: rgba(20,20,24,.74);"><%= r.text %></p>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- ===== 리뷰 아래 이미지 3장 ===== -->
+    <div class="w-full mt-2">
+      <img src="/assets/images/tight/29/result/1.png" alt="29금 결과 이미지 1" style="width:100%; height:auto; display:block;" />
+      <img src="/assets/images/tight/29/result/2.png" alt="29금 결과 이미지 2" style="width:100%; height:auto; display:block;" />
+      <img src="/assets/images/tight/29/result/3.png" alt="29금 결과 이미지 3" style="width:100%; height:auto; display:block;" />
+    </div>
 
   </div>
 </div>
 <div class="saju-floating-btn">
-  <form method="POST" action="/saju/payment">
-    <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
-    <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />
-    <input type="hidden" name="goodsType" value="CLASSIC" />
-    <button type="submit" class="btn-text">사주 확인하러 가기</button>
-  </form>
+  <div class="flex items-center justify-between gap-3">
+    <div class="text-left">
+      <div class="text-xs font-semibold" style="color: rgba(255,255,255,.75);">할인 종료까지 남은 시간</div>
+      <div id="tightCountdown" class="tight-countdown text-lg font-black" style="color:#fff;">24:00:00</div>
+    </div>
+    <form method="POST" action="/saju/payment" class="shrink-0">
+      <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
+      <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />
+      <input type="hidden" name="goodsType" value="ADULT" />
+      <button type="submit" class="btn-text px-4 py-3 rounded-xl" style="background: linear-gradient(135deg, rgba(130,84,255,.92), rgba(255,70,165,.86)); border: 1px solid rgba(255,255,255,.18);">
+        내 29금사주 확인하기
+      </button>
+    </form>
+  </div>
 </div>
 <script>
   $(document).ready(function(){
     window.karrotPixel.track('Lead');
   });
+</script>
+<script>
+  (function(){
+    var el = document.getElementById('tightCountdown');
+    if (!el) return;
+    var endAt = Date.now() + (24 * 60 * 60 * 1000);
+
+    function pad(n){ return String(n).padStart(2, '0'); }
+    function tick(){
+      var ms = Math.max(0, endAt - Date.now());
+      var total = Math.floor(ms / 1000);
+      var h = Math.floor(total / 3600);
+      var m = Math.floor((total % 3600) / 60);
+      var s = total % 60;
+      el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
 </script>
 
 </body>

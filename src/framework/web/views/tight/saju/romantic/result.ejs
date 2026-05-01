@@ -2,328 +2,918 @@
 <html lang="ko">
 <%- include('./../../common/header') %>
 
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Poor+Story&display=swap" rel="stylesheet">
+</head>
+
 <body>
-   
-<div class="flex flex-col w-full max-w-[480px] mx-auto">
-    <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
 
-        <%- include('./../../common/common') %>
-
-        <div id="container">
-<div class="relative w-full mx-auto">
-                <img src="/assets/images/tight/romantic/result_1.png" class="w-full h-auto object-cover" />
-                <div class="absolute top-[80%] left-[42%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-xl"><%= userInfo.name; %></p>
-                </div>
-       
-                <img src="/assets/images/tight/romantic/result_2.png" class="w-full h-auto object-cover" />
-                <img src="/assets/images/tight/romantic/result_3.png" class="w-full h-auto object-cover" />
-
-          <!--      <%
+<%
 const STEM_TO_HANJA = {
   '갑':'甲','을':'乙','병':'丙','정':'丁','무':'戊',
   '기':'己','경':'庚','신':'辛','임':'壬','계':'癸'
 };
-
-// 지지
 const BRANCH_TO_HANJA = {
   '자':'子','축':'丑','인':'寅','묘':'卯','진':'辰','사':'巳',
   '오':'午','미':'未','신':'申','유':'酉','술':'戌','해':'亥'
 };
+function H(v){ return STEM_TO_HANJA[v] || BRANCH_TO_HANJA[v] || v; }
 
-// 변환 함수 (천간/지지 자동판별)
-function H(v){
-  return STEM_TO_HANJA[v] || BRANCH_TO_HANJA[v] || v;
-}
+const g = String(userInfo.gender).trim();
+let genderKey = "man";
+if (["여","여자","여성","female","F","woman"].includes(g)) genderKey = "woman";
 
+const dayStem = sampleInfo && sampleInfo.tenGodTable && sampleInfo.tenGodTable.data
+  && sampleInfo.tenGodTable.data[1] && sampleInfo.tenGodTable.data[1][1]
+  ? H(sampleInfo.tenGodTable.data[1][1]) : null;
 
-%>
+const STEM_TO_KR_KEY = {
+  "甲":"갑목","乙":"을목","丙":"병화","丁":"정화","戊":"무토",
+  "己":"기토","庚":"경금","辛":"신금","壬":"임수","癸":"계수"
+};
+const stemKey = STEM_TO_KR_KEY[dayStem] || null;
 
-                
-                <div class="absolute top-[52%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[0]; %></p>
-                </div>
-                <div class="absolute top-[64%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[0][1]); %></p>
-                </div>
-                <div class="absolute top-[76%] left-[14%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[0][2]); %></p>
-                </div>
+// Calendar
+const cy = todayDate.year;
+const cm = todayDate.month;
+const cd = todayDate.day;
+const daysInMonth   = new Date(cy, cm, 0).getDate();
+const firstDayOfWeek = new Date(cy, cm - 1, 1).getDay();
+const WEEKDAYS  = ['일','월','화','수','목','금','토'];
+const MONTH_KR  = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 
-                <div class="absolute top-[52%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[1]; %></p>
-                </div>
-                <div class="absolute top-[64%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[1][1]); %></p>
-                </div>
-                <div class="absolute top-[76%] left-[33%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[1][2]); %></p>
-                </div>
+const GOOD_DAYS_MAP = {
+  "갑목":[4,9,16,23],"을목":[5,10,17,24],"병화":[3,8,15,22],"정화":[6,11,18,25],
+  "무토":[2,7,14,21],"기토":[4,9,16,23],"경금":[5,12,19,26],"신금":[7,14,21,28],
+  "임수":[3,10,17,24],"계수":[2,9,16,23]
+};
+const goodDays = new Set(GOOD_DAYS_MAP[stemKey] || [5,12,19,26]);
 
-                <div class="absolute top-[52%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[2]; %></p>
-                </div>
-                <div class="absolute top-[64%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[2][1]); %></p>
-                </div>
-                <div class="absolute top-[76%] left-[52%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[2][2]); %></p>
-                </div>
+const dayMasterImg1 = stemKey ? `/assets/images/tight/romantic/result/${genderKey}1/${stemKey}.png` : null;
 
-                <div class="absolute top-[52%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-gray-400 text-lg"><%= sample.tenGodTable.headerRows[3]; %></p>
-                </div>
-                <div class="absolute top-[64%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[3][1]); %></p>
-                </div>
-                <div class="absolute top-[76%] left-[71%] w-[15%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="font-gyeonggibatangbold text-white text-2xl"><%= H(sample.tenGodTable.data[3][2]); %></p>
-                </div>
-            </div>
-
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_2.png" class="w-full h-auto object-cover" />
-                <div class="absolute top-[66%] left-[13%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-sm"><%= sample.fiveElements.elements.수; %></p>
-                </div>
-                <div class="absolute top-[66%] left-[31%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-sm"><%= sample.fiveElements.elements.금; %></p>
-                </div>
-                <div class="absolute top-[66%] left-[49%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-sm"><%= sample.fiveElements.elements.토; %></p>
-                </div>
-                <div class="absolute top-[66%] left-[66%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-sm"><%= sample.fiveElements.elements.화; %></p>
-                </div>
-                <div class="absolute top-[66%] left-[84%] w-[10%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-sm"><%= sample.fiveElements.elements.목; %></p>
-                </div>
-            </div>
-        -->
-        
-  <%
-    const g = String(userInfo.gender).trim(); // 실제 들어오는 값: "남성"
-
-    // 성별 → 폴더명 변환
-    let genderKey = "man"; 
-    if (["여","여자","여성","female","F","woman"].includes(g)) genderKey = "woman";
-    if (["남","남자","남성","male","M","man"].includes(g)) genderKey = "man";
-
-    const dayStem = sampleInfo.tenGodTable?.data?.[1]?.[1]
-        ? H(sampleInfo.tenGodTable.data[1][1])
-        : null;
-
-    const STEM_TO_KR_KEY = {
-        "甲":"갑목","乙":"을목","丙":"병화","丁":"정화","戊":"무토",
-        "己":"기토","庚":"경금","辛":"신금","壬":"임수","癸":"계수"
-    };
-
-    const stemKey = STEM_TO_KR_KEY[dayStem];
-
-    // 🔥 이미지 파일 경로 (네가 준 배열 그대로 유지하되 gender 반영됨)
-    const dayMasterImages = [
-        `/assets/images/tight/romantic/result/${genderKey}1/${stemKey}.png`,
-    ];
-%>
-
-   <% if(dayMasterImages && dayMasterImages.length){ %>
-    <% dayMasterImages.forEach(imgPath => { %>
-        <div class="relative w-full max-w-[448px] mx-auto">
-            <img src="<%= imgPath %>" class="w-full h-auto object-cover"/>
-        </div>
-    <% }) %>
-<% } else { %>
-    <div class="relative w-full max-w-[448px] mx-auto">
-        <img src="/assets/images/tight/romantic/result_3.png" class="w-full h-auto object-cover"/>
-    </div>
-<% } %>
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_4.png" class="w-full h-auto object-cover" />
-                <div class="absolute top-[65%] left-[42%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-xl"><%= userInfo.name; %></p>
-                </div>
-       
-            </div>
-
-
-            <%
-/* 두 번째 이미지용 */
-const secondImagePath =
-  stemKey
-    ? `/assets/images/tight/romantic/result/${genderKey}/${stemKey}.png`
-    : null;
-%>
-
-<% if (secondImagePath) { %>
-  <div class="relative w-full max-w-[448px] mx-auto">
-    <img src="<%= secondImagePath %>" class="w-full h-auto object-cover"/>
-  </div>
-<% } %>
-
-
-    
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_5.png" class="w-full h-auto object-cover" />
-          
-                <div class="absolute top-[14.7%] left-[5%] w-[20%] min-h-[4rem] flex flex-col items-center justify-center">
-                    <p class="text-xl"><%= userInfo.name; %></p>
-                </div>
-            </div>
- 
-            <div class="relative w-full max-w-[448px] mx-auto">
-                <img src="/assets/images/tight/romantic/result_6.png" class="w-full h-auto object-cover" />
-          
-            </div>
-
-            <form method="POST" action="<%= userInfo.name === '관리자' ? '/saju/skip-payment' : '/saju/payment' %>" class="w-full">
-                <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
-                <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />
-                <input type="hidden" name="goodsType" value='ROMANTIC' />
-             
-            </form>
-<div id="floating-btn">
-  <img src="/assets/images/tight/romantic/index_banner2.png" />
-
-  <!-- 이미지 상단 오버레이 -->
-  <div id="countdown-overlay">
-    <span class="countdown-label">할인 종료까지</span>
-    <span id="countdown-time">60:00:000</span>
-  </div>
-</div>
-
-
-    </div>
-</div>
-<style>
- #floating-btn {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 448px;
-  z-index: 9999;
-}
-
-/* 이미지 */
-#floating-btn img {
-  width: 100%;
-  display: block;
-}
-
-/* 🔥 이미지 상단 오버레이 */
-#countdown-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 40px; /* ⬅️ 기존 28px → 40px */
-  pointer-events: none;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px; /* 텍스트 간격 */
-}
-
-/* "할인 종료까지" */
-.countdown-label {
-  color: rgba(255,255,255,0.8);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-/* 카운터 */
-#countdown-time {
-  color: #E6C27A;
-  font-size: 14px;          /* 🔥 크게 */
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
-
-
-
-</style>
-<script>
- // 1시간 = 3600000ms
-let remainingTime = 60 * 60 * 1000;
-let lastTimestamp = performance.now();
-
-function updateCountdown(now) {
-  const delta = now - lastTimestamp;
-  lastTimestamp = now;
-  remainingTime -= delta;
-
-  if (remainingTime < 0) remainingTime = 0;
-
-  const ms = Math.floor(remainingTime % 1000);
-  const totalSeconds = Math.floor(remainingTime / 1000);
-  const seconds = totalSeconds % 60;
-  const minutes = Math.floor(totalSeconds / 60);
-
-  const formatted =
-    String(minutes).padStart(2, "0") + ":" +
-    String(seconds).padStart(2, "0") + ":" +
-    String(ms).padStart(3, "0");
-
-  document.getElementById("countdown-time").innerText = formatted;
-
-  if (remainingTime > 0) {
-    requestAnimationFrame(updateCountdown);
-  } else {
-    // 0초 도달 시 (선택)
-    document.getElementById("countdown-time").innerText = "00:00:000";
+// ────── 일간 연애 분석 데이터 ──────
+const STEM_ROMANCE = {
+  "갑목": {
+    type:"직진형 리더 💪",
+    color:"#16a34a",
+    bg:"#f0fdf4",
+    border:"#86efac",
+    keywords:["열정적","주도적","불굴의 의지"],
+    desc:"좋아하면 바로 들이대는 직진 스타일! 연애에서 주도권을 쥐고 상대를 리드하길 좋아합니다. 포기를 모르는 강한 의지로 관계를 지키지만, 가끔 지나친 자존심이 걸림돌이 되기도 해요.",
+    traits:["♥ 밀당 NO! 좋으면 바로 고백하는 타입","♥ 한번 마음 먹으면 절대 안 포기","♥ 연인을 위해 뭐든지 해주는 헌신파"]
+  },
+  "을목": {
+    type:"감성 로맨티시스트 🌿",
+    color:"#15803d",
+    bg:"#f0fdf4",
+    border:"#86efac",
+    keywords:["감성 폭발","공감 최강","유연한 매력"],
+    desc:"상대방의 마음을 꿰뚫는 공감 능력이 최강! 직접 들이대기보다 조금씩 거리를 좁혀가는 스타일이에요. 연애를 예쁘게 꾸미고 싶어하는 타고난 로맨티시스트입니다.",
+    traits:["♥ 상대 기분을 귀신같이 캐치하는 공감왕","♥ 연애 분위기 메이킹 천재","♥ 한번 좋아하면 오래오래 좋아함"]
+  },
+  "병화": {
+    type:"분위기 메이커 ☀️",
+    color:"#dc2626",
+    bg:"#fff5f5",
+    border:"#fca5a5",
+    keywords:["에너지 폭발","솔직 담백","인싸력 만렙"],
+    desc:"주변을 환하게 밝히는 태양 같은 존재! 솔직하고 표현이 풍부해 연애 초반 엄청난 인상을 줘요. 관심 있는 사람에겐 망설임 없이 어필하는 스타일이지만 질투를 유발하기도 합니다.",
+    traits:["♥ 솔직한 감정 표현으로 상대 심장 저격","♥ 어디서나 주인공, 같이 있으면 신남","♥ 첫만남부터 호감 뿜뿜"]
+  },
+  "정화": {
+    type:"올인 진심러 🕯️",
+    color:"#b91c1c",
+    bg:"#fff5f5",
+    border:"#fca5a5",
+    keywords:["깊은 감성","완전 헌신","진심 가득"],
+    desc:"한번 마음을 주면 깊게 깊게 빠져드는 타입. 상대방 한 명에게 모든 정성을 쏟아붓는 헌신적 연애를 합니다. 감수성이 풍부해 연인에게 특별한 감동을 주지만 상처도 깊게 받아요.",
+    traits:["♥ 연애할 때 온 우주가 그 사람","♥ 이벤트·깜짝 선물의 달인","♥ 감수성 폭발 연인 최강"]
+  },
+  "무토": {
+    type:"든든한 보호자 🏔️",
+    color:"#92400e",
+    bg:"#fffbeb",
+    border:"#fcd34d",
+    keywords:["신뢰 최강","묵직한 매력","행동파"],
+    desc:"산처럼 든든하고 믿음직한 연애를 해요. 말보다 행동으로 사랑을 표현하는 스타일이며, 상대방에게 안전한 울타리가 되어주길 좋아합니다. 변하지 않는 꾸준함이 가장 큰 매력!",
+    traits:["♥ 말은 없어도 행동으로 보여주는 타입","♥ 한번 사귀면 오래가는 장거리 선수","♥ 어떤 상황에서도 든든한 존재"]
+  },
+  "기토": {
+    type:"따뜻한 배려왕 🤗",
+    color:"#78350f",
+    bg:"#fffbeb",
+    border:"#fcd34d",
+    keywords:["배려 천재","포용력 만렙","따뜻한 에너지"],
+    desc:"상대방을 챙기고 배려하는 게 연애의 기본! 관계 속에서 편안하고 안정적인 분위기를 만드는 능력이 뛰어나요. 단, 감정 표현을 직접적으로 안 해서 상대가 답답할 수도 있어요.",
+    traits:["♥ 챙겨주는 거로는 이 세상 최강","♥ 편안하고 안정적인 연애 분위기 조성","♥ 상대방 필요한 거 이미 다 알고 있음"]
+  },
+  "경금": {
+    type:"차도남·차도녀 카리스마 ⚔️",
+    color:"#1d4ed8",
+    bg:"#eff6ff",
+    border:"#93c5fd",
+    keywords:["강렬한 카리스마","고집 있는 기준","뜨거운 내면"],
+    desc:"겉은 차갑지만 내면은 뜨거운 연애를 해요. 기준이 높아 쉽게 사람을 받아들이지 않지만, 일단 마음을 열면 깊고 진한 사랑을 합니다. 독립심이 강해 의존적인 연인을 힘들어해요.",
+    traits:["♥ 밀당 실력 1위, 잡을 듯 말 듯","♥ 마음 열면 극한으로 챙겨줌","♥ 강한 자기 기준으로 관계를 지킴"]
+  },
+  "신금": {
+    type:"완벽주의 심미가 💎",
+    color:"#4338ca",
+    bg:"#eef2ff",
+    border:"#a5b4fc",
+    keywords:["세련미 폭발","완벽한 기준","감각적 연애"],
+    desc:"외적·내적으로 자신을 아름답게 가꾸는 노력을 해요. 연애에서도 완벽한 모습을 추구하며 감각적인 데이트를 즐깁니다. 까다로운 기준을 가졌지만 그만큼 연인에게 최선을 다해요.",
+    traits:["♥ 데이트 코스 기획력 상위 1%","♥ 외모·센스 모두 챙기는 완벽파","♥ 연인에겐 아낌없이 최선"]
+  },
+  "임수": {
+    type:"자유로운 매력인 🌊",
+    color:"#0369a1",
+    bg:"#f0f9ff",
+    border:"#7dd3fc",
+    keywords:["신비로운 매력","자유로운 영혼","넘치는 흡인력"],
+    desc:"바다처럼 넓고 자유로운 영혼! 매력이 넘쳐 주변에 사람이 많지만 쉽게 구속되는 걸 싫어해요. 자유를 주는 연애에서 최고의 파트너가 되며 상대방에게 늘 새로운 자극을 줍니다.",
+    traits:["♥ 갈수록 매력이 더 강해지는 타입","♥ 넓은 인간관계, 인기 많음 주의","♥ 예측 불가능한 매력으로 계속 설레게 함"]
+  },
+  "계수": {
+    type:"감성 최강 로맨티스트 🌧️",
+    color:"#0e7490",
+    bg:"#ecfeff",
+    border:"#67e8f9",
+    keywords:["감수성 최강","공감 천재","꿈같은 연애"],
+    desc:"빗소리에도 감성이 폭발하는 최강 감성러! 연애를 꿈처럼 아름답게 만드는 능력이 있어요. 상대방 감정에 깊이 공감하고 함께 울고 웃는 연애를 합니다. 감정 기복이 있어 케어가 필요해요.",
+    traits:["♥ 로맨틱 감성 연출은 이 사람이 최고","♥ 상대 감정 즉시 파악하는 공감왕","♥ 함께하면 영화 같은 연애 가능"]
   }
+};
+const romance = STEM_ROMANCE[stemKey] || {
+  type:"특별한 연애 스타일 ✨",
+  color:"#7c3aed", bg:"#faf5ff", border:"#c4b5fd",
+  keywords:["독특한 매력","특별한 인연","나만의 스타일"],
+  desc:"당신만의 특별한 연애 에너지가 있어요. 자세한 분석은 전체 결과에서 확인하세요!",
+  traits:["♥ 나만의 독특한 연애 스타일 보유","♥ 특별한 인연을 끌어당기는 힘","♥ 연애에서 빛나는 나만의 매력"]
+};
+
+// Future partner
+const partner = (sampleInfo && sampleInfo.futurePartner) ? sampleInfo.futurePartner : {};
+const partnerAppearance  = Array.isArray(partner.appearance)  ? partner.appearance  : [];
+%>
+
+<div class="rp">
+
+  <!-- ══ HERO ══ -->
+  <section class="hero">
+    <div class="hero-bg-deco" aria-hidden="true"></div>
+    <p class="hero-tag">✨ <%= cy %>년 연애 사주</p>
+    <h1 class="hero-title">
+      <span class="hero-name-grad"><%= userInfo.name %></span>님의<br>
+      연애운이 열립니다
+    </h1>
+    <% if (stemKey) { %>
+    <div class="hero-stem">
+      <span class="hs-key"><%= stemKey %></span>
+      <span class="hs-dot">·</span>
+      <span class="hs-type"><%= romance.type %></span>
+    </div>
+    <% } %>
+    <div class="hero-chips">
+      <span class="chip">📖 4개 챕터</span>
+      <span class="chip">📝 22,000자+</span>
+      <span class="chip">🔒 잠금 해제</span>
+    </div>
+    <p class="scroll-hint">아래로 스크롤 ↓</p>
+  </section>
+
+  <!-- ══ 일간 연애 분석 ══ -->
+  <% if (stemKey) { %>
+  <section class="ilgan-section">
+    <div class="ilgan-card igtheme-<%= stemKey %>">
+      <div class="ig-top">
+        <div class="ig-title-wrap">
+          <span class="ig-tag">🔍 나의 일간</span>
+          <h2 class="ig-name"><%= stemKey %> 일간</h2>
+        </div>
+        <div class="ig-type-pill"><%= romance.type %></div>
+      </div>
+
+      <div class="ig-keywords">
+        <% romance.keywords.forEach(function(kw) { %>
+          <span class="ig-kw">#<%= kw %></span>
+        <% }); %>
+      </div>
+
+      <p class="ig-desc">💬 <%= romance.desc %></p>
+
+      <div class="ig-traits">
+        <% romance.traits.forEach(function(t) { %>
+          <div class="ig-trait-row"><span><%= t %></span></div>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+  <% } %>
+
+  <!-- ══ CHAPTER 1 : 솔로탈출 시기 ══ -->
+  <section class="chapter">
+    <div class="ch-header ch1-header">
+      <div class="ch-num-row">
+        <span class="ch-num">CHAPTER 1</span>
+        <span class="ch-icon">🌙</span>
+        <span class="ch-wc">6,000자+</span>
+      </div>
+      <h2 class="ch-title">솔로탈출 시기</h2>
+      <p class="ch-sub">정확히 언제 내 연애가 시작될까?</p>
+    </div>
+
+    <div class="ch-body">
+      <!-- Calendar -->
+      <div class="cal-card">
+        <div class="cal-top">
+          <span class="cal-month"><%= cy %>년 <%= MONTH_KR[cm-1] %></span>
+          <span class="cal-good-badge">💗 연애운 좋은 날 <b><%= goodDays.size %>일</b></span>
+        </div>
+        <div class="cal-weekdays">
+          <% WEEKDAYS.forEach(function(d,i){ %>
+            <span class="<%= i===0?'wd-sun':i===6?'wd-sat':'' %>"><%= d %></span>
+          <% }); %>
+        </div>
+        <div class="cal-grid">
+          <% for(let i=0;i<firstDayOfWeek;i++){ %><span class="cc cc-empty"></span><% } %>
+          <% for(let d=1;d<=daysInMonth;d++){ %>
+            <span class="cc<%= goodDays.has(d)?' cc-love':'' %><%= d===cd?' cc-today':'' %>">
+              <%= d %><% if(goodDays.has(d)){ %><i class="ldot"></i><% } %>
+            </span>
+          <% } %>
+        </div>
+        <p class="cal-note">💗 핑크 날짜: 연애운이 특히 강한 날</p>
+      </div>
+
+      <div class="lock-list">
+        <div class="lock-item li-ch1">
+          <span class="li-ico">📅</span>
+          <div class="li-body"><strong>솔로탈출 시기</strong><p class="blur-t"><%= cy %>년 ■■월, 이 시기에 ■■■■■■■■ 가능성이 집중됩니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch1">
+          <span class="li-ico">🎯</span>
+          <div class="li-body"><strong>인만추 vs 자만추</strong><p class="blur-t">■■ 통해 만날 확률 ■■%, ■■■■ 시기가 가장 유리합니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch1">
+          <span class="li-ico">📍</span>
+          <div class="li-body"><strong>그 사람을 만나게 될 장소</strong><p class="blur-t">■■■, ■■■ 에서 만날 확률이 높으며 ■■■■ 환경이 핵심입니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch1">
+          <span class="li-ico">👥</span>
+          <div class="li-body"><strong>주변인 vs 새로 알게 될 사람</strong><p class="blur-t">이미 아는 ■■■■ 가능성 vs 새로 만나는 ■■■■■ 심층 분석</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <p class="rv-s">★★★★★</p>
+        <p class="rv-t">"솔로탈출 시기를 짚어줬는데 그 달에 진짜 연락이 왔어요 소름이에요 ㄷㄷ"</p>
+        <p class="rv-a">— 28세 / 을목 일간</p>
+      </div>
+      <button class="cta-btn btn-ch1 unlock-btn">🔓 솔로탈출 시기 전체 보기 →</button>
+    </div>
+  </section>
+
+  <!-- ══ CHAPTER 2 : 나만의 연애 매력 ══ -->
+  <section class="chapter">
+    <div class="ch-header ch2-header">
+      <div class="ch-num-row">
+        <span class="ch-num">CHAPTER 2</span>
+        <span class="ch-icon">✨</span>
+        <span class="ch-wc">6,000자+</span>
+      </div>
+      <h2 class="ch-title">나만의 연애 매력</h2>
+      <p class="ch-sub">상대방을 단번에 반하게 만드는 나의 진짜 매력</p>
+    </div>
+
+    <div class="ch-body">
+      <div class="lock-list">
+        <div class="lock-item li-ch2">
+          <span class="li-ico">💬</span>
+          <div class="li-body"><strong>내 매력을 200% 살린 플러팅 방법</strong><p class="blur-t">■■■ 일간은 ■■■■ 방식이 가장 효과적. ■■■ 타이밍이 핵심입니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch2">
+          <span class="li-ico">🔥</span>
+          <div class="li-body"><strong>그 사람을 무장 해제시키는 내 색기 🥵</strong><p class="blur-t">■■■■ 에너지의 당신이 발산하는 ■■■ 매력은 상대에게 ■■■■ 감정을 일으킵니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch2">
+          <span class="li-ico">💄</span>
+          <div class="li-body"><strong>나의 외적 매력 분석 (얼굴상 · 몸매 · 스타일)</strong><p class="blur-t">■■형 얼굴에 ■■■ 분위기, 가장 돋보이는 스타일은 ■■■■■ 입니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch2">
+          <span class="li-ico">🌹</span>
+          <div class="li-body"><strong>그 사람을 유혹할 장소 &amp; 데이트 스타일</strong><p class="blur-t">■■■■ 분위기의 장소에서 ■■■■ 방식으로 접근하면 ■■■% 효과적입니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <p class="rv-s">★★★★★</p>
+        <p class="rv-t">"플러팅 방법 그대로 써봤는데 진짜 됐어요ㅋㅋ 제 스타일이랑 너무 딱 맞아요"</p>
+        <p class="rv-a">— 26세 / 병화 일간</p>
+      </div>
+      <button class="cta-btn btn-ch2 unlock-btn">🔓 나의 연애 매력 전체 보기 →</button>
+    </div>
+  </section>
+
+  <!-- ══ CHAPTER 3 : 만나게 될 그 사람 ══ -->
+  <section class="chapter">
+    <div class="ch-header ch3-header">
+      <div class="ch-num-row">
+        <span class="ch-num">CHAPTER 3</span>
+        <span class="ch-icon">💫</span>
+        <span class="ch-wc">6,000자+</span>
+      </div>
+      <h2 class="ch-title">내가 만나게 될 그 사람</h2>
+      <p class="ch-sub">이상형을 99% 적중하는 상대방 분석</p>
+    </div>
+
+    <div class="ch-body">
+      <% if (partnerAppearance.length > 0) { %>
+      <div class="partner-card">
+        <p class="pc-label">👤 상대방 외모 미리보기</p>
+        <div class="pc-item pc-open">
+          <span class="pc-check">✓</span>
+          <span><%= partnerAppearance[0] %></span>
+        </div>
+        <% if (partnerAppearance.length > 1) { %>
+        <div class="pc-blur-wrap">
+          <% for(let i=1;i<Math.min(partnerAppearance.length,3);i++){ %>
+          <div class="pc-item">
+            <span class="pc-check">✓</span>
+            <span class="blur-t"><%= partnerAppearance[i] %></span>
+          </div>
+          <% } %>
+          <div class="pc-lock-msg">🔒 잠금 해제 시 전체 공개</div>
+        </div>
+        <% } %>
+      </div>
+      <% } %>
+
+      <div class="lock-list">
+        <div class="lock-item li-ch3">
+          <span class="li-ico">👁️</span>
+          <div class="li-body"><strong>상대방 외모와 첫인상 (99% 적중)</strong><p class="blur-t">■■형 얼굴에 ■■■한 분위기, 키 ■■■ 정도이며 첫인상은 ■■■■ 느낌입니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch3">
+          <span class="li-ico">🧠</span>
+          <div class="li-body"><strong>성격과 MBTI 유형</strong><p class="blur-t">■■■ 성향의 ■■-■■ 타입으로 ■■■■ 상황에서 ■■■■ 반응을 보입니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch3">
+          <span class="li-ico">💼</span>
+          <div class="li-body"><strong>상대방 직업적 특징 💰</strong><p class="blur-t">■■■ 계열이나 ■■■■ 관련 직종 가능성이 높으며 ■■■ 특성이 있습니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch3">
+          <span class="li-ico">⏳</span>
+          <div class="li-body"><strong>이번 연애가 얼마나 오래갈까?</strong><p class="blur-t">단기 ■■■ vs 장기 ■■■ 가능성 분석. ■■■■ 조건이 맞으면 ■■■■ 으로 발전합니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <p class="rv-s">★★★★★</p>
+        <p class="rv-t">"상대방 외모 묘사가 제 이상형을 완전 적중함... 실제로 그런 사람 만났어요 ㄷㄷ"</p>
+        <p class="rv-a">— 30세 / 임수 일간</p>
+      </div>
+      <button class="cta-btn btn-ch3 unlock-btn">🔓 그 사람 완전 분석 보기 →</button>
+    </div>
+  </section>
+
+  <!-- ══ CHAPTER 4 : 19금 ══ -->
+  <section class="chapter">
+    <div class="ch-header ch4-header">
+      <div class="ch-num-row">
+        <span class="ch-num">CHAPTER 4</span>
+        <span class="ch-icon">🔥</span>
+        <span class="ch-wc">4,000자+</span>
+      </div>
+      <h2 class="ch-title">19금 취향 &amp; 속궁합</h2>
+      <p class="ch-sub">사주로 보는 나의 은밀한 취향 🥵</p>
+    </div>
+
+    <div class="ch-body">
+      <div class="adult-row">
+        <span>🔞</span>
+        <span>성인 전용 · 만 19세 이상 열람 가능</span>
+      </div>
+
+      <div class="lock-list">
+        <div class="lock-item li-ch4">
+          <span class="li-ico">🥵</span>
+          <div class="li-body"><strong>19금 취향 &amp; 속궁합 완전 분석</strong><p class="blur-t">■■■ 일간의 은밀한 취향, ■■■■ 스타일과 ■■■■ 궁합 심층 분석</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch4">
+          <span class="li-ico">💑</span>
+          <div class="li-body"><strong>안정적인 연애를 하기 좋은 상대</strong><p class="blur-t">■■■, ■■■ 일간과 궁합이 가장 안정적이며 ■■■■ 관계로 발전 가능</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch4">
+          <span class="li-ico">💋</span>
+          <div class="li-body"><strong>가볍게 만나기 좋은 상대</strong><p class="blur-t">■■■■ 유형과는 ■■■■■ 관계가 자연스러우며 ■■■ 이 점은 주의해야 합니다.</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+        <div class="lock-item li-ch4">
+          <span class="li-ico">🔮</span>
+          <div class="li-body"><strong>나와 속궁합이 최고인 사주</strong><p class="blur-t">■■■ 일간과 ■■■ 일간이 가장 잘 맞으며 ■■■■■■ 이유 상세 분석</p></div>
+          <span class="li-lock">🔒</span>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <p class="rv-s">★★★★★</p>
+        <p class="rv-t">"이 부분 보고 너무 소름... 제 취향이랑 너무 맞아서 당황했어요 ㅋㅋ"</p>
+        <p class="rv-a">— 25세 / 정화 일간</p>
+      </div>
+      <button class="cta-btn btn-ch4 unlock-btn">🔓 19금 취향 전체 보기 →</button>
+    </div>
+  </section>
+
+  <!-- ══ FINAL CTA ══ -->
+  <section class="final-cta" id="result10-button">
+    <div class="fc-inner">
+      <p class="fc-eye">🎯 지금 바로 확인하세요</p>
+      <h2 class="fc-title"><%= userInfo.name %>님의<br>완전한 연애운 분석</h2>
+      <ul class="fc-list">
+        <li>✅ 챕터 1 · 솔로탈출 시기 완전 공개</li>
+        <li>✅ 챕터 2 · 연애 매력 &amp; 플러팅 전략</li>
+        <li>✅ 챕터 3 · 상대방 외모 / 성격 / 직업</li>
+        <li>✅ 챕터 4 · 19금 취향 &amp; 속궁합</li>
+      </ul>
+      <button class="unlock-btn fc-btn">지금 전체 분석 열어보기 →</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- Form -->
+<form method="POST" action="<%= userInfo.name === '관리자' ? '/saju/skip-payment' : '/saju/payment' %>" class="r-form">
+  <input type="hidden" name="userInfo"  value='<%= JSON.stringify(userInfo) %>' />
+  <input type="hidden" name="sample"    value='<%= JSON.stringify(sample) %>' />
+  <input type="hidden" name="goodsType" value='ROMANTIC' />
+</form>
+
+<!-- Floating -->
+<div id="floating-btn">
+  <div class="fb-inner">
+    <div class="fb-top">
+      <span class="fb-label">⏰ 할인 종료까지</span>
+      <span id="countdown-time">60:00:000</span>
+    </div>
+    <button class="fb-btn unlock-btn">연애운 전체 보기 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ STYLES ══════════════ -->
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#fff5fb}
+button{border:none;cursor:pointer}
+
+/* ── Page ── */
+.rp{
+  max-width:480px; margin:0 auto;
+  background:#fff5fb;
+  color:#1a0a2e;
+  font-family:'Poor Story','Noto Sans KR',system-ui,sans-serif;
+  padding-bottom:140px;
+  overflow-x:hidden;
 }
 
-requestAnimationFrame(updateCountdown);
+/* ══ HERO ══ */
+.hero{
+  position:relative;
+  padding:56px 22px 48px;
+  text-align:center;
+  background:linear-gradient(160deg,#ff6b9d 0%,#c44dff 50%,#7b5ea7 100%);
+  overflow:hidden;
+}
+.hero-bg-deco{
+  position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,0.12) 1px,transparent 1px);
+  background-size:32px 32px;
+  pointer-events:none;
+}
+.hero-tag{
+  display:inline-block;
+  font-size:13px;color:#ffe8f4;
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.25);
+  padding:5px 14px;border-radius:999px;
+  margin-bottom:14px;letter-spacing:0.06em;
+}
+.hero-title{
+  font-family:'Jua',sans-serif;
+  font-size:clamp(28px,7vw,38px);
+  line-height:1.28;color:#fff;
+  margin-bottom:16px;
+  text-shadow:0 4px 20px rgba(0,0,0,0.2);
+}
+.hero-name-grad{
+  background:linear-gradient(90deg,#fff176,#ffd54f);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero-stem{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 18px;border-radius:999px;
+  background:rgba(255,255,255,0.2);
+  border:1px solid rgba(255,255,255,0.35);
+  margin-bottom:14px;
+}
+.hs-key{font-family:'Jua',sans-serif;font-size:16px;color:#fff176}
+.hs-dot{color:rgba(255,255,255,0.5)}
+.hs-type{font-size:13px;color:rgba(255,255,255,0.9)}
+.hero-chips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.chip{
+  font-size:12px;color:rgba(255,255,255,0.85);
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.25);
+  padding:5px 12px;border-radius:999px;
+}
+.scroll-hint{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  font-size:12px;color:rgba(255,255,255,0.5);
+  animation:sh 2s ease-in-out infinite;
+}
+@keyframes sh{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(5px)}}
 
-  $(document).ready(function() {
-    $(".unlock-btn").on("click", function() {
-      $("form").submit();
-    });
+/* ══ 일간 SECTION ══ */
+.ilgan-section{
+  padding:24px 18px 8px;
+}
+.ilgan-card{
+  border-radius:20px;border:1.5px solid;
+  padding:22px 20px 20px;
+  margin-bottom:14px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.07);
+}
+.ig-top{
+  display:flex;align-items:flex-start;
+  justify-content:space-between;gap:12px;
+  margin-bottom:14px;
+}
+.ig-title-wrap{display:flex;flex-direction:column;gap:4px}
+.ig-tag{
+  display:inline-block;font-size:11px;
+  border:1px solid;border-radius:999px;
+  padding:3px 10px;letter-spacing:0.05em;
+  width:fit-content;
+}
+.ig-name{
+  font-family:'Jua',sans-serif;font-size:24px;
+}
+.ig-type-pill{
+  display:inline-flex;align-items:center;
+  padding:7px 14px;border-radius:999px;
+  font-size:13px;color:#fff;
+  white-space:nowrap;flex-shrink:0;
+  font-family:'Poor Story',sans-serif;
+  box-shadow:0 4px 14px rgba(0,0,0,0.15);
+}
+.ig-keywords{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.ig-kw{
+  font-size:12px;border:1px solid;border-radius:999px;
+  padding:4px 11px;background:rgba(255,255,255,0.7);
+}
+.ig-desc{
+  font-size:14px;line-height:1.7;color:#3a2a50;
+  margin-bottom:16px;
+}
+.ig-traits{display:flex;flex-direction:column;gap:8px}
+.ig-trait-row{
+  padding:10px 14px;border-left:3px solid;
+  border-radius:0 10px 10px 0;
+  background:rgba(255,255,255,0.6);
+  font-size:13px;color:#2a1a3e;line-height:1.4;
+}
+.dm-img-wrap{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
+.dm-img{width:100%;height:auto;display:block;object-fit:cover}
 
-    window.karrotPixel.track("Lead");
-  });
+/* ══ CHAPTER ══ */
+.chapter{margin-top:6px}
 
+.ch-header{padding:28px 18px 0}
+.ch1-header{background:linear-gradient(135deg,#fff0f8 0%,#fce4ec 100%)}
+.ch2-header{background:linear-gradient(135deg,#fffde7 0%,#fff3e0 100%)}
+.ch3-header{background:linear-gradient(135deg,#e8f4fd 0%,#e3f2fd 100%)}
+.ch4-header{background:linear-gradient(135deg,#f3e5f5 0%,#ede7f6 100%)}
 
-  
-document.addEventListener("DOMContentLoaded", function () {
-  const floatingBtn = document.getElementById("floating-btn");
-  const target = document.getElementById("result10-button");
+.ch-num-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ch-num{
+  font-family:'Jua',sans-serif;font-size:12px;
+  letter-spacing:0.1em;color:#7c5c8a;
+  background:rgba(255,255,255,0.7);
+  padding:4px 10px;border-radius:999px;
+  border:1px solid rgba(124,92,138,0.2);
+}
+.ch-icon{font-size:18px}
+.ch-wc{
+  font-size:11px;color:#a892b8;
+  margin-left:auto;
+  padding:3px 8px;border-radius:999px;
+  background:rgba(255,255,255,0.6);
+  border:1px solid rgba(0,0,0,0.07);
+}
+.ch-title{
+  font-family:'Jua',sans-serif;font-size:26px;
+  color:#1a0a2e;margin-bottom:6px;
+}
+.ch1-header .ch-title{color:#c2185b}
+.ch2-header .ch-title{color:#e65100}
+.ch3-header .ch-title{color:#1565c0}
+.ch4-header .ch-title{color:#7b1fa2}
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          floatingBtn.classList.add("hide");
-        } else {
-          floatingBtn.classList.remove("hide");
-        }
-      });
-    },
-    {
-      threshold: 0.1,
-    }
-  );
+.ch-sub{
+  font-size:14px;color:#7c5c8a;
+  padding-bottom:20px;line-height:1.5;
+}
 
-  observer.observe(target);
+.ch-body{
+  padding:18px 18px 28px;
+  background:#fff;
+}
+
+/* ══ CALENDAR ══ */
+.cal-card{
+  background:#fff8fc;border:1.5px solid #fce4ec;
+  border-radius:16px;padding:18px;margin-bottom:18px;
+  box-shadow:0 2px 12px rgba(255,107,157,0.1);
+}
+.cal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-month{font-family:'Jua',sans-serif;font-size:18px;color:#c2185b}
+.cal-good-badge{font-size:12px;color:#6b5c7a}
+.cal-good-badge b{color:#e91e63}
+.cal-weekdays,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cal-weekdays{margin-bottom:6px}
+.cal-weekdays span{font-size:11px;color:#a892b8;padding:3px 0}
+.wd-sun{color:#e91e63!important}
+.wd-sat{color:#2196f3!important}
+.cc{
+  position:relative;aspect-ratio:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:12px;color:#4a3a5a;border-radius:7px;
+}
+.cc-empty{visibility:hidden}
+.cc-today{background:#f3e5f5;color:#7b1fa2;font-weight:700;border-radius:7px}
+.cc-love{background:#fce4ec;color:#c2185b;font-weight:700;border-radius:7px}
+.ldot{
+  font-style:normal;position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+  width:3px;height:3px;border-radius:50%;background:#e91e63;
+}
+.cal-note{font-size:11px;color:#c4a0b8;text-align:center;margin-top:10px}
+
+/* ══ LOCK LIST ══ */
+.lock-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.lock-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 14px 14px 16px;
+  border-radius:13px;
+  background:#fafafa;
+  border:1.5px solid #f0e8f5;
+  border-left-width:3px;
+  box-shadow:0 1px 6px rgba(0,0,0,0.05);
+}
+.li-ch1{border-left-color:#e91e63;border-top-color:#fce4ec;border-right-color:#fce4ec;border-bottom-color:#fce4ec}
+.li-ch2{border-left-color:#ff6f00;border-top-color:#fff3e0;border-right-color:#fff3e0;border-bottom-color:#fff3e0}
+.li-ch3{border-left-color:#1565c0;border-top-color:#e3f2fd;border-right-color:#e3f2fd;border-bottom-color:#e3f2fd}
+.li-ch4{border-left-color:#7b1fa2;border-top-color:#f3e5f5;border-right-color:#f3e5f5;border-bottom-color:#f3e5f5}
+.li-ico{font-size:20px;flex-shrink:0;padding-top:1px}
+.li-body{flex:1;min-width:0}
+.li-body strong{
+  display:block;font-family:'Jua',sans-serif;
+  font-size:14px;color:#1a0a2e;margin-bottom:5px;
+}
+.blur-t{
+  font-size:12px;color:#7c5c8a;line-height:1.5;
+  filter:blur(3.5px);user-select:none;pointer-events:none;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+.li-lock{font-size:17px;flex-shrink:0;opacity:0.5;padding-top:1px}
+
+/* ══ REVIEW ══ */
+.review-card{
+  padding:14px 18px;border-radius:13px;
+  background:#fdf6ff;
+  border:1px solid #e8d5f5;
+  margin-bottom:16px;
+  box-shadow:0 1px 6px rgba(0,0,0,0.04);
+}
+.rv-s{font-size:13px;color:#ffb300;letter-spacing:2px;margin-bottom:7px}
+.rv-t{font-size:13px;color:#4a3a5a;line-height:1.6;margin-bottom:7px}
+.rv-a{font-size:11px;color:#a892b8}
+
+/* ══ CTA BUTTONS ══ */
+.cta-btn{
+  display:block;width:100%;padding:17px;
+  border-radius:13px;font-family:'Jua',sans-serif;
+  font-size:17px;color:#fff;letter-spacing:-0.01em;
+  transition:transform 120ms ease,filter 120ms ease;
+  box-shadow:0 6px 20px rgba(0,0,0,0.15);
+}
+.cta-btn:active{transform:scale(0.98);filter:brightness(0.92)}
+.btn-ch1{background:linear-gradient(135deg,#e91e63,#ff6090);box-shadow:0 6px 20px rgba(233,30,99,0.35)}
+.btn-ch2{background:linear-gradient(135deg,#ff6f00,#ffa726);box-shadow:0 6px 20px rgba(255,111,0,0.35)}
+.btn-ch3{background:linear-gradient(135deg,#1565c0,#42a5f5);box-shadow:0 6px 20px rgba(21,101,192,0.35)}
+.btn-ch4{background:linear-gradient(135deg,#7b1fa2,#ce93d8);box-shadow:0 6px 20px rgba(123,31,162,0.35)}
+
+/* ══ PARTNER PREVIEW ══ */
+.partner-card{
+  background:#e3f2fd;border:1.5px solid #90caf9;
+  border-radius:16px;padding:18px;margin-bottom:18px;
+}
+.pc-label{font-size:12px;color:#1565c0;margin-bottom:12px;letter-spacing:0.04em}
+.pc-item{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;color:#1a0a2e}
+.pc-open{border-bottom:1px solid rgba(144,202,249,0.4);margin-bottom:4px}
+.pc-check{color:#1565c0;font-size:13px;flex-shrink:0}
+.pc-blur-wrap{position:relative}
+.pc-lock-msg{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(227,242,253,0.8);
+  border-radius:8px;font-size:13px;color:#1565c0;
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+}
+
+/* ══ ADULT BADGE ══ */
+.adult-row{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 13px;border-radius:8px;
+  background:#f3e5f5;border:1px solid #ce93d8;
+  font-size:12px;color:#7b1fa2;margin-bottom:18px;
+}
+
+/* ══ FINAL CTA ══ */
+.final-cta{
+  margin:8px 0 0;
+  padding:44px 18px 36px;
+  background:linear-gradient(160deg,#ff6b9d 0%,#c44dff 60%,#7b5ea7 100%);
+  text-align:center;
+}
+.fc-inner{max-width:440px;margin:0 auto}
+.fc-eye{font-size:13px;color:rgba(255,255,255,0.8);margin-bottom:12px;letter-spacing:0.08em}
+.fc-title{
+  font-family:'Jua',sans-serif;font-size:26px;color:#fff;
+  line-height:1.35;margin-bottom:24px;
+  text-shadow:0 4px 16px rgba(0,0,0,0.2);
+}
+.fc-list{list-style:none;text-align:left;margin-bottom:24px;display:flex;flex-direction:column;gap:8px}
+.fc-list li{
+  font-size:14px;color:rgba(255,255,255,0.9);
+  padding:11px 16px;border-radius:11px;
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.25);
+}
+.fc-btn{
+  display:block;width:100%;padding:20px;
+  border-radius:14px;
+  font-family:'Jua',sans-serif;font-size:20px;color:#7b1fa2;
+  background:#fff;
+  box-shadow:0 8px 28px rgba(0,0,0,0.2);
+  transition:transform 120ms ease;letter-spacing:-0.02em;
+}
+.fc-btn:active{transform:scale(0.98)}
+
+/* ══ FLOATING ══ */
+#floating-btn{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;z-index:9999;
+  padding:12px 16px 20px;
+  background:linear-gradient(to top,rgba(255,245,251,0.98) 0%,transparent 100%);
+  pointer-events:none;
+  transition:opacity 280ms ease;
+}
+#floating-btn.hide{opacity:0;pointer-events:none}
+.fb-inner{
+  background:#fff;border:1.5px solid #f8bbd0;
+  border-radius:16px;padding:12px 16px;
+  box-shadow:0 -4px 24px rgba(233,30,99,0.12);
+  pointer-events:all;
+}
+.fb-top{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
+.fb-label{font-size:12px;color:#a892b8}
+#countdown-time{font-family:'Jua',sans-serif;font-size:14px;color:#e91e63;letter-spacing:0.1em}
+.fb-btn{
+  display:block;width:100%;padding:16px;
+  border-radius:12px;
+  font-family:'Jua',sans-serif;font-size:17px;color:#fff;
+  background:linear-gradient(135deg,#e91e63,#c44dff);
+  box-shadow:0 6px 18px rgba(233,30,99,0.35);
+  transition:transform 120ms ease;letter-spacing:-0.01em;
+}
+.fb-btn:active{transform:scale(0.98)}
+
+.r-form{display:none}
+
+/* ══ 일간 테마 (10개 고정 클래스) ══ */
+/* 갑목 */
+.igtheme-갑목{background:#f0fdf4;border-color:#86efac}
+.igtheme-갑목 .ig-tag{color:#16a34a;border-color:#86efac}
+.igtheme-갑목 .ig-name{color:#16a34a}
+.igtheme-갑목 .ig-type-pill{background:#16a34a}
+.igtheme-갑목 .ig-kw{color:#16a34a;border-color:#86efac}
+.igtheme-갑목 .ig-trait-row{border-left-color:#16a34a}
+/* 을목 */
+.igtheme-을목{background:#f0fdf4;border-color:#86efac}
+.igtheme-을목 .ig-tag{color:#15803d;border-color:#86efac}
+.igtheme-을목 .ig-name{color:#15803d}
+.igtheme-을목 .ig-type-pill{background:#15803d}
+.igtheme-을목 .ig-kw{color:#15803d;border-color:#86efac}
+.igtheme-을목 .ig-trait-row{border-left-color:#15803d}
+/* 병화 */
+.igtheme-병화{background:#fff5f5;border-color:#fca5a5}
+.igtheme-병화 .ig-tag{color:#dc2626;border-color:#fca5a5}
+.igtheme-병화 .ig-name{color:#dc2626}
+.igtheme-병화 .ig-type-pill{background:#dc2626}
+.igtheme-병화 .ig-kw{color:#dc2626;border-color:#fca5a5}
+.igtheme-병화 .ig-trait-row{border-left-color:#dc2626}
+/* 정화 */
+.igtheme-정화{background:#fff5f5;border-color:#fca5a5}
+.igtheme-정화 .ig-tag{color:#b91c1c;border-color:#fca5a5}
+.igtheme-정화 .ig-name{color:#b91c1c}
+.igtheme-정화 .ig-type-pill{background:#b91c1c}
+.igtheme-정화 .ig-kw{color:#b91c1c;border-color:#fca5a5}
+.igtheme-정화 .ig-trait-row{border-left-color:#b91c1c}
+/* 무토 */
+.igtheme-무토{background:#fffbeb;border-color:#fcd34d}
+.igtheme-무토 .ig-tag{color:#92400e;border-color:#fcd34d}
+.igtheme-무토 .ig-name{color:#92400e}
+.igtheme-무토 .ig-type-pill{background:#92400e}
+.igtheme-무토 .ig-kw{color:#92400e;border-color:#fcd34d}
+.igtheme-무토 .ig-trait-row{border-left-color:#92400e}
+/* 기토 */
+.igtheme-기토{background:#fffbeb;border-color:#fcd34d}
+.igtheme-기토 .ig-tag{color:#78350f;border-color:#fcd34d}
+.igtheme-기토 .ig-name{color:#78350f}
+.igtheme-기토 .ig-type-pill{background:#78350f}
+.igtheme-기토 .ig-kw{color:#78350f;border-color:#fcd34d}
+.igtheme-기토 .ig-trait-row{border-left-color:#78350f}
+/* 경금 */
+.igtheme-경금{background:#eff6ff;border-color:#93c5fd}
+.igtheme-경금 .ig-tag{color:#1d4ed8;border-color:#93c5fd}
+.igtheme-경금 .ig-name{color:#1d4ed8}
+.igtheme-경금 .ig-type-pill{background:#1d4ed8}
+.igtheme-경금 .ig-kw{color:#1d4ed8;border-color:#93c5fd}
+.igtheme-경금 .ig-trait-row{border-left-color:#1d4ed8}
+/* 신금 */
+.igtheme-신금{background:#eef2ff;border-color:#a5b4fc}
+.igtheme-신금 .ig-tag{color:#4338ca;border-color:#a5b4fc}
+.igtheme-신금 .ig-name{color:#4338ca}
+.igtheme-신금 .ig-type-pill{background:#4338ca}
+.igtheme-신금 .ig-kw{color:#4338ca;border-color:#a5b4fc}
+.igtheme-신금 .ig-trait-row{border-left-color:#4338ca}
+/* 임수 */
+.igtheme-임수{background:#f0f9ff;border-color:#7dd3fc}
+.igtheme-임수 .ig-tag{color:#0369a1;border-color:#7dd3fc}
+.igtheme-임수 .ig-name{color:#0369a1}
+.igtheme-임수 .ig-type-pill{background:#0369a1}
+.igtheme-임수 .ig-kw{color:#0369a1;border-color:#7dd3fc}
+.igtheme-임수 .ig-trait-row{border-left-color:#0369a1}
+/* 계수 */
+.igtheme-계수{background:#ecfeff;border-color:#67e8f9}
+.igtheme-계수 .ig-tag{color:#0e7490;border-color:#67e8f9}
+.igtheme-계수 .ig-name{color:#0e7490}
+.igtheme-계수 .ig-type-pill{background:#0e7490}
+.igtheme-계수 .ig-kw{color:#0e7490;border-color:#67e8f9}
+.igtheme-계수 .ig-trait-row{border-left-color:#0e7490}
+</style>
+
+<script>
+let _rem = 60*60*1000, _lt = performance.now();
+(function tick(now){
+  _rem = Math.max(0, _rem-(now-_lt)); _lt=now;
+  const ms=Math.floor(_rem%1000), tot=Math.floor(_rem/1000);
+  document.getElementById("countdown-time").innerText =
+    String(Math.floor(tot/60)).padStart(2,"0")+":"+
+    String(tot%60).padStart(2,"0")+":"+
+    String(ms).padStart(3,"0");
+  if(_rem>0) requestAnimationFrame(tick);
+})(performance.now());
+
+$(document).ready(function(){
+  $(".unlock-btn").on("click",function(){ $(".r-form").submit(); });
+  if(window.karrotPixel) window.karrotPixel.track("Lead");
 });
-document.addEventListener("DOMContentLoaded", function() {
-  // 기존 unlock-btn 코드 유지
-  $(".unlock-btn").on("click", function() {
-    $("form").submit();
-  });
 
-  // 👉 플로팅 버튼 클릭 시에도 동일하게 form submit
-  document.getElementById("floating-btn").addEventListener("click", function() {
-    document.querySelector("form").submit();
-  });
-
-  window.karrotPixel.track("Lead");
+document.addEventListener("DOMContentLoaded",function(){
+  const fl=document.getElementById("floating-btn");
+  const tg=document.getElementById("result10-button");
+  if(fl&&tg){
+    new IntersectionObserver(function(e){
+      fl.classList.toggle("hide",e[0].isIntersecting);
+    },{threshold:0.1}).observe(tg);
+  }
 });
 </script>
 
