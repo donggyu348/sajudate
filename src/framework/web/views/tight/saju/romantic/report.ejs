@@ -12,6 +12,523 @@
 
   const g = String(userInfo.gender).trim();
   let genderKey = (["여","여자","여성","female","woman"].includes(g)) ? "woman" : "man";
+
+  // reportInfo가 비어있으면, 6장 구성의 "긴/직관적/시각요소 많은" 기본 리포트를 생성
+  // (서버에서 reportInfo를 주는 경우엔 그 값을 그대로 사용)
+  const safeUserName = (userInfo && (userInfo.nickname || userInfo.name)) ? String(userInfo.nickname || userInfo.name) : "당신";
+  const spouseNoun = (genderKey === "man") ? "미래 아내" : "미래 남편";
+
+  const icon = {
+    spark:"✦", heart:"♥", target:"◎", note:"✎", warn:"⚠", check:"✓", clock:"⏳", star:"★", key:"🔑"
+  };
+
+  function h(str){ return String(str || ""); }
+  function chip(label){ return `<span class="chip">${h(label)}</span>`; }
+  function bar(label, pct, tone){
+    const p = Math.max(0, Math.min(Number(pct) || 0, 100));
+    const t = tone || "pink";
+    return `
+      <div class="meter">
+        <div class="meter-top">
+          <span class="meter-k">${h(label)}</span>
+          <span class="meter-v">${p}%</span>
+        </div>
+        <div class="meter-rail"><div class="meter-fill tone-${t}" data-w="${p}%"></div></div>
+      </div>
+    `;
+  }
+
+  function bullets(items){
+    return `<ul class="bullets">${items.map(t=>`<li>${t}</li>`).join("")}</ul>`;
+  }
+
+  function callout(kind, title, body){
+    const k = kind || "tip";
+    return `
+      <div class="callout kind-${k}">
+        <div class="co-top">
+          <span class="co-badge">${k.toUpperCase()}</span>
+          <span class="co-title">${h(title)}</span>
+        </div>
+        <div class="co-body">${body}</div>
+      </div>
+    `;
+  }
+
+  function timeline(steps){
+    return `
+      <div class="timeline">
+        ${steps.map(s=>`
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-box">
+              <div class="tl-t">${h(s.t)}</div>
+              <div class="tl-d">${h(s.d)}</div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function miniQuiz(q, options){
+    return `
+      <div class="quiz">
+        <div class="quiz-q">${h(q)}</div>
+        <div class="quiz-opts">
+          ${options.map(o=>`<div class="quiz-opt">${h(o)}</div>`).join("")}
+        </div>
+        <div class="quiz-hint">정답은 리포트 흐름 안에서 자연스럽게 드러나도록 구성했어요.</div>
+      </div>
+    `;
+  }
+
+  function doDont(doList, dontList){
+    return `
+      <div class="dd">
+        <div class="dd-col">
+          <div class="dd-h ok">${icon.check} DO</div>
+          ${bullets(doList.map(x=>`<span class="dd-t">${x}</span>`))}
+        </div>
+        <div class="dd-col">
+          <div class="dd-h no">${icon.warn} DON'T</div>
+          ${bullets(dontList.map(x=>`<span class="dd-t">${x}</span>`))}
+        </div>
+      </div>
+    `;
+  }
+
+  if (!Array.isArray(reportInfo) || reportInfo.length === 0) {
+    const c1 = "1장. 나만의 매력은?";
+    const c2 = "2장. 연애운 흐름과 시기";
+    const c3 = "3장. 연애운 상승 방법은?";
+    const c4 = "4장. 내 운명의 짝은?";
+    const c5 = "5장. 운명인 줄 알았는데, 아닌 사람";
+    const c6 = "6장. 19금 연애운";
+
+    // 장별 “대표 코멘트(동물+2줄)”를 리포트 곳곳에 반복 노출해 일관성을 줌
+    const chapterMascot = {
+      [c1]: { emoji:"🐰", lines:[
+        "눈빛과 표정에서 감정이 잘 살아나고, 자연스럽게 시선을 끄는 분위기가 있어요.",
+        "자신감이 느껴지는 태도 덕분에 고급스럽고 매력적인 인상을 줍니다."
+      ]},
+      [c2]: { emoji:"🦊", lines:[
+        "감정의 깊이가 큰 편이라 사랑에 빠지면 몰입도가 높은 스타일이에요.",
+        "한 번 마음을 주면 아낌없이 표현하는 타입이라 연애의 온도가 높은 편입니다."
+      ]},
+      [c3]: { emoji:"🐥", lines:[
+        "진심은 충분하지만 표현 방식이 차갑게 느껴질 수 있어요.",
+        "감정을 조금 더 부드럽게 전달하는 연습이 필요합니다."
+      ]},
+      [c4]: { emoji:"🐻", lines:[
+        "생각이 깊고 대화를 즐기는 사람에게 특히 끌리는 경향이 있어요.",
+        "서로의 이야기를 오래 나눌수록 감정이 더 커지는 스타일입니다."
+      ]},
+      [c5]: { emoji:"🐱", lines:[
+        "확신을 주지 않는 사람과의 관계는 결국 피로감을 남기게 됩니다.",
+        "애매한 태도가 반복되면 감정적으로 크게 지칠 수 있어요."
+      ]},
+      [c6]: { emoji:"🖤", lines:[
+        "당신의 ‘은근한 매력’은 평소보다 가까워졌을 때 더 선명해져요.",
+        "밀도 높은 케미는 결국 ‘심리적 안전감’ 위에서 폭발합니다."
+      ]}
+    };
+
+    function mascotBlock(ch){
+      const m = chapterMascot[ch];
+      if (!m) return "";
+      return `
+        <div class="mascot">
+          <div class="ms-emoji">${m.emoji}</div>
+          <div class="ms-lines">
+            ${m.lines.map(x=>`<div class="ms-line">👉 ${h(x)}</div>`).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    reportInfo = [
+      // ── 1장 ──
+      { chapter:c1, title:"풀이 1. 내가 타고난 기본 매력은 무엇일까?", isHtml:true, content: `
+        ${mascotBlock(c1)}
+        ${callout("note","핵심 요약",`<div class="p">${h(safeUserName)} 님의 기본 매력은 <span class="hl">‘신뢰 + 분위기’</span>가 동시에 깔리는 타입이에요.</div>
+        <div class="p">가볍게 호감만 남기고 사라지는 매력보다, <span class="hl">“계속 생각나는 매력”</span>에 가까워요.</div>`)}
+        <div class="meters">
+          ${bar("첫인상 호감도", 78, "pink")}
+          ${bar("신뢰감", 88, "gold")}
+          ${bar("감정 전달력", 74, "violet")}
+          ${bar("관계 지속력", 90, "ice")}
+        </div>
+        ${bullets([
+          "<b>매력의 결</b>: 튀지 않아도 ‘정돈된 느낌’으로 신뢰를 먼저 줌",
+          "<b>강점</b>: 상대가 불안할 때 중심을 잡아주는 안정감",
+          "<b>주의</b>: 매력을 ‘설명’으로 증명하려 하면 오히려 매력이 늦게 들어옴"
+        ])}
+      `},
+      { chapter:c1, title:"풀이 2. 사람들이 처음 만났을 때 느끼는 나의 분위기는?", isHtml:true, content: `
+        ${miniQuiz("첫인상으로 가장 많이 듣는 말은?",[
+          "A. 차분해 보인다 / 단정하다",
+          "B. 센스 있다 / 예쁘게 말한다",
+          "C. 똑부러진다 / 믿음직하다",
+          "D. 은근히 웃기다 / 편하다"
+        ])}
+        <div class="viz-grid">
+          <div class="viz-card"><div class="viz-t">첫 30초</div><div class="viz-v">“눈빛/표정이 살아있다”</div><div class="viz-s">표정이 무표정이면 차가워 보일 수 있어요. ‘미소 0.5초’가 키예요.</div></div>
+          <div class="viz-card"><div class="viz-t">첫 3분</div><div class="viz-v">“말이 정리돼 있다”</div><div class="viz-s">한 문장으로 요약해주는 말투가 매력으로 찍힙니다.</div></div>
+        </div>
+        ${callout("tip","바로 적용",`<div class="p">첫 인사 후 1문장: <span class="hl">“오 오늘 분위기 좋네요”</span> 같은 ‘가벼운 칭찬’이 차가움을 풀어줘요.</div>`)}
+      `},
+      { chapter:c1, title:"풀이 3. 썸 단계에서 상대를 끌어당기는 나만의 포인트는?", isHtml:true, content: `
+        ${mascotBlock(c1)}
+        ${callout("tip","썸에서 강해지는 포인트",`<div class="p">당신은 <span class="hl">“상대의 마음을 정리해주는 말”</span>을 할 때 매력이 올라가요.</div>
+        <div class="p">그래서 썸 단계에서 ‘가벼운 드립’보다 <span class="hl">따뜻한 확신</span>이 먹혀요.</div>`)}
+        ${doDont(
+          ["상대 말의 핵심을 1줄로 정리", "약속을 짧게라도 확정", "좋은 건 ‘좋다’고 바로 말하기"],
+          ["연락 텐션을 일부러 낮추기", "상대 마음을 시험하기", "혼자 결론 내리고 거리두기"]
+        )}
+        ${callout("note","추천 멘트",`<div class="quote">“나 오늘 대화 재밌었어. 다음에 ○○도 같이 해보자.”</div>`)}
+      `},
+      { chapter:c1, title:"풀이 4. 연애를 시작하면 더욱 빛나는 나의 장점은?", isHtml:true, content: `
+        <div class="viz-grid">
+          <div class="viz-card"><div class="viz-t">연애 초반</div><div class="viz-v">상대가 편해지는 ‘온도 조절’</div><div class="viz-s">강하게 밀지 않아도, 꾸준히 챙겨서 신뢰가 올라갑니다.</div></div>
+          <div class="viz-card"><div class="viz-t">연애 중반</div><div class="viz-v">문제 해결 능력</div><div class="viz-s">싸움이 커지기 전에 ‘정리’가 들어가요. 대화로 풀리는 연애가 됩니다.</div></div>
+        </div>
+        ${bullets([
+          "<b>루틴형 애정</b>: 크게 한 번보다, 작게 여러 번 챙기는 타입",
+          "<b>관계 유지력</b>: 상대가 흔들릴 때 ‘기준’을 세워줌",
+          "<b>신뢰 포인트</b>: 말보다 행동이 먼저 나오는 편"
+        ])}
+        ${callout("tip","연애에서 더 매력적으로 보이는 행동",`<div class="p">“약속 시간/장소를 먼저 정리해주는 사람”이 연애에서 굉장히 매력적으로 보여요.</div>`)}
+      `},
+      { chapter:c1, title:"풀이 5. 시간이 지날수록 더 크게 드러나는 나의 매력은?", isHtml:true, content: `
+        ${callout("note","시간이 지날수록 올라가는 매력",`<div class="p">당신은 시간이 쌓일수록 <span class="hl">‘진정성’</span>이 드러나서 매력이 커져요.</div>
+        <div class="p">처음엔 조용했는데, 어느 순간 상대가 <span class="hl">“이 사람 되게 깊다”</span>를 느끼게 됩니다.</div>`)}
+        ${timeline([
+          {t:"1~2주", d:"호감은 생기지만 아직 ‘확신’은 부족"},
+          {t:"3~4주", d:"상대가 당신의 기준/가치관을 느끼며 신뢰가 급상승"},
+          {t:"2~3개월", d:"관계가 안정되면서 ‘내 편’이라는 감각이 생김"},
+          {t:"그 이후", d:"서로의 미래 얘기가 자연스럽게 나오는 흐름"}
+        ])}
+      `},
+      { chapter:c1, title:"풀이 6. 상대가 나에게 중독되는 결정적인 이유는?", isHtml:true, content: `
+        ${mascotBlock(c1)}
+        ${callout("tip","중독 포인트",`<div class="p">상대가 중독되는 이유는 <span class="hl">‘감정의 안정감 + 순간적인 설렘’</span>이 같이 있기 때문이에요.</div>
+        <div class="p">즉, 편한데 지루하지 않은 타입.</div>`)}
+        ${miniQuiz("상대가 ‘중독’되는 순간은?",[
+          "A. 내 말 한 문장에 마음이 정리될 때",
+          "B. 내가 안 흔들리고 중심을 잡고 있을 때",
+          "C. 무심하게 챙겨주는데 디테일이 있을 때",
+          "D. 갑자기 장난기/웃음이 터질 때"
+        ])}
+        ${callout("note","한 줄 결론",`<div class="p">당신은 <span class="hl">“곁에 두면 삶이 정리되는 사람”</span>으로 각인됩니다.</div>`)}
+      `},
+
+      // ── 2장 ──
+      { chapter:c2, title:"풀이 1. 전반적인 인생 속 연애운의 흐름은 어떤 편일까?", isHtml:true, content: `
+        ${mascotBlock(c2)}
+        ${callout("note","흐름 요약",`<div class="p">당신의 연애운은 ‘짧고 잦은 인연’보다 <span class="hl">굵게 남는 인연</span>이 들어오는 흐름이에요.</div>`)}
+        <div class="meters">
+          ${bar("인연 유입", 76, "pink")}
+          ${bar("몰입도", 84, "violet")}
+          ${bar("관계 유지", 82, "ice")}
+          ${bar("변화/전환", 70, "gold")}
+        </div>
+        ${bullets([
+          "<b>특징</b>: 마음이 움직이면 빠르게 깊어짐",
+          "<b>장점</b>: 관계가 시작되면 온도가 높고 진심이 강함",
+          "<b>주의</b>: 감정이 깊어서 이별/변화 시 흔들림도 큰 편"
+        ])}
+      `},
+      { chapter:c2, title:"풀이 2. 앞으로 몇 년 사이, 인연이 들어오는 시기는 언제일까?", isHtml:true, content: `
+        ${callout("tip","직관 포인트",`<div class="p">정확한 ‘날짜’보다 먼저, <span class="hl">사람이 붙는 환경</span>이 바뀌는 시기가 옵니다.</div>`)}
+        ${timeline([
+          {t:"타이밍 A", d:"지인 모임/소개 라인이 활발해지는 시기(노출량 상승)"},
+          {t:"타이밍 B", d:"일/프로젝트 변화로 생활 반경이 바뀌는 시기"},
+          {t:"타이밍 C", d:"외모/스타일을 바꾸고 싶어지는 충동(운 변화 신호)"}
+        ])}
+        ${callout("note","체크리스트",bullets([
+          "갑자기 약속이 늘어난다",
+          "연락이 ‘겹쳐서’ 온다",
+          "만남이 ‘연속’으로 잡힌다",
+          "혼자 있기가 싫어진다"
+        ]))}
+      `},
+      { chapter:c2, title:"풀이 3. 특히 연애를 피해야 할 타이밍은 언제일까?", isHtml:true, content: `
+        ${mascotBlock(c2)}
+        ${doDont(
+          ["결정 전 하루 더 생각하기", "기록(메모)으로 감정 정리", "친구에게 사실 확인 받기"],
+          ["새벽 감정으로 연락", "애매한 관계에 올인", "상대가 확신 안 주는데 ‘내가 더’ 노력"]
+        )}
+        ${callout("warn","피해야 하는 타이밍 신호",`<div class="p">“불안해서 확인하고 싶다”가 강해질 때는, 그 관계가 아니라 <span class="hl">내 컨디션</span> 문제일 가능성이 큽니다.</div>`)}
+      `},
+      { chapter:c2, title:"풀이 4. 가장 강하게 사랑에 빠지는 시기는 언제일까?", isHtml:true, content: `
+        ${callout("note","사랑에 빠지는 조건",`<div class="p">당신은 ‘외모’보다 <span class="hl">대화의 깊이</span>가 맞을 때 급격히 사랑에 빠져요.</div>`)}
+        <div class="viz-grid">
+          <div class="viz-card"><div class="viz-t">촉발 포인트</div><div class="viz-v">대화가 오래 이어지는 날</div><div class="viz-s">“아 이 사람은 얘기가 된다”가 확신으로 바뀌는 순간.</div></div>
+          <div class="viz-card"><div class="viz-t">가속 포인트</div><div class="viz-v">상대가 내 기준을 존중해줄 때</div><div class="viz-s">감정이 폭발하는 건 ‘존중’이 있을 때예요.</div></div>
+        </div>
+        ${miniQuiz("당신의 사랑 스위치를 켜는 건?",[
+          "A. 대화가 깊고 길다",
+          "B. 배려가 반복된다",
+          "C. 나를 자극한다",
+          "D. 나를 존중한다"
+        ])}
+      `},
+      { chapter:c2, title:"풀이 5. 이별이나 변화의 흐름이 강해지는 시점은?", isHtml:true, content: `
+        ${callout("warn","변화가 강해지는 시점의 특징",bullets([
+          "연락이 애매해지고 일정이 자꾸 미정으로 남는다",
+          "사과가 아니라 변명/합리화가 늘어난다",
+          "내가 ‘확인’하려는 행동이 많아진다"
+        ]))}
+        ${callout("tip","대처법",`<div class="p">이 시점엔 감정싸움보다 <span class="hl">조건을 명확히 제시</span>하는 게 가장 빠른 정리예요.</div>
+        <div class="quote">“우리 관계에서 최소한 이건 지켜졌으면 해. 그게 어렵다면 여기서 멈추자.”</div>`)}
+      `},
+      { chapter:c2, title:"풀이 6. 인연이 반복되는 패턴은 어떤 특징을 가질까?", isHtml:true, content: `
+        ${mascotBlock(c2)}
+        ${callout("note","반복 패턴",`<div class="p">당신은 ‘확신이 부족한 사람’에게 끌릴 때가 있어요. 그 자극을 설렘으로 오해하는 구간이 생깁니다.</div>`)}
+        ${bullets([
+          "<b>반복 1</b>: 애매한 연락 → 내가 더 노력 → 결국 지침",
+          "<b>반복 2</b>: 처음엔 좋다가, 중요한 순간에 회피",
+          "<b>반복 3</b>: 나의 기준이 흐려질수록 상대가 더 애매해짐"
+        ])}
+        ${callout("tip","끊는 스위치",`<div class="p">‘상대 반응’이 아니라 <span class="hl">내 기준</span>으로 관계를 평가하면 반복이 끊겨요.</div>`)}
+      `},
+
+      // ── 3장 ──
+      { chapter:c3, title:"풀이 1. 나에게 잘 맞는 연애 상대는 어떻게 찾아야 할까?", isHtml:true, content: `
+        ${mascotBlock(c3)}
+        ${callout("note","잘 맞는 상대 핵심",`<div class="p">당신에게 잘 맞는 사람은 “감정이 안정적이고, 말이 정리되는 사람”이에요.</div>`)}
+        ${bullets([
+          "대화가 길어질수록 매력이 커지는 사람",
+          "약속을 미루지 않고 확정하는 사람",
+          "갈등을 회피하지 않고 ‘정리’하는 사람"
+        ])}
+        ${callout("tip","어디서 만나기 쉬운가",`<div class="p">지인 소개 / 팀 프로젝트 / 취미 모임처럼 <span class="hl">대화가 오래 이어지는 구조</span>에서 확률이 올라가요.</div>`)}
+      `},
+      { chapter:c3, title:"풀이 2. 연애운을 끌어올릴 수 있는 나만의 아이템이나 습관은?", isHtml:true, content: `
+        ${callout("tip","아이템/습관 3개",bullets([
+          "<b>향/이미지</b>: ‘기억에 남는 포인트’ 1개 만들기(향, 액세서리, 헤어)",
+          "<b>사진 3장 업데이트</b>: 신규감은 운을 당겨요",
+          "<b>약속 선제안</b>: “이번 주 ○요일 어때?”를 내가 먼저"
+        ]))}
+        <div class="meters">
+          ${bar("호감 유입", 80, "pink")}
+          ${bar("연락 지속", 75, "violet")}
+          ${bar("관계 진도", 72, "gold")}
+        </div>
+      `},
+      { chapter:c3, title:"풀이 3. 연애를 원한다면 반드시 개선해야 할 부분은?", isHtml:true, content: `
+        ${mascotBlock(c3)}
+        ${callout("warn","개선 포인트",`<div class="p">진심은 충분한데, 표현이 <span class="hl">차갑게 보일 수 있는 순간</span>이 있어요.</div>`)}
+        ${doDont(
+          ["칭찬을 ‘바로’ 말하기", "좋으면 좋다고 한 번 더", "감정이 올라올 때 짧게라도 공유"],
+          ["상대가 알아주길 기다리기", "표현을 아끼는 게 쿨하다고 착각", "서운함을 ‘무표정’으로 처리"]
+        )}
+        ${callout("tip","연습 문장",`<div class="quote">“나 지금 기분 좋아. 너랑 얘기하면 정리되는 느낌이야.”</div>`)}
+      `},
+      { chapter:c3, title:"풀이 4. 연애운을 막고 있는 나의 무의식적인 행동은?", isHtml:true, content: `
+        ${callout("note","무의식 행동 패턴",bullets([
+          "호감 신호를 받아도 “내가 착각하나?”로 한 번 더 의심",
+          "상대가 애매하면 나도 애매하게 반응(관계가 흐려짐)",
+          "확신이 생기기 전까지 감정 표현을 봉인"
+        ]))}
+        ${miniQuiz("무의식적으로 자주 하는 행동은?",[
+          "A. 답장 텐션을 일부러 낮춘다",
+          "B. 약속 확정을 늦춘다",
+          "C. 마음이 생기면 오히려 차분해진다",
+          "D. 상대가 먼저 확신을 주길 기다린다"
+        ])}
+      `},
+      { chapter:c3, title:"풀이 5. 상대방이 나에게 더 끌리게 만드는 행동 패턴은?", isHtml:true, content: `
+        ${mascotBlock(c3)}
+        ${callout("tip","끌림을 만드는 행동",`<div class="p">당신은 “상대의 마음을 정리해주는 말”을 할 때 매력이 커져요.</div>`)}
+        <div class="viz-grid">
+          <div class="viz-card"><div class="viz-t">행동 1</div><div class="viz-v">대화 핵심을 1줄로 정리</div><div class="viz-s">“그러니까 네가 원하는 건 ○○인 거지?”</div></div>
+          <div class="viz-card"><div class="viz-t">행동 2</div><div class="viz-v">약속을 ‘짧게’라도 확정</div><div class="viz-s">“그럼 60분만 커피 어때?”가 진도 빨라요.</div></div>
+        </div>
+      `},
+      { chapter:c3, title:"풀이 6. 연애 성사를 높이는 결정적인 타이밍 활용법은?", isHtml:true, content: `
+        ${callout("note","타이밍 활용",`<div class="p">운이 들어오는 시기에는 ‘고백’보다 먼저 <span class="hl">약속의 빈도</span>가 올라가요.</div>`)}
+        ${timeline([
+          {t:"STEP 1", d:"약속 1회 → 다음 약속을 ‘바로’ 잡기"},
+          {t:"STEP 2", d:"가벼운 스킨십/호감 표현을 ‘짧게’"},
+          {t:"STEP 3", d:"애매함이 생기기 전 ‘관계 정의’ 대화"}
+        ])}
+        ${callout("tip","추천 문장",`<div class="quote">“나 요즘 너랑 있는 시간이 좋아. 우리 그냥 애매하게 두지 말고 앞으로 더 자주 보자.”</div>`)}
+      `},
+
+      // ── 4장 ──
+      { chapter:c4, title:"풀이 1. 나와 잘 맞는 운명의 상대는 어떤 사람일까?", isHtml:true, content: `
+        ${mascotBlock(c4)}
+        ${callout("note","운명의 상대 결",`<div class="p">당신은 <span class="hl">생각이 깊고 대화를 즐기는 사람</span>에게 끌려요.</div>`)}
+        <div class="tagcloud">
+          ${["대화가 깊다","약속이 분명","감정이 안정적","책임감","배려","장난기 조금","지적인 분위기","말의 결이 단정","느리게 뜨거워짐"].map(chip).join("")}
+        </div>
+      `},
+      { chapter:c4, title:"풀이 2. 그 사람의 마음을 사로잡는 효과적인 접근법은?", isHtml:true, content: `
+        ${callout("tip","접근법",`<div class="p">화려한 어필보다 <span class="hl">“대화의 깊이”</span>로 들어가면 가장 빠릅니다.</div>`)}
+        ${doDont(
+          ["질문 1개 + 내 얘기 1개(밸런스)", "약속 제안은 짧고 명확하게", "감정은 짧게라도 말하기"],
+          ["상대 반응을 시험하기", "밀당으로 텐션 만들기", "애매한 관계를 오래 끌기"]
+        )}
+      `},
+      { chapter:c4, title:"풀이 3. 혹시 멀어지게 된다면, 다시 이어질 가능성과 방법은?", isHtml:true, content: `
+        ${mascotBlock(c4)}
+        ${callout("note","재연결의 조건",`<div class="p">다시 이어지는 가능성은 “감정”보다 <span class="hl">명확한 대화</span>가 있을 때 올라가요.</div>`)}
+        ${timeline([
+          {t:"1", d:"상대의 회피/애매함이 원인인지 확인"},
+          {t:"2", d:"내가 원하는 조건을 1~2개로 압축"},
+          {t:"3", d:"짧은 만남 제안(60~90분)"},
+          {t:"4", d:"관계 정의 대화로 마무리"}
+        ])}
+        ${callout("tip","추천 문장",`<div class="quote">“나 다시 붙잡고 싶어서가 아니라, 정리하고 싶어서 연락했어. 우리 한 번만 얘기해보자.”</div>`)}
+      `},
+      { chapter:c4, title:"풀이 4. 운명의 상대를 만났을 때 나타나는 신호는?", isHtml:true, content: `
+        ${callout("note","신호",bullets([
+          "대화가 길어져도 피곤하지 않다",
+          "연락 텐션이 ‘자연스럽게’ 이어진다",
+          "약속이 끊기지 않고 다음이 생긴다",
+          "내 기준을 말해도 상대가 존중한다"
+        ]))}
+        <div class="meters">
+          ${bar("신호 체감도", 82, "pink")}
+          ${bar("대화 케미", 86, "violet")}
+          ${bar("존중/안정", 88, "ice")}
+        </div>
+      `},
+      { chapter:c4, title:"풀이 5. 그 사람과의 관계에서 가장 중요한 포인트는?", isHtml:true, content: `
+        ${mascotBlock(c4)}
+        ${callout("tip","핵심 포인트",`<div class="p">당신 관계의 핵심은 <span class="hl">“기준을 부드럽게 말하는 능력”</span>이에요.</div>`)}
+        ${bullets([
+          "기준을 숨기지 말고 ‘처음부터’ 말하기",
+          "서운함은 폭발 전에 ‘짧게’ 공유하기",
+          "상대가 회피하면 감정으로 붙잡지 말고 조건으로 정리"
+        ])}
+      `},
+      { chapter:c4, title:"풀이 6. 오래 이어지기 위해 반드시 필요한 요소는?", isHtml:true, content: `
+        ${callout("note","필수 요소 3",bullets([
+          "<b>대화의 루틴</b>: 주 1회라도 깊은 대화",
+          "<b>약속의 안정</b>: 일정이 미정으로 남지 않기",
+          "<b>감정의 안전</b>: 서운함을 ‘사실’로 말하기"
+        ]))}
+        ${callout("tip","한 줄",`<div class="p">오래 가는 연애는 결국 <span class="hl">안전한 대화</span>에서 만들어집니다.</div>`)}
+      `},
+
+      // ── 5장 ──
+      { chapter:c5, title:"풀이 1. 특히 조심해야 할 유형의 사람은 누구일까?", isHtml:true, content: `
+        ${mascotBlock(c5)}
+        ${callout("warn","조심 유형",bullets([
+          "연락을 미끼처럼 주고 끊는 사람",
+          "사과 대신 변명으로 덮는 사람",
+          "중요한 순간마다 책임을 회피하는 사람"
+        ]))}
+      `},
+      { chapter:c5, title:"풀이 2. 운명처럼 착각하게 만드는 상황은 어떤 패턴일까?", isHtml:true, content: `
+        ${callout("note","착각 패턴",`<div class="p">자극(밀당/애매함)을 설렘으로 오해할 때 “운명 같다”가 생겨요.</div>`)}
+        ${timeline([
+          {t:"PATTERN 1", d:"뜨겁게 다가옴 → 갑자기 거리두기"},
+          {t:"PATTERN 2", d:"확신은 안 주는데 기대하게 만들기"},
+          {t:"PATTERN 3", d:"내가 더 노력하게 만드는 구조"}
+        ])}
+      `},
+      { chapter:c5, title:"풀이 3. 나에게 맞지 않는 사람을 구별하는 기준은?", isHtml:true, content: `
+        ${mascotBlock(c5)}
+        ${doDont(
+          ["약속이 ‘확정’되는 사람", "감정이 올라와도 대화하는 사람", "말과 행동이 같은 사람"],
+          ["연락만 길고 만남은 미정", "기준을 말하면 부담이라고 하는 사람", "사과 대신 회피하는 사람"]
+        )}
+        ${callout("tip","구별 질문 1개",`<div class="quote">“이번 주 중에 60분이라도 시간 낼 수 있어?”</div>`)}
+      `},
+      { chapter:c5, title:"풀이 4. 관계가 어긋나기 시작하는 초기 신호는?", isHtml:true, content: `
+        ${callout("warn","초기 신호",bullets([
+          "말투는 다정한데 약속은 계속 미정",
+          "서운함을 말하면 ‘예민하다’고 돌려버림",
+          "연락 패턴이 들쭉날쭉(통제 불가)"
+        ]))}
+        ${callout("tip","대응",`<div class="p">이 신호가 보이면 감정으로 붙잡지 말고 <span class="hl">조건으로 정리</span>하세요.</div>`)}
+      `},
+      { chapter:c5, title:"풀이 5. 반복적으로 빠지기 쉬운 연애 유형은?", isHtml:true, content: `
+        ${mascotBlock(c5)}
+        ${callout("note","반복 유형",bullets([
+          "‘확신 없는 사람’에게 끌림",
+          "내가 먼저 맞추며 관계를 유지하려 함",
+          "결국 내가 지치고 끝나는 패턴"
+        ]))}
+        ${miniQuiz("반복을 끊기 위해 지금 필요한 건?",[
+          "A. 기준을 세우기",
+          "B. 애매함을 끊기",
+          "C. 내 감정 기록하기",
+          "D. 새로운 환경 만들기"
+        ])}
+      `},
+      { chapter:c5, title:"풀이 6. 감정 낭비를 줄이기 위한 판단 기준은?", isHtml:true, content: `
+        ${callout("tip","판단 기준 3",bullets([
+          "내가 불안해지는 횟수가 ‘편안함’보다 많다",
+          "관계의 다음이 늘 ‘미정’이다",
+          "대화가 아니라 회피가 기본값이다"
+        ]))}
+        ${callout("note","자기 보호 문장",`<div class="quote">“나는 애매한 관계를 오래 못 해. 확실하지 않으면 여기서 멈출게.”</div>`)}
+      `},
+
+      // ── 6장 ──
+      { chapter:c6, title:"풀이 1. 내가 가진 은근한 성적 매력은 어떤 스타일일까?", isHtml:true, content: `
+        ${mascotBlock(c6)}
+        ${callout("note","은근 매력",`<div class="p">당신의 매력은 과한 노출/어필이 아니라 <span class="hl">‘거리감이 좁혀질 때’</span> 강해져요.</div>`)}
+        <div class="meters">
+          ${bar("은근함", 88, "ice")}
+          ${bar("설렘", 76, "pink")}
+          ${bar("몰입", 82, "violet")}
+        </div>
+      `},
+      { chapter:c6, title:"풀이 2. 나를 강하게 끌어당기는 상대의 신체 포인트는?", isHtml:true, content: `
+        ${callout("tip","끌리는 포인트(예시)",bullets([
+          "손/손목/핏(깔끔함이 느껴질 때)",
+          "말할 때의 입매/표정(감정이 살아있을 때)",
+          "향/피부결(가까이 있을 때 안정감)"
+        ]))}
+        ${callout("note","중요",`<div class="p">당신은 결국 <span class="hl">‘외형’보다 ‘태도’</span>에서 확 끌려요.</div>`)}
+      `},
+      { chapter:c6, title:"풀이 3. 운명의 상대와의 스킨십이나 케미는 어떤 느낌일까?", isHtml:true, content: `
+        ${mascotBlock(c6)}
+        ${callout("note","케미 흐름",`<div class="p">빠르게 불타기보다, <span class="hl">안전감이 쌓이면서</span> 점점 밀도가 높아져요.</div>`)}
+        ${timeline([
+          {t:"초반", d:"거리감 유지 + 설렘 쌓기"},
+          {t:"중반", d:"스킨십이 자연스러워지면서 몰입 증가"},
+          {t:"후반", d:"심리적 신뢰가 케미를 폭발시킴"}
+        ])}
+      `},
+      { chapter:c6, title:"풀이 4. 관계가 깊어질수록 달라지는 나의 s적 모습은?", isHtml:true, content: `
+        ${callout("tip","깊어질수록 변하는 포인트",bullets([
+          "초반엔 조심스럽지만, 확신이 생기면 표현이 확 늘어남",
+          "상대 반응을 ‘관찰’하고 맞춰주는 쪽",
+          "분위기/대화가 케미에 큰 영향을 줌"
+        ]))}
+        ${miniQuiz("당신은 어느 쪽에 가까워?",[
+          "A. 분위기형",
+          "B. 대화형",
+          "C. 터치형",
+          "D. 혼합형"
+        ])}
+      `},
+      { chapter:c6, title:"풀이 5. 상대가 빠져드는 나만의 s적 포인트는?", isHtml:true, content: `
+        ${mascotBlock(c6)}
+        ${callout("note","빠져드는 포인트",`<div class="p">상대가 빠져드는 건 ‘기술’보다 <span class="hl">“확신을 주는 태도”</span>예요.</div>`)}
+        ${doDont(
+          ["상대 반응에 맞춰 템포 조절", "칭찬/리액션을 짧게라도", "눈맞춤/대화로 분위기 만들기"],
+          ["불안해서 속도 올리기", "상대가 원치 않는데 강하게 밀기", "말 없이 참고 쌓기"]
+        )}
+      `},
+      { chapter:c6, title:"풀이 6. 성적 어필을 하기위해서 내가 해야할건 무엇일까?", isHtml:true, content: `
+        ${callout("tip","어필 방법(현실 적용)",bullets([
+          "<b>스타일</b>: 과한 노출보다 ‘핏/실루엣’ 정리",
+          "<b>말투</b>: 짧게 확신 주는 한 문장(칭찬/호감 표현)",
+          "<b>분위기</b>: 장소/조명/향 같은 환경을 ‘조금만’ 신경쓰기",
+          "<b>핵심</b>: 불안해서 어필하는 게 아니라, 여유로 어필하기"
+        ]))}
+        ${callout("note","마무리",`<div class="p">당신에게 제일 잘 먹히는 어필은 <span class="hl">“여유 + 확신”</span>이에요.</div>`)}
+      `},
+    ];
+  }
 %>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap');
@@ -132,6 +649,119 @@
     text-decoration: underline;
     text-underline-offset: 4px;
   }
+
+  /* ── 시각 요소 컴포넌트 (리포트 전용) ── */
+  .hl{color:#ff4d8d;font-weight:700}
+  .chip{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:24px;padding:0 10px;border-radius:999px;
+    font-size:11px;color:rgba(255,255,255,0.78);
+    border:1px solid rgba(255,255,255,0.12);
+    background:rgba(255,255,255,0.04);
+    margin-right:6px;margin-top:6px;
+  }
+  .hero-sum{border-radius:18px;padding:14px 14px;background:linear-gradient(135deg, rgba(255,77,141,0.10), rgba(243,230,200,0.05));border:1px solid rgba(255,255,255,0.10)}
+  .hs-name{font-size:16px;color:rgba(255,255,255,0.92);line-height:1.5}
+  .hs-sub{margin-top:8px;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.65}
+  .hs-chips{margin-top:8px}
+
+  .viz-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .viz-card{border-radius:16px;padding:12px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10)}
+  .viz-t{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(243,230,200,0.85)}
+  .viz-v{margin-top:6px;font-size:13.5px;color:rgba(255,255,255,0.88);line-height:1.55}
+  .viz-s{margin-top:6px;font-size:12px;color:rgba(255,255,255,0.68);line-height:1.6}
+  @media (max-width:420px){.viz-grid{grid-template-columns:1fr}}
+
+  .bullets{margin:0;padding-left:18px}
+  .bullets li{margin-top:10px;color:rgba(255,255,255,0.80);line-height:1.65}
+  .bullets li:first-child{margin-top:0}
+
+  .callout{margin-top:12px;border-radius:16px;padding:12px 12px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.16)}
+  .callout.kind-tip{background:linear-gradient(135deg, rgba(255,77,141,0.10), rgba(196,77,255,0.06))}
+  .callout.kind-warn{background:linear-gradient(135deg, rgba(255,77,141,0.10), rgba(255,180,120,0.06))}
+  .callout.kind-note{background:rgba(255,255,255,0.03)}
+  .co-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .co-badge{font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.70);padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.04)}
+  .co-title{font-size:13px;color:rgba(255,255,255,0.92);font-weight:700}
+  .co-body .p{margin-top:8px;color:rgba(255,255,255,0.78);line-height:1.65}
+  .co-body .p:first-child{margin-top:0}
+  .quote{margin-top:6px;border-left:3px solid rgba(255,77,141,0.75);padding-left:10px;color:rgba(255,255,255,0.84);line-height:1.65}
+
+  .meter{margin-top:10px}
+  .meters .meter:first-child{margin-top:0}
+  .meter-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .meter-k{font-size:12px;color:rgba(255,255,255,0.75)}
+  .meter-v{font-size:12px;color:rgba(243,230,200,0.88)}
+  .meter-rail{height:10px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden;border:1px solid rgba(255,255,255,0.10)}
+  .meter-fill{height:100%;width:0%;border-radius:999px;transition:width 900ms ease}
+  .tone-pink{background:linear-gradient(90deg, rgba(255,77,141,0.95), rgba(196,77,255,0.90))}
+  .tone-gold{background:linear-gradient(90deg, rgba(243,230,200,0.95), rgba(212,175,55,0.90))}
+  .tone-ice{background:linear-gradient(90deg, rgba(179,205,227,0.95), rgba(160,210,255,0.75))}
+  .tone-violet{background:linear-gradient(90deg, rgba(196,77,255,0.90), rgba(255,77,141,0.75))}
+
+  .timeline{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+  .tl-item{display:flex;gap:10px;align-items:flex-start}
+  .tl-dot{width:10px;height:10px;border-radius:999px;background:rgba(255,77,141,0.85);box-shadow:0 0 12px rgba(255,77,141,0.35);margin-top:6px;flex:0 0 auto}
+  .tl-box{flex:1;border-radius:14px;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10)}
+  .tl-t{font-size:11px;letter-spacing:2px;color:rgba(243,230,200,0.85)}
+  .tl-d{margin-top:6px;font-size:12.5px;color:rgba(255,255,255,0.78);line-height:1.6}
+
+  .quiz{margin-top:12px;border-radius:16px;padding:12px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10)}
+  .quiz-q{font-size:13px;color:rgba(255,255,255,0.92);font-weight:700}
+  .quiz-opts{margin-top:10px;display:grid;grid-template-columns:1fr;gap:8px}
+  .quiz-opt{border-radius:12px;padding:10px 10px;background:rgba(0,0,0,0.14);border:1px solid rgba(255,255,255,0.10);color:rgba(255,255,255,0.78);font-size:12.5px;line-height:1.45}
+  .quiz-hint{margin-top:10px;font-size:11.5px;color:rgba(255,255,255,0.60)}
+
+  .dd{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .dd-col{border-radius:16px;padding:12px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10)}
+  .dd-h{font-size:12px;font-weight:700;margin-bottom:10px}
+  .dd-h.ok{color:rgba(134,239,172,0.92)}
+  .dd-h.no{color:rgba(255,180,120,0.92)}
+  .dd .bullets li{margin-top:8px}
+  .dd-t{color:rgba(255,255,255,0.78)}
+  @media (max-width:420px){.dd{grid-template-columns:1fr}}
+
+  .tagcloud{margin-top:8px}
+
+  .face-viz{margin-top:12px;display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:start}
+  .avatar{display:flex;flex-direction:column;align-items:center}
+  .avatar-cap{margin-top:8px;font-size:12px;color:rgba(255,255,255,0.72)}
+  @media (max-width:420px){.face-viz{grid-template-columns:1fr}}
+
+  .plan-grid{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .plan-card{border-radius:16px;padding:12px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10)}
+  .plan-t{font-size:11px;letter-spacing:2px;color:rgba(243,230,200,0.85)}
+  .plan-d{margin-top:8px;font-size:12.5px;color:rgba(255,255,255,0.80);line-height:1.6}
+  .plan-s{color:rgba(255,255,255,0.62);font-size:12px}
+  @media (max-width:420px){.plan-grid{grid-template-columns:1fr}}
+
+  .ending{border-radius:18px;padding:14px 14px;background:linear-gradient(135deg, rgba(243,230,200,0.06), rgba(255,77,141,0.08));border:1px solid rgba(255,255,255,0.10)}
+  .ending-t{font-size:15px;color:rgba(255,255,255,0.92);line-height:1.6}
+  .ending-s{margin-top:8px;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.65}
+  .ending-chips{margin-top:8px}
+
+  .mascot{
+    margin-top:12px;
+    border-radius:18px;
+    padding:12px 12px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.10);
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+  }
+  .ms-emoji{
+    width:36px;height:36px;
+    border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg, rgba(255,77,141,0.16), rgba(196,77,255,0.10));
+    border:1px solid rgba(255,255,255,0.10);
+    font-size:18px;
+    flex:0 0 auto;
+  }
+  .ms-lines{flex:1}
+  .ms-line{margin-top:6px;font-size:12.5px;color:rgba(255,255,255,0.78);line-height:1.55}
+  .ms-line:first-child{margin-top:0}
   
 </style>
 
@@ -206,7 +836,7 @@
   .el-val { font-size: 18px; font-weight: 700; margin: 4px 0; display: block; }
   
   .el-bar-container { height: 40px; width: 4px; background: rgba(255,255,255,0.1); margin: 0 auto; border-radius: 2px; position: relative; }
-  .el-bar-fill { position: absolute; bottom: 0; width: 100%; border-radius: 2px; transition: height 1s ease-in-out; }
+  .el-bar-fill { position: absolute; bottom: 0; width: 100%; height: 0%; border-radius: 2px; transition: height 1s ease-in-out; }
 
   .color-wood { color: #A8D5BA; } .bg-wood { background: #A8D5BA; }
   .color-fire { color: #FFB3BA; } .bg-fire { background: #FFB3BA; }
@@ -244,6 +874,7 @@
     font-weight: 700;
     line-height: 1.2;
     background: linear-gradient(to bottom, #fff 0%, var(--gold-bright) 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -272,7 +903,7 @@
       <span class="el-han color-wood">木</span>
       <span class="el-val color-wood"><%= saju.fiveElements.목 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-wood" style="height: <%= getPercent(saju.fiveElements.목) %>;"></div>
+        <div class="el-bar-fill bg-wood" data-h="<%= getPercent(saju.fiveElements.목) %>"></div>
       </div>
     </div>
 
@@ -280,7 +911,7 @@
       <span class="el-han color-fire">火</span>
       <span class="el-val color-fire"><%= saju.fiveElements.화 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-fire" style="height: <%= getPercent(saju.fiveElements.화) %>;"></div>
+        <div class="el-bar-fill bg-fire" data-h="<%= getPercent(saju.fiveElements.화) %>"></div>
       </div>
     </div>
 
@@ -288,7 +919,7 @@
       <span class="el-han color-earth">土</span>
       <span class="el-val color-earth"><%= saju.fiveElements.토 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-earth" style="height: <%= getPercent(saju.fiveElements.토) %>;"></div>
+        <div class="el-bar-fill bg-earth" data-h="<%= getPercent(saju.fiveElements.토) %>"></div>
       </div>
     </div>
 
@@ -296,7 +927,7 @@
       <span class="el-han color-metal">金</span>
       <span class="el-val color-metal"><%= saju.fiveElements.금 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-metal" style="height: <%= getPercent(saju.fiveElements.금) %>;"></div>
+        <div class="el-bar-fill bg-metal" data-h="<%= getPercent(saju.fiveElements.금) %>"></div>
       </div>
     </div>
 
@@ -304,7 +935,7 @@
       <span class="el-han color-water">水</span>
       <span class="el-val color-water"><%= saju.fiveElements.수 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-water" style="height: <%= getPercent(saju.fiveElements.수) %>;"></div>
+        <div class="el-bar-fill bg-water" data-h="<%= getPercent(saju.fiveElements.수) %>"></div>
       </div>
     </div>
   </div>
@@ -329,6 +960,20 @@
     </div>
   </div>
 </div>
+<script>
+  (function(){
+    try{
+      document.querySelectorAll(".el-bar-fill[data-h]").forEach(function(el){
+        var h = el.getAttribute("data-h");
+        if (h) el.style.height = h;
+      });
+      document.querySelectorAll(".meter-fill[data-w]").forEach(function(el){
+        var w = el.getAttribute("data-w");
+        if (w) el.style.width = w;
+      });
+    }catch(e){}
+  })();
+</script>
     <div id="container" class="pb-20">
       <% 
         const chapters = [...new Set(reportInfo.map(r => r.chapter))];
@@ -388,7 +1033,11 @@
   let formattedContent = item.content;
 %>
   <div class="report-content">
-    <%= formattedContent %>
+    <% if (item.isHtml) { %>
+      <%- formattedContent %>
+    <% } else { %>
+      <%= formattedContent %>
+    <% } %>
   </div>
 </div>
 
