@@ -189,7 +189,7 @@
     };
     requestRegisterPayment(data);
 
-    fbq("track", "InitiateCheckout");
+    fbq("track", "InitiateCheckout", {}, { eventID: "ic_<%= reportHistoryId %>" });
   }
 </script>
 </html>

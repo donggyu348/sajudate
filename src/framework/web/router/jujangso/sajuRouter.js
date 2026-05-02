@@ -6,6 +6,7 @@
   import { sendReportLink } from "../../service/SmsService.js";
   import { GoodsType } from "../../enums/Goods.js";
   import { PaymentStatus } from "../../enums/Payment.js";
+  import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
 
   const router = express.Router();
 
@@ -158,6 +159,13 @@
       const fileDir = Platform[repostHistory.platform].fileDir;
       const goodsPrice = GoodsType[repostHistory.goodsType].price;
       const goodsTypeRaw = repostHistory.goodsType; // ✅ goodsType 추가
+
+      sendPurchaseEvent({
+        req,
+        fileDir,
+        shopOrderNo,
+        value: goodsPrice,
+      });
 
       // 기존과 동일한 템플릿 렌더링 (단, URL은 /saju/payment_success 로 노출됨)
       return res.render(`${fileDir}/saju/payment_success`, {

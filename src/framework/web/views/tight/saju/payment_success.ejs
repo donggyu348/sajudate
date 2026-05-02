@@ -46,7 +46,7 @@ $(document).ready(function() {
         currency: 'KRW',
         contents: [{ id: shopOrderNo, quantity: 1 }],
         content_type: 'product'
-      });
+      }, { eventID: shopOrderNo });
 
       // GA4
       gtag('event', 'purchase', {

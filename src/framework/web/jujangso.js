@@ -7,6 +7,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { randomUUID } from "crypto";
 import session from "express-session";
 
 import sajuRouter from "./router/jujangso/sajuRouter.js";
@@ -44,9 +45,10 @@ process.on('uncaughtException', (err) => {
   // 서버를 안전하게 종료하거나 알림을 보내고 재시작 전략 필요
 });
 
-// EJS에서 세션 접근 가능하도록 locals에 주입
+// EJS에서 세션 접근 가능하도록 locals에 주입 (+ Meta 픽셀/CAPI 중복 제거용 event id)
 app.use((req, res, next) => {
   res.locals.session = req.session || {};
+  res.locals.metaPageViewEventId = randomUUID();
   next();
 });
 

@@ -1,7 +1,6 @@
 # Environment files
 .env
 .env.local
-!.env.local
 
 # Node
 node_modules/
@@ -12,4 +11,5 @@ yarn-error.log*
 .dist/
 dist/
 coverage/
+
 

@@ -9,6 +9,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { randomUUID } from "crypto";
 import session from "express-session";
 
 import sajuRouter from "./router/tight/sajuRouter.js";
@@ -34,6 +35,12 @@ app.use(session({
     secure: false, // HTTP/HTTPS 모두 허용 (배포 시는 HTTPS에서 true로)
   }
 }));
+
+// Meta 픽셀 ↔ Conversions API PageView 중복 제거용 (서버 페이로드에도 같은 값 사용)
+app.use((req, res, next) => {
+  res.locals.metaPageViewEventId = randomUUID();
+  next();
+});
 
 // app.js 또는 server.js 최상단에 추가
 process.on('unhandledRejection', (reason, promise) => {

@@ -11,6 +11,7 @@ import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
+import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
 import Coupons from "../../orm/models/coupons.js";
 const router = express.Router();
 const CouponsModel = Coupons;
@@ -542,6 +543,16 @@ let fileDir = 'tight';
     const renderPath = `${fileDir}/saju/payment_success`;
     
     console.log(`🚀 [DEBUG] 최종 렌더링 경로: ${renderPath}`);
+
+    const finalPaymentForCapi = await PaymentService.getPaymentTransaction(shopOrderNo);
+    if (finalPaymentForCapi?.paymentStatus === PaymentStatus.APPROVED) {
+      sendPurchaseEvent({
+        req,
+        fileDir,
+        shopOrderNo,
+        value: goodsConfig?.price ?? 0,
+      });
+    }
 
     // 4. 렌더링 실행
     return res.render(renderPath, {

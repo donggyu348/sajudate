@@ -40,7 +40,7 @@ $(document).ready(function() {
         currency: 'KRW',
         contents: [{ id: shopOrderNo, quantity: 1 }],
         content_type: 'product'
-      });
+      }, { eventID: shopOrderNo });
 
       // GA4
       gtag('event', 'purchase', {
@@ -58,15 +58,6 @@ $(document).ready(function() {
       // 당근마켓 픽셀
       window.karrotPixel.track('Purchase');
   }
-
-  fbq('track', 'Purchase', {
-    value: price,
-    currency: 'KRW',
-    contents: [{ id: shopOrderNo, quantity: 1 }],
-    content_type: 'product'
-  });
-
-  window.karrotPixel.track('Purchase');
 
   $.ajax({
     url: "/api/gpt/report",
