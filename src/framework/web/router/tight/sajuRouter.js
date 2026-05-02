@@ -455,15 +455,20 @@ router.get("/payment_success", async (req, res) => {
       return res.redirect("/saju/report?shopOrderNo=" + shopOrderNo);
     }
 
-    // 비동기 GPT 호출 (기존 유지)
+    // 비동기 GPT — approveTossPayment·/api/gpt/report 와 동일 주문이 겹쳐도 1회만 생성되도록 Coordinator 사용
     (async () => {
       try {
-        const goodsTypeObject = GoodsType[reportHistory.goodsType];
+        const goodsTypeObject = GoodsType[targetGoodsType];
+        if (!goodsTypeObject) {
+          console.error(`[SERVER_ERROR] GPT 상품 타입 없음: target=${targetGoodsType}, shopOrderNo=${shopOrderNo}`);
+          return;
+        }
         console.log(`[SERVER_START] 결제 승인 즉시 GPT 호출: ${shopOrderNo}`);
-        const response = await gptService.callReport(reportHistory.userInfo, goodsTypeObject);
-        await reportHistoryService.updateById({
-          id: reportHistory.id,
-          reportInfo: response
+        const { ensureReportForShopOrder } = await import("../../service/ReportGenerationCoordinator.js");
+        await ensureReportForShopOrder({
+          shopOrderNo,
+          userInfo: reportHistory.userInfo,
+          goodsType: goodsTypeObject,
         });
         console.log(`[SERVER_SUCCESS] GPT 생성 완료: ${shopOrderNo}`);
       } catch (err) {

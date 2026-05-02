@@ -1,8 +1,7 @@
 import express from "express";
-import GptService from "../../service/GptService.js";
+import { ensureReportForShopOrder } from "../../service/ReportGenerationCoordinator.js";
 import ReportHistoryService from "../../service/ReportHistoryService.js";
 import paymentService from "../../service/PaymentService.js";
-import { PaymentStatus } from "../../enums/Payment.js";
 import { GoodsType } from "../../enums/Goods.js";
 
 const router = express.Router();
@@ -20,17 +19,27 @@ console.log(`[GPT_LOG] 보고서 생성 시작: ${shopOrderNo}`); // 로그 추�
     // }
 
     const reportHistory = await ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
-    const goodsType = GoodsType[reportHistory.goodsType];
+    if (!reportHistory) {
+      return res.status(404).json({ error: "reportHistory 없음", detail: shopOrderNo });
+    }
+    if (reportHistory.reportInfo) {
+      return res.json({ message: "이미 생성 완료", shopOrderNo });
+    }
+    const typeCode = reportHistory.goodsType || paymentTransaction?.goodsType;
+    const goodsType = GoodsType[typeCode];
+    if (!goodsType) {
+      console.error(`[GPT_LOG] 상품 타입 매핑 실패: code=${typeCode}, shopOrderNo=${shopOrderNo}`);
+      return res.status(500).json({ error: "알 수 없는 상품 타입", detail: String(typeCode) });
+    }
 
-(async () => {
+    (async () => {
       try {
-        const response = await GptService.callReport(reportHistory.userInfo, goodsType);
-        console.log(`[GPT_LOG] GPT 응답 성공: ${shopOrderNo}`);
-        await ReportHistoryService.updateById({
-          id: reportHistory.id,
-          reportInfo: response
+        await ensureReportForShopOrder({
+          shopOrderNo,
+          userInfo: reportHistory.userInfo,
+          goodsType,
         });
-        console.log(`[GPT_LOG] DB 업데이트 완료: ${shopOrderNo}`);
+        console.log(`[GPT_LOG] GPT 응답·DB 반영: ${shopOrderNo}`);
       } catch (err) {
         console.error(`[GPT_LOG] 비동기 GPT 호출 중 치명적 오류:`, err);
       }

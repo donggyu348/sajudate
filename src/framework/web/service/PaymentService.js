@@ -1,6 +1,5 @@
   // src/framework/web/service/PaymentService.js
 
-  import GptService from "./GptService.js";
   import UsersRepository from "../repository/UsersRepository.js";
   import PaymentTransactionRepository from "../repository/PaymentTransactionRepository.js";
   import ReportHistoryService from "./ReportHistoryService.js";
@@ -301,6 +300,10 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
         throw new Error("승인 완료 상태가 아님");
 
     const reportHistory = payment.reportHistory;
+    if (!reportHistory) {
+        console.error(`[GPT] 결제건에 연결된 reportHistory 없음: paymentId=${paymentId}, shopOrderNo=${payment.shopOrderNo}`);
+        throw new Error("reportHistory 없음(PAYMENT·REPORT_HISTORY shop_order_no 불일치 여부 확인)");
+    }
     let reportInfo = reportHistory.reportInfo;
     const userInfo = reportHistory.userInfo || {};
     const shopOrderNo = payment.shopOrderNo;
@@ -310,11 +313,10 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
     const goodsType = GoodsType[finalType];
     if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${finalType}`);
 
-    // 1. GPT 리포트 생성
+    // 1. GPT 리포트 생성 (다른 경로 payment_success /api/gpt/report 와 중복되지 않게 조정)
     if (!reportInfo) {
-        const generated = await GptService.callReport(userInfo, goodsType);
-        await ReportHistoryService.updateById({ id: reportHistory.id, reportInfo: generated });
-        reportInfo = generated;
+        const { ensureReportForShopOrder } = await import("./ReportGenerationCoordinator.js");
+        reportInfo = await ensureReportForShopOrder({ shopOrderNo, userInfo, goodsType });
     }
 
     // 2. 번들인 경우 티켓 생성 로직

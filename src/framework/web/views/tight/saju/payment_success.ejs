@@ -10,7 +10,8 @@
     <p class="mt-2 text-sm text-gray-600">잠시만 기다려주세요.</p>
   </div>
 
-<% if (shopOrderNo && goodsPrice && goodsType) { %>
+<%# goodsPrice가 0이면 기존 조건에서 스크립트 전체가 스킵되어 GPT 요청이 안 감; shopOrderNo만 있으면 생성·폴링 수행 %>
+<% if (shopOrderNo) { %>
 <script>
 $(document).ready(function() {
 
