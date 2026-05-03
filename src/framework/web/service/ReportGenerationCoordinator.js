@@ -17,7 +17,7 @@ export async function ensureReportForShopOrder({ shopOrderNo, userInfo, goodsTyp
   }
 
   const task = (async () => {
-    console.log(`[REPORT_COORD] GPT 리포트 생성 시작: ${shopOrderNo}`);
+    console.log(`[REPORT_COORD] 리포트 생성 시작: ${shopOrderNo}`);
     const row = await ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
     if (!row) throw new Error("reportHistory 없음");
     if (row.reportInfo) {
@@ -27,7 +27,18 @@ export async function ensureReportForShopOrder({ shopOrderNo, userInfo, goodsTyp
 
     const generated = await GptService.callReport(userInfo, goodsType);
     await ReportHistoryService.updateById({ id: row.id, reportInfo: generated });
-    console.log(`[REPORT_COORD] GPT 리포트 DB 저장 완료: ${shopOrderNo}`);
+    console.log(`[REPORT_COORD] 리포트 DB 저장 완료: ${shopOrderNo}`);
+
+    const typeCode = typeof goodsType === "string"
+      ? goodsType
+      : (goodsType?.code ?? "");
+    const { default: paymentService } = await import("./PaymentService.js");
+    paymentService
+      .deliverPaidOrderSmsAndBundle(shopOrderNo, String(typeCode))
+      .catch((err) =>
+        console.error("[REPORT_COORD] 결제 완료 알림(LMS·티켓) 오류:", err)
+      );
+
     return generated;
   })().finally(() => {
     inflight.delete(shopOrderNo);

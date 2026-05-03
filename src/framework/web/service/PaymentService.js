@@ -7,12 +7,15 @@
   import { PaymentStatus, PayMethodTypeCode, DeviceType } from "../enums/Payment.js";
   import { GoodsType } from "../enums/Goods.js";
   import { Platform } from "../enums/Platform.js";
-  import { sendReportLink } from "./SmsService.js";
   import ReportHistoryRepository from "../repository/ReportHistoryRepository.js";
   import { Op } from "sequelize";
   import EasyPayClient from "../api/EasyPayClient.js";
   import KakaoPayClient from "../api/KakaoPayClient.js";
   import TossPaymentsClient from "../api/TossPaymentsClient.js"; 
+  import { isReportPayloadReady } from "../utils/reportPayloadReady.js";
+
+  /** 동일 주문에 알리고(LMS)·번들 티켓 발송이 중복 실행되지 않도록 */
+  const smsDeliveredForShopOrders = new Set();
 
 
   class PaymentService {
@@ -115,12 +118,8 @@ const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory
           });
       }
 
-      // 4. 🔥 [중요] tx.id만 보내지 말고, 이미 알고 있는 goodsType을 직접 활용하도록 함수를 수정하거나
-      // 아래와 같이 최신화된 tx 정보를 바탕으로 실행되게 합니다.
-      console.log(` [DEBUG] 발송 시도 - txId: ${tx.id}, 타입: ${goodsType}`);
-      
-      // 비동기로 실행하되, 순서를 보장하기 위해 필요한 경우 await를 걸 수도 있습니다.
-this.generateReportAndSendEmail(tx.id, goodsType).catch(err => console.error("[SMS Error]", err));  }
+      /* 리포트·알림·번들티켓: ReportGenerationCoordinator (리포트 DB 저장 직후)에서만 처리 */
+  }
 
   return result;
 }
@@ -292,92 +291,87 @@ this.generateReportAndSendEmail(tx.id, goodsType).catch(err => console.error("[S
       return { message: "입금 확인 완료", shopOrderNo: payment.shopOrderNo };
     }
 
-async generateReportAndSendEmail(paymentId, passedGoodsType) {
-    const payment = await PaymentTransactionRepository.findByIdWithReportHistory(paymentId);
-    if (!payment) throw new Error("결제정보 없음");
+/**
+ * 결제건의 리포트가 DB에 반영된 뒤 1회만 호출: 번들 무료티켓 생성 + 알리고 LMS 안내.
+ * (토스 승인 직후 호출되면 성공 페이지·폴링 UX가 깨져 이 메서드를 Coordinator 끝에서만 호출합니다.)
+ */
+    async deliverPaidOrderSmsAndBundle(shopOrderNo, passedGoodsTypeStr) {
+      if (!shopOrderNo || smsDeliveredForShopOrders.has(shopOrderNo)) return;
 
-    if (payment.paymentStatus !== PaymentStatus.APPROVED)
-        throw new Error("승인 완료 상태가 아님");
+      const payment =
+        await PaymentTransactionRepository.findByShopOrderNoWithReportHistory(shopOrderNo);
+      if (!payment || payment.paymentStatus !== PaymentStatus.APPROVED) return;
 
-    const reportHistory = payment.reportHistory;
-    if (!reportHistory) {
-        console.error(`[GPT] 결제건에 연결된 reportHistory 없음: paymentId=${paymentId}, shopOrderNo=${payment.shopOrderNo}`);
-        throw new Error("reportHistory 없음(PAYMENT·REPORT_HISTORY shop_order_no 불일치 여부 확인)");
-    }
-    let reportInfo = reportHistory.reportInfo;
-    const userInfo = reportHistory.userInfo || {};
-    const shopOrderNo = payment.shopOrderNo;
-    const finalType = passedGoodsType || reportHistory?.goodsType || payment.goodsType;
+      const reportHistory = payment.reportHistory;
+      if (!reportHistory || !isReportPayloadReady(reportHistory.reportInfo)) {
+        console.warn(`[deliverPaid] 리포트 본문 없음 · LMS 생략: ${shopOrderNo}`);
+        return;
+      }
 
-    console.log(" [LOG 5] 최종 타입 확인:", finalType);
-    const goodsType = GoodsType[finalType];
-    if (!goodsType) throw new Error(`알 수 없는 상품 타입: ${finalType}`);
+      const userInfo = reportHistory.userInfo || {};
+      const finalType =
+        String(passedGoodsTypeStr || reportHistory?.goodsType || payment.goodsType || "").trim();
 
-    // 1. GPT 리포트 생성 (다른 경로 payment_success /api/gpt/report 와 중복되지 않게 조정)
-    if (!reportInfo) {
-        const { ensureReportForShopOrder } = await import("./ReportGenerationCoordinator.js");
-        reportInfo = await ensureReportForShopOrder({ shopOrderNo, userInfo, goodsType });
-    }
-
-    // 2. 번들인 경우 티켓 생성 로직
-    let ticketAddMsg = "";
-    if (finalType && finalType.includes('_BUNDLE')) {
+      /** 쿠폰용 goodsType: 기존 DB 관례 1=정통(CLASSIC 계열) 2=연애(ROMANTIC) */
+      let ticketAddMsg = "";
+      const bundleCfg = GoodsType[finalType];
+      if (
+        bundleCfg?.giveTicket &&
+        typeof finalType === "string" &&
+        finalType.includes("_BUNDLE")
+      ) {
+        const giftGiveCode = bundleCfg.giveTicket;
+        const giftProduct = GoodsType[giftGiveCode];
+        const giftTypeForCoupon = giftGiveCode === "ROMANTIC" ? "2" : "1";
+        const giftTitle = giftProduct?.title || giftGiveCode;
         const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-        let giftType = (finalType === 'CLASSIC_BUNDLE') ? '2' : '1';
-        let giftName = (finalType === 'CLASSIC_BUNDLE') ? '로맨틱 연애사주' : '신년 운세사주';
 
         try {
-            // 🔥 [수정] 모델 파일을 직접 import 하여 경로 및 대소문자 문제를 방지합니다.
-            const CouponsModule = await import("../orm/models/coupons.js");
-            const Coupons = CouponsModule.default; 
-
-            if (Coupons) {
-                await Coupons.create({
-                    code: ticketCode,
-                    isUsed: false,
-                    type: 'BUNDLE',
-                    goodsType: giftType, 
-                    receivedPhone: payment.userTelNo || userInfo.tel
-                });
-                console.log(`✅ [TICKET] 티켓 발급 성공: ${ticketCode}`);
-            } else {
-                throw new Error("Coupons 모델 로드 실패");
-            }
+          const CouponsModule = await import("../orm/models/coupons.js");
+          const Coupons = CouponsModule.default;
+          if (Coupons) {
+            await Coupons.create({
+              code: ticketCode,
+              isUsed: false,
+              type: "BUNDLE",
+              goodsType: giftTypeForCoupon,
+              receivedPhone: payment.userTelNo || userInfo.tel,
+            });
+            console.log(`✅ [TICKET] 티켓 발급 성공 (${finalType} → ${giftGiveCode}): ${ticketCode}`);
+          }
         } catch (dbErr) {
-            console.error("❌ [TICKET ERROR] DB 저장 중 에러 (테이블명 확인 필수):", dbErr.message);
-            // 티켓 생성이 실패해도 리포트 문자는 보낼 수 있도록 throw 하지 않고 진행합니다.
+          console.error("❌ [TICKET ERROR]", dbErr.message);
         }
 
-        ticketAddMsg = `\n\n[번들혜택] ${giftName} 무료 티켓이 발급되었습니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 사용 가능합니다.`;
-    }
+        ticketAddMsg = `\n\n[번들혜택] ${giftTitle} 무료 티켓이 발급되었습니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 사용 가능합니다.`;
+      }
 
-  const rawAddress = payment.userTelNo || userInfo.phone || userInfo.tel || "";
-    const targetAddressStr = String(rawAddress).replace(/-/g, ''); // 하이픈 제거
+      const rawAddress = payment.userTelNo || userInfo.phone || userInfo.tel || "";
+      const targetAddressStr = String(rawAddress).replace(/-/g, "");
+      if (!targetAddressStr || targetAddressStr.length < 10) {
+        console.warn(`[deliverPaid] 수신번호 없음 · LMS 생략: ${shopOrderNo}`);
+        smsDeliveredForShopOrders.add(shopOrderNo);
+        return;
+      }
 
-    const platformInfo = Platform[payment.platform] || Platform.TIGHT;
-    const domain = platformInfo.domain;
-    const userName = userInfo.name || "고객";
+      const platformInfo = Platform[payment.platform] || Platform.TIGHT;
+      const domain = platformInfo.domain;
+      const userName = userInfo.name || "고객";
+      const reportLink = `${domain}/saju/report?shopOrderNo=${shopOrderNo}`;
+      const finalMsg = `[기운소] ${userName}님, 요청하신 리포트가 생성되었습니다.\n\n▶ 리포트 확인하기: ${reportLink}${ticketAddMsg}`;
 
-    const reportLink = `${domain}/saju/report?shopOrderNo=${shopOrderNo}`;
-    const finalMsg = `[기운소] ${userName}님, 요청하신 리포트가 생성되었습니다.\n\n▶ 리포트 확인하기: ${reportLink}${ticketAddMsg}`;
-
-    try {
+      try {
         const AligoModule = await import("../api/AligoClient.js");
         const AligoClient = AligoModule.default || AligoModule;
-        
-        // 🔥 [중요] AligoClient.js 정의에 따라 객체 형태로 인자를 전달해야 합니다.
-await AligoClient.sendMessage({
-            receivers: [String(targetAddressStr)], // 반드시 배열로 감싸기
-            message: String(finalMsg)              // 반드시 문자열로 전달
+        await AligoClient.sendMessage({
+          receivers: [String(targetAddressStr)],
+          message: String(finalMsg),
         });
-        
-        console.log("✅ [SMS] 알리고 발송 성공:", targetAddressStr);
-    } catch (smsErr) {
+        smsDeliveredForShopOrders.add(shopOrderNo);
+      } catch (smsErr) {
         console.error("❌ [SMS ERROR] 알리고 호출 실패:", smsErr.message);
+      }
     }
-
-    return { message: "리포트 및 번들 티켓 발송 완료" };
-}
     async findApprovedTransactionForReview({ userTelNo, userPw, platform }) {
       const tx = await PaymentTransactionRepository.findApprovedOneByTelAndPw({
         userTelNo,

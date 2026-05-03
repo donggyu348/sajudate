@@ -152,9 +152,7 @@
         return res.status(404).send("Report history not found");
       }
 
-      if (repostHistory.reportInfo) {
-        return res.redirect("/saju/report?shopOrderNo=" + shopOrderNo);
-      }
+      // 결제 직후에는 payment_success를 거치도록 함 (리포트가 이미 있어도 동일)
 
       const fileDir = Platform[repostHistory.platform].fileDir;
       const goodsPrice = GoodsType[repostHistory.goodsType].price;

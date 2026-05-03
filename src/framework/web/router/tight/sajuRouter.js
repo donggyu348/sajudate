@@ -1,7 +1,6 @@
 import express from "express";
 import gptService from "../../service/GptService.js";
 import reportHistoryService from "../../service/ReportHistoryService.js";
-import { sendReportLink } from "../../service/SmsService.js";
 import PaymentService from "../../service/PaymentService.js";
 import { Platform } from "../../enums/Platform.js";
 import ReportHistoryService from "../../service/ReportHistoryService.js";
@@ -270,8 +269,6 @@ router.get("/report", async (req, res) => {
       reportPath = "tight/saju/classic/report";
     }
 
-    console.log(`📌 [DEBUG] 최종 경로 결정: ${reportPath} (입력값: ${gType})`);
-
     const saju = getFourPillars(reportHistory.userInfo);
     const reportInfoRaw = reportHistory.reportInfo;
     const needsReportPoll =
@@ -454,11 +451,10 @@ router.get("/payment_success", async (req, res) => {
     }
 
     /**
-     * ③ 결과 확인 및 GPT 호출
+     * ③ 결제 직후에는 항상 payment_success(로딩·폴링)를 보여줍니다.
+     * (승인 단계에서 이미 백그라운드로 GPT가 돌아가 reportInfo가 채워져 있으면,
+     * 아래에서 곧바로 리포트로 보내버려 사용자가 성공 페이지를 못 봤던 문제가 있었음)
      */
-   if (reportHistory.reportInfo) {
-      return res.redirect("/saju/report?shopOrderNo=" + shopOrderNo);
-    }
 
     // 비동기 GPT — approveTossPayment·/api/gpt/report 와 동일 주문이 겹쳐도 1회만 생성되도록 Coordinator 사용
     (async () => {
@@ -533,29 +529,7 @@ router.post("/report/check", (req, res) => {
         });
       }
 
-      try {
-        const paymentTransaction = await PaymentService.getPaymentTransaction(shopOrderNo);
-        if (paymentTransaction?.userTelNo) {
-          let domain = "http://sajudate.store";
-          if (paymentTransaction.platform === Platform.JUJANGSO.code) {
-            domain = "https://saju-maeul.kr";
-          }
-          console.log("5번 goodstype", reportHistory.goodsType);
-          await sendReportLink(
-            paymentTransaction.userTelNo,
-            shopOrderNo,
-            reportHistory.goodsType,
-            domain
-          );
-        } else {
-          console.warn(`[report/check] 수신번호 없음 — SMS 생략, DONE 응답: ${shopOrderNo}`);
-        }
-      } catch (smsErr) {
-        console.error(
-          "[report/check] SMS 실패했지만 리포트는 준비됨 (클라이언트는 DONE 처리):",
-          smsErr.message
-        );
-      }
+      /* LMS·번들티켓은 ReportGenerationCoordinator → deliverPaidOrderSmsAndBundle 에서 1회만 처리 */
 
       return res.status(200).json({
         code: 200,

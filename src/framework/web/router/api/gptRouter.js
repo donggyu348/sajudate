@@ -10,7 +10,6 @@ router.post("/report", async (req, res) => {
   try {
 
     const shopOrderNo = req.body.shopOrderNo;
-console.log(`[GPT_LOG] 보고서 생성 시작: ${shopOrderNo}`); // 로그 추가
     const paymentTransaction = await paymentService.getPaymentTransaction(shopOrderNo);
 
     // if (paymentTransaction.paymentStatus != PaymentStatus.APPROVED) {
@@ -39,7 +38,6 @@ console.log(`[GPT_LOG] 보고서 생성 시작: ${shopOrderNo}`); // 로그 추�
           userInfo: reportHistory.userInfo,
           goodsType,
         });
-        console.log(`[GPT_LOG] GPT 응답·DB 반영: ${shopOrderNo}`);
       } catch (err) {
         console.error(`[GPT_LOG] 비동기 GPT 호출 중 치명적 오류:`, err);
       }
