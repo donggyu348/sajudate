@@ -6,7 +6,32 @@ import { buildAdultReportFromTemplates } from "./adultReportTemplates.js";
 import { Solar } from "lunar-javascript";
 import { toHanja } from "./toHanja.js";
 import { ROMANTIC_REPORT_PROMPT_PREFIX, ROMANTIC_REPORT_PROMPT_PARTS } from "./prompts/romanticReportV2.js";
-import { jsonrepair } from "jsonrepair";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+
+/** 배포 시 npm install 누락돼도 프로세스가 죽지 않도록 선택 로딩 (설치 권장) */
+let _jsonrepairCache;
+let _jsonrepairMissingLogged = false;
+function getJsonrepair() {
+  if (_jsonrepairCache !== undefined) return _jsonrepairCache;
+
+  try {
+    const m = require("jsonrepair");
+    const fn = m.jsonrepair ?? m.default?.jsonrepair ?? m.default;
+    _jsonrepairCache = typeof fn === "function" ? fn : null;
+  } catch {
+    _jsonrepairCache = null;
+  }
+
+  if (_jsonrepairCache === null && !_jsonrepairMissingLogged) {
+    _jsonrepairMissingLogged = true;
+    console.warn(
+      "[GptService] jsonrepair 패키지 없음 → JSON 자동 복구 비활성.production 서버에서 반드시 실행: npm install jsonrepair"
+    );
+  }
+  return _jsonrepairCache;
+}
 
 // --- Lunar 기반 사주 계산 Helpers (sample 전용) ---
 
@@ -2588,8 +2613,10 @@ function tryRepairParse(blob, tag, stepLabel) {
   try {
     return JSON.parse(blob);
   } catch (e1) {
+    const jr = getJsonrepair();
+    if (!jr) throw e1;
     try {
-      const repaired = jsonrepair(blob);
+      const repaired = jr(blob);
       const parsed = JSON.parse(repaired);
       console.warn(`[${tag}] ${stepLabel}: jsonrepair 후 파싱 성공`);
       return parsed;
@@ -2619,22 +2646,25 @@ function safeJsonParseLooser(input, tag = "UNKNOWN") {
 
   const blobs = [];
   blobs.push(["extracted 블록", core]);
-  try {
-    blobs.push(["jsonrepair(extracted)", jsonrepair(core)]);
-  } catch {
-    /* noop */
-  }
-  try {
-    blobs.push(["jsonrepair(전체응답)", jsonrepair(cleaned)]);
-  } catch {
-    /* noop */
-  }
-  try {
-    const healed = jsonrepair(cleaned);
-    const block = findFirstJsonBlock(healed) || healed;
-    blobs.push(["블록(jsonrepair 후)", block]);
-  } catch {
-    /* noop */
+  const jr = getJsonrepair();
+  if (jr) {
+    try {
+      blobs.push(["jsonrepair(extracted)", jr(core)]);
+    } catch {
+      /* noop */
+    }
+    try {
+      blobs.push(["jsonrepair(전체응답)", jr(cleaned)]);
+    } catch {
+      /* noop */
+    }
+    try {
+      const healed = jr(cleaned);
+      const block = findFirstJsonBlock(healed) || healed;
+      blobs.push(["블록(jsonrepair 후)", block]);
+    } catch {
+      /* noop */
+    }
   }
 
   let lastErr = null;
