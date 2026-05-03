@@ -23,6 +23,15 @@
   };
 
   function h(str){ return String(str || ""); }
+  /** GPT report HTML과 동일 클래스 — 폴백에서도 같은 톤으로 사용 */
+  function lead(txt){ return `<div class="section-lead">${h(txt)}</div>`; }
+  function insightRow(cells){
+    return `<div class="insight-row">${cells.map(c=>`
+      <div class="insight-cell">
+        <span class="insight-k">${h(c.k)}</span>
+        <span class="insight-v">${h(c.v)}</span>
+      </div>`).join("")}</div>`;
+  }
   function chip(label){ return `<span class="chip">${h(label)}</span>`; }
   function bar(label, pct, tone){
     const p = Math.max(0, Math.min(Number(pct) || 0, 100));
@@ -109,28 +118,28 @@
     // 장별 “대표 코멘트(동물+2줄)”를 리포트 곳곳에 반복 노출해 일관성을 줌
     const chapterMascot = {
       [c1]: { emoji:"🐰", lines:[
-        "눈빛과 표정에서 감정이 잘 살아나고, 자연스럽게 시선을 끄는 분위기가 있어요.",
-        "자신감이 느껴지는 태도 덕분에 고급스럽고 매력적인 인상을 줍니다."
+        "이번 장에서는 꾸민 문장보다 첫 카톡 한 통·첫 만남 자리 선택까지 어떻게 깔지 짚습니다.",
+        "내 사주 패턴에서 꺼져 있는 스위치(말 버릇·리액션) 하나만 바꿔도 체감이 큽니다."
       ]},
       [c2]: { emoji:"🦊", lines:[
-        "감정의 깊이가 큰 편이라 사랑에 빠지면 몰입도가 높은 스타일이에요.",
-        "한 번 마음을 주면 아낌없이 표현하는 타입이라 연애의 온도가 높은 편입니다."
+        "시기 예측은 막연한 언젠가가 아니라, 앞으로 52주 안에 접점을 늘리는 행위만 추립니다.",
+        "달력에 박을 만남·연락 루틴을 하나 정하고 거기부터 실행합니다."
       ]},
       [c3]: { emoji:"🐥", lines:[
-        "진심은 충분하지만 표현 방식이 차갑게 느껴질 수 있어요.",
-        "감정을 조금 더 부드럽게 전달하는 연습이 필요합니다."
+        "많이 하는 실수 한 가지부터 잡고, 지금 바로 붙여 쓸 대사 초안을 같이 만듭니다.",
+        "표현이 부족한 게 아니라 확약→약속→리액션 순서가 비어 있는지부터 봅니다."
       ]},
       [c4]: { emoji:"🐻", lines:[
-        "생각이 깊고 대화를 즐기는 사람에게 특히 끌리는 경향이 있어요.",
-        "서로의 이야기를 오래 나눌수록 감정이 더 커지는 스타일입니다."
+        "상대를 가늠할 테스트 질문 2개와, 만남 때 관찰할 체크 3항만 챙기고 들어가요.",
+        "운명 서사보다 허용/거절 기준부터 확정해야 시간을 아낍니다."
       ]},
       [c5]: { emoji:"🐱", lines:[
-        "확신을 주지 않는 사람과의 관계는 결국 피로감을 남기게 됩니다.",
-        "애매한 태도가 반복되면 감정적으로 크게 지칠 수 있어요."
+        "독 초장면은 줄이고, 끝낼 때 보내는 문자 한 줄 템플릿까지 확인합니다.",
+        "불안해서 연락하기 전에 한 번 할 경계 테스트로 답을 받아냅니다."
       ]},
       [c6]: { emoji:"🖤", lines:[
-        "당신의 ‘은근한 매력’은 평소보다 가까워졌을 때 더 선명해져요.",
-        "밀도 높은 케미는 결국 ‘심리적 안전감’ 위에서 폭발합니다."
+        "비노골 원칙 안에서 속도·여백·말버릇을 숫자와 문장으로 맞추는 연습 카드입니다.",
+        "오늘 밤 챙길 디테일 1개만 골라 적용하면 다음 만남 톤이 달라집니다."
       ]}
     };
 
@@ -150,9 +159,16 @@
     reportInfo = [
       // ── 1장 ──
       { chapter:c1, title:"풀이 1. 내가 타고난 기본 매력은 무엇일까?", isHtml:true, content: `
+        ${lead(`${h(safeUserName)} 님의 기본 매력은 한 번에 튀는 화려함보다, 사람이 떠올릴 때마다 새옷처럼 또렷해지는 타입에 가깝습니다. 대화가 길어질수록 신뢰와 온도가 동시에 쌓이며, 그 여백이 관계의 깊이를 만들어요. 아래에서 어떤 결로 드러나는지, 일상에서 어떻게 보이는지 차례로 짚어볼게요.`)}
+        ${insightRow([
+          { k:"매력 타입", v:"정돈·신뢰형" },
+          { k:"첫인상 속도", v:"천천히 번짐" },
+          { k:"연애 시너지", v:"대화·약속" },
+        ])}
         ${mascotBlock(c1)}
-        ${callout("note","핵심 요약",`<div class="p">${h(safeUserName)} 님의 기본 매력은 <span class="hl">‘신뢰 + 분위기’</span>가 동시에 깔리는 타입이에요.</div>
-        <div class="p">가볍게 호감만 남기고 사라지는 매력보다, <span class="hl">“계속 생각나는 매력”</span>에 가까워요.</div>`)}
+        ${callout("note","핵심 요약",`<div class="p">${h(safeUserName)} 님의 기본 매력은 <span class="hl">‘신뢰 + 분위기’</span>가 동시에 깔리는 타입이에요. 첫 만남에서는 조용해 보일 수 있어도, 시간이 지나며 ‘이 사람은 나를 흔들지 않고 곁에 서 주는 사람’이라는 인상이 강화됩니다.</div>
+        <div class="p">가볍게 호감만 남기고 사라지는 매력보다, <span class="hl">계속 생각나는 여운</span>과 <span class="hl">말이 필요 없는 안정감</span>으로 기억에 남는 결을 가지고 있어요.</div>
+        <div class="p">그래서 호감 신호는 크게 튀기보다 시선·웃음·목소리 톤처럼 미세한 레이어에서 읽히는 편입니다. 상대에게는 “편한데 자꾸 신경 쓰이는 사람”으로 각인되기 쉽습니다.</div>`)}
         <div class="meters">
           ${bar("첫인상 호감도", 78, "pink")}
           ${bar("신뢰감", 88, "gold")}
@@ -166,6 +182,8 @@
         ])}
       `},
       { chapter:c1, title:"풀이 2. 사람들이 처음 만났을 때 느끼는 나의 분위기는?", isHtml:true, content: `
+        ${lead(`첫 만남에서는 ‘감정 표현’보다 ‘존재감의 밀도’가 먼저 읽혀요. 말수가 적어도 눈빛·자세·말의 속도에서 풍기는 차분함이 곧 분위기가 됩니다. 사람들은 그걸 종종 “단정하다, 믿음직하다, 묘하게 성숙하다” 같은 말로 번역해요.`)}
+        ${insightRow([{k:"무드 키워드", v:"차분·단정"},{k:"관계 타이밍", v:"3~7일"},{k:"첫인상 보정", v:"미소·리액션"},])}
         ${miniQuiz("첫인상으로 가장 많이 듣는 말은?",[
           "A. 차분해 보인다 / 단정하다",
           "B. 센스 있다 / 예쁘게 말한다",
@@ -179,6 +197,8 @@
         ${callout("tip","바로 적용",`<div class="p">첫 인사 후 1문장: <span class="hl">“오 오늘 분위기 좋네요”</span> 같은 ‘가벼운 칭찬’이 차가움을 풀어줘요.</div>`)}
       `},
       { chapter:c1, title:"풀이 3. 썸 단계에서 상대를 끌어당기는 나만의 포인트는?", isHtml:true, content: `
+        ${lead(`썸에서는 ‘자극적인 밀당’보다 ‘마음이 정리되는 대화’에서 당신의 매력이 가장 선명해져요. 상대가 흐릿한 생각을 정리해 주는 한 문장을 건넬 때, 사람들은 그 순간에 강한 끌림을 느끼기 쉽습니다.`)}
+        ${insightRow([{k:"끌림 요인", v:"말의 정리력"},{k:"약점 주의", v:"과한 시험"},{k:"실천 팁", v:"약속 확정"},])}
         ${mascotBlock(c1)}
         ${callout("tip","썸에서 강해지는 포인트",`<div class="p">당신은 <span class="hl">“상대의 마음을 정리해주는 말”</span>을 할 때 매력이 올라가요.</div>
         <div class="p">그래서 썸 단계에서 ‘가벼운 드립’보다 <span class="hl">따뜻한 확신</span>이 먹혀요.</div>`)}
@@ -189,6 +209,8 @@
         ${callout("note","추천 멘트",`<div class="quote">“나 오늘 대화 재밌었어. 다음에 ○○도 같이 해보자.”</div>`)}
       `},
       { chapter:c1, title:"풀이 4. 연애를 시작하면 더욱 빛나는 나의 장점은?", isHtml:true, content: `
+        ${lead(`연애가 시작되면 당신은 ‘감정 기복’으로 흔들기보다 관계의 리듬을 잡는 쪽으로 강점이 드러나요. 크게 한 번이 아니라 꾸준한 온도 조절과 약속 지키기가 신뢰로 전환되면서, 파트너가 더 빨리 마음의 집을 짓게 됩니다.`)}
+        ${insightRow([{k:"연애 초반", v:"온도 조절"},{k:"중반 이후", v:"문제 정리"},{k:"장기 강점", v:"일관성"},])}
         <div class="viz-grid">
           <div class="viz-card"><div class="viz-t">연애 초반</div><div class="viz-v">상대가 편해지는 ‘온도 조절’</div><div class="viz-s">강하게 밀지 않아도, 꾸준히 챙겨서 신뢰가 올라갑니다.</div></div>
           <div class="viz-card"><div class="viz-t">연애 중반</div><div class="viz-v">문제 해결 능력</div><div class="viz-s">싸움이 커지기 전에 ‘정리’가 들어가요. 대화로 풀리는 연애가 됩니다.</div></div>
@@ -201,8 +223,11 @@
         ${callout("tip","연애에서 더 매력적으로 보이는 행동",`<div class="p">“약속 시간/장소를 먼저 정리해주는 사람”이 연애에서 굉장히 매력적으로 보여요.</div>`)}
       `},
       { chapter:c1, title:"풀이 5. 시간이 지날수록 더 크게 드러나는 나의 매력은?", isHtml:true, content: `
+        ${lead(`시간이 쌓일수록 ‘말의 화려함’보다 ‘행동의 일관성’이 드러나며, 그게 곧 매력의 주파수가 됩니다. 상대는 당신을 통해 ‘나를 지키는 관계’의 감각을 배우게 되고, 그 신뢰가 곧 중독성으로 이어지기도 해요.`)}
+        ${insightRow([{k:"누적 매력", v:"진정성·깊이"},{k:"전환점", v:"2~3개월"},{k:"상대 반응", v:"내 편 감각"},])}
         ${callout("note","시간이 지날수록 올라가는 매력",`<div class="p">당신은 시간이 쌓일수록 <span class="hl">‘진정성’</span>이 드러나서 매력이 커져요.</div>
-        <div class="p">처음엔 조용했는데, 어느 순간 상대가 <span class="hl">“이 사람 되게 깊다”</span>를 느끼게 됩니다.</div>`)}
+        <div class="p">처음엔 조용했는데, 어느 순간 상대가 <span class="hl">‘이 사람 되게 깊다’</span>를 느끼게 됩니다. 그 순간부터는 호감이 ‘일시적 설렘’이 아니라 ‘함께 살림을 구상하게 되는 레벨’로 이동해요.</div>
+        <div class="p">특히 갈등이 생겼을 때 욕설이 아니라 ‘정리’로 돌파하는 모습에서 매력 곡선이 급격히 상승합니다.</div>`)}
         ${timeline([
           {t:"1~2주", d:"호감은 생기지만 아직 ‘확신’은 부족"},
           {t:"3~4주", d:"상대가 당신의 기준/가치관을 느끼며 신뢰가 급상승"},
@@ -211,6 +236,8 @@
         ])}
       `},
       { chapter:c1, title:"풀이 6. 상대가 나에게 중독되는 결정적인 이유는?", isHtml:true, content: `
+        ${lead(`중독이라는 표현은 ‘위험한 집착’이 아니라, 마음을 놓았을 때도 곁을 지키게 되는 ‘심리적 안전기지’ 같은 뜻으로 읽히면 좋아요. 당신은 상대에게 감정의 파도를 숨기지 않되, 과장 없이 버텨 주는 힘으로 기억됩니다.`)}
+        ${insightRow([{k:"중독 키", v:"안정+설렘"},{k:"위험 밸런스", v:"과한 책임"},{k:"균형 팁", v:"여유·경계"},])}
         ${mascotBlock(c1)}
         ${callout("tip","중독 포인트",`<div class="p">상대가 중독되는 이유는 <span class="hl">‘감정의 안정감 + 순간적인 설렘’</span>이 같이 있기 때문이에요.</div>
         <div class="p">즉, 편한데 지루하지 않은 타입.</div>`)}
@@ -472,8 +499,12 @@
 
       // ── 6장 ──
       { chapter:c6, title:"풀이 1. 내가 가진 은근한 성적 매력은 어떤 스타일일까?", isHtml:true, content: `
+        ${lead(`이 장은 노골적인 신체 묘사가 아니라 ‘분위기·신뢰·호흡’으로 읽히는 은근한 매력에 초점을 둡니다. 사람마다 속도감과 표현법이 다르니, 편하게 자신에게 맞는 이미지만 골라 떠올려 주세요.`)}
+        ${insightRow([{k:"스타일 축", v:"여유·깊이"},{k:"강조 타이밍", v:"가까워진 뒤"},{k:"어필 톤", v:"확신 한 줄"},])}
         ${mascotBlock(c6)}
-        ${callout("note","은근 매력",`<div class="p">당신의 매력은 과한 노출/어필이 아니라 <span class="hl">‘거리감이 좁혀질 때’</span> 강해져요.</div>`)}
+        ${callout("note","은근 매력",`<div class="p">당신의 매력은 과한 노출이나 과시가 아니라 <span class="hl">거리가 좁혀질 때</span> 밀도가 높아지는 타입이에요.</div>
+        <div class="p">말보다 호흡·리액션·분위기 전환처럼 <span class="hl">미세한 신호</span>에서 사람들이 더 크게 반응하는 경우가 많아요.</div>
+        <div class="p">그래서 ‘한 번에 화려하게’보다 <span class="hl">두세 번 만날수록 새로워 보이는</span> 패턴과 잘 맞습니다.</div>`)}
         <div class="meters">
           ${bar("은근함", 88, "ice")}
           ${bar("설렘", 76, "pink")}
@@ -481,16 +512,22 @@
         </div>
       `},
       { chapter:c6, title:"풀이 2. 나를 강하게 끌어당기는 상대의 신체 포인트는?", isHtml:true, content: `
+        ${lead(`‘신체 포인트’ 대신 사람이 살아 있다고 느껴지는 리듬·태도에서 끌리는 패턴으로 읽어볼게요. 가까워질 때 집중이 올라가는 순간에는 시각 신호보다 심리적 안전·장난기·일관된 태도가 더 큰 자극이 되기도 합니다.`)}
+        ${insightRow([{k:"자극 축", v:"태도·리듬"},{k:"집중 구간", v:"대화 20분 후"},{k:"주의", v:"자극=사랑 착각"},])}
         ${callout("tip","끌리는 포인트(예시)",bullets([
-          "손/손목/핏(깔끔함이 느껴질 때)",
-          "말할 때의 입매/표정(감정이 살아있을 때)",
-          "향/피부결(가까이 있을 때 안정감)"
+          "청결·단정함이 느껴질 때(정리된 실루엣)",
+          "말할 때 표정 리듬이 살아 있을 때(감정이 전달되는 톤)",
+          "향·목소리·호흡이 편하게 맞아떨어질 때(근거리에서의 안정감)"
         ]))}
-        ${callout("note","중요",`<div class="p">당신은 결국 <span class="hl">‘외형’보다 ‘태도’</span>에서 확 끌려요.</div>`)}
+        ${callout("note","중요",`<div class="p">당신은 결국 <span class="hl">외형 카탈로그보다 ‘태도의 일관성’</span>에서 확 끌려요.</div>
+        <div class="p">그래서 상대에게 ‘설렘 신호’를 받았다면, 그 다음 검증 포인트는 <span class="hl">약속과 말의 일치</span>가 되는 게 건강합니다.</div>`)}
       `},
       { chapter:c6, title:"풀이 3. 운명의 상대와의 스킨십이나 케미는 어떤 느낌일까?", isHtml:true, content: `
+        ${lead(`스킨십은 속도 자체보다 ‘허용 범위가 자연스럽게 넓어지는지’가 중요합니다. 당신은 마음의 안전이 확보된 뒤에야 신체적 친밀감이 설렘이 아니라 따뜻한 몰입으로 바뀌는 경향이 있어요.`)}
+        ${insightRow([{k:"케미 온도", v:"안전 후 상승"},{k:"핵심 감각", v:"신뢰 리듬"},{k:"주의 패턴", v:"불안한 가속"},])}
         ${mascotBlock(c6)}
-        ${callout("note","케미 흐름",`<div class="p">빠르게 불타기보다, <span class="hl">안전감이 쌓이면서</span> 점점 밀도가 높아져요.</div>`)}
+        ${callout("note","케미 흐름",`<div class="p">빠르게 불타기보다 <span class="hl">안전감이 쌓이면서</span> 점점 밀도가 높아져요.</div>
+        <div class="p">처음부터 과한 속도보다는, 짧게라도 신뢰가 쌓인 만남 뒤에 ‘자연스럽게 닿는 거리’가 열리는 흐름이 잘 맞습니다.</div>`)}
         ${timeline([
           {t:"초반", d:"거리감 유지 + 설렘 쌓기"},
           {t:"중반", d:"스킨십이 자연스러워지면서 몰입 증가"},
@@ -498,6 +535,8 @@
         ])}
       `},
       { chapter:c6, title:"풀이 4. 관계가 깊어질수록 달라지는 나의 s적 모습은?", isHtml:true, content: `
+        ${lead(`깊어질수록 조심스러운 방어가 내려가고, 말 없이 챙겨 주는 디테일·장난·리액션이 더 잦아지는 패턴이 나타나요. 매력 표현은 화려해지기보다 밀도와 온도가 함께 올라가는 쪽에 가깝습니다.`)}
+        ${insightRow([{k:"초반 스타일", v:"점검형"},{k:"중후반", v:"여유 디테일"},{k:"핵심", v:"심리 안전"},])}
         ${callout("tip","깊어질수록 변하는 포인트",bullets([
           "초반엔 조심스럽지만, 확신이 생기면 표현이 확 늘어남",
           "상대 반응을 ‘관찰’하고 맞춰주는 쪽",
@@ -511,14 +550,19 @@
         ])}
       `},
       { chapter:c6, title:"풀이 5. 상대가 빠져드는 나만의 s적 포인트는?", isHtml:true, content: `
+        ${lead(`상대가 빠져드는 지점은 ‘과한 어필’이 아니라, 순간 순간 선택이 겹치는 디테일에 있어요. 말 한마디보다 다음 만남이 자연스럽게 이어지게 만드는 태도가 오래도록 기억에 남습니다.`)}
+        ${insightRow([{k:"훅 포인트", v:"확신 태도"},{k:"지속 장치", v:"밀도 있는 리액션"},{k:"금지선", v:"불안한 확인"},])}
         ${mascotBlock(c6)}
-        ${callout("note","빠져드는 포인트",`<div class="p">상대가 빠져드는 건 ‘기술’보다 <span class="hl">“확신을 주는 태도”</span>예요.</div>`)}
+        ${callout("note","빠져드는 포인트",`<div class="p">상대가 빠져드는 건 ‘기술’보다 <span class="hl">확신을 주는 태도</span>예요.</div>
+        <div class="p">특히 갈등 순간에도 존중이 유지될 때, 상대는 ‘이 사람에게서는 깨져도 안전하다’는 감각을 얻습니다.</div>`)}
         ${doDont(
           ["상대 반응에 맞춰 템포 조절", "칭찬/리액션을 짧게라도", "눈맞춤/대화로 분위기 만들기"],
           ["불안해서 속도 올리기", "상대가 원치 않는데 강하게 밀기", "말 없이 참고 쌓기"]
         )}
       `},
       { chapter:c6, title:"풀이 6. 성적 어필을 하기위해서 내가 해야할건 무엇일까?", isHtml:true, content: `
+        ${lead(`어필의 핵은 ‘더 많이 보이기’보다 더 선명하게 전달되는 나의 상태입니다. 과한 장치보다 톤과 공간 배치 같은 작은 디테일이 설득력을 높여요.`)}
+        ${insightRow([{k:"핵심 전략", v:"여유+확신"},{k:"단기 액션", v:"패턴 교체 1개"},{k:"장기", v:"컨디션 리듬"},])}
         ${callout("tip","어필 방법(현실 적용)",bullets([
           "<b>스타일</b>: 과한 노출보다 ‘핏/실루엣’ 정리",
           "<b>말투</b>: 짧게 확신 주는 한 문장(칭찬/호감 표현)",
@@ -531,94 +575,214 @@
   }
 %>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@500;700&display=swap');
 
   :root {
-    --accent-color: #ff4d8d;
-    --gold-gradient: linear-gradient(135deg, #f3e6c8 0%, #d4af37 100%);
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.12);
+    --accent-color: #ff5c98;
+    --accent-soft: rgba(255, 92, 152, 0.14);
+    --gold-mid: #e8d5a8;
+    --gold-deep: #b8972f;
+    --gold-gradient: linear-gradient(135deg, #fdf6e4 0%, #d4af37 52%, #8a7028 100%);
+    --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
+    --glass-border: rgba(243, 230, 200, 0.14);
+    --text-body: rgba(255, 255, 255, 0.86);
+    --text-muted: rgba(255, 255, 255, 0.62);
+    --surface-inset: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   }
 
   .report-bg {
-    background-color: #0a0a0c;
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(255, 77, 141, 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(243, 230, 200, 0.05) 0%, transparent 40%);
+    background-color: #050506;
+    background-image:
+      radial-gradient(ellipse 120% 80% at 20% -10%, rgba(255, 92, 152, 0.11) 0%, transparent 50%),
+      radial-gradient(ellipse 90% 60% at 100% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 45%),
+      radial-gradient(circle at 50% 100%, rgba(80, 40, 120, 0.12), transparent 55%),
+      linear-gradient(180deg, #0b0b0f 0%, #050506 55%, #08070a 100%);
     min-height: 100vh;
+  }
+
+  /* 고급감 피니시: 아주 미세한 노이즈 느낌(이미지만 아님) */
+  .report-bg::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
   }
 
   /* 챕터 표시 영역 */
   .chapter-progress-wrap {
-    padding-top: 80px;
-    padding-bottom: 40px;
+    padding-top: 76px;
+    padding-bottom: 36px;
     text-align: center;
+    position: relative;
   }
 
   .chapter-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-family: 'Noto Serif KR', serif;
-    font-size: 12px;
-    letter-spacing: 2px;
-    color: var(--accent-color);
-    margin-bottom: 12px;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: rgba(232, 213, 168, 0.85);
+    margin-bottom: 14px;
     text-transform: uppercase;
+  }
+
+  .chapter-badge::before,
+  .chapter-badge::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.45), transparent);
   }
 
   .chapter-title {
     font-family: 'Noto Serif KR', serif;
-    font-size: 32px;
+    font-size: clamp(26px, 6vw, 34px);
     font-weight: 700;
-    color: #fff;
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
+    line-height: 1.28;
+    margin-bottom: 6px;
+    letter-spacing: -0.03em;
+    background: linear-gradient(180deg, #fff 0%, var(--gold-mid) 55%, rgba(255,255,255,0.85) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 14px 40px rgba(0, 0, 0, 0.55);
   }
 
   .chapter-line {
-    width: 40px;
-    height: 1px;
+    width: 56px;
+    height: 2px;
+    border-radius: 2px;
     background: var(--gold-gradient);
-    margin: 16px auto;
+    margin: 18px auto 0;
+    box-shadow: 0 0 24px rgba(212, 175, 55, 0.25);
   }
 
   /* 콘텐츠 카드 디자인 */
   .content-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    padding: 32px 24px;
-    margin-bottom: 40px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    border-radius: 22px;
+    padding: 28px 22px 30px;
+    margin-bottom: 28px;
+    backdrop-filter: blur(14px) saturate(118%);
+    -webkit-backdrop-filter: blur(14px) saturate(118%);
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.42),
+      var(--surface-inset);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .content-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(120% 60% at 0% 0%, var(--accent-soft), transparent 50%);
+    opacity: 0.85;
+  }
+
+  .content-card > * {
+    position: relative;
+    z-index: 1;
   }
 
   .report-title {
     font-family: 'Noto Serif KR', serif;
-    font-size: 22px;
+    font-size: clamp(18px, 4.6vw, 21px);
     font-weight: 700;
-    color: #f3e6c8; /* 골드톤 */
-    margin-bottom: 20px;
-    line-height: 1.4;
+    color: rgba(253, 246, 228, 0.96);
+    margin-bottom: 18px;
+    line-height: 1.42;
     display: flex;
-    align-items: center;
-    gap: 10px;
+    align-items: flex-start;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(243, 230, 200, 0.08);
   }
 
   .report-title::before {
     content: '';
     display: block;
-    width: 4px;
-    height: 20px;
-    background: var(--accent-color);
-    border-radius: 2px;
+    width: 3px;
+    margin-top: 4px;
+    min-height: 1.05em;
+    align-self: stretch;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--accent-color), rgba(212, 175, 55, 0.75));
+    box-shadow: 0 0 18px rgba(255, 92, 152, 0.35);
   }
 
   .report-content {
-    font-size: 16px;
-    line-height: 1.85;
-    color: rgba(255, 255, 255, 0.85);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.92;
+    color: var(--text-body);
     white-space: pre-line;
     word-break: keep-all;
+    letter-spacing: -0.01em;
+  }
+
+  /* GPT / 폴백 공통 리드 카피 */
+  .section-lead {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    line-height: 1.88;
+    color: rgba(255, 255, 255, 0.78);
+    margin: 4px 0 18px;
+    padding: 14px 16px 16px;
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.12));
+    border: 1px solid rgba(243, 230, 200, 0.09);
+    box-shadow: var(--surface-inset);
+  }
+
+  .insight-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 6px 0 18px;
+  }
+
+  .insight-cell {
+    border-radius: 14px;
+    padding: 10px 10px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: var(--surface-inset);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 64px;
+  }
+
+  .insight-k {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(232, 213, 168, 0.7);
+    font-weight: 600;
+  }
+
+  .insight-v {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.45;
+  }
+
+  @media (max-width: 380px) {
+    .insight-row {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* 진행 도트 커스텀 */
@@ -638,9 +802,9 @@
   }
 
   .dot.active {
-    background: var(--accent-color);
-    transform: scale(1.5);
-    box-shadow: 0 0 10px var(--accent-color);
+    background: linear-gradient(135deg, var(--accent-color), rgba(212, 175, 55, 0.9));
+    transform: scale(1.6);
+    box-shadow: 0 0 14px rgba(255, 92, 152, 0.45);
   }
 
   .highlight {
@@ -651,7 +815,7 @@
   }
 
   /* ── 시각 요소 컴포넌트 (리포트 전용) ── */
-  .hl{color:#ff4d8d;font-weight:700}
+  .hl{color:var(--accent-color);font-weight:700}
   .chip{
     display:inline-flex;align-items:center;justify-content:center;
     height:24px;padding:0 10px;border-radius:999px;
@@ -665,25 +829,31 @@
   .hs-sub{margin-top:8px;font-size:13px;color:rgba(255,255,255,0.75);line-height:1.65}
   .hs-chips{margin-top:8px}
 
-  .viz-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-  .viz-card{border-radius:16px;padding:12px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.10)}
-  .viz-t{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(243,230,200,0.85)}
-  .viz-v{margin-top:6px;font-size:13.5px;color:rgba(255,255,255,0.88);line-height:1.55}
-  .viz-s{margin-top:6px;font-size:12px;color:rgba(255,255,255,0.68);line-height:1.6}
+  .viz-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .viz-card{
+    border-radius:18px;
+    padding:14px 14px 15px;
+    background:linear-gradient(165deg, rgba(255,255,255,0.045), rgba(0,0,0,0.16));
+    border:1px solid rgba(243,230,200,0.10);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .viz-t{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(232,213,168,0.78);font-weight:600}
+  .viz-v{margin-top:8px;font-size:14px;color:rgba(255,255,255,0.9);line-height:1.55;font-weight:600}
+  .viz-s{margin-top:8px;font-size:12.5px;color:rgba(255,255,255,0.66);line-height:1.65}
   @media (max-width:420px){.viz-grid{grid-template-columns:1fr}}
 
   .bullets{margin:0;padding-left:18px}
   .bullets li{margin-top:10px;color:rgba(255,255,255,0.80);line-height:1.65}
   .bullets li:first-child{margin-top:0}
 
-  .callout{margin-top:12px;border-radius:16px;padding:12px 12px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.16)}
+  .callout{margin-top:14px;border-radius:18px;padding:14px 14px;border:1px solid rgba(243,230,200,0.11);background:linear-gradient(155deg, rgba(0,0,0,0.2), rgba(255,255,255,0.03));box-shadow:inset 0 1px 0 rgba(255,255,255,0.05)}
   .callout.kind-tip{background:linear-gradient(135deg, rgba(255,77,141,0.10), rgba(196,77,255,0.06))}
   .callout.kind-warn{background:linear-gradient(135deg, rgba(255,77,141,0.10), rgba(255,180,120,0.06))}
   .callout.kind-note{background:rgba(255,255,255,0.03)}
   .co-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
   .co-badge{font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.70);padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.04)}
   .co-title{font-size:13px;color:rgba(255,255,255,0.92);font-weight:700}
-  .co-body .p{margin-top:8px;color:rgba(255,255,255,0.78);line-height:1.65}
+  .co-body .p{margin-top:10px;color:rgba(255,255,255,0.80);line-height:1.78;font-size:15px}
   .co-body .p:first-child{margin-top:0}
   .quote{margin-top:6px;border-left:3px solid rgba(255,77,141,0.75);padding-left:10px;color:rgba(255,255,255,0.84);line-height:1.65}
 
@@ -777,13 +947,30 @@
   }
 
   .saju-summary-tool {
-    background: radial-gradient(circle at 50% 50%, #1a1a1c 0%, #0a0a0c 100%);
-    border: 1px solid rgba(243, 230, 200, 0.1);
-    border-radius: 28px;
-    padding: 30px 20px;
-    margin: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    background:
+      radial-gradient(ellipse 140% 80% at 30% -20%, rgba(255, 92, 152, 0.08), transparent 50%),
+      radial-gradient(circle at 80% 100%, rgba(212, 175, 55, 0.06), transparent 45%),
+      linear-gradient(165deg, #141418 0%, #0d0d10 42%, #0a0a0c 100%);
+    border: 1px solid rgba(243, 230, 200, 0.14);
+    border-radius: 26px;
+    padding: 28px 18px 30px;
+    margin: 18px;
+    box-shadow:
+      0 24px 48px rgba(0, 0, 0, 0.52),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
     font-family: 'Noto Serif KR', serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .saju-summary-tool::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(60% 40% at 50% 0%, rgba(255, 255, 255, 0.06), transparent 70%);
+    opacity: 0.5;
   }
 /* 상단 라벨 스타일 추가 */
   .preview-badge-wrap {
@@ -795,22 +982,24 @@
   }
 
   .preview-badge {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    letter-spacing: 2px;
-    color: #ff4d8d;
-    border: 1px solid rgba(255, 77, 141, 0.4);
-    padding: 2px 10px;
+    letter-spacing: 3px;
+    color: rgba(253, 246, 228, 0.92);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    padding: 4px 12px;
     border-radius: 99px;
     text-transform: uppercase;
+    background: linear-gradient(135deg, rgba(255, 92, 152, 0.12), rgba(212, 175, 55, 0.08));
+    box-shadow: 0 0 20px rgba(255, 92, 152, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .preview-main-title {
-    font-size: 14px;
-    color: var(--gold-bright);
-    font-weight: 400;
-    letter-spacing: 1px;
-    opacity: 0.9;
+    font-size: 13px;
+    color: rgba(232, 213, 168, 0.88);
+    font-weight: 500;
+    letter-spacing: 2px;
+    opacity: 0.95;
   }
   /* 1. 오행 섹션 (EJS 데이터 바인딩) */
   .element-section {
@@ -889,8 +1078,8 @@
 
 <div class="saju-summary-tool">
   <div class="preview-badge-wrap">
-    <span class="preview-badge">Preview</span>
-    <span class="preview-main-title">사주 명식 미리보기</span>
+    <span class="preview-badge">Premium</span>
+    <span class="preview-main-title">명식 카드 · 오행 균형</span>
   </div>
   <div class="element-section">
     

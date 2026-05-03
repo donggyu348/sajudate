@@ -1928,7 +1928,7 @@ while (retryCount <= 2 && !parsed) {
   try {
     const jsonHint =
       isRomanticProduct
-        ? "\n[중요: JSON 한 개만 출력. sections[].content HTML은 속성에 작은따옴표만(class='callout'): 큰따옴표\"는 문자열 깨짐. 각 풀이 길이·3층 전개·블록 3종 이상, 허용 class만]"
+        ? "\n[중요: JSON 한 개만 출력. 속성 따옴표는 작은따옴표(class='…')만, ASCII 큰따옴표 금지. 각 풀이=1:1 코치 디렉션: 번호 과제·복붙 대사 quote·금지 진부표현 회피. 분량·블록 조건 유지]"
         : "\n[중요: 반드시 JSON 형식으로만 답변하세요.]\n[절대 금지: {묘사 전문}, {사주 특징}, {연결 문구}, {키워드} 같은 플레이스홀더를 그대로 출력하지 마세요. 반드시 사전에서 선택한 실제 내용으로 대체해야 합니다.]";
     /** ROMANTIC 챕터는 HTML 포함으로 출력이 김 → 잘리면 불완전 JSON으로 파싱 실패 */
     const romanticMaxTokens =
