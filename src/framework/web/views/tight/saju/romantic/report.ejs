@@ -1072,6 +1072,48 @@
     padding-right: 22px;
   }
 
+  /** 3장·이후: 바깥·카드 패딩 겹침을 줄여 본문 가로폭 확보 */
+  .chapter-progress-wrap.rom-ch-tailhdr {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  .rom-ch-body {
+    box-sizing: border-box;
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+  }
+  .content-card.rom-ch-card {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  /** GPT가 깊은 챕터에서 종종 내는 세로폭 과다·가운데 협스트립 보정 */
+  .report-content.rom-ch-report-inner .callout .co-body,
+  .report-content.rom-ch-report-inner .callout {
+    max-width: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .report-content.rom-ch-report-inner .meter,
+  .report-content.rom-ch-report-inner .meters {
+    width: 100%;
+    box-sizing: border-box;
+    max-width: none;
+  }
+  .report-content.rom-ch-report-inner dd,
+  .report-content.rom-ch-report-inner dl {
+    max-width: none;
+  }
+  .report-content.rom-ch-report-inner .dd {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+  /** 모델이 본문에 인라인 max-width 넣었을 때 가로만 풀기 */
+  .report-content.rom-ch-report-inner div[style*="max-width"],
+  .report-content.rom-ch-report-inner div[style*="max-width:"] {
+    max-width: 100% !important;
+  }
+
   .chapter-badge {
     display: inline-block;
     font-family: "Nunito", sans-serif;
@@ -1690,14 +1732,16 @@
         const chapters = [...new Set(reportInfo.map(r => r.chapter))];
         const totalChapters = chapters.length;
         let currentChapter = '';
+        let activeChapterIdx = 0;
       %>
 
       <% reportInfo.forEach((item, index) => { %>
         <% if (item.chapter !== currentChapter) { %>
           <% currentChapter = item.chapter; %>
           <% const chapterIndex = chapters.indexOf(item.chapter); %>
+          <% activeChapterIdx = chapterIndex; %>
 
-          <div class="chapter-progress-wrap px-8">
+          <div class="chapter-progress-wrap <%= chapterIndex >= 2 ? 'rom-ch-tailhdr' : 'px-8' %>">
             <div class="chapter-dots">
               <% for (let i = 0; i < totalChapters; i++) { %>
                 <div class="dot <%= i === chapterIndex ? 'active' : '' %>"></div>
@@ -1708,10 +1752,10 @@
             <div class="chapter-line"></div>
           </div>
 
-          <div class="px-6 space-y-10">
+          <div class="<%= chapterIndex >= 2 ? 'rom-ch-body space-y-10' : 'px-6 space-y-10' %>">
         <% } %>
 
-       <div class="content-card">
+       <div class="content-card <%= activeChapterIdx >= 2 ? 'rom-ch-card' : '' %>">
 
   <% if (item.title.includes("이 사주에서 특히 힘든 상대 유형")) { %>
     <div class="w-full mb-6">
@@ -1743,7 +1787,7 @@
 <%
   let formattedContent = item.content;
 %>
-  <div class="report-content">
+  <div class="report-content <%= activeChapterIdx >= 2 ? 'rom-ch-report-inner' : '' %>">
     <% if (item.isHtml) { %>
       <%- formattedContent %>
     <% } else { %>
