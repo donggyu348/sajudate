@@ -264,11 +264,19 @@
     });
   };
 
-  // 한국 시간(KST) 기준 YYYY-MM-DD (오늘 기준 통일용)
+  // 한국 시간(KST) 기준 YYYY-MM-DD — en-CA는 환경에 따라 M/D/YYYY가 되어 API·DB와 어긋날 수 있음
   const toKstDateStr = (d) => {
     if (!d) return '';
-    const s = d.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
-    return s; // 'YYYY-MM-DD'
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(d);
+    const y = parts.find((p) => p.type === 'year')?.value;
+    const m = parts.find((p) => p.type === 'month')?.value;
+    const day = parts.find((p) => p.type === 'day')?.value;
+    return y && m && day ? `${y}-${m}-${day}` : '';
   };
 
   // 기능: 상품별 판매 수 조회 및 렌더링 (기간 선택 가능)

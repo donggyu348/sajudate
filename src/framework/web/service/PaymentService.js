@@ -17,6 +17,20 @@
   /** 동일 주문에 알리고(LMS)·번들 티켓 발송이 중복 실행되지 않도록 */
   const smsDeliveredForShopOrders = new Set();
 
+  /** KST 기준 YYYY-MM-DD. OS/런타임마다 en-CA가 M/D/YYYY로 나와 MySQL DATE 오류가 나는 경우를 막음. */
+  function formatYmdInKst(date = new Date()) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(date);
+    const y = parts.find((p) => p.type === "year")?.value;
+    const m = parts.find((p) => p.type === "month")?.value;
+    const d = parts.find((p) => p.type === "day")?.value;
+    if (!y || !m || !d) throw new Error("formatYmdInKst: failed to derive KST date parts");
+    return `${y}-${m}-${d}`;
+  }
 
   class PaymentService {
 
@@ -24,7 +38,7 @@
     * 공통
     * ========================================================= */
     async getDailySalesSummary(platform) {
-      const todayKst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+      const todayKst = formatYmdInKst();
       return Number(await PaymentTransactionRepository.getDailyApprovedAmount(platform, todayKst));
     }
 
