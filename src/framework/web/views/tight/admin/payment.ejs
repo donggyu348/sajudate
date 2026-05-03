@@ -205,12 +205,12 @@
       type: 'GET',
       dataType: 'json',
       success: function(res) {
-        const total = res.data.totalAmount;
-        $('#daily-sales').text(formatKrw(total));
+        const total = res?.data?.totalAmount;
+        $('#daily-sales').text(formatKrw(Number(total ?? 0)));
       },
       error: function(xhr, status, error) {
-        console.error('Error fetching daily sales:', error);
-        $('#daily-sales').text('에러');
+        console.error('Error fetching daily sales:', status, error, xhr?.status, xhr?.responseText);
+        $('#daily-sales').text('조회 오류');
       }
     });
   };
@@ -222,12 +222,12 @@
       type: 'GET',
       dataType: 'json',
       success: function(res) {
-        const total = res.data.totalAmount;
-        $('#monthly-sales').text(formatKrw(total));
+        const total = res?.data?.totalAmount;
+        $('#monthly-sales').text(formatKrw(Number(total ?? 0)));
       },
       error: function(xhr, status, error) {
-        console.error('Error fetching monthly sales:', error);
-        $('#monthly-sales').text('에러');
+        console.error('Error fetching monthly sales:', status, error, xhr?.status, xhr?.responseText);
+        $('#monthly-sales').text('조회 오류');
       }
     });
   };

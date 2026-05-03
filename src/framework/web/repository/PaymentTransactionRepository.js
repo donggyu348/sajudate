@@ -112,41 +112,30 @@ class PaymentTransactionRepository {
     return Array.isArray(rows) ? rows : [];
   }
 
-// src/framework/web/repository/PaymentTransactionRepository.js
-
-async getDailyApprovedAmount(platform, dateStr = null) {
-  if (dateStr) {
+  /**
+   * 특정 일자(YYYY-MM-DD) 승인 건 매출 합계. getDailySalesHistory와 동일한 ORM 패턴 사용.
+   * (raw sequelize.query는 환경/드라이버에 따라 결과 형태 차이가 나 일일 카드만 실패할 수 있음.)
+   */
+  async getDailyApprovedAmount(platform, dateStr = null) {
     const sequelize = PaymentTransaction.sequelize;
-    const rows = await sequelize.query(
-      `SELECT COALESCE(SUM(amount), 0) AS totalAmount
-       FROM PAYMENT_TRANSACTION
-       WHERE payment_status = 'APPROVED'
-         AND DATE(approval_date) = :dateStr
-         ${platform ? 'AND platform = :platform' : ''}`,
-      {
-        replacements: { dateStr, ...(platform && { platform }) },
-        type: sequelize.QueryTypes.SELECT
-      }
-    );
-    const result = Array.isArray(rows) ? rows[0] : rows;
-    return Number(result?.totalAmount || 0);
+    const where = {
+      paymentStatus: PaymentStatus.APPROVED,
+    };
+    if (platform) where.platform = platform;
+
+    if (dateStr) {
+      where[Op.and] = [literal(`DATE(approval_date) = ${sequelize.escape(dateStr)}`)];
+    } else {
+      where[Op.and] = [literal("DATE(approval_date) = CURDATE()")];
+    }
+
+    const result = await PaymentTransaction.findOne({
+      attributes: [[fn("SUM", col("amount")), "totalAmount"]],
+      where,
+      raw: true,
+    });
+    return Number(result?.totalAmount ?? 0);
   }
-
-  const where = {
-    paymentStatus: PaymentStatus.APPROVED,
-  };
-  if (platform) where.platform = platform;
-
-  const result = await PaymentTransaction.findOne({
-    attributes: [[fn('SUM', col('amount')), 'totalAmount']],
-    where: {
-      ...where,
-      [Op.and]: [literal("DATE(approval_date) = CURDATE()")]
-    },
-    raw: true
-  });
-  return Number(result?.totalAmount || 0);
-}
 
   /**
    * 한달 매출 조회 (현재 월 기준)
