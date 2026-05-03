@@ -2585,11 +2585,8 @@ function safeJsonParseLooser(input, tag = "UNKNOWN") {
   // 스마트쿼트 → ASCII
   core = core.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
 
-  // 값 문자열 내 개행/제어문자 정리(필요 최소치)
-  core = core.replace(/:(\s*)"([^"]*)"/g, (match, space, p1) => {
-    let v = p1.replace(/\r?\n/g, " ").replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
-    return `:${space}"${v}"`;
-  });
+  // 주의: ":(\s*)\"([^\"]*)\"" 형태로 값을 치환하면 JSON 안의 \"(속성 따옴표 이스케이프) 에서 조기 종료되어
+  // 리포트 HTML(content) 문자열 전체가 깨진다.
 
   try {
     return JSON.parse(core);
