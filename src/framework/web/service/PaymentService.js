@@ -359,7 +359,7 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
     const userName = userInfo.name || "고객";
 
     const reportLink = `${domain}/saju/report?shopOrderNo=${shopOrderNo}`;
-    const finalMsg = `[사주정감] ${userName}님, 요청하신 리포트가 생성되었습니다.\n\n▶ 리포트 확인하기: ${reportLink}${ticketAddMsg}`;
+    const finalMsg = `[기운소] ${userName}님, 요청하신 리포트가 생성되었습니다.\n\n▶ 리포트 확인하기: ${reportLink}${ticketAddMsg}`;
 
     try {
         const AligoModule = await import("../api/AligoClient.js");
