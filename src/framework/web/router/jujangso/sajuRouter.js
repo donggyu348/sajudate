@@ -5,6 +5,7 @@
   import { Platform } from "../../enums/Platform.js";
   import { sendReportLink } from "../../service/SmsService.js";
   import { GoodsType } from "../../enums/Goods.js";
+  import { isReportPayloadReady } from "../../utils/reportPayloadReady.js";
   import { PaymentStatus } from "../../enums/Payment.js";
 
   const router = express.Router();
@@ -190,40 +191,52 @@
     const shopOrderNo = req.body.shopOrderNo;
 
     ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo)
-      .then(async reportHistory => {
-        if (!reportHistory.reportInfo) {
-          res.status(200).json({
+      .then(async (reportHistory) => {
+        if (!reportHistory || !isReportPayloadReady(reportHistory.reportInfo)) {
+          return res.status(200).json({
             code: 200,
-            status: "PENDING", // 명시적 상태
+            status: "PENDING",
             message: "리포트 생성 중",
-            data: null
-          });
-        } else {
-
-          const paymentTransaction = await PaymentService.getPaymentTransaction(shopOrderNo);
-
-          const domain = Platform[paymentTransaction.platform].domain;
-
-          await sendReportLink(paymentTransaction.userTelNo, shopOrderNo, reportHistory.goodsType, domain);
-
-          res.status(200).json({
-            code: 200,
-            status: "DONE", // 완료 상태
-            message: "리포트 생성 완료",
-            data: reportHistory.reportInfo
+            data: null,
           });
         }
+
+        try {
+          const paymentTransaction =
+            await PaymentService.getPaymentTransaction(shopOrderNo);
+          const domain =
+            paymentTransaction &&
+            Platform[paymentTransaction.platform] &&
+            Platform[paymentTransaction.platform].domain;
+
+          if (paymentTransaction?.userTelNo && domain) {
+            await sendReportLink(
+              paymentTransaction.userTelNo,
+              shopOrderNo,
+              reportHistory.goodsType,
+              domain
+            );
+          }
+        } catch (smsErr) {
+          console.error("[jujangso report/check] SMS 오류:", smsErr.message);
+        }
+
+        return res.status(200).json({
+          code: 200,
+          status: "DONE",
+          message: "리포트 생성 완료",
+          data: reportHistory.reportInfo,
+        });
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Error fetching reportHistory:", err);
         res.status(500).json({
           code: 500,
           status: "ERROR",
           message: "서버 오류가 발생했습니다.",
-          data: null
+          data: null,
         });
       });
-
   });
 
   router.post("/report/:pageNum", (req, res) => {

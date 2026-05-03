@@ -29,21 +29,26 @@
     <script>
         const shopOrderNo = "<%= shopOrderNo %>";
         
-        // 3초마다 서버에 "다 됐어?"라고 물어보는 폴링(Polling) 로직
-const checkInterval = setInterval(async () => {
-    try {
-        // 🚀 티켓 전용 API로 호출
-        const res = await fetch(`/saju/api/check-ticket-report?shopOrderNo=${shopOrderNo}`);
-        const data = await res.json();
+        const pollMs = 3000;
+        const pollMax = 600;
+        let ticks = 0;
 
-        if (data.status === "DONE") {
-            clearInterval(checkInterval);
-            location.href = `/saju/report?shopOrderNo=${shopOrderNo}`;
+        async function tick() {
+            if (ticks++ >= pollMax) return;
+            try {
+                const res = await fetch(`/saju/api/check-ticket-report?shopOrderNo=${encodeURIComponent(shopOrderNo)}`);
+                const data = await res.json();
+                if (data.status === "DONE") {
+                    clearInterval(checkInterval);
+                    location.href = `/saju/report?shopOrderNo=${encodeURIComponent(shopOrderNo)}`;
+                }
+            } catch (err) {
+                console.error("체크 중 에러:", err);
+            }
         }
-    } catch (err) {
-        console.error("체크 중 에러:", err);
-    }
-}, 3000);
+
+        tick();
+        const checkInterval = setInterval(tick, pollMs);
     </script>
 </body>
 </html>

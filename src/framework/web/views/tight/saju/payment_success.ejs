@@ -76,24 +76,37 @@ $(document).ready(function() {
     success: function () {
       console.log("Report generation started");
 
-      const intervalId = setInterval(() => {
+      let pollTicks = 0;
+      const pollMax = 560;
+      const pollMs = 3500;
+      let pollTimer = null;
+
+      function pollReportDone() {
+        if (pollTicks >= pollMax) {
+          if (pollTimer) clearInterval(pollTimer);
+          console.warn("[payment_success] 폴링 상한 도달 — 수동 새로고침 안내 필요할 수 있음");
+          return;
+        }
+        pollTicks++;
+
         $.ajax({
           url: "/saju/report/check",
           method: "POST",
           data: { shopOrderNo },
-
           success: function (res) {
-            if (res.status === "DONE") {
-              clearInterval(intervalId);
-              window.location.href = "/saju/report?shopOrderNo=" + shopOrderNo;
+            if (res && res.status === "DONE") {
+              if (pollTimer) clearInterval(pollTimer);
+              window.location.href = "/saju/report?shopOrderNo=" + encodeURIComponent(shopOrderNo);
             }
           },
-
           error: function (err) {
             console.error("Failed to check report status", err);
-          }
+          },
         });
-      }, 10000);
+      }
+
+      pollReportDone();
+      pollTimer = setInterval(pollReportDone, pollMs);
     },
 
     error: function (err) {

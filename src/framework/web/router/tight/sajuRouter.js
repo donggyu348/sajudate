@@ -11,6 +11,7 @@ import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
+import { isReportPayloadReady } from "../../utils/reportPayloadReady.js";
 import Coupons from "../../orm/models/coupons.js";
 const router = express.Router();
 const CouponsModel = Coupons;
@@ -272,9 +273,12 @@ router.get("/report", async (req, res) => {
     console.log(`📌 [DEBUG] 최종 경로 결정: ${reportPath} (입력값: ${gType})`);
 
     const saju = getFourPillars(reportHistory.userInfo);
+    const reportInfoRaw = reportHistory.reportInfo;
+    const needsReportPoll =
+      Boolean(shopOrderNo) && !isReportPayloadReady(reportInfoRaw);
 
     return res.render(reportPath, {
-      reportInfo: reportHistory.reportInfo,
+      reportInfo: reportInfoRaw,
       userInfo: reportHistory.userInfo,
       todayDate: {
         year: new Date().getFullYear(),
@@ -283,7 +287,9 @@ router.get("/report", async (req, res) => {
       },
       sample: reportHistory.sampleInfo,
       sampleInfo: reportHistory.sampleInfo,
-      saju 
+      saju,
+      shopOrderNo: shopOrderNo || "",
+      needsReportPoll,
     });
   } catch (error) {
     console.error("보고서 렌더링 에러:", error);
@@ -346,8 +352,7 @@ router.get("/api/check-ticket-report", async (req, res) => {
     const { shopOrderNo } = req.query;
     try {
         const report = await reportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
-        // ticket으로 생성된 경우 reportInfo가 채워졌는지만 확인
-        if (report && report.reportInfo) {
+        if (report && isReportPayloadReady(report.reportInfo)) {
             return res.json({ status: "DONE" });
         }
         return res.json({ status: "WAITING" });
@@ -518,45 +523,56 @@ router.post("/report/check", (req, res) => {
   const shopOrderNo = req.body.shopOrderNo;
 
   ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo)
-    .then(async reportHistory => {
-      if (!reportHistory.reportInfo) {
-
-        res.status(200).json({
+    .then(async (reportHistory) => {
+      if (!reportHistory || !isReportPayloadReady(reportHistory.reportInfo)) {
+        return res.status(200).json({
           code: 200,
-          status: "PENDING", // 명시적 상태
+          status: "PENDING",
           message: "리포트 생성 중",
-          data: null
-        });
-      } else {
-
-        const paymentTransaction = await PaymentService.getPaymentTransaction(shopOrderNo);
-
-        let domain = "http://sajudate.store";
-        if (paymentTransaction.platform === Platform.JUJANGSO.code) {
-          domain = "https://saju-maeul.kr";
-        }
-
-        console.log("5번 goodstype", reportHistory.goodsType);
-        await sendReportLink(paymentTransaction.userTelNo, shopOrderNo, reportHistory.goodsType, domain);
-
-        res.status(200).json({
-          code: 200,
-          status: "DONE", // 완료 상태
-          message: "리포트 생성 완료",
-          data: reportHistory.reportInfo
+          data: null,
         });
       }
+
+      try {
+        const paymentTransaction = await PaymentService.getPaymentTransaction(shopOrderNo);
+        if (paymentTransaction?.userTelNo) {
+          let domain = "http://sajudate.store";
+          if (paymentTransaction.platform === Platform.JUJANGSO.code) {
+            domain = "https://saju-maeul.kr";
+          }
+          console.log("5번 goodstype", reportHistory.goodsType);
+          await sendReportLink(
+            paymentTransaction.userTelNo,
+            shopOrderNo,
+            reportHistory.goodsType,
+            domain
+          );
+        } else {
+          console.warn(`[report/check] 수신번호 없음 — SMS 생략, DONE 응답: ${shopOrderNo}`);
+        }
+      } catch (smsErr) {
+        console.error(
+          "[report/check] SMS 실패했지만 리포트는 준비됨 (클라이언트는 DONE 처리):",
+          smsErr.message
+        );
+      }
+
+      return res.status(200).json({
+        code: 200,
+        status: "DONE",
+        message: "리포트 생성 완료",
+        data: reportHistory.reportInfo,
+      });
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Error fetching reportHistory:", err);
       res.status(500).json({
         code: 500,
         status: "ERROR",
         message: "서버 오류가 발생했습니다.",
-        data: null
+        data: null,
       });
     });
-
 });
 router.post("/review/check", async (req, res) => {
   const { userTelNo, userPw } = req.body;
