@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Outfit:wght@500;600;700&display=swap');
+
     :root{
       --tight-bg: #000000;
       --tight-card: #ffffff;
@@ -323,6 +325,381 @@
     0 14px 32px rgba(0,0,0,.92);
 }
 
+/* 본능 비주얼 대시보드 (리설트 · 천간·지지 하단용) */
+.result-instinct-shell {
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(8,10,22,0.92);
+  border: 1px solid rgba(167,139,250,0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 16px 40px rgba(0,0,0,0.35);
+}
+.instinct-wrap,
+.instinct-wrap--result {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.instinct-wrap--result { margin: 0; gap: 12px; }
+
+.instinct-ribbon {
+  text-align: center;
+  font-family: "Outfit", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.38em;
+  color: rgba(210, 220, 255, 0.55);
+  text-transform: uppercase;
+}
+.instinct-note {
+  font-size: 10px;
+  line-height: 1.55;
+  color: rgba(200, 210, 230, 0.45);
+  text-align: center;
+  padding: 0 6px;
+}
+.instinct-panel {
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.09);
+  background: rgba(10, 12, 26, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 16px 14px;
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.instinct-h {
+  font-family: "Outfit", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(230, 235, 255, 0.78);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.instinct-h::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(167,139,250,0.35), transparent);
+}
+.persona-card { text-align: center; padding: 6px 4px 2px; }
+.persona-nick {
+  font-family: "Noto Serif KR", serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255,254,252,0.98);
+  line-height: 1.35;
+  text-shadow: 0 0 28px rgba(244,114,182,0.22);
+  margin-bottom: 8px;
+}
+.persona-line {
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(230, 236, 255, 0.82);
+  max-width: 34em;
+  margin: 0 auto;
+}
+.beast-medal-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.beast-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(6, 8, 20, 0.65);
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(245,248,255,0.9);
+}
+.beast-pill span.emoji { font-size: 1.15em; }
+.metal-badge {
+  font-family: "Outfit", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,230,210,0.25), transparent),
+    linear-gradient(135deg, rgba(212,175,106,0.35), rgba(80,42,115,0.45));
+  border: 1px solid rgba(255,220,190,0.28);
+  color: rgba(255, 250, 240, 0.94);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 6px 18px rgba(0,0,0,0.35);
+  text-transform: uppercase;
+}
+.metal-badge small {
+  display: block;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  opacity: 0.82;
+  margin-top: 2px;
+  text-transform: uppercase;
+  color: rgba(230,235,245,0.75);
+}
+.dash-row-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+@media (min-width: 360px) {
+  .dash-row-split { grid-template-columns: 1.15fr 0.85fr; }
+}
+.radar-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.radar-svg-wrap {
+  width: min(260px, 88vw);
+  filter: drop-shadow(0 0 24px rgba(167,139,250,0.25));
+}
+.radar-svg-wrap svg { width: 100%; height: auto; display: block; }
+.radar-fill {
+  fill: rgba(167,139,250,0.35);
+  stroke: rgba(244,114,182,0.85);
+  stroke-width: 1.5;
+}
+.radar-outline {
+  fill: rgba(255,255,255,0.03);
+  stroke: rgba(255,255,255,0.12);
+  stroke-width: 1;
+}
+.radar-grid2 {
+  fill: none;
+  stroke: rgba(255,255,255,0.06);
+  stroke-width: 0.85;
+}
+.radar-legend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+  width: 100%;
+  margin-top: 4px;
+}
+.radar-legend span {
+  font-size: 11px;
+  color: rgba(215,225,245,0.78);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.radar-legend b { color: rgba(255,251,246,0.92); font-weight: 650; }
+.heat-meter-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 4px;
+}
+.heat-meter {
+  width: 34px;
+  height: 150px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.45);
+}
+.heat-meter-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 0 0 99px 99px;
+  background: linear-gradient(180deg,
+    rgba(251,146,232,0.95) 0%,
+    rgba(244,63,94,0.92) 28%,
+    rgba(251,146,60,0.88) 55%,
+    rgba(250,230,110,0.75) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.35),
+    0 0 26px rgba(244,114,182,0.45);
+  transition: height 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.heat-val {
+  font-family: "Outfit", sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  background: linear-gradient(120deg, #fecdd3, #fda4af, #fbcfe8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+}
+.heat-cap {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(225,235,255,0.78);
+  text-align: center;
+  max-width: 16em;
+}
+.bio-chart {
+  position: relative;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(244,114,182,0.12), transparent 55%),
+    rgba(4, 6, 16, 0.45);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 14px 12px 12px;
+  overflow: hidden;
+}
+.bio-chart svg.sil-svg {
+  width: 100%;
+  max-height: 220px;
+  display: block;
+  opacity: 0.45;
+  margin: 0 auto;
+}
+.sil-hotspots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hot-blob {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  margin-left: -24px;
+  margin-top: -24px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255, 80, 80, 0.55) 0%,
+    rgba(255, 60, 100, 0.22) 45%,
+    transparent 65%);
+  box-shadow:
+    0 0 18px rgba(255,70,90,0.45),
+    0 0 36px rgba(255,160,140,0.15);
+  mix-blend-mode: screen;
+  animation: hotpulse 3.6s ease-in-out infinite alternate;
+}
+@keyframes hotpulse {
+  from { opacity: 0.7; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.12); }
+}
+.hot-label {
+  position: absolute;
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255, 220, 220, 0.92);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.85);
+  margin-left: 8px;
+  margin-top: -6px;
+  letter-spacing: 0.03em;
+}
+.stim-gauge {
+  margin-top: 10px;
+  padding: 10px 11px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.08);
+  font-size: 12px;
+  line-height: 1.58;
+  color: rgba(230, 236, 255, 0.88);
+  text-align: center;
+}
+.stim-gauge strong { color: #fca5b5; font-weight: 700; }
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  justify-content: center;
+  padding: 6px 2px;
+}
+.tag-cloud .tc {
+  font-family: "Outfit", sans-serif;
+  color: rgba(230,238,255,0.8);
+  font-weight: 600;
+  opacity: 0.9;
+  line-height: 1.35;
+  text-shadow: 0 0 16px rgba(167,139,250,0.15);
+}
+.tc.s1 { font-size: 10px; opacity: 0.65; }
+.tc.s2 { font-size: 11px; opacity: 0.76; }
+.tc.s3 { font-size: 12px; opacity: 0.88; }
+.tc.s4 { font-size: 13px; color: #fecdd3; }
+.tc.s5 { font-size: 14px; color: #e9d5ff; opacity: 0.95; }
+.tc.s6 { font-size: 15px; color: #a5f3fc; opacity: 0.98; font-weight: 700; }
+.mood-chip-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.mood-chip {
+  border-radius: 14px;
+  padding: 10px 11px;
+  border: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+  overflow: hidden;
+}
+.mood-chip::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  opacity: 0.55;
+  background: radial-gradient(circle at 20% -10%, rgba(255,255,255,0.45), transparent 55%);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+.mood-chip .role {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: rgba(255,252,246,0.55);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.mood-chip .name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.mood-chip .dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.25);
+  position: relative;
+  z-index: 1;
+}
+.mood-chip .mn {
+  font-size: 13px;
+  font-weight: 750;
+  color: rgba(255,253,251,0.94);
+  position: relative;
+  z-index: 1;
+  font-family: "Noto Serif KR", serif;
+}
+.mood-chip .line {
+  font-size: 10px;
+  line-height: 1.45;
+  color: rgba(225,235,255,0.72);
+  position: relative;
+  z-index: 1;
+}
+
 .saju-floating-btn::after {
   content: "";
   display: block;
@@ -331,6 +708,248 @@
 </style>
 
 <%- include('./../../common/header') %>
+
+<%
+  const _vzSaju = typeof saju !== "undefined" && saju ? saju : {};
+  function hashSeed(str) {
+    let h = 2166136261;
+    const s = String(str || "");
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return Math.abs(h) >>> 0;
+  }
+  const vizSeed = hashSeed(
+    String((userInfo && (userInfo.birthDate || userInfo.birthdate)) || "") +
+      String((userInfo && userInfo.name) || "") +
+      String((_vzSaju.day && _vzSaju.day.gan) || "") +
+      String((_vzSaju.day && _vzSaju.day.ji) || "")
+  );
+  function pickViz(arr, salt) {
+    return arr[(vizSeed + (salt >>> 0)) % arr.length];
+  }
+  function clampViz(n, a, b) {
+    return Math.max(a, Math.min(b, Math.round(n)));
+  }
+
+  const fe = _vzSaju.fiveElements || { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };
+  const tg = _vzSaju.tenGod || {};
+  const godList = [tg.year, tg.month, tg.day, tg.hour].filter(Boolean).map(String);
+  const has관 = godList.filter((gx) => gx === "편관" || gx === "정관").length;
+  const has식상 = godList.filter((gx) => gx === "식신" || gx === "상관").length;
+  const has재 = godList.filter((gx) => gx === "편재" || gx === "정재").length;
+  const has비겁 = godList.filter((gx) => gx === "비견" || gx === "겁재").length;
+  const has인 = godList.filter((gx) => gx === "편인" || gx === "정인").length;
+
+  const maxFE = Math.max(fe.목, fe.화, fe.토, fe.금, fe.수);
+  const minFE = Math.min(fe.목, fe.화, fe.토, fe.금, fe.수);
+  const spread = maxFE - minFE;
+
+  const vitality = clampViz(42 + fe.화 * 9 + has식상 * 11 + (vizSeed % 7), 36, 97);
+  const finesse = clampViz(40 + fe.수 * 8 + has인 * 9 + ((vizSeed >> 3) % 9), 36, 97);
+  const conquer = clampViz(38 + fe.금 * 7 + has관 * 12 + ((vizSeed >> 5) % 8), 36, 97);
+  const liberation = clampViz(44 + fe.목 * 8 + has식상 * 6 + ((vizSeed >> 7) % 6), 36, 97);
+  const edge = clampViz(34 + spread * 9 + has비겁 * 5 + has재 * 4 + ((vizSeed >> 9) % 10), 34, 95);
+
+  const radarAxes = [
+    { label: "정력", val: vitality },
+    { label: "기교", val: finesse },
+    { label: "정복욕", val: conquer },
+    { label: "해방감", val: liberation },
+    { label: "변태성", val: edge },
+  ];
+
+  const cxR = 100, cyR = 100, maxR = 74;
+  const nAx = radarAxes.length;
+  const radarPoly = radarAxes
+    .map((d, i) => {
+      const ang = (-90 + (360 / nAx) * i) * (Math.PI / 180);
+      const rr = maxR * (d.val / 100);
+      return `${(cxR + rr * Math.cos(ang)).toFixed(2)},${(cyR + rr * Math.sin(ang)).toFixed(2)}`;
+    })
+    .join(" ");
+  const radarGrid = radarAxes
+    .map((_, i) => {
+      const ang = (-90 + (360 / nAx) * i) * (Math.PI / 180);
+      return `${(cxR + maxR * Math.cos(ang)).toFixed(2)},${(cyR + maxR * Math.sin(ang)).toFixed(2)}`;
+    })
+    .join(" ");
+  const lrPad = maxR + 22;
+  const radarLabels = radarAxes.map((d, i) => {
+    const ang = (-90 + (360 / nAx) * i) * (Math.PI / 180);
+    return {
+      label: d.label,
+      tx: cxR + lrPad * Math.cos(ang),
+      ty: cyR + lrPad * Math.sin(ang),
+    };
+  });
+  function pentPoints(scale) {
+    return radarAxes
+      .map((_, i) => {
+        const ang = (-90 + (360 / nAx) * i) * (Math.PI / 180);
+        const r = maxR * scale;
+        return `${(cxR + r * Math.cos(ang)).toFixed(2)},${(cyR + r * Math.sin(ang)).toFixed(2)}`;
+      })
+      .join(" ");
+  }
+  const radarGrid50 = pentPoints(0.45);
+  const radarGrid73 = pentPoints(0.72);
+
+  const instinctTemp = clampViz(
+    (vitality + liberation + finesse + conquer * 0.6) / 3.6 + (vizSeed % 6),
+    55,
+    99
+  );
+  let tempCaption = "달궈지기 시작한 온도";
+  if (instinctTemp >= 94) tempCaption = "폭발 직전 화산";
+  else if (instinctTemp >= 84) tempCaption = "이미 깊게 달궈진 상태";
+  else if (instinctTemp >= 71) tempCaption = "금방 끓어오를 타이밍";
+
+  const hotZonesCatalog = [
+    { id: "neck", label: "목덜미", pctL: 56, pctT: 16 },
+    { id: "wrist", label: "손목 라인", pctL: 18, pctT: 42 },
+    { id: "spine", label: "등·척추 라인", pctL: 46, pctT: 36 },
+    { id: "lip", label: "입술·턱 라인", pctL: 50, pctT: 10 },
+    { id: "ear", label: "귓바퀴", pctL: 36, pctT: 12 },
+    { id: "hip", label: "골반·허리", pctL: 48, pctT: 54 },
+    { id: "calf", label: "종아리 라인", pctL: 44, pctT: 74 },
+    { id: "palm", label: "손바닥·손등", pctL: 22, pctT: 48 },
+  ];
+  const zs = [];
+  const zSeen = new Set();
+  for (let z = 0; z < 5; z++) {
+    const hz = hotZonesCatalog[(vizSeed + z * 13) % hotZonesCatalog.length];
+    if (!zSeen.has(hz.id)) {
+      zSeen.add(hz.id);
+      zs.push(hz);
+    }
+    if (zs.length >= 3) break;
+  }
+
+  const stimLabels = ["시각적 신호", "청각·속삭임", "스치는 촉각", "잔향·후각", "시선 거리"];
+  const stimPrimary = stimLabels[vizSeed % stimLabels.length];
+  const stimPct = 118 + ((vizSeed >> 4) % 45);
+
+  const beasts = [
+    { icon: "🐺", t: "굶주린 늑대" },
+    { icon: "🐈‍⬛", t: "영악한 고양이" },
+    { icon: "🐎", t: "힘 넘치는 야생마" },
+    { icon: "🦊", t: "잔망한 여우" },
+    { icon: "🐯", t: "은밀한 범" },
+    { icon: "🐍", t: "천천히 감는 뱀" },
+    { icon: "🦅", t: "날카로운 매" },
+    { icon: "🦌", t: "경계하는 숲 속 사슴" },
+  ];
+  const beastPick = beasts[vizSeed % beasts.length];
+
+  const badgeDefs = [
+    { k: "Dominant", ko: "지배자" },
+    { k: "Addicted", ko: "탐닉자" },
+    { k: "Seducer", ko: "유혹자" },
+    { k: "Switch", ko: "스위치형" },
+    { k: "Edge", ko: "에지" },
+    { k: "Romantic", ko: "무드 장인" },
+  ];
+  const badgePick = [];
+  const addBadge = (b) => {
+    if (!badgePick.find((x) => x.k === b.k)) badgePick.push(b);
+  };
+  if (conquer >= finesse) addBadge(badgeDefs[0]);
+  else addBadge(badgeDefs[2]);
+  if (edge >= 72) addBadge(badgeDefs[4]);
+  else addBadge(badgeDefs[5]);
+  if (liberation >= vitality) addBadge(badgeDefs[3]);
+  else addBadge(badgeDefs[1]);
+  let saltB = 0;
+  while (badgePick.length < 3)
+    addBadge(badgeDefs[(vizSeed + saltB++) % badgeDefs.length]);
+
+  const nickStem = pickViz(
+    [
+      "밤의 지배자",
+      "은밀한 도화",
+      "침묵 속 불꽃",
+      "경계 너머",
+      "심장 박동 수집가",
+      "속삭임 전문가",
+      "결의 온도계",
+      "서리 장미",
+      "달빛 포식자",
+    ],
+    101
+  );
+  const displayName =
+    ((userInfo && (userInfo.nickname || userInfo.name)) || "당신").toString().trim();
+  const personaNick = nickStem + " · " + displayName.slice(0, 8);
+
+  const oneLiner = pickViz(
+    [
+      "겉은 차갑게 식어 보여도, 닿는 순간 가장 먼저 뜨거워지는 결을 가졌어요.",
+      "말은 줄여도 몸의 언어는 솔직해서, 가까워질수록 밀도가 급상승하는 타입이에요.",
+      "통제하려 들수록 오히려 더 깊이 스며드는, 역설적인 끌림을 품고 있어요.",
+      "스위치가 켜지면 끊기 어려운, 끈적한 여운을 남기는 편이에요.",
+      "처음은 느린데 한 번 깊어지면, 급격히 무게가 실리는 패턴이에요.",
+      "예고 없는 온도 변화가 무기가 되어, 상대 방어를 허무는 타입이에요.",
+    ],
+    207
+  );
+
+  const tagPool = [
+    "#집착",
+    "#낮이밤이",
+    "#속궁합백점",
+    "#거친호흡",
+    "#결박무드",
+    "#스위치ON",
+    "#은밀한시선",
+    "#침대위리더",
+    "#도파민",
+    "#경계너머",
+    "#무드장인",
+    "#밤의온도",
+    "#손끝신호",
+    "#숨결리듬",
+    "#몸의거짓말",
+    "#말없는유혹",
+    "#짐승합",
+    "#밀도중독",
+    "#핫존예민",
+    "#탐색욕구",
+    "#달궈짐",
+  ];
+  const tagCloud = [];
+  const tSeen = new Set();
+  for (let t = 0; t < 14; t++) {
+    const w = tagPool[(vizSeed + t * 31) % tagPool.length];
+    if (!tSeen.has(w)) {
+      tSeen.add(w);
+      tagCloud.push(w);
+    }
+  }
+
+  const elemMoods = {
+    목: { name: "원초의 그린", hex: "#5ee9a8", line: "새싹처럼 솟는 확장·욕망" },
+    화: { name: "치명적 레드", hex: "#fb7185", line: "한 번 붙으면 번지는 열기" },
+    토: { name: "중압의 샌드", hex: "#e8d4b8", line: "느리게 익는 무게·집착" },
+    금: { name: "날선 실버", hex: "#c8ced9", line: "정돈된 날카·깊이" },
+    수: { name: "은밀 딥블루", hex: "#67d7ff", line: "스며드는 감각·번짐" },
+  };
+  const feArr = [
+    { k: "목", v: fe.목 },
+    { k: "화", v: fe.화 },
+    { k: "토", v: fe.토 },
+    { k: "금", v: fe.금 },
+    { k: "수", v: fe.수 },
+  ];
+  const feSorted = [...feArr].sort((a, b) => a.v - b.v);
+  const lackKey = feSorted[0].k;
+  const excessKey = feSorted[feSorted.length - 1].k;
+  const moodChips = [
+    { role: "넘침", ...elemMoods[excessKey], key: excessKey },
+    { role: "부족", ...elemMoods[lackKey], key: lackKey },
+  ];
+%>
 
 <body>
 
@@ -462,6 +1081,133 @@
             <div class="mt-1 text-center text-xs font-semibold" style="color: var(--tight-sub);">지지</div>
           </div>
         </div>
+      </div>
+
+      <div class="result-instinct-shell mt-3 px-3 py-4">
+          <div class="instinct-wrap instinct-wrap--result">
+            <div class="instinct-ribbon">Instinct Moodboard</div>
+            <div class="instinct-note">
+              아래 지표와 그래픽은 <b>의학·실측이 아닌</b> 사주 명식 비율로 만든 장식용 요약입니다. 상세 리포트에서 본격 해석을 이어가요.
+            </div>
+
+            <section class="instinct-panel persona-card">
+              <div class="instinct-h">본능 명함</div>
+              <div class="persona-nick"><%= personaNick %></div>
+              <div class="persona-line"><%= oneLiner %></div>
+              <div class="beast-medal-row">
+                <div class="beast-pill">
+                  <span class="emoji"><%= beastPick.icon %></span>
+                  <%= beastPick.t %>
+                </div>
+                <% badgePick.forEach((bg) => { %>
+                  <div class="metal-badge">
+                    <%= bg.k %>
+                    <small><%= bg.ko %></small>
+                  </div>
+                <% }) %>
+              </div>
+            </section>
+
+            <div class="instinct-panel">
+              <div class="dash-row-split">
+                <div class="radar-frame">
+                  <div class="instinct-h">쾌락 레이더</div>
+                  <div class="radar-svg-wrap">
+                    <svg viewBox="-8 -8 216 216" role="img" aria-label="쾌락 레이더 차트">
+                      <polygon class="radar-grid2" points="<%= radarGrid50 %>" />
+                      <polygon class="radar-grid2" points="<%= radarGrid73 %>" />
+                      <polygon class="radar-outline" points="<%= radarGrid %>" />
+                      <polygon class="radar-fill" points="<%= radarPoly %>" />
+                      <% radarLabels.forEach((L) => { %>
+                        <text
+                          x="<%= L.tx.toFixed(1) %>"
+                          y="<%= L.ty.toFixed(1) %>"
+                          text-anchor="middle"
+                          dominant-baseline="middle"
+                          fill="rgba(230,236,255,0.78)"
+                          style="font-family: Outfit, sans-serif; font-size: 8.5px; font-weight: 700;"
+                        ><%= L.label %></text>
+                      <% }) %>
+                    </svg>
+                  </div>
+                  <div class="radar-legend">
+                    <% radarAxes.forEach((a) => { %>
+                      <span><b><%= a.label %></b><span><%= String(a.val) + "%" %></span></span>
+                    <% }) %>
+                  </div>
+                </div>
+                <div class="heat-meter-block">
+                  <div class="instinct-h">본능 온도계</div>
+                  <span class="heat-val"><%= instinctTemp %>°</span>
+                  <div class="heat-meter" aria-hidden="true">
+                    <div class="heat-meter-fill" style="height: <%= String(instinctTemp) + '%' %>;"></div>
+                  </div>
+                  <div class="heat-cap"><%= tempCaption %> · 오늘의 온도 느낌</div>
+                </div>
+              </div>
+            </div>
+
+            <section class="instinct-panel">
+              <div class="bio-chart">
+                <div class="instinct-h">성감대 지도 · 에로틱 바이오리듬</div>
+                <svg class="sil-svg" viewBox="0 0 220 340" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="silGradResult" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="rgba(255,252,251,0.14)" />
+                      <stop offset="100%" stop-color="rgba(200,215,245,0.02)" />
+                    </linearGradient>
+                  </defs>
+                  <ellipse cx="110" cy="42" rx="34" ry="42" fill="url(#silGradResult)" />
+                  <path
+                    fill="rgba(248,248,252,0.07)"
+                    d="M110 94c42 14 74 116 92 246H18c18-136 54-238 92-246z"
+                  />
+                  <path
+                    fill="none"
+                    stroke="rgba(255,255,255,0.12)"
+                    stroke-width="1.2"
+                    d="M74 248c18 28 52 52 112 62M68 298c52 18 88 26 154 34"
+                  />
+                </svg>
+                <div class="sil-hotspots">
+                  <% zs.forEach((z) => { %>
+                    <div class="hot-blob" style="left: <%= z.pctL %>%; top: <%= z.pctT %>%;"></div>
+                    <span class="hot-label" style="left: <%= z.pctL %>%; top: <%= z.pctT %>%;"><%= z.label %></span>
+                  <% }) %>
+                </div>
+              </div>
+              <div class="stim-gauge">
+                오늘은 평소보다 <strong><%= stimPrimary %></strong> 자극에 <strong><%= String(stimPct) + "%" %></strong> 더 민감하게 반응하는 흐름으로 잡았어요. (메타포)
+              </div>
+            </section>
+
+            <section class="instinct-panel">
+              <div class="instinct-h">19금 해시 클라우드</div>
+              <div class="tag-cloud">
+                <% tagCloud.forEach((tw, ti) => {
+                  const scls = ["s1", "s2", "s3", "s4", "s5", "s6"][(vizSeed + ti * 17) % 6];
+                %>
+                  <span class="tc <%= scls %>"><%= /^#/.test(tw) ? tw : '#' + tw %></span>
+                <% }) %>
+              </div>
+            </section>
+
+            <section class="instinct-panel">
+              <div class="instinct-h">오행 컬러 무드</div>
+              <div class="mood-chip-row">
+                <% moodChips.forEach((mc) => { %>
+                  <div class="mood-chip" style="background: radial-gradient(circle at 80% -20%, <%= mc.hex %>33, transparent 65%), rgba(6,10,26,0.55); border-color: <%= mc.hex %>44;">
+                    <div class="role"><%= mc.role %></div>
+                    <div class="name-row">
+                      <span class="dot" style="background: linear-gradient(145deg, <%= mc.hex %>, rgba(255,255,255,0.08));"></span>
+                      <span class="mn"><%= mc.key %> · <%= mc.name %></span>
+                    </div>
+                    <div class="line"><%= mc.line %></div>
+                  </div>
+                <% }) %>
+              </div>
+            </section>
+          </div>
       </div>
     </div>
 
