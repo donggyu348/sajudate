@@ -27,7 +27,7 @@ export default {
     product: {
         username: 'dbmasteruser',
         password: ':9p}jU,,Qs6PGaeur)nuVX#h}+Y{7!Al',
-        database: 'new_site_db',
+        database: 'dbmaster1',
         host: 'ls-bf6a633560df15b5ac396f6c91f990459393b811.ch2egicsosuj.ap-northeast-2.rds.amazonaws.com',
         port: 3306,
         dialect: "mysql",

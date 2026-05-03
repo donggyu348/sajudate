@@ -59,9 +59,18 @@
                                 <p class="font-bold text-gray-900"><%= goodsInfo.price.toLocaleString() %>원</p>
                             </div>
 
-                            <% if (typeof bundleInfo !== 'undefined' && bundleInfo) { 
-                                let targetTitle = (goodsInfo.code === 'CLASSIC') ? '연애사주' : '신년사주';
-                                let bundleBenefit = (goodsInfo.code === 'CLASSIC') ? '연애사주 무료 쿠폰' : '신년사주 무료 쿠폰';
+                            <% if (typeof bundleInfo !== 'undefined' && bundleInfo) {
+                                const partnerCode = bundleInfo.giveTicket;
+                                const partnerGoods =
+                                  partnerCode && typeof goodsTypeMap !== 'undefined' && goodsTypeMap[partnerCode]
+                                    ? goodsTypeMap[partnerCode]
+                                    : null;
+                                const targetTitle =
+                                  partnerGoods?.title ||
+                                  (goodsInfo.code === 'CLASSIC' ? '연애사주' : '29금 에로스 사주');
+                                const bundleBenefit =
+                                  partnerGoods?.title ? partnerGoods.title + ' 무료 쿠폰'
+                                  : (goodsInfo.code === 'CLASSIC' ? '연애사주 무료 쿠폰' : '29금 에로스 사주 무료 쿠폰');
                             %>
                             
           <div onclick="selectOption('bundle')" id="card-bundle" class="goods-card relative border-2 border-pink-400 bg-pink-50/30">
