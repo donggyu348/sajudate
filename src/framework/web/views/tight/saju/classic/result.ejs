@@ -12,6 +12,31 @@
       --tight-soft: rgba(20,20,24,.06);
     }
 
+    /* 모바일에서 페이지 전체가 좌우로 밀리는 것 방지 · 콘텐츠는 중앙에 고정 */
+    html {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
+    body {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      overscroll-behavior-x: none;
+      touch-action: pan-y pinch-zoom;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    .tight-result-shell {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
     .saju-floating-btn {
   position: fixed;
   bottom: 16px;
@@ -953,9 +978,9 @@
 
 <body>
 
-<div class="min-h-screen" style="background: #000;">
-<div class="flex flex-col w-full max-w-[480px] mx-auto pb-28">
-  <div class="flex justify-center flex-col items-center mx-auto max-w-7xl">
+<div class="min-h-screen tight-result-shell" style="background: #000;">
+<div class="flex flex-col w-full max-w-[480px] mx-auto pb-28 min-w-0">
+  <div class="flex justify-center flex-col items-center mx-auto w-full max-w-[480px] min-w-0">
 
     <%- include('./../../common/common') %>
 
