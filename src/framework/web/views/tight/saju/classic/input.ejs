@@ -379,6 +379,21 @@ const answerArea = document.querySelector('.answer-area');
 const historyEl = document.getElementById('history');
 const nextBtn = document.getElementById('nextBtn');
 const backBtn = document.getElementById('backBtn');
+const sajuForm = document.getElementById('sajuForm');
+
+// 단일 텍스트 필드에서 Enter 시 브라우저가 폼을 제출해 결과로 넘어가는 것을 막고, '다음으로'와 동일하게 처리
+sajuForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+});
+
+sajuForm.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  const t = e.target;
+  if (t.tagName === 'TEXTAREA') return;
+  if (!t.closest('.answer-area')) return;
+  e.preventDefault();
+  nextBtn.click();
+});
 
 function escapeHtmlAttr(str) {
   return String(str)
