@@ -1904,8 +1904,9 @@ while (retryCount <= 2 && !parsed) {
       isRomanticProduct
         ? "\n[중요: JSON 한 개만 출력. 각 풀이 길이·3층 전개·HTML 블록 3종 이상 규칙을 반드시 지킬 것. 허용 class만 사용.]"
         : "\n[중요: 반드시 JSON 형식으로만 답변하세요.]\n[절대 금지: {묘사 전문}, {사주 특징}, {연결 문구}, {키워드} 같은 플레이스홀더를 그대로 출력하지 마세요. 반드시 사전에서 선택한 실제 내용으로 대체해야 합니다.]";
+    /** ROMANTIC 챕터는 HTML 포함으로 출력이 김 → 잘리면 불완전 JSON으로 파싱 실패 */
     const romanticMaxTokens =
-      Number(process.env.OPENAI_ROMANTIC_MAX_TOKENS || 4096);
+      Number(process.env.OPENAI_ROMANTIC_MAX_TOKENS || 8192);
     const response = await GptClient.callChatGpt(
       [
         { role: "system", content: fullSystemPrompt + jsonHint },

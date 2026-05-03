@@ -69,49 +69,83 @@ class GptClient {
           const since = now - (GptClient._lastCallAt || 0);
           if (since < minGapMs) await sleep(minGapMs - since);
 
-          const controller =
-            typeof AbortSignal !== "undefined" && AbortSignal.timeout
-              ? AbortSignal.timeout(fetchTimeoutMs)
-              : undefined;
+          let tokenBudget = maxTokens;
+          /** json_object 모드에서도 max_tokens에 걸리면 불완전 JSON → 로컬 파싱이 한글 중간에서 깨진다 */
+          const maxTruncRetries = Math.min(
+            25,
+            Math.max(1, Number(process.env.OPENAI_TRUNC_RETRIES) || 5)
+          );
+          for (let truncTry = 0; truncTry < maxTruncRetries; truncTry++) {
+            const controller =
+              typeof AbortSignal !== "undefined" && AbortSignal.timeout
+                ? AbortSignal.timeout(fetchTimeoutMs)
+                : undefined;
 
-          console.log(`[GPT] chat.completions 요청 시작 model=${currentModel} (타임아웃 ${fetchTimeoutMs}ms)`);
+            console.log(
+              `[GPT] chat.completions 요청 시작 model=${currentModel} (타임아웃 ${fetchTimeoutMs}ms, max_tokens=${tokenBudget})`
+            );
 
-          const response = await fetch(OPENAI_API_URL, {
-            method: 'POST',
-            signal: controller,
-            headers: {
-              'Authorization': `Bearer ${openAiApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: currentModel,
-              messages,
-              temperature: 0.7,
-              // 리포트 등에서 options.maxTokens로 필요 시 확장 (티어별 TPM 고려).
-              max_tokens: maxTokens,
-              response_format: { type: "json_object" } // 모델 수준에서 JSON 출력 강제
-            }),
-          });
+            const response = await fetch(OPENAI_API_URL, {
+              method: 'POST',
+              signal: controller,
+              headers: {
+                Authorization: `Bearer ${openAiApiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: currentModel,
+                messages,
+                temperature: 0.7,
+                max_tokens: tokenBudget,
+                response_format: { type: 'json_object' },
+              }),
+            });
 
-          GptClient._lastCallAt = Date.now();
+            GptClient._lastCallAt = Date.now();
 
-          if (!response.ok) {
-            const retryAfterHeader = response.headers.get('retry-after');
-            const errorText = await response.text();
-            // 인증 오류는 재시도해도 해결되지 않으므로 즉시 실패 처리합니다.
-            if (response.status === 401) {
-              throw new Error(`OpenAI API 호출 실패(401): ${errorText}`);
+            if (!response.ok) {
+              const retryAfterHeader = response.headers.get('retry-after');
+              const errorText = await response.text();
+              if (response.status === 401) {
+                throw new Error(`OpenAI API 호출 실패(401): ${errorText}`);
+              }
+              if (response.status === 429) {
+                const hdr = retryAfterHeader ? ` ||retry-after:${retryAfterHeader}` : '';
+                throw new Error(`OpenAI API 호출 실패(429): ${errorText}${hdr}`);
+              }
+              throw new Error(`OpenAI API 호출 실패: ${errorText}`);
             }
-            // 429(레이트리밋)은 안내된 시간만큼 기다린 후 재시도해야 합니다.
-            if (response.status === 429) {
-              const hdr = retryAfterHeader ? ` ||retry-after:${retryAfterHeader}` : '';
-              throw new Error(`OpenAI API 호출 실패(429): ${errorText}${hdr}`);
+
+            const data = await response.json();
+            const choice = data.choices?.[0];
+            const finishReason = choice?.finish_reason;
+            const content = choice?.message?.content ?? '';
+
+            if (finishReason !== 'length') {
+              return content;
             }
-            throw new Error(`OpenAI API 호출 실패: ${errorText}`);
+
+            const nextBudget = Math.min(
+              8192,
+              Math.max(tokenBudget + 1024, Math.ceil(tokenBudget * 1.5))
+            );
+            if (nextBudget <= tokenBudget) {
+              throw new Error(
+                'GPT 응답이 max_tokens에서 잘려 JSON이 불완전합니다. OPENAI_ROMANTIC_MAX_TOKENS·OPENAI_MAX_TOKENS를 늘리거나 출력을 줄이세요.'
+              );
+            }
+            console.warn(
+              `[GPT] finish_reason=length(출력 잘림). max_tokens ${tokenBudget}→${nextBudget} 로 같은 요청을 재시도합니다. (${truncTry + 1}/${maxTruncRetries})`
+            );
+            tokenBudget = nextBudget;
+
+            const since2 = Date.now() - (GptClient._lastCallAt || 0);
+            if (since2 < minGapMs) await sleep(minGapMs - since2);
           }
 
-          const data = await response.json();
-          return data.choices?.[0]?.message?.content ?? '';
+          throw new Error(
+            'GPT 응답이 반복적으로 잘립니다. OPENAI_TRUNC_RETRIES를 늘리거나 토큰 상한을 키우세요.'
+          );
 
         } catch (err) {
           lastError = err;
