@@ -50,7 +50,7 @@ export const ROMANTIC_REPORT_PROMPT_PREFIX = `
     (1단) **근거 블록** — 사주 JSON에서 무엇을 보고 이렇게 말했는지, 문장 두 개 이상으로 구체화
     (2단) **장면 블록** — 첫만남/썸/연락/약속 같은 **실제처럼 읽히는 미니 장면이나 예시 멘트** 최소 하나
     (3단) **실행 블록** — "이번 달에는 ~", "먼저 ~를 해보면"처럼 **시간 또는 순서 붙은 행동**을 둘 이상
-  • callout 하나의 한 문단짜리 요약만으로 풀이를 끝내지 마라 — co-body 안에 \`<div class="p">\`를 **두 개 이상** 넣거나, 콜아웃 + 다른 블록을 더해라.
+  • callout 하나의 한 문단짜리 요약만으로 풀이를 끝내지 마라 — co-body 안에 \`<div class='p'>\`를 **두 개 이상** 넣거나, 콜아웃 + 다른 블록을 더해라.
   • 타임라인·viz-card·quiz 선택지에는 **내용 같은 문장 이름 붙이기**(예: "타이밍 A"처럼 뜬구름 금지, 대신 "만남 루트가 두 갈래로 넓어지는 달", "연락 주기 테스트 주간"처럼).
   • meters는 해당 풀이 주제와 맞는 **라벨 문구**(복붙 레이블 금지)·**서로 다른 %**로 채운다.
 
@@ -66,60 +66,63 @@ export const ROMANTIC_REPORT_PROMPT_PREFIX = `
 
 - 코드펜스(\`\`\`)·설명 문장·JSON 외 텍스트 금지.
 - sections는 정확히 6개. title은 프롬프트에 준 줄을 오탈자 없이 동일하게.
+- **[JSON 깨짐 방지 필수]** sections[].content 문자열 속 HTML에서는 **속성값에 작은따옴표만** 쓸 것: \`<div class='callout'>\` 형태.
+  바깥 JSON이 큰따옴표로 묶여 있으므로, content 안에서는 **ASCII 큰따옴표(\\") 금지**. 인용 문장은 「」 또는 곡괄호로만 처리.
 
 ────────────────────
 허용 HTML (이 목록 안의 태그·class 만 사용 가능)
 외부 리소스·<script>·<iframe>·on* 이벤트 금지.
+**예시 속성 표기 모두 따름: class='...' 만 사용**(큰따옴표로 속성 감싸면 안 됨).
 
 1) 두 줄 마스코트 (선택적으로 섹션 1회 이하)
-<div class="mascot"><div class="ms-emoji">단일유니코드이모지1개</div><div class="ms-lines"><div class="ms-line">👉 내용 한 줄</div><div class="ms-line">👉 내용 한 줄</div></div></div>
+<div class='mascot'><div class='ms-emoji'>단일유니코드이모지1개</div><div class='ms-lines'><div class='ms-line'>👉 내용 한 줄</div><div class='ms-line'>👉 내용 한 줄</div></div></div>
 
 2) 콜아웃: kind-tip | kind-warn | kind-note
-<div class="callout kind-tip">
-  <div class="co-top"><span class="co-badge">TIP</span><span class="co-title">소제목</span></div>
-  <div class="co-body"><div class="p">문단 텍스트. 강조는 <span class="hl">중요표현</span>만.</div></div>
+<div class='callout kind-tip'>
+  <div class='co-top'><span class='co-badge'>TIP</span><span class='co-title'>소제목</span></div>
+  <div class='co-body'><div class='p'>문단 텍스트. 강조는 <span class='hl'>중요표현</span>만.</div></div>
 </div>
 (kind-warn → badge WARN, kind-note → NOTE)
 
 3) 인용 줄
-<div class="quote">“짧은 멘트”</div>
+<div class='quote'>「짧은 멘트」</div>
 
 4) 불릿 블록
-<ul class="bullets"><li><b>레이블</b>: 내용</li>...</ul>
+<ul class='bullets'><li><b>레이블</b>: 내용</li>...</ul>
 
 5) 프로그레스바 (값 55~92 정도의 숫자, 사람마다 적절히)
-<div class="meters">
-  <div class="meter">
-    <div class="meter-top"><span class="meter-k">첫인상 호감도</span><span class="meter-v">78%</span></div>
-    <div class="meter-rail"><div class="meter-fill tone-pink" style="width:78%"></div></div>
+<div class='meters'>
+  <div class='meter'>
+    <div class='meter-top'><span class='meter-k'>첫인상 호감도</span><span class='meter-v'>78%</span></div>
+    <div class='meter-rail'><div class='meter-fill tone-pink' style='width:78%'></div></div>
   </div>
   ...
 </div>
 tone 종류는 tone-pink, tone-gold, tone-violet, tone-ice 중 선택.
 
 6) 2컬럼 카드
-<div class="viz-grid">
-  <div class="viz-card"><div class="viz-t">소제목</div><div class="viz-v">핵심 한 줄</div><div class="viz-s">부연 설명</div></div>
+<div class='viz-grid'>
+  <div class='viz-card'><div class='viz-t'>소제목</div><div class='viz-v'>핵심 한 줄</div><div class='viz-s'>부연 설명</div></div>
   ...
 </div>
 
 7) 타임라인
-<div class="timeline">
-  <div class="tl-item"><div class="tl-dot"></div><div class="tl-box"><div class="tl-t">단계 이름</div><div class="tl-d">설명</div></div></div>
+<div class='timeline'>
+  <div class='tl-item'><div class='tl-dot'></div><div class='tl-box'><div class='tl-t'>단계 이름</div><div class='tl-d'>설명</div></div></div>
   ...
 </div>
 
 8) 간단 선택형 퀴즈
-<div class="quiz"><div class="quiz-q">질문</div><div class="quiz-opts"><div class="quiz-opt">A. ...</div><div class="quiz-opt">B. ...</div><div class="quiz-opt">C. ...</div><div class="quiz-opt">D. ...</div></div><div class="quiz-hint">선택지만 제시하면 되고 정답을 직설적으로 재지 말 것.</div></div>
+<div class='quiz'><div class='quiz-q'>질문</div><div class='quiz-opts'><div class='quiz-opt'>A. ...</div><div class='quiz-opt'>B. ...</div><div class='quiz-opt'>C. ...</div><div class='quiz-opt'>D. ...</div></div><div class='quiz-hint'>선택지만 제시하면 되고 정답을 직설적으로 재지 말 것.</div></div>
 
 9) DO / DON'T
-<div class="dd">
-  <div class="dd-col"><div class="dd-h ok">✓ DO</div><ul class="bullets"><li><span class="dd-t">할 것</span></li></ul></div>
-  <div class="dd-col"><div class="dd-h no">⚠ DON'T</div><ul class="bullets"><li><span class="dd-t">하지 말 것</span></li></ul></div>
+<div class='dd'>
+  <div class='dd-col'><div class='dd-h ok'>✓ DO</div><ul class='bullets'><li><span class='dd-t'>할 것</span></li></ul></div>
+  <div class='dd-col'><div class='dd-h no'>⚠ DON'T</div><ul class='bullets'><li><span class='dd-t'>하지 말 것</span></li></ul></div>
 </div>
 
 10) 태그 클라우드
-<div class="tagcloud"><span class="chip">키워드1</span><span class="chip">키워드2</span>...</div>
+<div class='tagcloud'><span class='chip'>키워드1</span><span class='chip'>키워드2</span>...</div>
 
 각 섹션 content에는 위 블록을 **3개 이상** 조합하여
 report.ejs에 넣었을 때 한 화면을 스크롤하며 읽어도 아쉽지 않게 구성한다.

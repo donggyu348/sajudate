@@ -60,6 +60,11 @@ class GptClient {
           ? Math.min(Math.max(options.maxTokens, 256), 8192)
           : Number(process.env.OPENAI_MAX_TOKENS || 1700);
 
+      const temperature =
+        typeof options?.temperature === "number" && Number.isFinite(options.temperature)
+          ? Math.min(Math.max(options.temperature, 0), 2)
+          : Number(process.env.OPENAI_CHAT_TEMPERATURE || 0.7);
+
       while (attempt <= MAX_RETRIES) {
         try {
           // 호출 간 최소 간격: 분당 토큰 한도에 덜 걸리게
@@ -95,7 +100,7 @@ class GptClient {
               body: JSON.stringify({
                 model: currentModel,
                 messages,
-                temperature: 0.7,
+                temperature,
                 max_tokens: tokenBudget,
                 response_format: { type: 'json_object' },
               }),

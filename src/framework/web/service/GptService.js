@@ -6,6 +6,7 @@ import { buildAdultReportFromTemplates } from "./adultReportTemplates.js";
 import { Solar } from "lunar-javascript";
 import { toHanja } from "./toHanja.js";
 import { ROMANTIC_REPORT_PROMPT_PREFIX, ROMANTIC_REPORT_PROMPT_PARTS } from "./prompts/romanticReportV2.js";
+import { jsonrepair } from "jsonrepair";
 
 // --- Lunar 기반 사주 계산 Helpers (sample 전용) ---
 
@@ -1902,18 +1903,29 @@ while (retryCount <= 2 && !parsed) {
   try {
     const jsonHint =
       isRomanticProduct
-        ? "\n[중요: JSON 한 개만 출력. 각 풀이 길이·3층 전개·HTML 블록 3종 이상 규칙을 반드시 지킬 것. 허용 class만 사용.]"
+        ? "\n[중요: JSON 한 개만 출력. sections[].content HTML은 속성에 작은따옴표만(class='callout'): 큰따옴표\"는 문자열 깨짐. 각 풀이 길이·3층 전개·블록 3종 이상, 허용 class만]"
         : "\n[중요: 반드시 JSON 형식으로만 답변하세요.]\n[절대 금지: {묘사 전문}, {사주 특징}, {연결 문구}, {키워드} 같은 플레이스홀더를 그대로 출력하지 마세요. 반드시 사전에서 선택한 실제 내용으로 대체해야 합니다.]";
     /** ROMANTIC 챕터는 HTML 포함으로 출력이 김 → 잘리면 불완전 JSON으로 파싱 실패 */
     const romanticMaxTokens =
       Number(process.env.OPENAI_ROMANTIC_MAX_TOKENS || 8192);
+    const reportTempRaw = Number(process.env.OPENAI_REPORT_TEMPERATURE);
+    const reportTemperature =
+      Number.isFinite(reportTempRaw) && reportTempRaw >= 0 && reportTempRaw <= 2
+        ? reportTempRaw
+        : isRomanticProduct
+          ? 0.35
+          : undefined;
     const response = await GptClient.callChatGpt(
       [
         { role: "system", content: fullSystemPrompt + jsonHint },
         { role: "user", content: JSON.stringify(sajuJsonForGPT) },
       ],
       reportModel,
-      isRomanticProduct ? { maxTokens: romanticMaxTokens } : undefined
+      isRomanticProduct
+        ? { maxTokens: romanticMaxTokens, temperature: reportTemperature }
+        : reportTemperature !== undefined
+          ? { temperature: reportTemperature }
+          : undefined
     );
 
     const cleanedResponse = preClean(String(response));
@@ -2564,9 +2576,32 @@ function extractJsonObject(text) {
   return text.substring(start, end + 1);
 }
 
+/** 타이포그래피 따옴표를 JSON 에 안전하게: 큰 스마트따옴표는 「」 로만 변경( ASCII " 로 바꾸면 문자열 깨짐 ) */
+function normalizeTypographyForJson(raw) {
+  return String(raw)
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/\u201C/g, "\u300C")
+    .replace(/\u201D/g, "\u300D");
+}
+
+function tryRepairParse(blob, tag, stepLabel) {
+  try {
+    return JSON.parse(blob);
+  } catch (e1) {
+    try {
+      const repaired = jsonrepair(blob);
+      const parsed = JSON.parse(repaired);
+      console.warn(`[${tag}] ${stepLabel}: jsonrepair 후 파싱 성공`);
+      return parsed;
+    } catch {
+      throw e1;
+    }
+  }
+}
+
 // 4) 관대한 파서(추출 → 정규화 → 파싱)
 function safeJsonParseLooser(input, tag = "UNKNOWN") {
-  let cleaned = preClean(input);
+  let cleaned = normalizeTypographyForJson(preClean(input));
 
   // 가장 먼저 스택 기반으로 시도
   let core = findFirstJsonBlock(cleaned);
@@ -2582,19 +2617,40 @@ function safeJsonParseLooser(input, tag = "UNKNOWN") {
     core = cleaned;
   }
 
-  // 스마트쿼트 → ASCII
-  core = core.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
-
-  // 주의: ":(\s*)\"([^\"]*)\"" 형태로 값을 치환하면 JSON 안의 \"(속성 따옴표 이스케이프) 에서 조기 종료되어
-  // 리포트 HTML(content) 문자열 전체가 깨진다.
-
+  const blobs = [];
+  blobs.push(["extracted 블록", core]);
   try {
-    return JSON.parse(core);
-  } catch (err) {
-    console.error(`[${tag}] JSON.parse failed. Preview(200):`, cleaned.slice(0, 200));
-    console.error(`[${tag}] firstIdx=`, firstJsonStartIndex(cleaned), ` lastIdx=`, lastJsonEndIndex(cleaned));
-    throw err;
+    blobs.push(["jsonrepair(extracted)", jsonrepair(core)]);
+  } catch {
+    /* noop */
   }
+  try {
+    blobs.push(["jsonrepair(전체응답)", jsonrepair(cleaned)]);
+  } catch {
+    /* noop */
+  }
+  try {
+    const healed = jsonrepair(cleaned);
+    const block = findFirstJsonBlock(healed) || healed;
+    blobs.push(["블록(jsonrepair 후)", block]);
+  } catch {
+    /* noop */
+  }
+
+  let lastErr = null;
+  for (const [label, text] of blobs) {
+    if (typeof text !== "string" || !text.length) continue;
+    try {
+      return tryRepairParse(text, tag, label);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+
+  const err = lastErr ?? new SyntaxError("JSON 파싱 실패");
+  console.error(`[${tag}] JSON.parse failed. Preview(200):`, cleaned.slice(0, 200));
+  console.error(`[${tag}] firstIdx=`, firstJsonStartIndex(cleaned), ` lastIdx=`, lastJsonEndIndex(cleaned));
+  throw err;
 }
 
 // --- End Deterministic TenGod Helpers ---
