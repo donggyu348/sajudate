@@ -778,8 +778,9 @@ function injectRomanticChapter4SpouseFace(result, pillars, userInfo) {
             <span class="co-title">미래 배우자 ‘얼굴상’ 힌트</span>
           </div>
           <div class="co-body">
-            <div class="p">이 이미지는 <span class="hl">일간</span>과 <span class="hl">성별</span> 조합으로 선택됩니다.</div>
-            <div class="p">텍스트 설명 없이, 이미지로만 먼저 감을 잡아보세요.</div>
+            <div class="p"><span class="hl">눈/눈매</span>: 첫인상에서 가장 먼저 박히는 포인트(시선의 각, 눈매의 선명도)를 보세요.</div>
+            <div class="p"><span class="hl">얼굴형</span>: 둥근/갸름/각진 느낌처럼 윤곽의 ‘톤’을 먼저 잡으면 전체 인상이 정리됩니다.</div>
+            <div class="p"><span class="hl">분위기</span>: 차분·도회·부드러움 같은 무드가 표정/헤어/스타일에 어떻게 묻어나는지 체크해 보세요.</div>
           </div>
         </div>
       </div>
