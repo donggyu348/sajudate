@@ -726,6 +726,72 @@ function extractRomanticChapterTitleFromPrompt(promptStr) {
   return null;
 }
 
+function normalizeGenderKey(genderRaw) {
+  const g = String(genderRaw ?? "").trim().toLowerCase();
+  return (["여", "여자", "여성", "female", "woman", "f"].includes(g)) ? "woman" : "man";
+}
+
+function dayStemToRomanticFileKey(dayStemRaw) {
+  const s = String(dayStemRaw ?? "").trim();
+  const map = {
+    "甲": "갑목", "乙": "을목", "丙": "병화", "丁": "정화", "戊": "무토",
+    "己": "기토", "庚": "경금", "辛": "신금", "壬": "임수", "癸": "계수",
+    "갑": "갑목", "을": "을목", "병": "병화", "정": "정화", "무": "무토",
+    "기": "기토", "경": "경금", "신": "신금", "임": "임수", "계": "계수",
+  };
+  return map[s] || map[s[0]] || null;
+}
+
+function injectRomanticChapter4SpouseFace(result, pillars, userInfo) {
+  if (!Array.isArray(result) || !pillars) return result;
+
+  const chapter4Idx = result.findIndex((r) => {
+    const ch = String(r?.chapter ?? "");
+    return ch.startsWith("4장") || ch.includes("운명의 짝") || ch.includes("배우자");
+  });
+  if (chapter4Idx < 0) return result;
+
+  const chapter4Title = String(result[chapter4Idx]?.chapter || "4장");
+  const genderKey = normalizeGenderKey(userInfo?.gender);
+  const stemKey = dayStemToRomanticFileKey(pillars?.day?.gan) || "갑목";
+  const imgSrc = `/assets/images/tight/romantic/report/${genderKey}/${stemKey}.png`;
+
+  const title = "풀이 0. 미래 배우자 얼굴은 어떻게 생겼을까?";
+  const exists = result.some((r) => String(r?.chapter ?? "") === chapter4Title && String(r?.title ?? "") === title);
+  if (exists) return result;
+
+  const content = `
+    <div class="face-viz">
+      <div class="avatar">
+        <img
+          src="${imgSrc}"
+          class="w-full rounded-xl"
+          onerror="this.style.display='none';"
+          alt="미래 배우자 얼굴 이미지"
+        />
+        <div class="avatar-cap">(${stemKey} 기준 이미지)</div>
+      </div>
+      <div>
+        <div class="callout kind-note" style="margin-top:0;">
+          <div class="co-top">
+            <span class="co-badge">NOTE</span>
+            <span class="co-title">미래 배우자 ‘얼굴상’ 힌트</span>
+          </div>
+          <div class="co-body">
+            <div class="p">이 이미지는 <span class="hl">일간</span>과 <span class="hl">성별</span> 조합으로 선택됩니다.</div>
+            <div class="p">텍스트 설명 없이, 이미지로만 먼저 감을 잡아보세요.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `.trim();
+
+  const item = { chapter: chapter4Title, title, content, isHtml: true };
+  const next = result.slice();
+  next.splice(chapter4Idx, 0, item);
+  return next;
+}
+
 /**
  * GptService: Handles ChatGPT prompt calls for 사주 리포트
  */
@@ -1040,6 +1106,9 @@ while (retryCount <= 2 && !parsed) {
         }
       }
 
+      if (isRomanticProduct) {
+        result = injectRomanticChapter4SpouseFace(result, pillars, userInfo);
+      }
       return result;
     } catch (error) {
       console.error("Error calling GPT:", error);
