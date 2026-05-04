@@ -34,13 +34,13 @@ $(document).ready(function() {
       // 중복 방지 기록 저장
       localStorage.setItem(purchaseKey, "1");
 
-      // Facebook Pixel
+      // Facebook Pixel (eventID는 Conversions API와 동일하면 Meta에서 중복 제거)
       fbq('track', 'Purchase', {
         value: price,
         currency: 'KRW',
         contents: [{ id: shopOrderNo, quantity: 1 }],
         content_type: 'product'
-      });
+      }<% if (typeof metaPurchaseEventId !== 'undefined' && metaPurchaseEventId) { %>, { eventID: '<%= metaPurchaseEventId %>' }<% } %>);
 
       // GA4
       gtag('event', 'purchase', {
@@ -58,15 +58,6 @@ $(document).ready(function() {
       // 당근마켓 픽셀
       window.karrotPixel.track('Purchase');
   }
-
-  fbq('track', 'Purchase', {
-    value: price,
-    currency: 'KRW',
-    contents: [{ id: shopOrderNo, quantity: 1 }],
-    content_type: 'product'
-  });
-
-  window.karrotPixel.track('Purchase');
 
   $.ajax({
     url: "/api/gpt/report",

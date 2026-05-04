@@ -12,6 +12,7 @@ import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 
 import { GoodsType } from "../../enums/Goods.js";
 import { isReportPayloadReady } from "../../utils/reportPayloadReady.js";
 import Coupons from "../../orm/models/coupons.js";
+import { sendPurchaseEventOnce } from "../../api/MetaConversionsApi.js";
 const router = express.Router();
 const CouponsModel = Coupons;
 //미리보기 렌더링
@@ -420,6 +421,14 @@ router.get("/payment_success", async (req, res) => {
         return res.status(500).send(`상품 정보(Type: ${targetGoodsType})를 찾을 수 없습니다.`);
     }
 
+    let fileDir = "tight";
+    if (reportHistory?.platform) {
+      const platformCheck = String(reportHistory.platform).trim().toUpperCase();
+      if (platformCheck === "JUJANGSO") fileDir = "jujangso";
+    }
+    const defaultMetaPixelByBrand =
+      fileDir === "jujangso" ? "1392936281822728" : "1234559481840697";
+
     /**
      * ② 결제 승인 로직 (기존 유지)
      */
@@ -450,6 +459,20 @@ router.get("/payment_success", async (req, res) => {
       }
     }
 
+    paymentInfo = await PaymentService.getPaymentTransaction(shopOrderNo);
+    const isApproved = paymentInfo?.paymentStatus === PaymentStatus.APPROVED;
+    const metaPurchaseEventId = isApproved ? `purchase_${shopOrderNo}` : "";
+
+    if (isApproved && metaPurchaseEventId) {
+      void sendPurchaseEventOnce({
+        shopOrderNo,
+        eventId: metaPurchaseEventId,
+        value: goodsConfig.price,
+        currency: "KRW",
+        req,
+      }).catch((e) => console.warn("[Meta CAPI] 비동기 전송:", e.message));
+    }
+
     /**
      * ③ 결제 직후에는 항상 payment_success(로딩·폴링)를 보여줍니다.
      * (승인 단계에서 이미 백그라운드로 GPT가 돌아가 reportInfo가 채워져 있으면,
@@ -477,17 +500,7 @@ router.get("/payment_success", async (req, res) => {
       }
     })();
 
-let fileDir = 'tight';
-
-    // 2. 만약 DB에 platform 정보가 있고 그 값이 'JUJANGSO'라면 경로를 바꿉니다.
-    // .toUpperCase()와 .trim()을 사용하여 데이터 오차를 방지합니다.
-    if (reportHistory && reportHistory.platform) {
-        const platformCheck = String(reportHistory.platform).trim().toUpperCase();
-        if (platformCheck === 'JUJANGSO') {
-            fileDir = 'jujangso';
-        }
-    }
-
+    // 2. 경로는 위에서 platform 기준으로 이미 정했습니다.
     // 3. 경로를 직접 조립합니다. (이제 절대 undefined가 될 수 없습니다)
     const renderPath = `${fileDir}/saju/payment_success`;
     
@@ -497,7 +510,10 @@ let fileDir = 'tight';
     return res.render(renderPath, {
       shopOrderNo: String(shopOrderNo || ""),
       goodsPrice: goodsConfig ? goodsConfig.price : 0,
-      goodsType: String(targetGoodsType || "")
+      goodsType: String(targetGoodsType || ""),
+      metaPurchaseEventId,
+      metaPixelId:
+        process.env.META_PIXEL_ID?.trim() || defaultMetaPixelByBrand,
     });
 
   } catch (error) {

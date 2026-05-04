@@ -50,6 +50,14 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 app.disable("x-powered-by");
+
+const DEFAULT_TIGHT_META_PIXEL_ID = "1234559481840697";
+app.use((req, res, next) => {
+  res.locals.metaPixelId =
+    process.env.META_PIXEL_ID?.trim() || DEFAULT_TIGHT_META_PIXEL_ID;
+  next();
+});
+
 app.use(
     bodyParser.json({ limit: "1mb" }),
     bodyParser.urlencoded({ limit: "1mb", extended: true }),

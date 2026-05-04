@@ -7,6 +7,7 @@
   import { GoodsType } from "../../enums/Goods.js";
   import { isReportPayloadReady } from "../../utils/reportPayloadReady.js";
   import { PaymentStatus } from "../../enums/Payment.js";
+  import { sendPurchaseEventOnce } from "../../api/MetaConversionsApi.js";
 
   const router = express.Router();
 
@@ -158,11 +159,26 @@
       const goodsPrice = GoodsType[repostHistory.goodsType].price;
       const goodsTypeRaw = repostHistory.goodsType; // ✅ goodsType 추가
 
+      const metaPurchaseEventId = `purchase_${shopOrderNo}`;
+      void sendPurchaseEventOnce({
+        shopOrderNo,
+        eventId: metaPurchaseEventId,
+        value: goodsPrice,
+        currency: "KRW",
+        req,
+      }).catch((e) => console.warn("[Meta CAPI] 비동기 전송:", e.message));
+
+      const defaultMetaPixelByBrand =
+        fileDir === "jujangso" ? "1392936281822728" : "1234559481840697";
+
       // 기존과 동일한 템플릿 렌더링 (단, URL은 /saju/payment_success 로 노출됨)
       return res.render(`${fileDir}/saju/payment_success`, {
         shopOrderNo,
         goodsPrice,
-        goodsType: goodsTypeRaw // ✅ goodsType 전달
+        goodsType: goodsTypeRaw, // ✅ goodsType 전달
+        metaPurchaseEventId,
+        metaPixelId:
+          process.env.META_PIXEL_ID?.trim() || defaultMetaPixelByBrand,
       });
     } catch (error) {
       return res.status(500).send("Failed to render success page");

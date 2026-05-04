@@ -44,9 +44,12 @@ process.on('uncaughtException', (err) => {
   // 서버를 안전하게 종료하거나 알림을 보내고 재시작 전략 필요
 });
 
-// EJS에서 세션 접근 가능하도록 locals에 주입
+const DEFAULT_JUJANGSO_META_PIXEL_ID = "1392936281822728";
+// EJS에서 세션·Meta 픽셀 접근 가능하도록 locals에 주입
 app.use((req, res, next) => {
   res.locals.session = req.session || {};
+  res.locals.metaPixelId =
+    process.env.META_PIXEL_ID?.trim() || DEFAULT_JUJANGSO_META_PIXEL_ID;
   next();
 });
 
