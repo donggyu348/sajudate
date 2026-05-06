@@ -10,7 +10,7 @@
     <p class="mt-2 text-sm text-gray-600">잠시만 기다려주세요.</p>
   </div>
 
-<% if (shopOrderNo && goodsPrice && goodsType) { %> // ✅ EJS 조건 추가
+<% if (shopOrderNo) { %>
 <script>
 $(document).ready(function() {
   const shopOrderNo = "<%= shopOrderNo %>";
@@ -41,59 +41,58 @@ $(document).ready(function() {
         contents: [{ id: shopOrderNo, quantity: 1 }],
         content_type: 'product'
       }, { eventID: shopOrderNo });
-
-      // GA4
-      gtag('event', 'purchase', {
-        transaction_id: shopOrderNo,
-        value: price,
-        currency: 'KRW',
-        items: [{
-          item_id: shopOrderNo,
-          item_name: productName,
-          price: price,
-          quantity: 1
-        }]
-      });
-
-      // 당근마켓 픽셀
-      window.karrotPixel.track('Purchase');
   }
 
+  // 폴링은 "/api/gpt/report 성공"과 무관하게 즉시 시작해야 자동 이동이 보장됨
+  let pollTicks = 0;
+  const pollMax = 560;
+  const pollMs = 3500;
+  let pollTimer = null;
+
+  function pollReportDone() {
+    if (pollTicks >= pollMax) {
+      if (pollTimer) clearInterval(pollTimer);
+      console.warn("[payment_success] 폴링 상한 도달 — 수동 새로고침 안내 필요할 수 있음");
+      return;
+    }
+    pollTicks++;
+
+    $.ajax({
+      url: "/saju/report/check",
+      method: "POST",
+      data: { shopOrderNo },
+      success: function (res) {
+        const status = res && (res.status || res.state);
+        if (status === "DONE" || status === "done" || status === true) {
+          if (pollTimer) clearInterval(pollTimer);
+          window.location.href = "/saju/report?shopOrderNo=" + encodeURIComponent(shopOrderNo);
+        }
+      },
+      error: function (err) {
+        console.error("Failed to check report status", err);
+      }
+    });
+  }
+
+  pollReportDone();
+  pollTimer = setInterval(pollReportDone, pollMs);
+
+  // 리포트 생성 요청은 best-effort (실패해도 폴링/리다이렉트는 동작)
   $.ajax({
     url: "/api/gpt/report",
     method: "POST",
     contentType: "application/json",
     data: JSON.stringify({ shopOrderNo }),
     success: function () {
-      console.log("Report generation started");
-
-
-      // 상태 체크 interval
-      const intervalId = setInterval(() => {
-        $.ajax({
-          url: "/saju/report/check",
-          method: "POST",
-          data: { shopOrderNo: shopOrderNo },
-          success: function (res) {
-            if (res.status === "DONE") {
-              clearInterval(intervalId);
-              window.location.href = "/saju/report?shopOrderNo=" + shopOrderNo;
-            }
-          },
-          error: function (err) {
-            console.error("Failed to check report status", err);
-          }
-        });
-      }, 3000); // 3초 간격으로 체크
+      console.log("Report generation started (best-effort)");
     },
     error: function (err) {
-      console.error("Failed to start report generation:", err);
-      alert('보고서 생성 중 문제가 발생했습니다. 고객센터로 문의해주세요.');
+      console.warn("Failed to start report generation (best-effort):", err);
     }
   });
 });
 </script>
-<% } %> //  EJS 조건 끝
+<% } %>
 
 </body>
 </html>
