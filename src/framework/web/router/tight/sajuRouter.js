@@ -12,6 +12,7 @@ import { getFourPillars } from "../../service/sajuCalService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
 import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
+import { buildMetaAdvancedMatching } from "../../utils/metaAdvancedMatching.js";
 import Coupons from "../../orm/models/coupons.js";
 const router = express.Router();
 const CouponsModel = Coupons;
@@ -558,7 +559,10 @@ let fileDir = 'tight';
     return res.render(renderPath, {
       shopOrderNo: String(shopOrderNo || ""),
       goodsPrice: goodsConfig ? goodsConfig.price : 0,
-      goodsType: String(targetGoodsType || "")
+      goodsType: String(targetGoodsType || ""),
+      metaAdvancedMatching: buildMetaAdvancedMatching({
+        userTelNo: finalPaymentForCapi?.userTelNo,
+      }),
     });
 
   } catch (error) {

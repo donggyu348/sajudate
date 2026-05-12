@@ -11,6 +11,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { randomUUID } from "crypto";
 import session from "express-session";
+import { buildMetaAdvancedMatching } from "./utils/metaAdvancedMatching.js";
 
 import sajuRouter from "./router/tight/sajuRouter.js";
 import adminRouter from "./router/tight/adminRouter.js";
@@ -39,6 +40,12 @@ app.use(session({
 // Meta 픽셀 ↔ Conversions API PageView 중복 제거용 (서버 페이로드에도 같은 값 사용)
 app.use((req, res, next) => {
   res.locals.metaPageViewEventId = randomUUID();
+  res.locals.metaAdvancedMatching = buildMetaAdvancedMatching({
+    email: req.session?.user?.email,
+    phone: req.session?.user?.phone,
+    name: req.session?.user?.name,
+    gender: req.session?.user?.gender,
+  });
   next();
 });
 

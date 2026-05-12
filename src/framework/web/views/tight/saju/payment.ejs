@@ -224,6 +224,18 @@
         const tossPayments = TossPayments("live_ck_yZqmkKeP8gB9OlXz5ggnrbQRxB9l");
         const payment = tossPayments.payment({ customerKey: "USER_" + reportHistoryId });
 
+        function syncMetaAdvancedMatching(phone) {
+            if (typeof fbq !== "function" || !phone) return;
+            const digits = String(phone).replace(/\D/g, "");
+            if (!digits) return;
+            const ph = digits.startsWith("82")
+                ? digits
+                : digits.startsWith("0")
+                    ? `82${digits.slice(1)}`
+                    : `82${digits}`;
+            fbq("init", "1865484017449049", { ph, country: "kr" });
+        }
+
         function selectOption(type) {
             const singleCard = document.getElementById('card-single');
             const bundleCard = document.getElementById('card-bundle');
@@ -288,6 +300,7 @@ if (type === 'bundle') {
             }
 
             const fullTel = `010${telF}${telB}`;
+            syncMetaAdvancedMatching(fullTel);
 console.log(" [FRONT] 전송 데이터 확인:", { 
         goodsCode: finalGoodsCode, 
         goodsType: finalGoodsCode 
