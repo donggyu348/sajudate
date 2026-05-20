@@ -13,18 +13,15 @@ const PIXEL_BY_FILE_DIR = {
   tight: "1865484017449049",
 };
 
-function parseCookies(req) {
-  const raw = req.headers?.cookie;
-  if (!raw) return {};
-  return Object.fromEntries(
-    raw.split(";").map((part) => {
-      const idx = part.indexOf("=");
-      if (idx === -1) return [part.trim(), ""];
-      const k = part.slice(0, idx).trim();
-      const v = decodeURIComponent(part.slice(idx + 1).trim());
-      return [k, v];
-    })
-  );
+/** Parameter Builder 미들웨어가 채운 req.metaCapi 우선, 없으면 세션 백업. */
+function resolveMetaClickIds(req) {
+  const fromBuilder = req.metaCapi || {};
+  const session = req.session || {};
+  return {
+    fbc: fromBuilder.fbc || session.metaFbc || null,
+    fbp: fromBuilder.fbp || session.metaFbp || null,
+    clientIpAddress: fromBuilder.clientIpAddress || null,
+  };
 }
 
 export function pixelIdForFileDir(fileDir) {
@@ -40,14 +37,14 @@ export async function sendPurchaseEvent({ req, fileDir, shopOrderNo, value, curr
   if (!token || !shopOrderNo) return;
 
   const pixelId = pixelIdForFileDir(fileDir);
-  const cookies = parseCookies(req);
+  const { fbc, fbp, clientIpAddress } = resolveMetaClickIds(req);
   const user_data = {};
-  const ip = req.ip || req.socket?.remoteAddress;
+  const ip = clientIpAddress || req.ip || req.socket?.remoteAddress;
   if (ip) user_data.client_ip_address = ip;
   const ua = req.get("user-agent");
   if (ua) user_data.client_user_agent = ua;
-  if (cookies._fbp) user_data.fbp = cookies._fbp;
-  if (cookies._fbc) user_data.fbc = cookies._fbc;
+  if (fbp) user_data.fbp = fbp;
+  if (fbc) user_data.fbc = fbc;
 
   const proto = req.protocol || "https";
   const host = req.get("host") || "";

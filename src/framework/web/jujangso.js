@@ -17,6 +17,7 @@ import errorHandler from "../middleware/errorHandler.js";
 import gptRouter from "./router/api/gptRouter.js";
 import smsRouter from "./router/api/smsRouter.js";
 import userRouter from "./router/jujangso/userRouter.js";
+import { metaParamBuilderMiddleware } from "./middleware/metaParamBuilder.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -53,6 +54,8 @@ app.use((req, res, next) => {
 });
 
 app.set("trust proxy", true);
+
+app.use(metaParamBuilderMiddleware);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 

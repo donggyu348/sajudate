@@ -12,6 +12,7 @@ import { dirname } from "path";
 import { randomUUID } from "crypto";
 import session from "express-session";
 import { buildMetaAdvancedMatching } from "./utils/metaAdvancedMatching.js";
+import { metaParamBuilderMiddleware } from "./middleware/metaParamBuilder.js";
 
 import sajuRouter from "./router/tight/sajuRouter.js";
 import adminRouter from "./router/tight/adminRouter.js";
@@ -61,6 +62,9 @@ process.on('uncaughtException', (err) => {
 });
 
 app.set("trust proxy", true);
+
+// Meta fbc/fbp: Parameter Builder로 _fbc·fbclid 원본 유지 (결제 CAPI 등)
+app.use(metaParamBuilderMiddleware);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 

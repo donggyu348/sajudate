@@ -8,6 +8,7 @@
     "axios": "^1.10.0",
     "body-parser": "^1.20.0",
     "camelcase-keys": "^8.0.0",
+    "capi-param-builder-nodejs": "^1.2.1",
     "cors": "^2.8.5",
     "dayjs": "^1.11.19",
     "dotenv": "^16.0.1",
