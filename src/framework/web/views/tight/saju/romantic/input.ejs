@@ -175,6 +175,12 @@
       color: #000;
     }
 
+    .next-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     /* ===== AUTOFILL ===== */
     input:-webkit-autofill,
     input:-webkit-autofill:hover,
@@ -202,6 +208,129 @@
   }
 }
 
+    /* ===== 로딩 오버레이 (붉은 실 인연) ===== */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(180deg, #060101 0%, #090202 45%, #050000 100%);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    .loading-overlay.is-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .loading-overlay::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 35%, rgba(0,0,0,0.75) 100%);
+      pointer-events: none;
+    }
+
+    .loading-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .thread-visual {
+      width: min(82vw, 300px);
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .thread-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 0 8px rgba(230, 45, 55, 0.35));
+      -webkit-mask-image: linear-gradient(128deg, #000 42%, transparent 58%);
+      mask-image: linear-gradient(128deg, #000 42%, transparent 58%);
+      -webkit-mask-size: 260% 260%;
+      mask-size: 260% 260%;
+      -webkit-mask-position: 88% 8%;
+      mask-position: 88% 8%;
+      animation: threadReveal 4.5s ease-in-out forwards;
+    }
+
+    @keyframes threadReveal {
+      0%   { -webkit-mask-position: 88% 8%;  mask-position: 88% 8%; }
+      100% { -webkit-mask-position: 8% 92%; mask-position: 8% 92%; }
+    }
+
+    .loading-flower {
+      font-size: 22px;
+      line-height: 1;
+      margin-bottom: 14px;
+      animation: flowerFloat 2.2s ease-in-out infinite;
+    }
+
+    @keyframes flowerFloat {
+      0%, 100% { transform: translateY(0) scale(1); opacity: 0.75; }
+      50%      { transform: translateY(-4px) scale(1.06); opacity: 1; }
+    }
+
+    .loading-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: rgba(255, 255, 255, 0.88);
+      text-align: center;
+      min-height: 1.5em;
+      transition: opacity 0.25s ease;
+    }
+
+    .loading-title.is-fading {
+      opacity: 0;
+    }
+
+    .loading-sub {
+      margin-top: 8px;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: rgba(243, 230, 200, 0.45);
+      text-transform: uppercase;
+    }
+
+    .loading-bar {
+      width: 160px;
+      height: 2px;
+      margin-top: 28px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .loading-bar-fill {
+      width: 40%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, transparent, #e6c27a, #ff6b9d, transparent);
+      animation: barShimmer 4.5s ease-in-out infinite;
+    }
+
+    @keyframes barShimmer {
+      0%   { transform: translateX(-120%); }
+      100% { transform: translateX(320%); }
+    }
+
   </style>
 </head>
 
@@ -216,11 +345,24 @@
   </div>
 
   <!-- 로딩 -->
-  <div id="loading"
-       class="hidden fixed inset-0 z-50
-              flex flex-col items-center justify-center">
-    <div class="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-    <p id="loading-title" class="mt-4 text-sm">사주를 분석중입니다</p>
+  <div id="loading" class="loading-overlay" aria-live="polite" aria-busy="false">
+    <div class="loading-inner">
+      <div class="loading-flower" aria-hidden="true">🌸</div>
+      <div class="thread-visual" aria-hidden="true">
+        <img
+          class="thread-img"
+          src="/assets/images/tight/romantic/loading/red-thread.png"
+          alt=""
+          width="300"
+          height="188"
+        >
+      </div>
+      <p id="loading-title" class="loading-title">당신의 사주를 읽고 있습니다</p>
+      <p class="loading-sub">HONGYEON</p>
+      <div class="loading-bar" aria-hidden="true">
+        <div class="loading-bar-fill"></div>
+      </div>
+    </div>
   </div>
 
   <form id="sajuForm" method="POST" action="/saju/romantic/result">
@@ -371,7 +513,57 @@ const urlParams = new URLSearchParams(window.location.search);
     $("#birthTypeInput").val(this.value);
   }).trigger("change");
 
-  /* ===== SUBMIT (기존 로직 유지) ===== */
+  /* ===== SUBMIT ===== */
+  let isSubmitting = false;
+  let loadingMsgTimer = null;
+  const LOADING_MIN_MS = 4500;
+  const loadingMessages = [
+    "당신의 사주를 읽고 있습니다",
+    "홍연의 흐름을 찾는 중…",
+    "곧 미리보기가 열립니다"
+  ];
+  let loadingMsgIndex = 0;
+
+  function showLoadingOverlay() {
+    const overlay = document.getElementById("loading");
+    const title = document.getElementById("loading-title");
+    const nextBtn = document.getElementById("nextBtn");
+
+    loadingMsgIndex = 0;
+    title.textContent = loadingMessages[0];
+    title.classList.remove("is-fading");
+    overlay.classList.add("is-visible");
+    overlay.setAttribute("aria-busy", "true");
+    nextBtn.disabled = true;
+
+    const threadImg = overlay.querySelector(".thread-img");
+    if (threadImg) {
+      threadImg.style.animation = "none";
+      void threadImg.offsetWidth;
+      threadImg.style.animation = "";
+    }
+
+    if (loadingMsgTimer) clearInterval(loadingMsgTimer);
+    loadingMsgTimer = setInterval(() => {
+      loadingMsgIndex = (loadingMsgIndex + 1) % loadingMessages.length;
+      title.classList.add("is-fading");
+      setTimeout(() => {
+        title.textContent = loadingMessages[loadingMsgIndex];
+        title.classList.remove("is-fading");
+      }, 220);
+    }, 2200);
+  }
+
+  function submitAfterLoading(doSubmit) {
+    if (isSubmitting) return;
+    isSubmitting = true;
+    showLoadingOverlay();
+
+    setTimeout(() => {
+      doSubmit();
+    }, LOADING_MIN_MS);
+  }
+
   function submitTightForm() {
     const data = {
       name: $("input[name='name']").val()?.trim(),
@@ -380,51 +572,38 @@ const urlParams = new URLSearchParams(window.location.search);
       birthTime: $("select[name='birthTime']").val(),
       birthType: $("#birthTypeInput").val(),
       goodsType: "2",
-      ticket: ticketCode // 👈 이 줄만 추가 (상단에 선언된 ticketCode 변수 활용) // 🔥 [추가] 로맨틱 사주 상품 번호를 명시합니다.
-
+      ticket: ticketCode
     };
 
     if (!data.name || !data.gender || !/^\d{8}$/.test(data.birthdate)) {
       return;
     }
 
-    if (data.name === "관리자") {
-  const $form = $("#sajuForm");
+    submitAfterLoading(() => {
+      if (data.name === "관리자") {
+        const $form = $("#sajuForm");
+        $form.find('input[name="userInfo"]').remove();
+        $form.find('input[name="sample"]').remove();
+        $form.find('input[name="goodsType"]').remove();
+        $form.attr("action", "/saju/skip-payment");
+        $('<input>', { type: 'hidden', name: 'userInfo', value: JSON.stringify(data) }).appendTo($form);
+        $('<input>', { type: 'hidden', name: 'sample', value: '{}' }).appendTo($form);
+        $('<input>').attr({ type: 'hidden', name: 'goodsType', value: '2' }).appendTo($form);
+        $form[0].submit();
+        return;
+      }
 
-  // 🔥 이 두 줄이 없으면 무조건 다시 터짐
-  $form.find('input[name="userInfo"]').remove();
-  $form.find('input[name="sample"]').remove();
-$form.find('input[name="goodsType"]').remove(); // 기존꺼 중복 방지 삭제
-  
-  $form.attr("action", "/saju/skip-payment");
+      if (ticketCode) {
+        const $form = $("#sajuForm");
+        $form.find('input[name="ticket"]').remove();
+        $form.find('input[name="goodsType"]').remove();
+        $('<input>', { type: 'hidden', name: 'ticket', value: ticketCode }).appendTo($form);
+        $('<input>', { type: 'hidden', name: 'goodsType', value: '2' }).appendTo($form);
+        $form.attr("action", "/saju/romantic/result?ticket=" + ticketCode);
+      }
 
-  $('<input>', {
-    type: 'hidden',
-    name: 'userInfo',
-    value: JSON.stringify(data)
-  }).appendTo($form);
-
-  $('<input>', {
-    type: 'hidden',
-    name: 'sample',
-    value: '{}'
-  }).appendTo($form);
-  $('<input>').attr({type: 'hidden', name: 'goodsType', value: '2'}).appendTo($form);
-  $form[0].submit();
-  return;
-}
-if (ticketCode) {
-    const $form = $("#sajuForm");
-    $form.find('input[name="ticket"]').remove(); 
-    $form.find('input[name="goodsType"]').remove();
-
-    $('<input>', { type: 'hidden', name: 'ticket', value: ticketCode }).appendTo($form);
-    $('<input>', { type: 'hidden', name: 'goodsType', value: '2' }).appendTo($form);
-
-    $form.attr("action", "/saju/romantic/result?ticket=" + ticketCode);
-  }
-  document.getElementById("sajuForm").submit();
-
+      document.getElementById("sajuForm").submit();
+    });
   }
  // 엔터로 다음 스텝
 document.addEventListener("keydown", function (e) {

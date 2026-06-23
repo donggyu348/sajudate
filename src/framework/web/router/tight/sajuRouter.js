@@ -421,37 +421,36 @@ router.get("/waiting", (req, res) => {
     res.render("tight/saju/waiting", { shopOrderNo });
 });
 router.post("/payment", async (req, res) => {
+  try {
+    const userInfo = JSON.parse(req.body.userInfo);
+    const sample = JSON.parse(req.body.sample);
 
-  const userInfo = JSON.parse(req.body.userInfo);
-  const sample = JSON.parse(req.body.sample);
+    const baseGoodsCode = req.body.goodsType;
+    const goodsInfo = GoodsType[baseGoodsCode];
+    const bundleInfo = GoodsType[`${baseGoodsCode}_BUNDLE`];
 
-  // 🔹 기본 상품 코드 (ROMANTIC / CLASSIC)
-  const baseGoodsCode = req.body.goodsType;
+    if (!goodsInfo) {
+      console.error("❌ 잘못된 goodsType:", baseGoodsCode);
+      return res.status(400).send("Invalid goodsType");
+    }
 
-  // 🔹 GoodsType에서 꺼내기
-  const goodsInfo = GoodsType[baseGoodsCode];
-  const bundleInfo = GoodsType[`${baseGoodsCode}_BUNDLE`]; // ⭐ 핵심
+    const result = await ReportHistoryService.registerReportHistory({
+      userInfo,
+      sampleInfo: sample,
+      goodsType: goodsInfo,
+      platform: goodsInfo.platform
+    });
 
-  if (!goodsInfo) {
-    console.error("❌ 잘못된 goodsType:", baseGoodsCode);
-    return res.status(400).send("Invalid goodsType");
+    res.render("tight/saju/payment", {
+      reportHistoryId: result.result.id,
+      goodsInfo,
+      bundleInfo,
+      goodsTypeMap: GoodsType
+    });
+  } catch (err) {
+    console.error("❌ /payment 처리 실패:", err);
+    res.status(500).send("결제 페이지로 이동할 수 없습니다. 잠시 후 다시 시도해 주세요.");
   }
-
-  const result = await ReportHistoryService.registerReportHistory({
-    userInfo,
-    sampleInfo: sample,
-  goodsType: goodsInfo,        // 🔥 GoodsType 객체 그대로
-    platform: goodsInfo.platform
-  });
-
-  res.render("tight/saju/payment", {
-    reportHistoryId: result.result.id,
-
-    // 🔥 payment.ejs에서 쓰는 데이터들
-    goodsInfo,        // 기본 상품
-    bundleInfo,       // 번들 상품
-    goodsTypeMap: GoodsType // 전체 가격표 (프론트 JS용)
-  });
 });
 
 router.get("/payment_success", async (req, res) => {
