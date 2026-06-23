@@ -4,221 +4,386 @@
 <%- include('./../common/header') %>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet">
 
 <body class="min-h-screen bg-[#0a0a0b] text-white antialiased" style="font-family: 'Pretendard', -apple-system, sans-serif;">
 
-  <div class="w-full max-w-[480px] mx-auto min-h-screen flex flex-col">
-    <%- include('./../common/common') %>
+<div class="w-full max-w-[480px] mx-auto min-h-screen flex flex-col">
+  <%- include('./../common/common') %>
 
-    <!-- ================= 히어로 슬라이드 (전체 꽉 채움, 페이드) ================= -->
-    <section class="relative w-full aspect-[9/16] max-h-[70vh] flex-shrink-0 overflow-hidden">
-      <div class="swiper heroSwiper absolute inset-0 w-full h-full">
-        <div class="swiper-wrapper">
-          <!-- 1번: 신년 -->
-          <div class="swiper-slide">
-            <img src="/assets/images/tight/classic/신년사주 히어로.png" class="absolute inset-0 w-full h-full object-cover z-0" alt="">
-            <div class="absolute inset-0 z-[1] bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-            <div class="absolute inset-0 z-[2] flex flex-col justify-end p-6 pb-12">
-              <p class="font-serif text-amber-400/90 text-sm tracking-widest uppercase mb-2" style="font-family: 'Noto Serif KR', serif;">정통운세</p>
-              <h2 class="text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">올해의 운을 열어드립니다<br>신년 사주</h2>
-              <p class="text-white/70 text-sm mt-2">한 해의 길운과 흐름을 미리 읽어드립니다</p>
-            </div>
+  <!-- ============================================================ -->
+  <!-- 1. TOP BAR                                                   -->
+  <!-- ============================================================ -->
+  <header class="sticky top-0 z-50 w-full bg-[#0a0a0b]/95 backdrop-blur-sm border-b border-white/5 flex-shrink-0">
+    <div class="flex items-center justify-between px-4 h-12">
+      <span class="text-base font-bold tracking-tight">사주정감</span>
+      <div class="flex items-center gap-4">
+        <button class="text-zinc-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 111 11a6 6 0 0116 0z"/>
+          </svg>
+        </button>
+        <button class="text-zinc-400 relative">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          <span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- 2. HERO                                                      -->
+  <!-- ============================================================ -->
+  <section class="relative w-full flex-shrink-0 overflow-hidden" style="height:58vw;max-height:280px;min-height:200px;">
+    <div class="swiper heroSwiper absolute inset-0 w-full h-full">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide relative">
+          <img src="/assets/images/tight/romantic/연애사주 히어로.png" class="absolute inset-0 w-full h-full object-cover" alt="">
+          <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-5 pb-7">
+            <span class="inline-block px-2 py-0.5 rounded bg-rose-500 text-white text-[10px] font-bold mb-2">🔥 인기 1위</span>
+            <h2 class="text-xl font-bold text-white leading-tight">연애사주</h2>
+            <p class="text-zinc-300 text-xs mt-1">★ 4.9 · 13.1만 명 · 로맨스</p>
           </div>
-          <!-- 2번: 연애 -->
-          <div class="swiper-slide">
-            <img src="/assets/images/tight/romantic/연애사주 히어로.png" class="absolute inset-0 w-full h-full object-cover z-0" alt="">
-            <div class="absolute inset-0 z-[1] bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-            <div class="absolute inset-0 z-[2] flex flex-col justify-end p-6 pb-12">
-              <p class="font-serif text-purple-300/90 text-sm tracking-widest uppercase mb-2" style="font-family: 'Noto Serif KR', serif;">연애운</p>
-              <h2 class="text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">인연과 연애운을 읽어드립니다<br>연애 사주</h2>
-              <p class="text-white/70 text-sm mt-2">진짜 나의 타입과 맞춤 연애운</p>
-            </div>
+        </div>
+        <div class="swiper-slide relative">
+          <img src="/assets/images/tight/29/29금 히어로.png" class="absolute inset-0 w-full h-full object-cover" alt="">
+          <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-5 pb-7">
+            <span class="inline-block px-2 py-0.5 rounded bg-purple-500 text-white text-[10px] font-bold mb-2">✨ 신규</span>
+            <h2 class="text-xl font-bold text-white leading-tight">속궁합 사주</h2>
+            <p class="text-zinc-300 text-xs mt-1">★ 4.8 · 5.1만 명 · 성인</p>
           </div>
-          <!-- 3번: 29금 사주 -->
-          <div class="swiper-slide">
-            <img src="/assets/images/tight/29/29금 히어로.png" class="absolute inset-0 w-full h-full object-cover z-0" alt="">
-            <div class="absolute inset-0 z-[1] bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-            <div class="absolute inset-0 z-[2] flex flex-col justify-end p-6 pb-12">
-              <p class="font-serif text-rose-400/90 text-sm tracking-widest uppercase mb-2" style="font-family: 'Noto Serif KR', serif;">19+ Only</p>
-              <h2 class="text-2xl font-bold leading-tight tracking-tight text-white drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">밤에 보는 은밀한 운명,<br>29금 사주</h2>
-              <p class="text-white/70 text-sm mt-2">솔직하고 깊은 연애·관계 운세</p>
+        </div>
+        <div class="swiper-slide relative">
+          <img src="/assets/images/tight/classic/신년사주 히어로.png" class="absolute inset-0 w-full h-full object-cover" alt="">
+          <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-5 pb-7">
+            <span class="inline-block px-2 py-0.5 rounded bg-amber-500 text-black text-[10px] font-bold mb-2">HOT</span>
+            <h2 class="text-xl font-bold text-white leading-tight">종합운세</h2>
+            <p class="text-zinc-300 text-xs mt-1">★ 4.9 · 12.3만 명 · 정통</p>
+          </div>
+        </div>
+      </div>
+      <div class="swiper-pagination hero-pagination !bottom-2 z-10"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 3. 신뢰 요소 TRUST STRIP                                     -->
+  <!-- ============================================================ -->
+  <section class="px-4 py-5 border-b border-white/5">
+    <div class="flex justify-around">
+      <div class="text-center">
+        <p class="text-2xl font-bold text-white">12만+</p>
+        <p class="text-[11px] text-zinc-500 mt-1">누적 분석</p>
+      </div>
+      <div class="w-px bg-white/8"></div>
+      <div class="text-center">
+        <p class="text-2xl font-bold text-amber-400">4.9</p>
+        <p class="text-[11px] text-zinc-500 mt-1">평균 별점</p>
+      </div>
+      <div class="w-px bg-white/8"></div>
+      <div class="text-center">
+        <p class="text-2xl font-bold text-white">98%</p>
+        <p class="text-[11px] text-zinc-500 mt-1">재구매 의향</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 제품 카드                                                     -->
+  <!-- ============================================================ -->
+  <section class="px-4 py-6 border-b border-white/5">
+    <div class="flex items-center gap-2 mb-4">
+      <h3 class="text-base font-bold">지금 바로 볼 수 있어요</h3>
+    </div>
+    <div class="space-y-4">
+      <a href="/saju/romantic/intro" class="block group">
+        <div class="relative rounded-2xl overflow-hidden border border-white/5 bg-zinc-900" style="height:180px;">
+          <img src="/assets/images/tight/romantic/연애사주.png" alt="연애사주" class="w-full h-full object-cover transition-transform duration-500 group-active:scale-[1.02]">
+          <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent"></div>
+          <div class="absolute inset-0 flex flex-col justify-center p-5">
+            <span class="inline-block w-fit px-2 py-0.5 rounded bg-rose-500/90 text-white text-[10px] font-bold mb-2">🔥 인기 1위</span>
+            <h2 class="text-lg font-bold text-white leading-tight">연애사주</h2>
+            <p class="text-zinc-300 text-xs mt-1.5 leading-relaxed" style="max-width:175px;">생년월일만으로 알아보는 나의 연애운과 이상형</p>
+            <div class="flex items-center gap-3 mt-2.5">
+              <span class="text-xs text-amber-400">★ 4.9</span>
+              <span class="text-xs text-zinc-500">13.1만 명이 봤어요</span>
             </div>
           </div>
         </div>
-        <div class="swiper-pagination hero-pagination !bottom-8 z-10"></div>
-      </div>
-      <div class="absolute bottom-0 left-0 right-0 h-24 z-[3] bg-gradient-to-t from-[#0a0a0b] to-transparent pointer-events-none"></div>
-    </section>
-
-    <!-- ================= 퀵 메뉴 (동그란 아이콘) ================= -->
-    <section class="px-4 -mt-2 relative z-10">
-      <div class="flex justify-around gap-2 py-4">
-        <a href="/saju/classic/intro" class="flex flex-col items-center gap-2 group">
-          <div class="w-14 h-14 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-700/30 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/30">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-          </div>
-          <span class="text-xs text-zinc-400 font-medium">정통운세</span>
-        </a>
-        <a href="javascript:alert('준비 중입니다');" class="flex flex-col items-center gap-2 group">
-          <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-700/30 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/30">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-          </div>
-          <span class="text-xs text-zinc-400 font-medium">궁합</span>
-        </a>
-
-        <a href="/saju/adult/intro" class="flex flex-col items-center gap-2 group">
-          <div class="w-14 h-14 rounded-full bg-gradient-to-br from-rose-500/20 to-rose-700/30 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-black/30">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-          </div>
-          <span class="text-xs text-zinc-400 font-medium">29금사주</span>
-        </a>
-      </div>
-    </section>
-
-    <!-- ================= 지금 가장 핫한 운세 (큰 카드 세로 배치) ================= -->
-    <section class="mt-8 px-4 pb-12">
-      <h3 class="text-lg font-semibold text-white mb-5 flex items-center gap-2" style="font-family: 'Noto Serif KR', serif;">
-        <span class="w-1 h-5 bg-amber-500 rounded-full"></span>
-        지금 가장 핫한 운세
-      </h3>
-      <div class="space-y-5">
-        <a href="/saju/classic/intro" class="block group">
-          <div class="relative rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-black/40 min-h-[280px] border border-white/5">
-            <img src="/assets/images/tight/classic/신년사주.png" alt="정통운" class="w-full h-full min-h-[280px] object-cover transition-transform duration-500 group-hover:scale-105">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-            <span class="absolute top-4 left-4 px-2.5 py-1 rounded-lg bg-amber-500/90 text-xs font-bold text-black">HOT</span>
-            <div class="absolute bottom-0 left-0 right-0 p-6">
-              <h2 class="text-2xl font-bold text-white tracking-tight drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">종합운</h2>
-              <p class="text-zinc-400 mt-1.5">정통 운세, 인생의 흐름을 읽어드립니다</p>
-              <p class="text-zinc-500 text-sm mt-2">조회 12.3만</p>
+      </a>
+      <a href="/saju/adult/intro" class="block group">
+        <div class="relative rounded-2xl overflow-hidden border border-white/5 bg-zinc-900" style="height:180px;">
+          <img src="/assets/images/tight/29/29금.png" alt="속궁합 사주" class="w-full h-full object-cover transition-transform duration-500 group-active:scale-[1.02]">
+          <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent"></div>
+          <div class="absolute inset-0 flex flex-col justify-center p-5">
+            <span class="inline-block w-fit px-2 py-0.5 rounded bg-purple-500/90 text-white text-[10px] font-bold mb-2">✨ 신규</span>
+            <h2 class="text-lg font-bold text-white leading-tight">속궁합 사주</h2>
+            <p class="text-zinc-300 text-xs mt-1.5 leading-relaxed" style="max-width:175px;">솔직하고 깊은 두 사람의 관계 분석</p>
+            <div class="flex items-center gap-3 mt-2.5">
+              <span class="text-xs text-amber-400">★ 4.8</span>
+              <span class="text-xs text-zinc-500">5.1만 명이 봤어요</span>
             </div>
           </div>
-        </a>
-        <a href="/saju/romantic/intro" class="block group">
-          <div class="relative rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-black/40 min-h-[280px] border border-white/5">
-            <img src="/assets/images/tight/romantic/연애사주.png" alt="연애운" class="w-full h-full min-h-[280px] object-cover transition-transform duration-500 group-hover:scale-105">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-            <span class="absolute top-4 left-4 px-2.5 py-1 rounded-lg bg-purple-500/90 text-xs font-bold text-white">신규</span>
-            <div class="absolute bottom-0 left-0 right-0 p-6">
-              <h2 class="text-2xl font-bold text-white tracking-tight drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">연애사주</h2>
-              <p class="text-zinc-400 mt-1.5">인연과 연애운, 진짜 나의 타입을 알아봅니다</p>
-              <p class="text-zinc-500 text-sm mt-2">조회 13.1만</p>
-            </div>
-          </div>
-        </a>
-    <!--    <a href="/saju/adult/intro" class="block group">
-          <div class="relative rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-black/40 min-h-[280px] border border-white/5">
-            <img src="/assets/images/tight/29/29금.png" alt="29금사주" class="w-full h-full min-h-[280px] object-cover transition-transform duration-500 group-hover:scale-105">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-            <span class="absolute top-4 left-4 px-2.5 py-1 rounded-lg bg-rose-500/90 text-xs font-bold text-white">19+</span>
-            <div class="absolute bottom-0 left-0 right-0 p-6">
-              <h2 class="text-2xl font-bold text-white tracking-tight drop-shadow-lg" style="font-family: 'Noto Serif KR', serif;">29금사주</h2>
-              <p class="text-zinc-400 mt-1.5">솔직하고 깊은 연애·관계 운세</p>
-              <p class="text-zinc-500 text-sm mt-2">조회 14.2만</p>
-            </div>
-          </div>
-        </a>
+        </div>
+      </a>
+    </div>
+  </section>
 
-        -->
+  <!-- ============================================================ -->
+  <!-- 6. 오늘의 띠별 운세                                           -->
+  <!-- ============================================================ -->
+  <section class="px-4 py-6 border-b border-white/5">
+    <a href="/saju/zodiac" class="block group">
+      <div class="relative rounded-2xl overflow-hidden border border-purple-500/20 bg-gradient-to-br from-violet-950 via-indigo-900 to-purple-950 p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-purple-300 font-medium mb-1.5">🎋 무료 콘텐츠</p>
+            <h3 class="text-lg font-bold text-white leading-tight">오늘의 띠별 운세</h3>
+            <p class="text-xs text-purple-200/60 mt-1.5 leading-relaxed">12띠 중 내 띠를 선택하면<br>오늘의 운세를 바로 확인할 수 있어요</p>
+            <div class="flex items-center gap-2 mt-3">
+              <span class="px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-300 text-[10px] font-medium">매일 업데이트</span>
+              <span class="px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 text-[10px] font-medium">무료</span>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0 ml-4">
+            <div class="grid grid-cols-3 gap-1 w-[72px]">
+              <span class="text-xl">🐭</span><span class="text-xl">🐮</span><span class="text-xl">🐯</span>
+              <span class="text-xl">🐰</span><span class="text-xl">🐲</span><span class="text-xl">🐍</span>
+              <span class="text-xl">🐴</span><span class="text-xl">🐑</span><span class="text-xl">🐵</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 mt-4 text-purple-300 text-xs font-medium">
+          <span>내 띠 운세 확인하기</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </div>
       </div>
-    </section>
+    </a>
+  </section>
 
-    <!-- 후기 섹션 제거 후에도 마지막 카드·푸터 사이 간격 확보 (마진 병합 방지용 블록) -->
-    <div class="w-full max-w-[480px] mx-auto px-4 shrink-0" aria-hidden="true">
-      <div class="h-24 sm:h-28"></div>
+  <!-- ============================================================ -->
+  <!-- 10. 고객 후기                                                 -->
+  <!-- ============================================================ -->
+  <section class="px-4 py-6 border-b border-white/5">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="text-lg">⭐</span>
+      <h3 class="text-base font-bold">실제 후기</h3>
+      <span class="ml-auto text-[11px] text-zinc-500">총 8,210개</span>
     </div>
 
-    <!-- ================= 이용 후기 (비활성, HTML 주석) =================
-    <section class="mt-12 px-4 pb-32">
-      <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2" style="font-family: 'Noto Serif KR', serif;">
-        <span class="w-1 h-5 bg-purple-500 rounded-full"></span>
-        이용 후기
-      </h3>
-      <div class="space-y-4">
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2025.03.02</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">연애사주에서 나랑 잘 맞는 타입이 뭔지, 언제 인연이 올지 나와 있어서 좋았어요. 지금 만나는 사람이랑 궁합도 봤는데 말한 대로라서 놀랐어요.</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · m***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2025.02.28</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">29금 사주 진짜 솔직하게 나와서 부끄럽기도 했는데… 관계나 끌림 같은 거까지 말해주니까 막혀 있던 고민이 풀렸어요. 친구한테도 추천했어요.</p>
-          <p class="text-zinc-500 text-xs mt-2">29금사주 · k***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2025.02.22</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">신년사주 보고 올해 몇 월에 조심해야 하는지, 직장·재물 흐름이랑 같이 나와서 계획 세우기 좋았어요. 분량도 많고 설명이 구체적이에요.</p>
-          <p class="text-zinc-500 text-xs mt-2">정통운 · s***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★☆</span>
-            <span class="text-zinc-500 text-xs">2025.02.18</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">연애운에서 이성 끌림이나 호환되는 성격 설명이 진짜 잘 맞았음. 우리끼리만 보는 느낌이라 부담 없이 볼 수 있어서 좋았어요.</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · j***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2025.02.15</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">29금은 처음 써봤는데 생각보다 깊이 있게 나와서 만족했어요. 연애만 보는 게 아니라 끌림이나 스타일 같은 부분까지 있어서 신기했어요.</p>
-          <p class="text-zinc-500 text-xs mt-2">29금사주 · r***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2025.02.10</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">매년 신년사주만 보는데 올해도 받아봤어요. 월별 운세랑 금년에 피해야 할 일, 좋은 방위까지 나와서 실생활에 바로 참고할 수 있어요.</p>
-          <p class="text-zinc-500 text-xs mt-2">정통운 · h***</p>
-        </div>
-        <a href="/saju/reviews" class="block rounded-2xl border border-dashed border-zinc-600 text-zinc-500 text-center py-6 text-sm hover:border-amber-500/50 hover:text-amber-400/80 transition-colors">
-          후기 더 보기
-        </a>
+    <!-- 요약 별점 -->
+    <div class="flex items-center gap-4 p-4 rounded-2xl bg-zinc-900 border border-white/5 mb-4">
+      <div class="text-center">
+        <p class="text-4xl font-black text-amber-400">4.9</p>
+        <p class="text-amber-400 text-sm mt-0.5">★★★★★</p>
+        <p class="text-[10px] text-zinc-500 mt-1">8,210개 후기</p>
       </div>
-    </section>
-    -->
+      <div class="flex-1 space-y-1.5">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-zinc-400 w-6">5점</span>
+          <div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+            <div class="h-full bg-amber-400 rounded-full" style="width:82%"></div>
+          </div>
+          <span class="text-[10px] text-zinc-500">82%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-zinc-400 w-6">4점</span>
+          <div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+            <div class="h-full bg-amber-400 rounded-full" style="width:13%"></div>
+          </div>
+          <span class="text-[10px] text-zinc-500">13%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-zinc-400 w-6">3점</span>
+          <div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+            <div class="h-full bg-amber-400 rounded-full" style="width:4%"></div>
+          </div>
+          <span class="text-[10px] text-zinc-500">4%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] text-zinc-400 w-6">1~2점</span>
+          <div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+            <div class="h-full bg-amber-400 rounded-full" style="width:1%"></div>
+          </div>
+          <span class="text-[10px] text-zinc-500">1%</span>
+        </div>
+      </div>
+    </div>
 
-    <%- include('./../common/footer') %>
-  </div>ㅋㅋ
+    <div class="space-y-3">
+      <div class="rounded-2xl bg-zinc-900 border border-white/5 p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-rose-500/25 flex items-center justify-center text-xs text-rose-300 font-semibold">김</div>
+            <div>
+              <p class="text-xs font-medium text-white">김** · 연애사주</p>
+              <p class="text-[10px] text-zinc-500">2일 전</p>
+            </div>
+          </div>
+          <span class="text-xs text-amber-400">★★★★★</span>
+        </div>
+        <p class="text-xs text-zinc-300 leading-relaxed">"속궁합까지 소름 돋게 맞아서 친구한테 바로 공유했어요. 재방문 의사 100%"</p>
+      </div>
+      <div class="rounded-2xl bg-zinc-900 border border-white/5 p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-purple-500/25 flex items-center justify-center text-xs text-purple-300 font-semibold">이</div>
+            <div>
+              <p class="text-xs font-medium text-white">이** · 속궁합 사주</p>
+              <p class="text-[10px] text-zinc-500">5일 전</p>
+            </div>
+          </div>
+          <span class="text-xs text-amber-400">★★★★★</span>
+        </div>
+        <p class="text-xs text-zinc-300 leading-relaxed">"연애사주에서 나랑 잘 맞는 타입이 딱 나와서 신기했어요. 정말 소름 돋았어요."</p>
+      </div>
+      <div class="rounded-2xl bg-zinc-900 border border-white/5 p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-amber-500/25 flex items-center justify-center text-xs text-amber-300 font-semibold">박</div>
+            <div>
+              <p class="text-xs font-medium text-white">박** · 연애사주</p>
+              <p class="text-[10px] text-zinc-500">1주일 전</p>
+            </div>
+          </div>
+          <span class="text-xs text-amber-400">★★★★★</span>
+        </div>
+        <p class="text-xs text-zinc-300 leading-relaxed">"재회 가능성 부분이 너무 정확해서 깜짝 놀랐어요. 이걸 더 일찍 알았으면 좋았을 텐데."</p>
+      </div>
+      <div class="rounded-2xl bg-zinc-900 border border-white/5 p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-emerald-500/25 flex items-center justify-center text-xs text-emerald-300 font-semibold">최</div>
+            <div>
+              <p class="text-xs font-medium text-white">최** · 종합운세</p>
+              <p class="text-[10px] text-zinc-500">2주일 전</p>
+            </div>
+          </div>
+          <span class="text-xs text-amber-400">★★★★★</span>
+        </div>
+        <p class="text-xs text-zinc-300 leading-relaxed">"사주 처음 봤는데 너무 잘 맞아서 신기했어요. 친구들한테도 다 추천했습니다."</p>
+      </div>
+    </div>
+  </section>
 
-  <style>
-    .hero-pagination .swiper-pagination-bullet { background: rgba(255,255,255,0.4); opacity: 1; transition: all 0.3s ease; }
-    .hero-pagination .swiper-pagination-bullet-active { background: #f59e0b; width: 24px; border-radius: 12px; }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-  </style>
-  <script>
-    $(document).ready(function () {
-      $(".gender-btn").on("click", function () {
-        $(".gender-btn").removeClass("active");
-        $(this).addClass("active");
-        $("#genderInput").val($(this).val());
-      });
-      $(".birth-type-btn").on("click", function () {
-        $(".birth-type-btn").removeClass("active");
-        $(this).addClass("active");
-        $("#birthTypeInput").val($(this).val());
-      });
-    });
-    const heroSwiper = new Swiper(".heroSwiper", {
-      loop: true,
-      effect: "fade",
-      fadeEffect: { crossFade: true },
-      autoplay: { delay: 4500, disableOnInteraction: false },
-      pagination: { el: ".hero-pagination", clickable: true },
-    });
-  </script>
+  <!-- ============================================================ -->
+  <!-- 12. FAQ                                                      -->
+  <!-- ============================================================ -->
+  <section class="px-4 py-6 border-b border-white/5">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="text-lg">❓</span>
+      <h3 class="text-base font-bold">자주 묻는 질문</h3>
+    </div>
+    <div class="space-y-2" id="faqList">
+
+      <div class="faq-item rounded-2xl bg-zinc-900 border border-white/5 overflow-hidden">
+        <button class="faq-btn w-full flex items-center justify-between p-4 text-left" onclick="toggleFaq(this)">
+          <span class="text-sm font-medium text-white">결과는 얼마나 걸리나요?</span>
+          <svg class="faq-icon w-4 h-4 text-zinc-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div class="faq-answer hidden px-4 pb-4">
+          <p class="text-xs text-zinc-400 leading-relaxed">생년월일 입력 후 평균 30초 이내에 결과를 받아볼 수 있습니다. 결과는 저장되어 언제든 다시 확인할 수 있어요.</p>
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl bg-zinc-900 border border-white/5 overflow-hidden">
+        <button class="faq-btn w-full flex items-center justify-between p-4 text-left" onclick="toggleFaq(this)">
+          <span class="text-sm font-medium text-white">개인정보는 안전한가요?</span>
+          <svg class="faq-icon w-4 h-4 text-zinc-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div class="faq-answer hidden px-4 pb-4">
+          <p class="text-xs text-zinc-400 leading-relaxed">입력된 생년월일은 분석 목적으로만 사용되며, 분석 완료 후 즉시 파기됩니다. 제3자 제공 및 마케팅 활용은 절대 없습니다.</p>
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl bg-zinc-900 border border-white/5 overflow-hidden">
+        <button class="faq-btn w-full flex items-center justify-between p-4 text-left" onclick="toggleFaq(this)">
+          <span class="text-sm font-medium text-white">어떤 정보가 필요한가요?</span>
+          <svg class="faq-icon w-4 h-4 text-zinc-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div class="faq-answer hidden px-4 pb-4">
+          <p class="text-xs text-zinc-400 leading-relaxed">이름, 생년월일, 태어난 시간이 필요합니다. 태어난 시간을 모르는 경우에도 분석이 가능하지만 정확도가 다소 낮아질 수 있습니다.</p>
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl bg-zinc-900 border border-white/5 overflow-hidden">
+        <button class="faq-btn w-full flex items-center justify-between p-4 text-left" onclick="toggleFaq(this)">
+          <span class="text-sm font-medium text-white">환불이 가능한가요?</span>
+          <svg class="faq-icon w-4 h-4 text-zinc-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div class="faq-answer hidden px-4 pb-4">
+          <p class="text-xs text-zinc-400 leading-relaxed">결과 확인 전에는 전액 환불이 가능합니다. 결과 확인 후에는 디지털 콘텐츠 특성상 환불이 어렵습니다. 문의는 공식 인스타그램 DM으로 연락해 주세요.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="h-8 flex-shrink-0"></div>
+
+  <%- include('./../common/footer') %>
+</div>
+
+<style>
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .hero-pagination .swiper-pagination-bullet {
+    background: rgba(255,255,255,0.4);
+    opacity: 1;
+    width: 6px;
+    height: 6px;
+    transition: all 0.3s ease;
+  }
+  .hero-pagination .swiper-pagination-bullet-active {
+    background: #fff;
+    width: 20px;
+    border-radius: 12px;
+  }
+  .faq-answer { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+</style>
+
+<script>
+  const heroSwiper = new Swiper(".heroSwiper", {
+    loop: true,
+    effect: "fade",
+    fadeEffect: { crossFade: true },
+    autoplay: { delay: 4000, disableOnInteraction: false },
+    pagination: { el: ".hero-pagination", clickable: true },
+  });
+
+  function toggleFaq(btn) {
+    var answer = btn.nextElementSibling;
+    var icon = btn.querySelector('.faq-icon');
+    var isOpen = !answer.classList.contains('hidden');
+
+    // 모두 닫기
+    document.querySelectorAll('.faq-answer').forEach(function(a) { a.classList.add('hidden'); });
+    document.querySelectorAll('.faq-icon').forEach(function(i) { i.style.transform = ''; });
+
+    if (!isOpen) {
+      answer.classList.remove('hidden');
+      icon.style.transform = 'rotate(180deg)';
+    }
+  }
+</script>
+
 </body>
 </html>

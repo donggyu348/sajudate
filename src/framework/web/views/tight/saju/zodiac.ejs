@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<%- include('./../common/header') %>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+<body class="min-h-screen bg-[#0a0a0b] text-white antialiased" style="font-family: 'Pretendard', -apple-system, sans-serif;">
+
+<div class="w-full max-w-[480px] mx-auto min-h-screen flex flex-col">
+  <%- include('./../common/common') %>
+
+  <!-- TOP BAR -->
+  <header class="sticky top-0 z-50 w-full bg-[#0a0a0b]/95 backdrop-blur-sm border-b border-white/5 flex-shrink-0">
+    <div class="flex items-center justify-between px-4 h-12">
+      <a href="/saju" class="text-zinc-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <span class="text-sm font-semibold">오늘의 띠별 운세</span>
+      <div class="w-5"></div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="px-4 pt-6 pb-5 border-b border-white/5">
+    <div class="rounded-2xl bg-gradient-to-br from-violet-950 via-indigo-900 to-purple-950 border border-purple-500/20 p-5">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-xs text-purple-300 font-medium mb-1.5">
+            <% const d = new Date(); %>
+            <%= d.getFullYear() %>년 <%= d.getMonth()+1 %>월 <%= d.getDate() %>일
+          </p>
+          <h1 class="text-xl font-bold text-white leading-snug">오늘 내 띠는<br>어떤 운세일까요?</h1>
+          <p class="text-xs text-purple-200/60 mt-2 leading-relaxed">12띠 중 내 띠를 선택하면<br>오늘의 운세를 바로 확인할 수 있어요</p>
+        </div>
+        <span class="text-5xl">🎋</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12띠 그리드 -->
+  <section class="px-4 py-5 flex-1">
+    <div class="grid grid-cols-3 gap-3">
+
+      <!-- 쥐띠 -->
+      <button onclick="showFortune('rat')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐭</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">쥐띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1912 · 1924 · 1936<br>1948 · 1960 · 1972<br>1984 · 1996 · 2008</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★★★</span>
+        </div>
+      </button>
+
+      <!-- 소띠 -->
+      <button onclick="showFortune('ox')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐮</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">소띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1913 · 1925 · 1937<br>1949 · 1961 · 1973<br>1985 · 1997 · 2009</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★★☆</span>
+        </div>
+      </button>
+
+      <!-- 호랑이띠 -->
+      <button onclick="showFortune('tiger')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐯</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">호랑이띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1914 · 1926 · 1938<br>1950 · 1962 · 1974<br>1986 · 1998 · 2010</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★★★</span>
+        </div>
+      </button>
+
+      <!-- 토끼띠 -->
+      <button onclick="showFortune('rabbit')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐰</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">토끼띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1915 · 1927 · 1939<br>1951 · 1963 · 1975<br>1987 · 1999 · 2011</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★☆☆</span>
+        </div>
+      </button>
+
+      <!-- 용띠 -->
+      <button onclick="showFortune('dragon')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐲</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">용띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1916 · 1928 · 1940<br>1952 · 1964 · 1976<br>1988 · 2000 · 2012</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★★★</span>
+        </div>
+      </button>
+
+      <!-- 뱀띠 -->
+      <button onclick="showFortune('snake')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐍</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">뱀띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1917 · 1929 · 1941<br>1953 · 1965 · 1977<br>1989 · 2001 · 2013</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★★☆</span>
+        </div>
+      </button>
+
+      <!-- 말띠 -->
+      <button onclick="showFortune('horse')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐴</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">말띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1918 · 1930 · 1942<br>1954 · 1966 · 1978<br>1990 · 2002 · 2014</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★☆☆</span>
+        </div>
+      </button>
+
+      <!-- 양띠 -->
+      <button onclick="showFortune('sheep')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐑</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">양띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1919 · 1931 · 1943<br>1955 · 1967 · 1979<br>1991 · 2003 · 2015</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★★☆</span>
+        </div>
+      </button>
+
+      <!-- 원숭이띠 -->
+      <button onclick="showFortune('monkey')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐵</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">원숭이띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1920 · 1932 · 1944<br>1956 · 1968 · 1980<br>1992 · 2004 · 2016</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★★★</span>
+        </div>
+      </button>
+
+      <!-- 닭띠 -->
+      <button onclick="showFortune('rooster')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐓</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">닭띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1921 · 1933 · 1945<br>1957 · 1969 · 1981<br>1993 · 2005 · 2017</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★☆☆</span>
+        </div>
+      </button>
+
+      <!-- 개띠 -->
+      <button onclick="showFortune('dog')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐶</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">개띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1922 · 1934 · 1946<br>1958 · 1970 · 1982<br>1994 · 2006 · 2018</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★★☆</span>
+        </div>
+      </button>
+
+      <!-- 돼지띠 -->
+      <button onclick="showFortune('pig')" class="zodiac-card flex flex-col items-center gap-2 p-4 rounded-2xl bg-zinc-900 border border-white/5 active:scale-95 transition-transform">
+        <span class="text-3xl">🐷</span>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-white">돼지띠</p>
+          <p class="text-[10px] text-zinc-500 mt-0.5">1923 · 1935 · 1947<br>1959 · 1971 · 1983<br>1995 · 2007 · 2019</p>
+        </div>
+        <div class="flex gap-0.5 mt-1">
+          <span class="text-amber-400 text-[10px]">★★★★★</span>
+        </div>
+      </button>
+
+    </div>
+  </section>
+
+  <div class="h-8 flex-shrink-0"></div>
+  <%- include('./../common/footer') %>
+</div>
+
+<!-- 운세 바텀시트 -->
+<div id="fortuneSheet" class="fixed inset-0 z-[200] pointer-events-none">
+  <div id="sheetBg" class="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300"></div>
+  <div id="sheetPanel" class="absolute bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-[#141418] rounded-t-3xl border-t border-white/10 translate-y-full transition-transform duration-300 ease-out">
+    <div class="flex justify-center pt-3 pb-1">
+      <div class="w-10 h-1 bg-zinc-600 rounded-full"></div>
+    </div>
+    <div class="px-5 pt-3 pb-8">
+      <div class="flex items-center gap-3 mb-4">
+        <span id="sheetEmoji" class="text-4xl">🐭</span>
+        <div>
+          <p id="sheetName" class="text-lg font-bold text-white">쥐띠</p>
+          <p id="sheetStars" class="text-amber-400 text-sm">★★★★★</p>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <div class="p-4 rounded-xl bg-zinc-900 border border-white/5">
+          <p class="text-[11px] text-zinc-400 font-medium mb-1.5">오늘의 한 줄</p>
+          <p id="sheetOneline" class="text-sm font-semibold text-white leading-snug"></p>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="p-3 rounded-xl bg-zinc-900 border border-white/5 text-center">
+            <p class="text-[10px] text-zinc-500 mb-1">애정운</p>
+            <p id="sheetLove" class="text-xs font-semibold text-rose-400"></p>
+          </div>
+          <div class="p-3 rounded-xl bg-zinc-900 border border-white/5 text-center">
+            <p class="text-[10px] text-zinc-500 mb-1">재물운</p>
+            <p id="sheetMoney" class="text-xs font-semibold text-amber-400"></p>
+          </div>
+          <div class="p-3 rounded-xl bg-zinc-900 border border-white/5 text-center">
+            <p class="text-[10px] text-zinc-500 mb-1">건강운</p>
+            <p id="sheetHealth" class="text-xs font-semibold text-emerald-400"></p>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl bg-zinc-900 border border-white/5">
+          <p class="text-[11px] text-zinc-400 font-medium mb-1.5">오늘의 조언</p>
+          <p id="sheetAdvice" class="text-xs text-zinc-300 leading-relaxed"></p>
+        </div>
+      </div>
+      <a href="/saju/romantic/intro" class="mt-4 flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-rose-500 text-sm font-semibold text-white">
+        더 자세한 운세 보러 가기
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+const fortuneData = {
+  rat:     { emoji:'🐭', name:'쥐띠',    stars:'★★★★★', oneline:'새로운 인연이 들어오는 날, 마음을 열어두세요.', love:'상승', money:'좋음', health:'양호', advice:'오늘은 먼저 다가가는 것이 좋습니다. 망설임을 내려놓으면 뜻밖의 기회가 열립니다.' },
+  ox:      { emoji:'🐮', name:'소띠',    stars:'★★★★☆', oneline:'침착하게 대응하면 원하는 결과를 얻을 수 있어요.', love:'보통', money:'상승', health:'좋음', advice:'급하게 서두르기보다는 차분히 기다리세요. 오늘은 인내가 큰 힘이 됩니다.' },
+  tiger:   { emoji:'🐯', name:'호랑이띠', stars:'★★★★★', oneline:'강한 에너지가 넘치는 하루, 도전을 두려워 말아요.', love:'좋음', money:'상승', health:'최고', advice:'자신감을 갖고 첫 걸음을 내딛어 보세요. 오늘의 행동이 큰 변화를 만듭니다.' },
+  rabbit:  { emoji:'🐰', name:'토끼띠',  stars:'★★★☆☆', oneline:'조용히 내 페이스대로 가는 것이 최선입니다.', love:'보통', money:'보통', health:'주의', advice:'무리하지 않고 에너지를 아끼는 하루가 될 것 같아요. 오늘은 휴식도 전략입니다.' },
+  dragon:  { emoji:'🐲', name:'용띠',    stars:'★★★★★', oneline:'운이 가장 강한 날! 중요한 일은 오늘 결정하세요.', love:'최고', money:'최고', health:'좋음', advice:'오늘은 무엇이든 잘 풀리는 날입니다. 미뤄뒀던 일을 과감히 추진해 보세요.' },
+  snake:   { emoji:'🐍', name:'뱀띠',    stars:'★★★★☆', oneline:'직관이 날카로운 날, 느낌을 믿어도 좋아요.', love:'상승', money:'보통', health:'좋음', advice:'복잡한 상황을 차분히 분석해보세요. 숨겨진 기회가 보일 것입니다.' },
+  horse:   { emoji:'🐴', name:'말띠',    stars:'★★★☆☆', oneline:'속도를 조금 늦추면 더 멀리 갈 수 있어요.', love:'보통', money:'주의', health:'양호', advice:'조급함을 내려놓고 지금 이 순간에 집중하세요. 방향이 중요한 하루입니다.' },
+  sheep:   { emoji:'🐑', name:'양띠',    stars:'★★★★☆', oneline:'따뜻한 인간관계가 오늘의 행운을 불러와요.', love:'좋음', money:'상승', health:'좋음', advice:'가까운 사람에게 먼저 연락해보세요. 뜻밖의 도움이나 좋은 소식이 올 수 있어요.' },
+  monkey:  { emoji:'🐵', name:'원숭이띠', stars:'★★★★★', oneline:'아이디어가 빛나는 날, 창의력을 발휘하세요!', love:'상승', money:'좋음', health:'최고', advice:'평소와 다른 방법을 시도해 보세요. 새로운 접근이 놀라운 결과를 만들 수 있어요.' },
+  rooster: { emoji:'🐓', name:'닭띠',    stars:'★★★☆☆', oneline:'계획대로 실행하는 것이 오늘의 핵심이에요.', love:'보통', money:'보통', health:'양호', advice:'즉흥적인 결정보다는 계획을 따르는 것이 좋습니다. 꼼꼼히 확인하는 하루를 보내세요.' },
+  dog:     { emoji:'🐶', name:'개띠',    stars:'★★★★☆', oneline:'신뢰할 수 있는 사람과 함께할 때 빛이 납니다.', love:'좋음', money:'상승', health:'좋음', advice:'혼자 고민하기보다 믿는 사람과 이야기를 나눠보세요. 해결의 실마리가 보일 거예요.' },
+  pig:     { emoji:'🐷', name:'돼지띠',  stars:'★★★★★', oneline:'풍요와 행운이 함께하는 하루입니다.', love:'최고', money:'최고', health:'좋음', advice:'오늘은 베풀수록 더 큰 것이 돌아오는 날이에요. 주변에 작은 친절을 나눠보세요.' },
+};
+
+function showFortune(key) {
+  const d = fortuneData[key];
+  document.getElementById('sheetEmoji').textContent = d.emoji;
+  document.getElementById('sheetName').textContent = d.name;
+  document.getElementById('sheetStars').textContent = d.stars;
+  document.getElementById('sheetOneline').textContent = '"' + d.oneline + '"';
+  document.getElementById('sheetLove').textContent = d.love;
+  document.getElementById('sheetMoney').textContent = d.money;
+  document.getElementById('sheetHealth').textContent = d.health;
+  document.getElementById('sheetAdvice').textContent = d.advice;
+
+  const sheet = document.getElementById('fortuneSheet');
+  const bg = document.getElementById('sheetBg');
+  const panel = document.getElementById('sheetPanel');
+  sheet.classList.remove('pointer-events-none');
+  requestAnimationFrame(() => {
+    bg.style.opacity = '1';
+    panel.style.transform = 'translateY(0)';
+  });
+}
+
+function closeSheet() {
+  const sheet = document.getElementById('fortuneSheet');
+  const bg = document.getElementById('sheetBg');
+  const panel = document.getElementById('sheetPanel');
+  bg.style.opacity = '0';
+  panel.style.transform = 'translateY(100%)';
+  setTimeout(() => sheet.classList.add('pointer-events-none'), 300);
+}
+
+document.getElementById('sheetBg').addEventListener('click', closeSheet);
+</script>
+
+</body>
+</html>

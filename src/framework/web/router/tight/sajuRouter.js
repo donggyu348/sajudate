@@ -394,6 +394,10 @@ router.post("/skip-payment", async (req, res) => {
     return res.status(500).send("리포트 생성 중 오류 발생");
   }
 });
+router.get("/zodiac", (req, res) => {
+  res.render("tight/saju/zodiac");
+});
+
 router.get("/review", (req, res) => {
   res.render("tight/saju/review");
 });
