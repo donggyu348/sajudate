@@ -5,385 +5,310 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
-<body class="min-h-screen bg-[#0a0a0b] text-white antialiased" style="font-family: 'Pretendard', -apple-system, sans-serif;">
+<body style="background:#0a0a0a; color:#fff; font-family:'Pretendard',-apple-system,sans-serif; padding-bottom:80px; margin:0;">
 
-<div class="w-full max-w-[480px] mx-auto min-h-screen flex flex-col">
-  <%- include('./../common/common') %>
+  <div class="page-wrapper w-full max-w-[480px] mx-auto min-h-screen flex flex-col">
+    <%- include('./../common/common') %>
 
-  <!-- ============================================================ -->
-  <!-- 1. TOP BAR                                                   -->
-  <!-- ============================================================ -->
-  <header class="sticky top-0 z-50 w-full bg-[#0a0a0b]/95 backdrop-blur-sm border-b border-white/5 flex-shrink-0">
-    <div class="flex items-center justify-between px-4 h-12">
-      <span class="text-base font-bold tracking-tight">사주정감</span>
-      <div class="flex items-center gap-4">
-        <button class="text-zinc-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 111 11a6 6 0 0116 0z"/>
-          </svg>
-        </button>
-        <button class="text-zinc-400 relative">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-          </svg>
-          <span class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
-        </button>
+    <!-- 카테고리 탭 -->
+    <div style="position:sticky; top:56px; z-index:40; background:#0a0a0a; border-bottom:1px solid rgba(255,255,255,0.05);">
+      <div id="cat-tabs" style="display:flex; gap:8px; padding:10px 16px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;">
+        <button data-cat="all" onclick="selectCat(this)" style="flex-shrink:0; padding:6px 16px; border-radius:999px; background:#fff; color:#000; font-size:13px; font-weight:700; border:none; cursor:pointer;">전체</button>
+        <button data-cat="adult" onclick="selectCat(this)" style="flex-shrink:0; padding:6px 16px; border-radius:999px; background:transparent; color:rgba(255,255,255,0.5); font-size:13px; font-weight:500; border:none; cursor:pointer;">성인</button>
+        <button data-cat="love" onclick="selectCat(this)" style="flex-shrink:0; padding:6px 16px; border-radius:999px; background:transparent; color:rgba(255,255,255,0.5); font-size:13px; font-weight:500; border:none; cursor:pointer;">연애</button>
+        <button data-cat="reunion" onclick="selectCat(this)" style="flex-shrink:0; padding:6px 16px; border-radius:999px; background:transparent; color:rgba(255,255,255,0.5); font-size:13px; font-weight:500; border:none; cursor:pointer;">재회</button>
+        <button data-cat="wealth" onclick="selectCat(this)" style="flex-shrink:0; padding:6px 16px; border-radius:999px; background:transparent; color:rgba(255,255,255,0.5); font-size:13px; font-weight:500; border:none; cursor:pointer;">재물</button>
+        <button data-cat="compat" onclick="selectCat(this)" style="flex-shrink:0; padding:6px 16px; border-radius:999px; background:transparent; color:rgba(255,255,255,0.5); font-size:13px; font-weight:500; border:none; cursor:pointer;">궁합</button>
       </div>
     </div>
-  </header>
 
-  <!-- ============================================================ -->
-  <!-- 2. HERO                                                      -->
-  <!-- ============================================================ -->
-  <section class="relative w-full flex-shrink-0 overflow-hidden" style="height:58vw;max-height:280px;min-height:200px;">
-    <div class="swiper heroSwiper absolute inset-0 w-full h-full">
-      <div class="swiper-wrapper">
-        <div class="swiper-slide relative">
-          <img src="/assets/images/tight/romantic/연애사주 히어로.png" class="absolute inset-0 w-full h-full object-cover" alt="">
-          <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent"></div>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-          <div class="absolute bottom-0 left-0 p-5 pb-7">
-            <span class="inline-block px-2 py-0.5 rounded bg-rose-500 text-white text-[10px] font-bold mb-2">🔥 인기 1위</span>
-            <h2 class="text-xl font-bold text-white leading-tight">연애사주</h2>
-            <p class="text-zinc-300 text-xs mt-1">★ 4.9 · 13.1만 명 · 로맨스</p>
+    <!-- 히어로 슬라이더 (피킹 + 입체감) -->
+    <section style="padding:14px 0 0; position:relative; overflow:hidden;">
+      <div id="hero-counter" style="position:absolute; top:26px; right:72px; color:rgba(255,255,255,0.7); font-size:12px; font-weight:600; z-index:20; pointer-events:none; background:rgba(0,0,0,0.6); padding:4px 10px; border-radius:999px; backdrop-filter:blur(4px);">1 / 2</div>
+      <div class="swiper heroSwiper" style="padding-left:16px; overflow:visible;">
+        <div class="swiper-wrapper">
+
+          <!-- 슬라이드 1: 홍연 연애사주 -->
+          <div class="swiper-slide">
+            <a href="/saju/romantic/intro" class="hero-card" style="text-decoration:none;">
+              <img src="/assets/images/tight/products/product_romantic.png" alt="홍연 연애사주"
+                onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#3d1a2e,#7b2d5e)';">
+              <div class="hero-overlay"></div>
+              <div class="hero-text">
+                <div style="display:inline-block; background:#FF2D55; color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:4px; margin-bottom:10px;">연애</div>
+                <h2 style="color:#fff; font-size:24px; font-weight:900; margin:0 0 6px; letter-spacing:-0.5px; line-height:1.2;">홍연 연애사주</h2>
+                <p style="color:rgba(255,255,255,0.65); font-size:13px; margin:0;">진짜 나의 인연을 만나다</p>
+              </div>
+            </a>
           </div>
-        </div>
-        <div class="swiper-slide relative">
-          <img src="/assets/images/tight/29/29금 히어로.png" class="absolute inset-0 w-full h-full object-cover" alt="">
-          <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent"></div>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-          <div class="absolute bottom-0 left-0 p-5 pb-7">
-            <span class="inline-block px-2 py-0.5 rounded bg-purple-500 text-white text-[10px] font-bold mb-2">✨ 신규</span>
-            <h2 class="text-xl font-bold text-white leading-tight">속궁합 사주</h2>
-            <p class="text-zinc-300 text-xs mt-1">★ 4.8 · 5.1만 명 · 성인</p>
+
+          <!-- 슬라이드 2: 29금 궁합사주 -->
+          <div class="swiper-slide">
+            <a href="/saju/adult/intro" class="hero-card" style="text-decoration:none;">
+              <img src="/assets/images/tight/products/product_adult.png" alt="29금 궁합사주"
+                onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#2d0a0a,#7b1515)';">
+              <div class="hero-overlay"></div>
+              <div class="hero-text">
+                <div style="display:inline-block; background:#FF3B3B; color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:4px; margin-bottom:10px;">성인 19+</div>
+                <h2 style="color:#fff; font-size:24px; font-weight:900; margin:0 0 6px; letter-spacing:-0.5px; line-height:1.2;">29금 궁합사주</h2>
+                <p style="color:rgba(255,255,255,0.65); font-size:13px; margin:0;">어른만의 솔직한 궁합 운세</p>
+              </div>
+            </a>
           </div>
-        </div>
-        <div class="swiper-slide relative">
-          <img src="/assets/images/tight/classic/신년사주 히어로.png" class="absolute inset-0 w-full h-full object-cover" alt="">
-          <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent"></div>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-          <div class="absolute bottom-0 left-0 p-5 pb-7">
-            <span class="inline-block px-2 py-0.5 rounded bg-amber-500 text-black text-[10px] font-bold mb-2">HOT</span>
-            <h2 class="text-xl font-bold text-white leading-tight">종합운세</h2>
-            <p class="text-zinc-300 text-xs mt-1">★ 4.9 · 12.3만 명 · 정통</p>
-          </div>
+
         </div>
       </div>
-      <div class="swiper-pagination hero-pagination !bottom-2 z-10"></div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ============================================================ -->
-  <!-- 3. 신뢰 요소 TRUST STRIP                                     -->
-  <!-- ============================================================ -->
-  <section class="px-4 py-5 border-b border-white/5">
-    <div class="flex justify-around">
-      <div class="text-center">
-        <p class="text-2xl font-bold text-white">12만+</p>
-        <p class="text-[11px] text-zinc-500 mt-1">누적 분석</p>
-      </div>
-      <div class="w-px bg-white/8"></div>
-      <div class="text-center">
-        <p class="text-2xl font-bold text-amber-400">4.9</p>
-        <p class="text-[11px] text-zinc-500 mt-1">평균 별점</p>
-      </div>
-      <div class="w-px bg-white/8"></div>
-      <div class="text-center">
-        <p class="text-2xl font-bold text-white">98%</p>
-        <p class="text-[11px] text-zinc-500 mt-1">재구매 의향</p>
-      </div>
-    </div>
-  </section>
+    <!-- ===== 재회 분야 섹션 ===== -->
+    <section style="padding:28px 16px 0;">
+      <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.35); letter-spacing:1.5px; text-transform:uppercase; margin:0 0 5px;">재회 분야</p>
+      <h2 style="font-size:19px; font-weight:800; color:#fff; margin:0 0 14px; letter-spacing:-0.3px;">잊을 수 없는 사람이 있다면...?</h2>
+      <!-- 가로 스크롤 카드 -->
+      <div style="display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; padding-bottom:4px; margin:0 -16px; padding-left:16px; padding-right:16px;">
 
-  <!-- ============================================================ -->
-  <!-- 제품 카드                                                     -->
-  <!-- ============================================================ -->
-  <section class="px-4 py-6 border-b border-white/5">
-    <div class="flex items-center gap-2 mb-4">
-      <h3 class="text-base font-bold">지금 바로 볼 수 있어요</h3>
-    </div>
-    <div class="space-y-4">
-      <a href="/saju/romantic/intro" class="block group">
-        <div class="relative rounded-2xl overflow-hidden border border-white/5 bg-zinc-900" style="height:180px;">
-          <img src="/assets/images/tight/romantic/연애사주.png" alt="연애사주" class="w-full h-full object-cover transition-transform duration-500 group-active:scale-[1.02]">
-          <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent"></div>
-          <div class="absolute inset-0 flex flex-col justify-center p-5">
-            <span class="inline-block w-fit px-2 py-0.5 rounded bg-rose-500/90 text-white text-[10px] font-bold mb-2">🔥 인기 1위</span>
-            <h2 class="text-lg font-bold text-white leading-tight">연애사주</h2>
-            <p class="text-zinc-300 text-xs mt-1.5 leading-relaxed" style="max-width:175px;">생년월일만으로 알아보는 나의 연애운과 이상형</p>
-            <div class="flex items-center gap-3 mt-2.5">
-              <span class="text-xs text-amber-400">★ 4.9</span>
-              <span class="text-xs text-zinc-500">13.1만 명이 봤어요</span>
+        <!-- 재회 카드 1: 홍연 연애사주 활용 -->
+        <a href="/saju/romantic/intro" style="text-decoration:none; flex-shrink:0; width:160px;">
+          <div style="border-radius:12px; overflow:hidden; position:relative; aspect-ratio:2/3; background:#161616;">
+            <img src="/assets/images/tight/products/product_romantic.png" style="width:100%; height:100%; object-fit:cover; display:block;" alt="재회사주"
+              onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#1a1430,#3d2b6e)';">
+            <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:12px 11px;">
+              <p style="color:#fff; font-size:14px; font-weight:800; margin:0 0 3px; letter-spacing:-0.3px;">재회사주</p>
+              <p style="color:rgba(255,255,255,0.55); font-size:11px; margin:0; line-height:1.3;">우리 다시 만날<br>운명일까...?</p>
             </div>
           </div>
-        </div>
+        </a>
+
+        <!-- 재회 카드 2: 재회*자미두 -->
+        <a href="javascript:void(0)" style="text-decoration:none; flex-shrink:0; width:160px;">
+          <div style="border-radius:12px; overflow:hidden; position:relative; aspect-ratio:2/3; background:#161616;">
+            <img src="/assets/images/tight/banner_03.png" style="width:100%; height:100%; object-fit:cover; display:block;" alt="재회*자미두"
+              onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#0a1a2e,#1a3a5e)';">
+            <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:12px 11px;">
+              <p style="color:#fff; font-size:14px; font-weight:800; margin:0 0 3px; letter-spacing:-0.3px;">재회*자미두</p>
+              <p style="color:rgba(255,255,255,0.55); font-size:11px; margin:0; line-height:1.3;">끝난 줄 알았던<br>우리, 별이...</p>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ===== 성인 분야 섹션 ===== -->
+    <section style="padding:28px 16px 0;">
+      <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.35); letter-spacing:1.5px; text-transform:uppercase; margin:0 0 5px;">성인 분야</p>
+      <h2 style="font-size:19px; font-weight:800; color:#fff; margin:0 0 14px; letter-spacing:-0.3px;">참을 수 없는 나의... 색기?!</h2>
+      <!-- 가로 스크롤 카드 -->
+      <div style="display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; padding-bottom:4px; margin:0 -16px; padding-left:16px; padding-right:16px;">
+
+        <!-- 성인 카드 1: 29금 궁합사주 -->
+        <a href="/saju/adult/intro" style="text-decoration:none; flex-shrink:0; width:160px;">
+          <div style="border-radius:12px; overflow:hidden; position:relative; aspect-ratio:2/3; background:#161616;">
+            <img src="/assets/images/tight/products/product_adult.png" style="width:100%; height:100%; object-fit:cover; display:block;" alt="29금 궁합사주"
+              onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#2d0a0a,#7b1515)';">
+            <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:12px 11px;">
+              <p style="color:#fff; font-size:14px; font-weight:800; margin:0 0 3px; letter-spacing:-0.3px;">29금 궁합사주</p>
+              <p style="color:rgba(255,255,255,0.55); font-size:11px; margin:0; line-height:1.3;">합성으로 본 나의<br>은밀한 욕망</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- 성인 카드 2: 도하살 사주 -->
+        <a href="javascript:void(0)" style="text-decoration:none; flex-shrink:0; width:160px;">
+          <div style="border-radius:12px; overflow:hidden; position:relative; aspect-ratio:2/3; background:#161616;">
+            <img src="/assets/images/tight/banner1.png" style="width:100%; height:100%; object-fit:cover; display:block;" alt="도하살 사주"
+              onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#1a0a2e,#4a1a6e)';">
+            <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:12px 11px;">
+              <p style="color:#fff; font-size:14px; font-weight:800; margin:0 0 3px; letter-spacing:-0.3px;">도하살 사주</p>
+              <p style="color:rgba(255,255,255,0.55); font-size:11px; margin:0; line-height:1.3;">타고난 치명적<br>매력의 비밀</p>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ===== 연애 분야 섹션 ===== -->
+    <section style="padding:28px 16px 0;">
+      <p style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.35); letter-spacing:1.5px; text-transform:uppercase; margin:0 0 5px;">연애 분야</p>
+      <h2 style="font-size:19px; font-weight:800; color:#fff; margin:0 0 14px; letter-spacing:-0.3px;">나의 진짜 인연은 언제 올까?</h2>
+      <div style="display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; padding-bottom:4px; margin:0 -16px; padding-left:16px; padding-right:16px;">
+
+        <!-- 연애 카드 1 -->
+        <a href="/saju/romantic/intro" style="text-decoration:none; flex-shrink:0; width:160px;">
+          <div style="border-radius:12px; overflow:hidden; position:relative; aspect-ratio:2/3; background:#161616;">
+            <img src="/assets/images/tight/products/product_romantic.png" style="width:100%; height:100%; object-fit:cover; display:block;" alt="홍연 연애사주"
+              onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#3d1a2e,#7b2d5e)';">
+            <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:12px 11px;">
+              <p style="color:#fff; font-size:14px; font-weight:800; margin:0 0 3px; letter-spacing:-0.3px;">홍연 연애사주</p>
+              <p style="color:rgba(255,255,255,0.55); font-size:11px; margin:0; line-height:1.3;">운명의 붉은 실이<br>이어지는 날</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- 연애 카드 2 -->
+        <a href="javascript:void(0)" style="text-decoration:none; flex-shrink:0; width:160px;">
+          <div style="border-radius:12px; overflow:hidden; position:relative; aspect-ratio:2/3; background:#161616;">
+            <img src="/assets/images/tight/romantic/index_banner1.png" style="width:100%; height:100%; object-fit:cover; display:block;" alt="연애사주"
+              onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#2a0a3e,#6e1a8e)';">
+            <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 55%);"></div>
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:12px 11px;">
+              <p style="color:#fff; font-size:14px; font-weight:800; margin:0 0 3px; letter-spacing:-0.3px;">연애사주</p>
+              <p style="color:rgba(255,255,255,0.55); font-size:11px; margin:0; line-height:1.3;">나의 연애운과<br>이상형 분석</p>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- 하단 여백 -->
+    <div style="height:20px;"></div>
+
+  </div>
+
+  <!-- 하단 네비게이션 바 -->
+  <nav id="bottom-nav-bar" style="position:fixed; bottom:0; left:0; right:0; z-index:50; background:#111; border-top:1px solid rgba(255,255,255,0.06);">
+    <div style="max-width:480px; margin:0 auto; display:flex; justify-content:space-around; align-items:center; height:68px; padding:0 8px;">
+
+      <!-- 홈 (활성) -->
+      <a href="/saju" style="display:flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color:#fff; flex:1;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
       </a>
-      <a href="/saju/adult/intro" class="block group">
-        <div class="relative rounded-2xl overflow-hidden border border-white/5 bg-zinc-900" style="height:180px;">
-          <img src="/assets/images/tight/29/29금.png" alt="속궁합 사주" class="w-full h-full object-cover transition-transform duration-500 group-active:scale-[1.02]">
-          <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent"></div>
-          <div class="absolute inset-0 flex flex-col justify-center p-5">
-            <span class="inline-block w-fit px-2 py-0.5 rounded bg-purple-500/90 text-white text-[10px] font-bold mb-2">✨ 신규</span>
-            <h2 class="text-lg font-bold text-white leading-tight">속궁합 사주</h2>
-            <p class="text-zinc-300 text-xs mt-1.5 leading-relaxed" style="max-width:175px;">솔직하고 깊은 두 사람의 관계 분석</p>
-            <div class="flex items-center gap-3 mt-2.5">
-              <span class="text-xs text-amber-400">★ 4.8</span>
-              <span class="text-xs text-zinc-500">5.1만 명이 봤어요</span>
-            </div>
-          </div>
-        </div>
+
+      <!-- 채팅 -->
+      <a href="javascript:void(0)" style="display:flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color:rgba(255,255,255,0.35); flex:1;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
       </a>
-    </div>
-  </section>
 
-  <!-- ============================================================ -->
-  <!-- 6. 오늘의 띠별 운세                                           -->
-  <!-- ============================================================ -->
-  <section class="px-4 py-6 border-b border-white/5">
-    <a href="/saju/zodiac" class="block group">
-      <div class="relative rounded-2xl overflow-hidden border border-purple-500/20 bg-gradient-to-br from-violet-950 via-indigo-900 to-purple-950 p-5">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs text-purple-300 font-medium mb-1.5">🎋 무료 콘텐츠</p>
-            <h3 class="text-lg font-bold text-white leading-tight">오늘의 띠별 운세</h3>
-            <p class="text-xs text-purple-200/60 mt-1.5 leading-relaxed">12띠 중 내 띠를 선택하면<br>오늘의 운세를 바로 확인할 수 있어요</p>
-            <div class="flex items-center gap-2 mt-3">
-              <span class="px-2 py-0.5 rounded-full bg-purple-500/30 text-purple-300 text-[10px] font-medium">매일 업데이트</span>
-              <span class="px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 text-[10px] font-medium">무료</span>
-            </div>
-          </div>
-          <div class="text-right flex-shrink-0 ml-4">
-            <div class="grid grid-cols-3 gap-1 w-[72px]">
-              <span class="text-xl">🐭</span><span class="text-xl">🐮</span><span class="text-xl">🐯</span>
-              <span class="text-xl">🐰</span><span class="text-xl">🐲</span><span class="text-xl">🐍</span>
-              <span class="text-xl">🐴</span><span class="text-xl">🐑</span><span class="text-xl">🐵</span>
-            </div>
-          </div>
-        </div>
-        <div class="flex items-center gap-1 mt-4 text-purple-300 text-xs font-medium">
-          <span>내 띠 운세 확인하기</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-          </svg>
-        </div>
-      </div>
-    </a>
-  </section>
+      <!-- 검색 -->
+      <a href="javascript:void(0)" style="display:flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color:rgba(255,255,255,0.35); flex:1;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </a>
 
-  <!-- ============================================================ -->
-  <!-- 10. 고객 후기                                                 -->
-  <!-- ============================================================ -->
-  <section class="px-4 py-6 border-b border-white/5">
-    <div class="flex items-center gap-2 mb-4">
-      <span class="text-lg">⭐</span>
-      <h3 class="text-base font-bold">실제 후기</h3>
-      <span class="ml-auto text-[11px] text-zinc-500">총 8,210개</span>
-    </div>
-
-    <!-- 요약 별점 -->
-    <div class="flex items-center gap-4 p-4 rounded-2xl bg-zinc-900 border border-white/5 mb-4">
-      <div class="text-center">
-        <p class="text-4xl font-black text-amber-400">4.9</p>
-        <p class="text-amber-400 text-sm mt-0.5">★★★★★</p>
-        <p class="text-[10px] text-zinc-500 mt-1">8,210개 후기</p>
-      </div>
-      <div class="flex-1 space-y-1.5">
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] text-zinc-400 w-6">5점</span>
-          <div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-            <div class="h-full bg-amber-400 rounded-full" style="width:82%"></div>
-          </div>
-          <span class="text-[10px] text-zinc-500">82%</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] text-zinc-400 w-6">4점</span>
-          <div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-            <div class="h-full bg-amber-400 rounded-full" style="width:13%"></div>
-          </div>
-          <span class="text-[10px] text-zinc-500">13%</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] text-zinc-400 w-6">3점</span>
-          <div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-            <div class="h-full bg-amber-400 rounded-full" style="width:4%"></div>
-          </div>
-          <span class="text-[10px] text-zinc-500">4%</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] text-zinc-400 w-6">1~2점</span>
-          <div class="flex-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-            <div class="h-full bg-amber-400 rounded-full" style="width:1%"></div>
-          </div>
-          <span class="text-[10px] text-zinc-500">1%</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="space-y-3">
-      <div class="rounded-2xl bg-zinc-900 border border-white/5 p-4">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-rose-500/25 flex items-center justify-center text-xs text-rose-300 font-semibold">김</div>
-            <div>
-              <p class="text-xs font-medium text-white">김** · 연애사주</p>
-              <p class="text-[10px] text-zinc-500">2일 전</p>
-            </div>
-          </div>
-          <span class="text-xs text-amber-400">★★★★★</span>
-        </div>
-        <p class="text-xs text-zinc-300 leading-relaxed">"속궁합까지 소름 돋게 맞아서 친구한테 바로 공유했어요. 재방문 의사 100%"</p>
-      </div>
-      <div class="rounded-2xl bg-zinc-900 border border-white/5 p-4">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-purple-500/25 flex items-center justify-center text-xs text-purple-300 font-semibold">이</div>
-            <div>
-              <p class="text-xs font-medium text-white">이** · 속궁합 사주</p>
-              <p class="text-[10px] text-zinc-500">5일 전</p>
-            </div>
-          </div>
-          <span class="text-xs text-amber-400">★★★★★</span>
-        </div>
-        <p class="text-xs text-zinc-300 leading-relaxed">"연애사주에서 나랑 잘 맞는 타입이 딱 나와서 신기했어요. 정말 소름 돋았어요."</p>
-      </div>
-      <div class="rounded-2xl bg-zinc-900 border border-white/5 p-4">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-amber-500/25 flex items-center justify-center text-xs text-amber-300 font-semibold">박</div>
-            <div>
-              <p class="text-xs font-medium text-white">박** · 연애사주</p>
-              <p class="text-[10px] text-zinc-500">1주일 전</p>
-            </div>
-          </div>
-          <span class="text-xs text-amber-400">★★★★★</span>
-        </div>
-        <p class="text-xs text-zinc-300 leading-relaxed">"재회 가능성 부분이 너무 정확해서 깜짝 놀랐어요. 이걸 더 일찍 알았으면 좋았을 텐데."</p>
-      </div>
-      <div class="rounded-2xl bg-zinc-900 border border-white/5 p-4">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-emerald-500/25 flex items-center justify-center text-xs text-emerald-300 font-semibold">최</div>
-            <div>
-              <p class="text-xs font-medium text-white">최** · 종합운세</p>
-              <p class="text-[10px] text-zinc-500">2주일 전</p>
-            </div>
-          </div>
-          <span class="text-xs text-amber-400">★★★★★</span>
-        </div>
-        <p class="text-xs text-zinc-300 leading-relaxed">"사주 처음 봤는데 너무 잘 맞아서 신기했어요. 친구들한테도 다 추천했습니다."</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================ -->
-  <!-- 12. FAQ                                                      -->
-  <!-- ============================================================ -->
-  <section class="px-4 py-6 border-b border-white/5">
-    <div class="flex items-center gap-2 mb-4">
-      <span class="text-lg">❓</span>
-      <h3 class="text-base font-bold">자주 묻는 질문</h3>
-    </div>
-    <div class="space-y-2" id="faqList">
-
-      <div class="faq-item rounded-2xl bg-zinc-900 border border-white/5 overflow-hidden">
-        <button class="faq-btn w-full flex items-center justify-between p-4 text-left" onclick="toggleFaq(this)">
-          <span class="text-sm font-medium text-white">결과는 얼마나 걸리나요?</span>
-          <svg class="faq-icon w-4 h-4 text-zinc-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </button>
-        <div class="faq-answer hidden px-4 pb-4">
-          <p class="text-xs text-zinc-400 leading-relaxed">생년월일 입력 후 평균 30초 이내에 결과를 받아볼 수 있습니다. 결과는 저장되어 언제든 다시 확인할 수 있어요.</p>
-        </div>
-      </div>
-
-      <div class="faq-item rounded-2xl bg-zinc-900 border border-white/5 overflow-hidden">
-        <button class="faq-btn w-full flex items-center justify-between p-4 text-left" onclick="toggleFaq(this)">
-          <span class="text-sm font-medium text-white">개인정보는 안전한가요?</span>
-          <svg class="faq-icon w-4 h-4 text-zinc-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </button>
-        <div class="faq-answer hidden px-4 pb-4">
-          <p class="text-xs text-zinc-400 leading-relaxed">입력된 생년월일은 분석 목적으로만 사용되며, 분석 완료 후 즉시 파기됩니다. 제3자 제공 및 마케팅 활용은 절대 없습니다.</p>
-        </div>
-      </div>
-
-      <div class="faq-item rounded-2xl bg-zinc-900 border border-white/5 overflow-hidden">
-        <button class="faq-btn w-full flex items-center justify-between p-4 text-left" onclick="toggleFaq(this)">
-          <span class="text-sm font-medium text-white">어떤 정보가 필요한가요?</span>
-          <svg class="faq-icon w-4 h-4 text-zinc-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </button>
-        <div class="faq-answer hidden px-4 pb-4">
-          <p class="text-xs text-zinc-400 leading-relaxed">이름, 생년월일, 태어난 시간이 필요합니다. 태어난 시간을 모르는 경우에도 분석이 가능하지만 정확도가 다소 낮아질 수 있습니다.</p>
-        </div>
-      </div>
-
-      <div class="faq-item rounded-2xl bg-zinc-900 border border-white/5 overflow-hidden">
-        <button class="faq-btn w-full flex items-center justify-between p-4 text-left" onclick="toggleFaq(this)">
-          <span class="text-sm font-medium text-white">환불이 가능한가요?</span>
-          <svg class="faq-icon w-4 h-4 text-zinc-400 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </button>
-        <div class="faq-answer hidden px-4 pb-4">
-          <p class="text-xs text-zinc-400 leading-relaxed">결과 확인 전에는 전액 환불이 가능합니다. 결과 확인 후에는 디지털 콘텐츠 특성상 환불이 어렵습니다. 문의는 공식 인스타그램 DM으로 연락해 주세요.</p>
-        </div>
-      </div>
+      <!-- 박스 -->
+      <a href="javascript:void(0)" style="display:flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color:rgba(255,255,255,0.35); flex:1;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+      </a>
 
     </div>
-  </section>
+  </nav>
 
-  <div class="h-8 flex-shrink-0"></div>
+  <style>
+    #cat-tabs::-webkit-scrollbar { display: none; }
+    section div::-webkit-scrollbar { display: none; }
 
-  <%- include('./../common/footer') %>
-</div>
-
-<style>
-  .scrollbar-hide::-webkit-scrollbar { display: none; }
-  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-  .hero-pagination .swiper-pagination-bullet {
-    background: rgba(255,255,255,0.4);
-    opacity: 1;
-    width: 6px;
-    height: 6px;
-    transition: all 0.3s ease;
-  }
-  .hero-pagination .swiper-pagination-bullet-active {
-    background: #fff;
-    width: 20px;
-    border-radius: 12px;
-  }
-  .faq-answer { animation: fadeIn 0.2s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
-</style>
-
-<script>
-  const heroSwiper = new Swiper(".heroSwiper", {
-    loop: true,
-    effect: "fade",
-    fadeEffect: { crossFade: true },
-    autoplay: { delay: 4000, disableOnInteraction: false },
-    pagination: { el: ".hero-pagination", clickable: true },
-  });
-
-  function toggleFaq(btn) {
-    var answer = btn.nextElementSibling;
-    var icon = btn.querySelector('.faq-icon');
-    var isOpen = !answer.classList.contains('hidden');
-
-    // 모두 닫기
-    document.querySelectorAll('.faq-answer').forEach(function(a) { a.classList.add('hidden'); });
-    document.querySelectorAll('.faq-icon').forEach(function(i) { i.style.transform = ''; });
-
-    if (!isOpen) {
-      answer.classList.remove('hidden');
-      icon.style.transform = 'rotate(180deg)';
+    /* ── 히어로 슬라이드: 피킹 + 입체감 ── */
+    .heroSwiper .swiper-slide {
+      height: auto;
+      width: calc(100% - 72px) !important;  /* 오른쪽에 ~52px 피킹 공간 */
+      transition: transform 0.4s ease, opacity 0.4s ease;
     }
-  }
-</script>
+    /* 비활성 슬라이드: 살짝 어둡고 축소 */
+    .heroSwiper .swiper-slide:not(.swiper-slide-active) {
+      opacity: 0.45;
+      transform: scale(0.96) translateY(6px);
+    }
 
+    /* 카드 기본: 강한 그림자로 입체감 */
+    .hero-card {
+      display: block;
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      padding-bottom: 150%;        /* 2:3 세로형 비율 */
+      background: #1a1a1a;
+      text-decoration: none;
+      /* 다층 그림자 = 카드가 공중에 떠있는 느낌 */
+      box-shadow:
+        0 1px 2px  rgba(0,0,0,0.5),
+        0 4px 12px rgba(0,0,0,0.55),
+        0 16px 40px rgba(0,0,0,0.6),
+        0 32px 80px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(255,255,255,0.08);
+      transition: box-shadow 0.4s ease, transform 0.4s ease;
+    }
+    /* 활성 슬라이드 카드: 더 강하게 부각 */
+    .swiper-slide-active .hero-card {
+      box-shadow:
+        0 2px 4px  rgba(0,0,0,0.5),
+        0 8px 24px rgba(0,0,0,0.6),
+        0 24px 64px rgba(0,0,0,0.7),
+        0 48px 100px rgba(0,0,0,0.45),
+        0 0 0 1px rgba(255,255,255,0.12);
+      transform: translateY(-4px);
+    }
+
+    .hero-card img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .hero-card .hero-overlay { position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 52%, transparent 100%); }
+    .hero-card .hero-text { position:absolute; bottom:0; left:0; right:0; padding:22px 18px; }
+    section div::-webkit-scrollbar { display: none; }
+
+    /* ── 데스크톱: 모든 fixed 요소를 480px 컬럼 안으로 ── */
+    @media (min-width: 500px) {
+      #main-navbar {
+        left:   max(0px, calc(50% - 240px)) !important;
+        right:  max(0px, calc(50% - 240px)) !important;
+      }
+      #bottom-nav-bar {
+        left:   max(0px, calc(50% - 240px)) !important;
+        right:  max(0px, calc(50% - 240px)) !important;
+        border-radius: 0 0 12px 12px;
+      }
+      .page-wrapper {
+        border-left:  1px solid rgba(255,255,255,0.07);
+        border-right: 1px solid rgba(255,255,255,0.07);
+        box-shadow: 0 0 60px rgba(0,0,0,0.8);
+      }
+    }
+  </style>
+
+  <script>
+    function selectCat(btn) {
+      document.querySelectorAll('#cat-tabs button').forEach(function(b) {
+        b.style.background = 'transparent';
+        b.style.color = 'rgba(255,255,255,0.5)';
+        b.style.fontWeight = '500';
+      });
+      btn.style.background = '#fff';
+      btn.style.color = '#000';
+      btn.style.fontWeight = '700';
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      var slides = document.querySelectorAll('.heroSwiper .swiper-slide');
+      var totalSlides = slides.length;
+      var counter = document.getElementById('hero-counter');
+
+      new Swiper(".heroSwiper", {
+        loop: true,
+        slidesPerView: "auto",   /* 슬라이드 CSS width 사용 */
+        spaceBetween: 14,
+        centeredSlides: false,
+        grabCursor: true,
+        autoplay: { delay: 4500, disableOnInteraction: false },
+        on: {
+          slideChange: function(swiper) {
+            if (counter) {
+              counter.textContent = (swiper.realIndex + 1) + ' / ' + totalSlides;
+            }
+          }
+        }
+      });
+    });
+  </script>
 </body>
 </html>
