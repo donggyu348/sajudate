@@ -9832,10 +9832,6 @@ button,
   width: 1.75rem
 }
 
-.w-72 {
-  width: 18rem
-}
-
 .w-8 {
   width: 2rem
 }
@@ -11158,11 +11154,6 @@ button,
 
 .border-t-transparent {
   border-top-color: transparent
-}
-
-.bg-\[\#0a0809\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(10 8 9 / var(--tw-bg-opacity))
 }
 
 .bg-\[\#0a0a0b\] {
@@ -12867,11 +12858,6 @@ button,
   .md\:text-base {
     font-size: 1rem;
     line-height: 1.5rem
-  }
-
-  .md\:text-lg {
-    font-size: 1.125rem;
-    line-height: 1.75rem
   }
 
   .md\:text-sm {
