@@ -1,116 +1,127 @@
 <style>
-/* =========================
-   Luxury Drawer (CSS only)
-========================= */
-
-/* overlay */
-.luxury-overlay {
-  background: rgba(0,0,0,0.65);
+.wh-drawer-overlay {
+  background: rgba(0, 0, 0, 0.45);
 }
-
-/* drawer 열렸을 때만 blur */
-.drawer-toggle:checked ~ .drawer-side .luxury-overlay {
+.drawer-toggle:checked ~ .drawer-side .wh-drawer-overlay {
   backdrop-filter: blur(2px);
-  background: radial-gradient(
-    circle at top,
-    rgba(0,0,0,0.55),
-    rgba(0,0,0,0.85)
-  );
+  -webkit-backdrop-filter: blur(2px);
 }
 
-/* panel */
-.luxury-panel {
-  background: linear-gradient(180deg, #0b0f1a 0%, #05070d 100%);
-  box-shadow: 8px 0 40px rgba(0,0,0,0.65);
-  border-right: 1px solid rgba(212,175,55,0.18);
+.wh-drawer-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: min(300px, 82vw);
+  background: #fff;
+  border-left: none;
+  border-radius: 16px 0 0 16px;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  color: #111;
 }
 
-/* navbar */
-.luxury-panel .navbar {
-  background: transparent;
-  border-bottom: 1px solid rgba(212,175,55,0.18);
+.wh-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 16px 16px 8px;
 }
 
-/* logo icon */
-.luxury-panel .logo-circle {
-  border-radius: 9999px;
-  background: radial-gradient(circle at top left, #ffd700, #b48a2c);
-  box-shadow: 0 0 14px rgba(212,175,55,0.55);
-}
-
-/* logo text */
-.luxury-panel .logo-text {
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #f5f5f5;
-}
-
-/* close button */
-.luxury-panel .close-icon {
-  stroke: rgba(255,255,255,0.7);
-  transition: transform .25s ease, stroke .25s ease;
-}
-.luxury-panel label:hover .close-icon {
-  transform: rotate(90deg);
-  stroke: #ffd700;
-}
-
-/* menu */
-.luxury-menu li {
+.wh-drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: none;
+  background: transparent;
+  color: #111;
+  cursor: pointer;
+  padding: 0;
+}
+.wh-drawer-close svg {
+  width: 22px;
+  height: 22px;
 }
 
-.luxury-menu a {
-  position: relative;
-  border-radius: 14px;
-  color: rgba(255,255,255,0.85);
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  transition: all .25s ease;
+.wh-drawer-body {
+  flex: 1;
+  overflow-y: auto;
 }
 
-/* gold accent line */
-.luxury-menu a::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 2px;
-  height: 0%;
-  background: linear-gradient(180deg, #ffd700, #ff8c00);
-  transform: translateY(-50%);
-  transition: height .25s ease;
-  border-radius: 2px;
+.wh-drawer-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0 20px;
 }
 
-/* hover */
-.luxury-menu a:hover {
-  background: linear-gradient(
-    90deg,
-    rgba(212,175,55,0.14),
-    rgba(212,175,55,0.02)
-  );
-  color: #ffffff;
-  transform: translateX(4px);
+.wh-drawer-menu li {
+  border-bottom: 1px solid #f0f0f0;
 }
-.luxury-menu a:hover::before {
-  height: 60%;
+.wh-drawer-menu li:last-child {
+  border-bottom: none;
 }
 
-/* arrow */
-.luxury-menu .arrow {
-  fill: rgba(255,255,255,0.5);
-  transition: transform .25s ease, fill .25s ease;
-}
-.luxury-menu a:hover .arrow {
-  transform: translateX(4px);
-  fill: #ffd700;
-}
-
-/* highlight items */
-.luxury-highlight {
-  color: #ffd700 !important;
+.wh-drawer-menu a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 0;
+  color: #111;
+  font-size: 16px;
   font-weight: 700;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+}
+.wh-drawer-menu a:active {
+  opacity: 0.65;
+}
+
+.wh-drawer-menu__chev {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: #bbb;
+}
+
+.wh-drawer-foot {
+  margin-top: auto;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid #f0f0f0;
+}
+
+.wh-drawer-kakao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 50px;
+  border-radius: 10px;
+  background: #fee500;
+  color: #191919;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+}
+.wh-drawer-kakao:active {
+  filter: brightness(0.96);
+}
+.wh-drawer-kakao svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.wh-drawer-hours {
+  margin: 12px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: #999;
+  text-align: center;
+  letter-spacing: -0.1px;
 }
 </style>
 
@@ -118,65 +129,52 @@
   <input id="my-drawer" type="checkbox" class="drawer-toggle" />
 
   <div class="drawer-side z-40">
-    <label for="my-drawer" class="drawer-overlay luxury-overlay"></label>
+    <label for="my-drawer" class="drawer-overlay wh-drawer-overlay" aria-label="메뉴 닫기"></label>
 
-    <div class="drawer-content min-h-full w-72 md:w-96 luxury-panel text-white">
+    <div class="drawer-content wh-drawer-panel">
 
-      <!-- header -->
-      <div class="navbar px-4">
-        <div class="flex-1">
-          <a href="/saju" class="flex items-center gap-3">
-            <div class="w-9 h-9 flex items-center justify-center logo-circle">
-              <span class="text-black font-bold text-sm" style="font-family: 'Pretendard', sans-serif;">월</span>
-            </div>
-            <span class="logo-text text-xl font-semibold" style="font-family: 'Pretendard', sans-serif;">월하점</span>
-          </a>
-        </div>
+      <header class="wh-drawer-head">
+        <label for="my-drawer" class="wh-drawer-close" aria-label="닫기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </label>
+      </header>
 
-        <div class="flex-none">
-          <label for="my-drawer" class="btn btn-square btn-ghost">
-            <svg viewBox="0 0 32 32" class="w-5 h-5 close-icon">
-              <path d="M2 2 30 30M2 30 30 2" stroke-width="4" fill="none"/>
-            </svg>
-          </label>
-        </div>
+      <div class="wh-drawer-body">
+        <ul class="wh-drawer-menu">
+          <li>
+            <a href="/saju/ticket">
+              <span>티켓</span>
+              <svg class="wh-drawer-menu__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+          </li>
+          <li>
+            <a href="/saju/review">
+              <span>유료 운세 결과 다시보기</span>
+              <svg class="wh-drawer-menu__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+          </li>
+          <li>
+            <a href="/saju/reviews">
+              <span>이용 후기</span>
+              <svg class="wh-drawer-menu__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+            </a>
+          </li>
+        </ul>
       </div>
 
-      <!-- menu -->
-      <ul class="menu px-3 py-4 luxury-menu text-base md:text-lg">
+      <% const KAKAO_INQUIRY_URL = "https://pf.kakao.com/_qxgixfX/friend"; %>
+      <footer class="wh-drawer-foot">
+        <a class="wh-drawer-kakao" href="<%= KAKAO_INQUIRY_URL %>" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M12 3C6.48 3 2 6.58 2 11c0 2.84 1.87 5.33 4.66 6.77-.2.74-.73 2.69-.84 3.12-.13.5.18.49.38.36.16-.1 2.55-1.73 3.59-2.42.66.1 1.34.15 2.21.15 5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
+          </svg>
+          카카오톡 문의
+        </a>
+        <p class="wh-drawer-hours">운영시간 평일 09:00~18:00</p>
+      </footer>
 
-        <li>
-          <a href="/saju/classic/intro" class="py-4">
-            <span>신년사주</span>
-            <svg viewBox="0 0 139 139" class="w-6 h-6 ml-auto arrow">
-              <path d="M84.629 65.592L62.108 43.257a5.4 5.4 0 0 0-7.637 7.638l18.611 18.609-18.705 18.707a5.398 5.398 0 1 0 7.634 7.635l21.706-21.703a5.37 5.37 0 0 0 0-7.724z"/>
-            </svg>
-          </a>
-        </li>
-
-        <li>
-          <a href="/saju/romantic/intro" class="py-4">
-            <span>연애사주</span>
-            <svg viewBox="0 0 139 139" class="w-6 h-6 ml-auto arrow">
-              <path d="M84.629 65.592L62.108 43.257a5.4 5.4 0 0 0-7.637 7.638l18.611 18.609-18.705 18.707a5.398 5.398 0 1 0 7.634 7.635l21.706-21.703a5.37 5.37 0 0 0 0-7.724z"/>
-            </svg>
-          </a>
-        </li>
-
-        <li>
-          <a href="/saju/ticket" class="py-4 luxury-highlight">
-            티켓
-          </a>
-        </li>
-
-        <li>
-          <a href="/saju/review" class="py-4 luxury-highlight">
-            유료 운세 결과 다시보기
-          </a>
-        </li>
-
-
-      </ul>
     </div>
   </div>
 </div>

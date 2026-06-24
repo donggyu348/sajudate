@@ -12007,10 +12007,6 @@ button,
   letter-spacing: 0.05em
 }
 
-.tracking-widest {
-  letter-spacing: 0.1em
-}
-
 .text-\[\#2B557E\] {
   --tw-text-opacity: 1;
   color: rgb(43 85 126 / var(--tw-text-opacity))
@@ -12023,10 +12019,6 @@ button,
 .text-amber-400 {
   --tw-text-opacity: 1;
   color: rgb(251 191 36 / var(--tw-text-opacity))
-}
-
-.text-amber-400\/80 {
-  color: rgb(251 191 36 / 0.8)
 }
 
 .text-amber-400\/90 {
