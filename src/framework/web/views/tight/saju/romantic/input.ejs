@@ -2,213 +2,256 @@
 <html lang="ko">
 <%- include('./../../common/header') %>
 <head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
     :root {
-      --gold: #d4af37;
-      --white-soft: rgba(255,255,255,0.6);
-      --white-dim: rgba(255,255,255,0.35);
+      --accent: #ff5722;
+      --text-dim: rgba(255, 255, 255, 0.45);
     }
+
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       background: #000;
       color: #fff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      overflow: auto;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* ===== STAGE ===== */
     .stage {
-      max-width: 480px;
-      height: 100vh;
-      margin: 0 auto;
       position: relative;
-      background: linear-gradient(
-        180deg,
-        #060101 0%,
-        #090202 25%,
-        #070101 50%,
-        #050000 75%,
-        #030000 100%
-      );
+      max-width: 480px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: 20px 24px calc(96px + env(safe-area-inset-bottom, 0px));
+      background: #000;
+      overflow-x: hidden;
     }
 
     .stage::after {
       content: "";
       position: absolute;
-      inset: 0;
+      left: 50%;
+      bottom: 0;
+      width: 140%;
+      height: 52%;
+      transform: translateX(-50%);
+      background: radial-gradient(ellipse at center bottom, rgba(212, 155, 55, 0.28) 0%, rgba(120, 70, 20, 0.08) 38%, transparent 72%);
       pointer-events: none;
-      background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.8) 100%);
     }
 
-    /* ===== QUESTION ===== */
-    .question-layer {
-      position: absolute;
-      top: 38%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      padding: 0 24px;
-      text-align: center;
-      z-index: 5;
+    .stage-inner {
+      position: relative;
+      z-index: 1;
     }
 
-    .question-sub {
-      font-size: 11px;
-      letter-spacing: 0.22em;
-      opacity: 0.55;
-      margin-bottom: 10px;
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 44px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      letter-spacing: -0.02em;
     }
 
-    .question-title {
-      font-size: 24px;
-      font-weight: 600;
-      line-height: 1.5;
-      letter-spacing: -0.01em;
+    .back-btn svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
     }
 
-    /* ===== STEP ===== */
-    .step { display: none; }
-    .step.active { display: block; }
-
-    /* ===== INPUT AREA ===== */
-    .input-area {
-      position: absolute;
-      top: 56%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 48px);
-      max-width: 420px;
-      z-index: 5;
-      animation: fadeUp 0.5s ease;
+    .form-header h1 {
+      margin: 0 0 36px;
+      font-size: clamp(28px, 7.5vw, 34px);
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.04em;
     }
 
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translate(-50%, 14px);
-      }
-      to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
-    }
-
-    /* ===== INPUT ===== */
-    .input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--white-dim);
-      padding: 10px 6px;
-      font-size: 20px;
-      color: #fff;
-      outline: none;
-      text-align: center;
-      letter-spacing: 0.02em;
-      transition: border-color 0.3s ease;
-    }
-
-    .input::placeholder {
-      color: rgba(255,255,255,0.35);
-    }
-
-    .input:focus {
-      border-bottom-color: var(--gold);
-    }
-
-    /* ===== SELECT ===== */
-    select.input {
-      appearance: none;
-      text-align-last: center;
-      cursor: pointer;
-    }
-
-    select option {
-      background-color: #111;
-      color: #fff;
-    }
-
-    /* ===== CHOICE BUTTON ===== */
-    .choice-btn {
-      width: 100%;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 12px;
-      color: var(--white-soft);
-      font-size: 16px;
-      text-align: center;
-      transition: all 0.25s ease;
-    }
-
-    .choice-btn.active {
-      border-color: var(--gold);
-      color: var(--gold);
-      box-shadow: 0 0 14px rgba(212,175,55,0.25);
-      font-weight: 700;
-    }
-
-    /* ===== NEXT BUTTON ===== */
-    .next-btn {
-      position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 48px);
-      max-width: 420px;
-      height: 52px;
-      border-radius: 26px;
-      border: 1px solid var(--gold);
-      background: transparent;
-      color: var(--gold);
+    .form-header p {
+      margin: 0 0 36px;
       font-size: 15px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.72);
+      letter-spacing: -0.02em;
+    }
+
+    .form-header strong {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .name-input {
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 14px 0;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      background: transparent;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      outline: none;
+    }
+
+    .name-input::placeholder {
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    .name-input:focus {
+      border-bottom-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .form-row__label {
+      flex: 1;
+      min-width: 0;
+      font-size: 18px;
       font-weight: 700;
-      letter-spacing: 0.12em;
-      z-index: 5;
-      transition: all 0.3s ease;
+      letter-spacing: -0.03em;
+      color: #fff;
     }
 
-    .next-btn:hover {
-      background: var(--gold);
-      color: #000;
+    .form-row__input {
+      flex: 1;
+      min-width: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      outline: none;
     }
 
-    .next-btn:disabled {
+    .form-row__input::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    .pill-group {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .pill-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      height: 34px;
+      padding: 0 14px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.42);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .pill-btn.active {
+      background: #fff;
+      color: #111;
+    }
+
+    .time-picker {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .time-picker select {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      color: #111;
+      color-scheme: light;
+    }
+
+    .time-picker select option {
+      color: #111;
+      background-color: #fff;
+    }
+
+    .gender-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 36px;
+    }
+
+    .gender-btn {
+      flex: 1;
+      height: 54px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 999px;
+      background: transparent;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .gender-btn.active {
+      background: #fff;
+      border-color: #fff;
+      color: #111;
+    }
+
+    .submit-btn {
+      position: fixed;
+      left: 50%;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      z-index: 10;
+      width: calc(100% - 48px);
+      max-width: 432px;
+      height: 54px;
+      border: none;
+      border-radius: 999px;
+      background: #fff;
+      color: #111;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .submit-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
-      pointer-events: none;
     }
 
-    /* ===== AUTOFILL ===== */
     input:-webkit-autofill,
     input:-webkit-autofill:hover,
     input:-webkit-autofill:focus {
-      -webkit-box-shadow: 0 0 0px 1000px rgba(10,10,10,0.6) inset;
+      -webkit-box-shadow: 0 0 0 1000px #000 inset;
       -webkit-text-fill-color: #fff;
+      transition: background-color 5000s ease-in-out 0s;
     }
-    /* 모바일 안전 영역 대응 */
-.stage {
-  height: 100svh; /* iOS, 최신 안드로이드 대응 */
-}
 
-/* 다음 버튼을 고정 바처럼 */
-.next-btn {
-  position: fixed;
-  bottom: calc(20px + env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* 키보드 올라와도 가려지지 않게 */
-@supports (height: 100dvh) {
-  .stage {
-    height: 100dvh;
-  }
-}
-
-    /* ===== 로딩 오버레이 (붉은 실 인연) ===== */
+    /* ===== 로딩 오버레이 ===== */
     .loading-overlay {
       position: fixed;
       inset: 0;
@@ -297,9 +340,7 @@
       transition: opacity 0.25s ease;
     }
 
-    .loading-title.is-fading {
-      opacity: 0;
-    }
+    .loading-title.is-fading { opacity: 0; }
 
     .loading-sub {
       margin-top: 8px;
@@ -330,226 +371,219 @@
       0%   { transform: translateX(-120%); }
       100% { transform: translateX(320%); }
     }
-
   </style>
 </head>
 
 <body>
 
 <div class="stage">
+  <div class="stage-inner">
 
-  <!-- 질문 -->
-  <div class="question-layer">
-    <p class="question-sub">연애 사주</p>
-    <h1 id="questionTitle" class="question-title">당신의 이름은?</h1>
-  </div>
+    <a href="/saju/romantic/intro" class="back-btn" aria-label="뒤로가기">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+      뒤로가기
+    </a>
 
-  <!-- 로딩 -->
-  <div id="loading" class="loading-overlay" aria-live="polite" aria-busy="false">
-    <div class="loading-inner">
-      <div class="loading-flower" aria-hidden="true">🌸</div>
-      <div class="thread-visual" aria-hidden="true">
-        <img
-          class="thread-img"
-          src="/assets/images/tight/romantic/loading/red-thread.png"
-          alt=""
-          width="300"
-          height="188"
-        >
-      </div>
-      <p id="loading-title" class="loading-title">당신의 사주를 읽고 있습니다</p>
-      <p class="loading-sub">HONGYEON</p>
-      <div class="loading-bar" aria-hidden="true">
-        <div class="loading-bar-fill"></div>
+    <div class="form-header">
+      <h1>이름을 입력해주세요</h1>
+    </div>
+
+    <div id="loading" class="loading-overlay" aria-live="polite" aria-busy="false">
+      <div class="loading-inner">
+        <div class="loading-flower" aria-hidden="true">🌸</div>
+        <div class="thread-visual" aria-hidden="true">
+          <img class="thread-img" src="/assets/images/tight/romantic/loading/red-thread.png" alt="" width="300" height="188">
+        </div>
+        <p id="loading-title" class="loading-title">당신의 사주를 읽고 있습니다</p>
+        <p class="loading-sub">HONGYEON</p>
+        <div class="loading-bar" aria-hidden="true">
+          <div class="loading-bar-fill"></div>
+        </div>
       </div>
     </div>
+
+    <form id="sajuForm" method="POST" action="/saju/romantic/result">
+      <input type="hidden" name="gender" id="genderInput">
+      <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
+
+      <input name="name" type="text" class="name-input" placeholder="홍길동" autocomplete="name">
+
+      <div class="form-row">
+        <span class="form-row__label" id="timeDisplay">시간모름</span>
+        <div class="time-picker">
+          <span class="pill-btn active" id="timePill">시간모름</span>
+          <select name="birthTime" id="birthTimeSelect" aria-label="태어난 시">
+            <option selected value="unknown">시간모름</option>
+            <option value="00">조자/朝子 (00:00~01:29)</option>
+            <option value="02">축/丑 (01:30~03:29)</option>
+            <option value="04">인/寅 (03:30~05:29)</option>
+            <option value="06">묘/卯 (05:30~07:29)</option>
+            <option value="08">진/辰 (07:30~09:29)</option>
+            <option value="10">사/巳 (09:30~11:29)</option>
+            <option value="12">오/午 (11:30~13:29)</option>
+            <option value="14">미/未 (13:30~15:29)</option>
+            <option value="16">신/申 (15:30~17:29)</option>
+            <option value="18">유/酉 (17:30~19:29)</option>
+            <option value="20">술/戌 (19:30~21:29)</option>
+            <option value="22">해/亥 (21:30~23:29)</option>
+            <option value="24">야자/夜子 (23:30~23:59)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <input name="birthdate" id="birthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="8" autocomplete="bday">
+        <div class="pill-group" role="group" aria-label="양력/음력">
+          <button type="button" class="pill-btn active" data-birth-type="양력">양력</button>
+          <button type="button" class="pill-btn" data-birth-type="음력">음력</button>
+        </div>
+      </div>
+
+      <div class="gender-row" role="group" aria-label="성별">
+        <button type="button" class="gender-btn active" data-gender="남성">남자</button>
+        <button type="button" class="gender-btn" data-gender="여성">여자</button>
+      </div>
+
+      <button type="button" id="submitBtn" class="submit-btn">다음으로</button>
+    </form>
   </div>
-
-  <form id="sajuForm" method="POST" action="/saju/romantic/result">
-
-    <!-- hidden 유지 -->
-    <input type="hidden" name="gender" id="genderInput">
-    <input type="hidden" name="birthType" id="birthTypeInput">
-
-    <!-- STEP 1 이름 -->
-    <section class="step active">
-      <div class="input-area">
-        <input name="name" type="text" class="input" placeholder="이름을 입력하세요">
-      </div>
-    </section>
-
-    <!-- STEP 2 성별 -->
-    <section class="step">
-      <div class="input-area">
-        <button type="button" class="choice-btn" data-gender="남성">남성</button>
-        <button type="button" class="choice-btn" data-gender="여성">여성</button>
-      </div>
-    </section>
-
-    <!-- STEP 3 생년월일 -->
-    <section class="step">
-      <div class="input-area">
-        <select id="birthTypeInputSelect" class="input" style="margin-bottom:14px">
-          <option value="양력">양력</option>
-          <option value="음력">음력</option>
-        </select>
-        <input name="birthdate" class="input" placeholder="YYYYMMDD">
-      </div>
-    </section>
-
-    <!-- STEP 4 태어난 시 -->
-    <section class="step">
-      <div class="input-area">
-        <select name="birthTime" class="input">
-                        <option selected value="unknown">모름</option>
-                            <option value="00">조자/朝子 (00:00~01:29)</option>
-                            <option value="02">축/丑 (01:30~03:29)</option>
-                            <option value="04">인/寅 (03:30~05:29)</option>
-                            <option value="06">묘/卯 (05:30~07:29)</option>
-                            <option value="08">진/辰 (07:30~09:29)</option>
-                            <option value="10">사/巳 (09:30~11:29)</option>
-                            <option value="12">오/午 (11:30~13:29)</option>
-                            <option value="14">미/未 (13:30~15:29)</option>
-                            <option value="16">신/申 (15:30~17:29)</option>
-                            <option value="18">유/酉 (17:30~19:29)</option>
-                            <option value="20">술/戌 (19:30~21:29)</option>
-                            <option value="22">해/亥 (21:30~23:29)</option>
-                            <option value="24">야자/夜子 (23:30~23:59)</option>
-        </select>
-      </div>
-    </section>
-
-    <button type="button" id="nextBtn" class="next-btn">다음으로</button>
-  </form>
 </div>
 
 <script>
-  let step = 0;
-  const steps = document.querySelectorAll(".step");
-  const questionTitle = document.getElementById("questionTitle");
-const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(window.location.search);
   const ticketCode = urlParams.get('ticket');
-  const questions = [
-    "이름을 알려주세요",
-    "성별을 선택해주세요",
-    "생년월일을 입력해주세요",
-    "몇시에 태어나셨나요?"
-  ];
 
-  function showStep() {
-    steps.forEach((s, i) => s.classList.toggle("active", i === step));
-    questionTitle.innerText = questions[step];
+  const genderInput = document.getElementById('genderInput');
+  const birthTypeInput = document.getElementById('birthTypeInput');
+  const birthdateInput = document.getElementById('birthdateInput');
+  const birthTimeSelect = document.getElementById('birthTimeSelect');
+  const timeDisplay = document.getElementById('timeDisplay');
+  const timePill = document.getElementById('timePill');
+
+  genderInput.value = '남성';
+
+  document.querySelectorAll('.gender-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.gender-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      genderInput.value = btn.dataset.gender;
+    });
+  });
+
+  document.querySelectorAll('[data-birth-type]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('[data-birth-type]').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      birthTypeInput.value = btn.dataset.birthType;
+    });
+  });
+
+  function formatBirthdate(value) {
+    const digits = value.replace(/\D/g, '').slice(0, 8);
+    if (digits.length === 8) {
+      return digits.slice(0, 4) + '.' + digits.slice(4, 6) + '.' + digits.slice(6, 8);
+    }
+    return digits;
   }
 
-  /* ===== STEP VALIDATION ===== */
-  function validateStep() {
-    // STEP 0 : 이름
-    if (step === 0) {
-      const nameInput = document.querySelector("input[name='name']");
-      if (!nameInput.value.trim()) {
-        shake(nameInput);
-        nameInput.focus();
-        return false;
-      }
-    }
+  birthdateInput.addEventListener('input', function () {
+    const digits = birthdateInput.value.replace(/\D/g, '').slice(0, 8);
+    birthdateInput.value = digits;
+  });
 
-    // STEP 1 : 성별
-    if (step === 1) {
-      if (!$("#genderInput").val()) {
-        shake(document.querySelector(".input-area"));
-        return false;
-      }
+  birthdateInput.addEventListener('blur', function () {
+    if (/^\d{8}$/.test(birthdateInput.value)) {
+      birthdateInput.value = formatBirthdate(birthdateInput.value);
     }
+  });
 
-    // STEP 2 : 생년월일
-    if (step === 2) {
-      const birthdate = $("input[name='birthdate']").val()?.trim();
-      if (!/^\d{8}$/.test(birthdate)) {
-        const input = document.querySelector("input[name='birthdate']");
-        shake(input);
-        input.focus();
-        return false;
-      }
-    }
+  birthdateInput.addEventListener('focus', function () {
+    birthdateInput.value = birthdateInput.value.replace(/\D/g, '');
+  });
 
-    // STEP 3 : 태어난 시 → 모름(99)도 허용
-    return true;
+  function updateTimeDisplay() {
+    const option = birthTimeSelect.options[birthTimeSelect.selectedIndex];
+    const label = option.textContent.trim();
+    timeDisplay.textContent = label;
+    timePill.textContent = label.length > 8 ? '시간선택' : label;
   }
 
-  /* ===== SHAKE EFFECT ===== */
+  birthTimeSelect.addEventListener('change', updateTimeDisplay);
+  updateTimeDisplay();
+
   function shake(target) {
     target.animate(
       [
-        { transform: "translateX(0)" },
-        { transform: "translateX(-6px)" },
-        { transform: "translateX(6px)" },
-        { transform: "translateX(0)" }
+        { transform: 'translateX(0)' },
+        { transform: 'translateX(-6px)' },
+        { transform: 'translateX(6px)' },
+        { transform: 'translateX(0)' }
       ],
       { duration: 300 }
     );
   }
 
-  /* ===== NEXT BUTTON ===== */
-  document.getElementById("nextBtn").onclick = () => {
-    if (!validateStep()) return;
-
-    if (step < steps.length - 1) {
-      step++;
-      showStep();
-    } else {
-      submitTightForm();
+  function validateForm() {
+    const name = document.querySelector("input[name='name']").value.trim();
+    if (!name) {
+      shake(document.querySelector('.name-input'));
+      document.querySelector('.name-input').focus();
+      return false;
     }
-  };
 
-  /* ===== GENDER SELECT ===== */
-  $(".choice-btn").on("click", function () {
-    $(".choice-btn").removeClass("active");
-    $(this).addClass("active");
-    $("#genderInput").val($(this).data("gender"));
-  });
+    const birthDigits = birthdateInput.value.replace(/\D/g, '');
+    if (!/^\d{8}$/.test(birthDigits)) {
+      shake(birthdateInput);
+      birthdateInput.focus();
+      return false;
+    }
 
-  /* ===== BIRTH TYPE ===== */
-  $("#birthTypeInputSelect").on("change", function () {
-    $("#birthTypeInput").val(this.value);
-  }).trigger("change");
+    if (!genderInput.value) {
+      shake(document.querySelector('.gender-row'));
+      return false;
+    }
 
-  /* ===== SUBMIT ===== */
+    return true;
+  }
+
   let isSubmitting = false;
   let loadingMsgTimer = null;
   const LOADING_MIN_MS = 4500;
   const loadingMessages = [
-    "당신의 사주를 읽고 있습니다",
-    "홍연의 흐름을 찾는 중…",
-    "곧 미리보기가 열립니다"
+    '당신의 사주를 읽고 있습니다',
+    '홍연의 흐름을 찾는 중…',
+    '곧 미리보기가 열립니다'
   ];
   let loadingMsgIndex = 0;
 
   function showLoadingOverlay() {
-    const overlay = document.getElementById("loading");
-    const title = document.getElementById("loading-title");
-    const nextBtn = document.getElementById("nextBtn");
+    const overlay = document.getElementById('loading');
+    const title = document.getElementById('loading-title');
+    const submitBtn = document.getElementById('submitBtn');
 
     loadingMsgIndex = 0;
     title.textContent = loadingMessages[0];
-    title.classList.remove("is-fading");
-    overlay.classList.add("is-visible");
-    overlay.setAttribute("aria-busy", "true");
-    nextBtn.disabled = true;
+    title.classList.remove('is-fading');
+    overlay.classList.add('is-visible');
+    overlay.setAttribute('aria-busy', 'true');
+    submitBtn.disabled = true;
 
-    const threadImg = overlay.querySelector(".thread-img");
+    const threadImg = overlay.querySelector('.thread-img');
     if (threadImg) {
-      threadImg.style.animation = "none";
+      threadImg.style.animation = 'none';
       void threadImg.offsetWidth;
-      threadImg.style.animation = "";
+      threadImg.style.animation = '';
     }
 
     if (loadingMsgTimer) clearInterval(loadingMsgTimer);
-    loadingMsgTimer = setInterval(() => {
+    loadingMsgTimer = setInterval(function () {
       loadingMsgIndex = (loadingMsgIndex + 1) % loadingMessages.length;
-      title.classList.add("is-fading");
-      setTimeout(() => {
+      title.classList.add('is-fading');
+      setTimeout(function () {
         title.textContent = loadingMessages[loadingMsgIndex];
-        title.classList.remove("is-fading");
+        title.classList.remove('is-fading');
       }, 220);
     }, 2200);
   }
@@ -558,66 +592,61 @@ const urlParams = new URLSearchParams(window.location.search);
     if (isSubmitting) return;
     isSubmitting = true;
     showLoadingOverlay();
-
-    setTimeout(() => {
-      doSubmit();
-    }, LOADING_MIN_MS);
+    setTimeout(doSubmit, LOADING_MIN_MS);
   }
 
   function submitTightForm() {
+    const birthDigits = birthdateInput.value.replace(/\D/g, '');
     const data = {
-      name: $("input[name='name']").val()?.trim(),
-      gender: $("#genderInput").val(),
-      birthdate: $("input[name='birthdate']").val()?.trim(),
-      birthTime: $("select[name='birthTime']").val(),
-      birthType: $("#birthTypeInput").val(),
-      goodsType: "2",
+      name: document.querySelector("input[name='name']").value.trim(),
+      gender: genderInput.value,
+      birthdate: birthDigits,
+      birthTime: birthTimeSelect.value,
+      birthType: birthTypeInput.value,
+      goodsType: '2',
       ticket: ticketCode
     };
 
-    if (!data.name || !data.gender || !/^\d{8}$/.test(data.birthdate)) {
-      return;
-    }
-
-    submitAfterLoading(() => {
-      if (data.name === "관리자") {
-        const $form = $("#sajuForm");
+    submitAfterLoading(function () {
+      if (data.name === '관리자') {
+        const $form = $('#sajuForm');
         $form.find('input[name="userInfo"]').remove();
         $form.find('input[name="sample"]').remove();
         $form.find('input[name="goodsType"]').remove();
-        $form.attr("action", "/saju/skip-payment");
+        $form.attr('action', '/saju/skip-payment');
         $('<input>', { type: 'hidden', name: 'userInfo', value: JSON.stringify(data) }).appendTo($form);
         $('<input>', { type: 'hidden', name: 'sample', value: '{}' }).appendTo($form);
         $('<input>').attr({ type: 'hidden', name: 'goodsType', value: '2' }).appendTo($form);
+        birthdateInput.value = birthDigits;
         $form[0].submit();
         return;
       }
 
       if (ticketCode) {
-        const $form = $("#sajuForm");
+        const $form = $('#sajuForm');
         $form.find('input[name="ticket"]').remove();
         $form.find('input[name="goodsType"]').remove();
         $('<input>', { type: 'hidden', name: 'ticket', value: ticketCode }).appendTo($form);
         $('<input>', { type: 'hidden', name: 'goodsType', value: '2' }).appendTo($form);
-        $form.attr("action", "/saju/romantic/result?ticket=" + ticketCode);
+        $form.attr('action', '/saju/romantic/result?ticket=' + ticketCode);
       }
 
-      document.getElementById("sajuForm").submit();
+      birthdateInput.value = birthDigits;
+      document.getElementById('sajuForm').submit();
     });
   }
- // 엔터로 다음 스텝
-document.addEventListener("keydown", function (e) {
-  if (e.key === "Enter") {
-    const activeStep = document.querySelector(".step.active");
 
-    // select 열려있을 땐 막기
-    if (document.activeElement.tagName === "SELECT") return;
+  document.getElementById('submitBtn').addEventListener('click', function () {
+    if (!validateForm()) return;
+    submitTightForm();
+  });
 
-    e.preventDefault();
-    document.getElementById("nextBtn").click();
-  }
-});
-
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && document.activeElement.tagName !== 'SELECT') {
+      e.preventDefault();
+      document.getElementById('submitBtn').click();
+    }
+  });
 </script>
 
 </body>
