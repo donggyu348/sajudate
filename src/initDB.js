@@ -4,6 +4,7 @@ import "./framework/web/orm/models/reportHistory.js";
 import "./framework/web/orm/models/smsHistory.js";
 import "./framework/web/orm/models/admins.js";
 import "./framework/web/orm/models/users.js";
+import "./framework/web/orm/models/coupons.js";
 
 const alter = String(process.env.DB_ALTER || '').toLowerCase() === 'true';
 

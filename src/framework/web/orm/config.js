@@ -26,9 +26,9 @@ export default {
 
     product: {
         username: 'dbmasteruser',
-        password: ':9p}jU,,Qs6PGaeur)nuVX#h}+Y{7!Al',
-        database: 'new_site_db',
-        host: 'ls-bf6a633560df15b5ac396f6c91f990459393b811.ch2egicsosuj.ap-northeast-2.rds.amazonaws.com',
+        password: 'eRUH=<g|zZZLsA162oe9{0_rbaTZ7e.P', // DBeaver에 쓴 비밀번호와 동일하게 맞출 것
+        database: 'dbmaster',
+        host: 'ls-c216d357fd4ef2cd2ac6cd20397f4d40a967e30c.cj4es2g2mopz.ap-northeast-2.rds.amazonaws.com',
         port: 3306,
         dialect: "mysql",
         timezone: "+09:00",
