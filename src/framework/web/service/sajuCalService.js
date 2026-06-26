@@ -2,6 +2,7 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import tz from "dayjs/plugin/timezone.js";
+import { JIJANGGAN_MAP, CHEONGAN_REVERSE } from "./toHanja.js";
 dayjs.extend(utc);
 dayjs.extend(tz);
 
@@ -128,9 +129,306 @@ function countFiveElements(p) {
   const total = { 목:0, 화:0, 토:0, 금:0, 수:0 };
   const allGan = [p.year.gan, p.month.gan, p.day.gan, p.hour.gan];
   const allJi  = [p.year.ji,  p.month.ji,  p.day.ji,  p.hour.ji];
-  for (const g of allGan) total[STEM_TO_ELEMENT[g]]++;
-  for (const j of allJi) total[BRANCH_TO_ELEMENT[j]]++;
+  for (const g of allGan) if (g && STEM_TO_ELEMENT[g]) total[STEM_TO_ELEMENT[g]]++;
+  for (const j of allJi) if (j && BRANCH_TO_ELEMENT[j]) total[BRANCH_TO_ELEMENT[j]]++;
   return total;
+}
+
+function countFiveElementsWeighted(pillars) {
+  const total = { 목:0, 화:0, 토:0, 금:0, 수:0 };
+  const weights = [1.0, 0.5, 0.3];
+
+  for (const g of [pillars.year.gan, pillars.month.gan, pillars.day.gan, pillars.hour.gan]) {
+    if (g && STEM_TO_ELEMENT[g]) total[STEM_TO_ELEMENT[g]] += 1.0;
+  }
+
+  for (const ji of [pillars.year.ji, pillars.month.ji, pillars.day.ji, pillars.hour.ji]) {
+    if (!ji) continue;
+    const hidden = JIJANGGAN_MAP[ji] || [];
+    hidden.forEach((hanjaGan, idx) => {
+      const ganHangul = CHEONGAN_REVERSE[hanjaGan];
+      const elem = STEM_TO_ELEMENT[ganHangul];
+      if (elem) total[elem] += weights[idx] ?? 0.3;
+    });
+  }
+
+  Object.keys(total).forEach((k) => { total[k] = Math.round(total[k] * 10) / 10; });
+  return total;
+}
+
+const TWELVE_STAGE_TABLE = {
+  갑: ["목욕","관대","건록","제왕","쇠","병","사","묘","절","태","양","장생"],
+  병: ["태","양","장생","목욕","관대","건록","제왕","쇠","병","사","묘","절"],
+  무: ["태","양","장생","목욕","관대","건록","제왕","쇠","병","사","묘","절"],
+  경: ["사","묘","절","태","양","장생","목욕","관대","건록","제왕","쇠","병"],
+  임: ["병","사","묘","절","태","양","장생","목욕","관대","건록","제왕","쇠"],
+};
+const TWELVE_STAGE_YIN = { 을:"갑", 정:"병", 기:"무", 신:"경", 계:"임" };
+
+function getTwelveStage(dayGan, targetJi) {
+  if (!dayGan || !targetJi) return null;
+  const jiOrder = ["자","축","인","묘","진","사","오","미","신","유","술","해"];
+  const jiIdx = jiOrder.indexOf(targetJi);
+  if (jiIdx === -1) return null;
+
+  let baseGan = dayGan;
+  let isYin = false;
+  if (TWELVE_STAGE_YIN[dayGan]) {
+    baseGan = TWELVE_STAGE_YIN[dayGan];
+    isYin = true;
+  }
+
+  const stages = TWELVE_STAGE_TABLE[baseGan];
+  if (!stages) return null;
+  return isYin ? stages[(12 - jiIdx) % 12] : stages[jiIdx];
+}
+
+const STEM_COMBINE = { 갑:"기", 기:"갑", 을:"경", 경:"을", 병:"신", 신:"병", 정:"임", 임:"정", 무:"계", 계:"무" };
+const STEM_COMBINE_ELEMENT = { 갑:"토", 을:"금", 병:"수", 정:"목", 무:"화", 기:"토", 경:"금", 신:"수", 임:"목", 계:"화" };
+const SIX_HARMONY = { 자:"축", 축:"자", 인:"해", 해:"인", 묘:"술", 술:"묘", 진:"유", 유:"진", 사:"신", 신:"사", 오:"미", 미:"오" };
+const SIX_HARMONY_ELEMENT = { 자:"토", 축:"토", 인:"목", 해:"목", 묘:"화", 술:"화", 진:"금", 유:"금", 사:"수", 신:"수" };
+const THREE_HARMONY_GROUPS = [
+  { members:["신","자","진"], element:"수" },
+  { members:["해","묘","미"], element:"목" },
+  { members:["인","오","술"], element:"화" },
+  { members:["사","유","축"], element:"금" },
+];
+const DIRECTIONAL_GROUPS = [
+  { members:["인","묘","진"], element:"목" },
+  { members:["사","오","미"], element:"화" },
+  { members:["신","유","술"], element:"금" },
+  { members:["해","자","축"], element:"수" },
+];
+const CHUNG_PAIRS = { 자:"오", 오:"자", 축:"미", 미:"축", 인:"신", 신:"인", 묘:"유", 유:"묘", 진:"술", 술:"진", 사:"해", 해:"사" };
+const PAE_PAIRS = { 자:"유", 유:"자", 묘:"오", 오:"묘", 진:"축", 축:"진", 사:"신", 신:"사", 술:"미", 미:"술", 해:"인", 인:"해" };
+const HAE_PAIRS = { 자:"미", 미:"자", 축:"오", 오:"축", 인:"사", 사:"인", 묘:"진", 진:"묘", 신:"해", 해:"신", 유:"술", 술:"유" };
+const WONJIN_PAIRS = { 자:"미", 미:"자", 축:"오", 오:"축", 인:"유", 유:"인", 묘:"신", 신:"묘", 진:"해", 해:"진", 사:"술", 술:"사" };
+
+function getStemCombine(ganList) {
+  const results = [];
+  for (let i = 0; i < ganList.length; i++) {
+    for (let j = i + 1; j < ganList.length; j++) {
+      if (STEM_COMBINE[ganList[i]] === ganList[j]) {
+        results.push({ a: ganList[i], b: ganList[j], resultElement: STEM_COMBINE_ELEMENT[ganList[i]] });
+      }
+    }
+  }
+  return results;
+}
+
+function getSixHarmony(jiList) {
+  const results = [];
+  const seen = new Set();
+  for (let i = 0; i < jiList.length; i++) {
+    for (let j = i + 1; j < jiList.length; j++) {
+      if (SIX_HARMONY[jiList[i]] === jiList[j]) {
+        const key = [jiList[i], jiList[j]].sort().join("-");
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({ a: jiList[i], b: jiList[j], element: SIX_HARMONY_ELEMENT[jiList[i]] });
+        }
+      }
+    }
+  }
+  return results;
+}
+
+function getThreeHarmony(jiList) {
+  return THREE_HARMONY_GROUPS.filter((g) => {
+    const count = g.members.filter((m) => jiList.includes(m)).length;
+    return count >= 2;
+  }).map((g) => ({ members: g.members.filter((m) => jiList.includes(m)), element: g.element, full: g.members }));
+}
+
+function getDirectional(jiList) {
+  return DIRECTIONAL_GROUPS.filter((g) => {
+    const count = g.members.filter((m) => jiList.includes(m)).length;
+    return count >= 2;
+  }).map((g) => ({ members: g.members.filter((m) => jiList.includes(m)), element: g.element, full: g.members }));
+}
+
+function getChung(jiList) {
+  const results = [];
+  const seen = new Set();
+  for (let i = 0; i < jiList.length; i++) {
+    for (let j = i + 1; j < jiList.length; j++) {
+      if (CHUNG_PAIRS[jiList[i]] === jiList[j]) {
+        const key = [jiList[i], jiList[j]].sort().join("-");
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({ a: jiList[i], b: jiList[j] });
+        }
+      }
+    }
+  }
+  return results;
+}
+
+function getHyeong(jiList) {
+  const results = [];
+  const has = (arr) => arr.every((j) => jiList.includes(j));
+  if (has(["인","사","신"])) results.push({ type: "삼형", members: ["인","사","신"] });
+  if (has(["축","술","미"])) results.push({ type: "삼형", members: ["축","술","미"] });
+  if (jiList.includes("자") && jiList.includes("묘")) results.push({ type: "상형", members: ["자","묘"] });
+  for (const j of ["진","오","유","해"]) {
+    if (jiList.filter((x) => x === j).length >= 2) results.push({ type: "자형", members: [j, j] });
+  }
+  return results;
+}
+
+function getPa(jiList) {
+  const results = [];
+  const seen = new Set();
+  for (let i = 0; i < jiList.length; i++) {
+    for (let j = i + 1; j < jiList.length; j++) {
+      if (PAE_PAIRS[jiList[i]] === jiList[j]) {
+        const key = [jiList[i], jiList[j]].sort().join("-");
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({ a: jiList[i], b: jiList[j] });
+        }
+      }
+    }
+  }
+  return results;
+}
+
+function getHae(jiList) {
+  const results = [];
+  const seen = new Set();
+  for (let i = 0; i < jiList.length; i++) {
+    for (let j = i + 1; j < jiList.length; j++) {
+      if (HAE_PAIRS[jiList[i]] === jiList[j]) {
+        const key = [jiList[i], jiList[j]].sort().join("-");
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({ a: jiList[i], b: jiList[j] });
+        }
+      }
+    }
+  }
+  return results;
+}
+
+function getWonjin(jiList) {
+  const results = [];
+  const seen = new Set();
+  for (let i = 0; i < jiList.length; i++) {
+    for (let j = i + 1; j < jiList.length; j++) {
+      if (WONJIN_PAIRS[jiList[i]] === jiList[j]) {
+        const key = [jiList[i], jiList[j]].sort().join("-");
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({ a: jiList[i], b: jiList[j] });
+        }
+      }
+    }
+  }
+  return results;
+}
+
+export function getJijiRelations(pillars) {
+  const jiList = [pillars.year.ji, pillars.month.ji, pillars.day.ji, pillars.hour.ji].filter(Boolean);
+  const ganList = [pillars.year.gan, pillars.month.gan, pillars.day.gan, pillars.hour.gan].filter(Boolean);
+  return {
+    stemCombine: getStemCombine(ganList),
+    sixHarmony: getSixHarmony(jiList),
+    threeHarmony: getThreeHarmony(jiList),
+    directional: getDirectional(jiList),
+    chung: getChung(jiList),
+    hyeong: getHyeong(jiList),
+    pa: getPa(jiList),
+    hae: getHae(jiList),
+    wonjin: getWonjin(jiList),
+  };
+}
+
+function getGanZhiIndex(gan, ji) {
+  for (let i = 0; i < 60; i++) {
+    if (GAN[i % 10] === gan && JI[i % 12] === ji) return i;
+  }
+  return -1;
+}
+
+const GONGMANG_BY_XUN = [
+  ["술","해"], ["신","유"], ["오","미"], ["진","사"], ["인","묘"], ["자","축"],
+];
+
+function getGongMangBranches(dayGan, dayJi) {
+  const idx = getGanZhiIndex(dayGan, dayJi);
+  if (idx < 0) return [];
+  return GONGMANG_BY_XUN[Math.floor(idx / 10)] ?? [];
+}
+
+function generateWolWoon(startYear, count = 3) {
+  const result = [];
+  const monthJis = ["인","묘","진","사","오","미","신","유","술","해","자","축"];
+  const firstMonthGanMap = {
+    갑:"병", 기:"병", 을:"무", 경:"무", 병:"경", 신:"경",
+    정:"임", 임:"임", 무:"갑", 계:"갑",
+  };
+
+  for (let y = startYear; y < startYear + count; y++) {
+    const yearOffset = ((y - 1984) % 60 + 60) % 60;
+    const yearGan = GAN[yearOffset % 10];
+    const startGan = firstMonthGanMap[yearGan];
+    const startIdx = GAN.indexOf(startGan);
+
+    for (let m = 0; m < 12; m++) {
+      result.push({
+        year: y,
+        month: m + 1,
+        gan: GAN[(startIdx + m) % 10],
+        ji: monthJis[m],
+      });
+    }
+  }
+  return result;
+}
+
+const GENERATE = { 목:"화", 화:"토", 토:"금", 금:"수", 수:"목" };
+const CONTROL  = { 목:"토", 화:"금", 토:"수", 금:"목", 수:"화" };
+
+function getStrength(dayGan, pillars, fiveElementsWeighted) {
+  const dayElem = STEM_TO_ELEMENT[dayGan];
+  const inseongElem = Object.keys(GENERATE).find((k) => GENERATE[k] === dayElem);
+
+  const supporting = (fiveElementsWeighted[dayElem] || 0)
+    + (fiveElementsWeighted[inseongElem] || 0);
+
+  const weakening = (fiveElementsWeighted[GENERATE[dayElem]] || 0)
+    + (fiveElementsWeighted[CONTROL[dayElem]] || 0)
+    + (fiveElementsWeighted[Object.keys(CONTROL).find((k) => CONTROL[k] === dayElem)] || 0);
+
+  const monthElem = BRANCH_TO_ELEMENT[pillars.month.ji];
+  const seasonBonus = monthElem === dayElem ? 2 : (GENERATE[monthElem] === dayElem ? 1 : 0);
+
+  const score = (supporting + seasonBonus) - weakening;
+  return {
+    score,
+    isStrong: score > 0,
+    label: score > 2 ? "신강" : score < -2 ? "신약" : "중화",
+  };
+}
+
+function getYongshin(dayGan, strength, fiveElementsWeighted) {
+  const dayElem = STEM_TO_ELEMENT[dayGan];
+  const inseong = Object.keys(GENERATE).find((k) => GENERATE[k] === dayElem);
+
+  let candidates;
+  if (strength.isStrong) {
+    candidates = [GENERATE[dayElem], CONTROL[dayElem],
+      Object.keys(CONTROL).find((k) => CONTROL[k] === dayElem)];
+  } else {
+    candidates = [dayElem, inseong];
+  }
+
+  candidates = candidates.filter(Boolean);
+  const yongshin = candidates.sort((a, b) => (fiveElementsWeighted[a] || 0) - (fiveElementsWeighted[b] || 0))[0];
+  const gishin = CONTROL[yongshin];
+  const heeshin = GENERATE[Object.keys(GENERATE).find((k) => GENERATE[k] === yongshin)];
+
+  return { yongshin, gishin, heeshin };
 }
 
 // 🔹 십성 계산 (일간 기준, 대상 천간 → 십성)
@@ -152,6 +450,21 @@ function getTenGod(dayGan, targetGan) {
   if (!pair) return null;
   return pair[sameYinYang ? 0 : 1];  // 0: 정(비견/식신/편재/편관/편인), 1: 편(겁재/상관/정재/정관/정인) 구조
 }
+
+function getTenGodFromBranch(dayGan, ji) {
+  const elem = BRANCH_TO_ELEMENT[ji];
+  if (!elem) return null;
+
+  const mainElem = STEM_TO_ELEMENT[dayGan];
+  const mainIdx = FIVE[mainElem];
+  const subIdx = FIVE[elem];
+  const diff = (subIdx - mainIdx + 5) % 5;
+
+  const JI_YINYANG = { 자:1, 인:1, 진:1, 오:1, 신:1, 술:1, 축:0, 묘:0, 사:0, 미:0, 유:0, 해:0 };
+  const sameYY = YINYANG[dayGan] === JI_YINYANG[ji];
+  return TEN_GOD[diff]?.[sameYY ? 0 : 1] ?? null;
+}
+
 function getDaewoonStartAge(date, gender, yearGan) {
   const Y = date.year();
   const birth = date;
@@ -236,8 +549,8 @@ function getSpouseInfo(dayGan, dayJi, monthJi, hourJi) {
     dayBranch: dayJi,             
     spouseElement,                
     compatibility: BRANCH_TO_ELEMENT[dayJi] === spouseElement,
-    monthRelation: getTenGod(dayGan, monthJi), // 월주가 배우자와 어떤 관계?
-    hourRelation: getTenGod(dayGan, hourJi),   // 시주 = 실제 연애성/가정운
+    monthRelation: getTenGodFromBranch(dayGan, monthJi),
+    hourRelation: getTenGodFromBranch(dayGan, hourJi),
   };
 }
 
@@ -339,7 +652,9 @@ const isUnknownTime =
   }
 
   const zodiac = getZodiac(year.ji);
-  const fiveElements = countFiveElements({ year, month, day, hour });
+  const pillarSet = { year, month, day, hour };
+  const fiveElements = countFiveElements(pillarSet);
+  const fiveElementsWeighted = countFiveElementsWeighted(pillarSet);
 
   const tenGodPillars = {
     year:  getTenGod(day.gan, year.gan),
@@ -355,12 +670,25 @@ const isUnknownTime =
   const daewoon = daewoonRaw.map(dw => ({
     ...dw,
     tenGod: getTenGod(day.gan, dw.gan),
+    twelveStage: getTwelveStage(day.gan, dw.ji),
   }));
 
   const sewun = sewunRaw.map(sw => ({
     ...sw,
     tenGod: getTenGod(day.gan, sw.gan),
+    twelveStage: getTwelveStage(day.gan, sw.ji),
   }));
+
+  const wolwoon = generateWolWoon(y, 3).map(ww => ({
+    ...ww,
+    tenGod: getTenGod(day.gan, ww.gan),
+    twelveStage: getTwelveStage(day.gan, ww.ji),
+  }));
+
+  const relations = getJijiRelations(pillarSet);
+  const strength = getStrength(day.gan, pillarSet, fiveElementsWeighted);
+  const yongshin = getYongshin(day.gan, strength, fiveElementsWeighted);
+  const gongMang = getGongMangBranches(day.gan, day.ji);
 
   // 추가 데이터
   const noble = getNoblePeople(day.gan);
@@ -380,21 +708,24 @@ const isUnknownTime =
     year, 
     month, 
     day, 
-    hour,           // 🔥 시주 null 가능
+    hour,
     zodiac, 
     fiveElements,
+    fiveElementsWeighted,
     tenGod: tenGodPillars,
     daewoon,
     sewun,
+    wolwoon,
+    relations,
+    strength,
+    yongshin,
+    gongMang,
     noble,
-    spouse,         // 🔥 hourRelation null 가능
+    spouse,
     relationYM,
     flow,
     gods12,
-    isUnknownTime ,
-      // 🔥 추가 (프론트/이미지용)
-     dayGan: `${day.gan}${STEM_TO_ELEMENT[day.gan]}` // 무토, 기토, 을목
-
- // 🔥 GPT가 활용 가능하도록 추가 (옵션)
+    isUnknownTime,
+    dayGan: `${day.gan}${STEM_TO_ELEMENT[day.gan]}`,
   };
 }

@@ -1,9 +1,8 @@
 import GptClient from "../api/GptClient.js";
 import { GoodsType } from "../enums/Goods.js";
-import crypto from "crypto";
 import { getFourPillars } from "./sajuCalService.js";
 import { Solar } from "lunar-javascript";
-import { toHanja } from "./toHanja.js";
+import { toHanja, toHangul } from "./toHanja.js";
 
 // --- Lunar 기반 사주 계산 Helpers (sample 전용) ---
 
@@ -91,18 +90,19 @@ function buildOutFromLunar(lunar, ec) {
 }
 
 function buildShenSha(out) {
-  const dayGan = out.pillars.day.gan;   // 일간
-  const dayZhi = out.pillars.day.zhi;   // 일지
-  const yearZhi = out.pillars.year.zhi; // 연지
+  const dayGan = out.pillars.day.gan;
+  const dayZhi = out.pillars.day.zhi;
+  const yearZhi = out.pillars.year.zhi;
 
   const allBranches = [
     out.pillars.year.zhi,
     out.pillars.month.zhi,
     out.pillars.day.zhi,
     out.pillars.hour.zhi
-  ];
+  ].filter(Boolean);
 
   const where = (target) => {
+    if (!target) return [];
     const map = {
       [out.pillars.year.zhi]: "year",
       [out.pillars.month.zhi]: "month",
@@ -112,7 +112,29 @@ function buildShenSha(out) {
     return allBranches.filter((z) => z === target).map((z) => map[z]);
   };
 
-  // 1) 도화(桃花) : 삼합 그룹 기준
+  const makeSha = (targets) => {
+    const unique = [...new Set(targets.filter(Boolean))];
+    return unique.map((t) => ({ target: t, presentIn: where(t) })).filter((x) => x.presentIn.length > 0);
+  };
+
+  const SANHE_LUT = [
+    { members: ["申","子","辰"], geob: "巳", jae: "午", cheon: "未", ji: "寅", wol: "未", huaGai: "辰", jang: "子", banAn: "丑", mang: "亥" },
+    { members: ["亥","卯","未"], geob: "申", jae: "酉", cheon: "戌", ji: "巳", wol: "丑", huaGai: "未", jang: "卯", banAn: "辰", mang: "寅" },
+    { members: ["寅","午","戌"], geob: "亥", jae: "子", cheon: "丑", ji: "申", wol: "辰", huaGai: "戌", jang: "午", banAn: "未", mang: "巳" },
+    { members: ["巳","酉","丑"], geob: "寅", jae: "卯", cheon: "辰", ji: "亥", wol: "戌", huaGai: "丑", jang: "酉", banAn: "戌", mang: "申" },
+  ];
+
+  const sanheField = (zhi, field) => {
+    const group = SANHE_LUT.find((g) => g.members.includes(zhi));
+    return group ? group[field] : null;
+  };
+
+  const sanheFromZhis = (field, ...zhis) => {
+    const targets = zhis.map((z) => sanheField(z, field));
+    return makeSha(targets);
+  };
+
+  // 1) 도화(桃花)
   function peachTargetBy(zhi) {
     if (["申", "子", "辰"].includes(zhi)) return "酉";
     if (["寅", "午", "戌"].includes(zhi)) return "卯";
@@ -120,16 +142,9 @@ function buildShenSha(out) {
     if (["亥", "卯", "未"].includes(zhi)) return "子";
     return null;
   }
+  const taoHua = makeSha([peachTargetBy(yearZhi), peachTargetBy(dayZhi)]);
 
-  const taoHuaTargets = Array.from(
-    new Set([
-      peachTargetBy(yearZhi),
-      peachTargetBy(dayZhi)
-    ].filter(Boolean))
-  );
-  const taoHua = taoHuaTargets.map((t) => ({ target: t, presentIn: where(t) }));
-
-  // 2) 역마(驛馬) : 삼합 그룹 → 역마위
+  // 2) 역마(驛馬)
   function horseTargetBy(zhi) {
     if (["申", "子", "辰"].includes(zhi)) return "寅";
     if (["寅", "午", "戌"].includes(zhi)) return "申";
@@ -137,15 +152,9 @@ function buildShenSha(out) {
     if (["亥", "卯", "未"].includes(zhi)) return "巳";
     return null;
   }
+  const yiMa = makeSha([horseTargetBy(yearZhi)]);
 
-  const yiMaTargets = Array.from(
-    new Set([
-      horseTargetBy(yearZhi)
-    ].filter(Boolean))
-  );
-  const yiMa = yiMaTargets.map((t) => ({ target: t, presentIn: where(t) }));
-
-  // 3) 천乙귀인: 일간 기준 귀인지 2개
+  // 3) 천을귀인
   function tianYiBy(g) {
     if (["甲", "己"].includes(g)) return ["丑", "未"];
     if (["乙", "庚"].includes(g)) return ["子", "申"];
@@ -154,14 +163,48 @@ function buildShenSha(out) {
     if (["戊", "癸"].includes(g)) return ["卯", "巳"];
     return [];
   }
+  const tianYiGuiRen = makeSha(tianYiBy(dayGan));
 
-  const tianYiTargets = tianYiBy(dayGan);
-  const tianYiGuiRen = tianYiTargets.map((t) => ({ target: t, presentIn: where(t) }));
+  // 4~12) 삼합 기반 신살 (연지·일지 기준)
+  const geobSal = sanheFromZhis("geob", yearZhi, dayZhi);
+  const jaeSal = sanheFromZhis("jae", yearZhi, dayZhi);
+  const cheonSal = sanheFromZhis("cheon", yearZhi, dayZhi);
+  const jiSal = sanheFromZhis("ji", yearZhi, dayZhi);
+  const wolSal = sanheFromZhis("wol", yearZhi, dayZhi);
+  const hwaGae = sanheFromZhis("huaGai", yearZhi, dayZhi);
+  const jangSeong = sanheFromZhis("jang", yearZhi, dayZhi);
+  const banAn = sanheFromZhis("banAn", yearZhi, dayZhi);
+  const mangSin = sanheFromZhis("mang", yearZhi, dayZhi);
+
+  // 13) 양인(羊刃) — 양간만
+  const YANGREN = { "甲": "卯", "丙": "午", "戊": "午", "庚": "酉", "壬": "子" };
+  const yangIn = YANGREN[dayGan] ? makeSha([YANGREN[dayGan]]) : [];
+
+  // 14) 공망(空亡) — 일주 순 기준
+  const GAN_H = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+  const JI_H = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+  const GONGMANG_H = [["戌","亥"],["申","酉"],["午","未"],["辰","巳"],["寅","卯"],["子","丑"]];
+  let dayIdx = -1;
+  for (let i = 0; i < 60; i++) {
+    if (GAN_H[i % 10] === dayGan && JI_H[i % 12] === dayZhi) { dayIdx = i; break; }
+  }
+  const gongMang = dayIdx >= 0 ? makeSha(GONGMANG_H[Math.floor(dayIdx / 10)] ?? []) : [];
 
   return {
     taoHua,
     yiMa,
-    tianYiGuiRen
+    tianYiGuiRen,
+    geobSal,
+    jaeSal,
+    cheonSal,
+    jiSal,
+    wolSal,
+    hwaGae,
+    jangSeong,
+    banAn,
+    mangSin,
+    yangIn,
+    gongMang,
   };
 }
 
@@ -174,8 +217,24 @@ function buildTenGodTable(out, userInfo) {
 
   const shenShaLabel = {
     taoHua: "도화",
-    yiMa: "역마"
-    // 필요시 다른 신살도 여기 추가 가능
+    yiMa: "역마",
+    geobSal: "겁살",
+    jaeSal: "재살",
+    cheonSal: "천살",
+    jiSal: "지살",
+    wolSal: "월살",
+    hwaGae: "화개",
+    jangSeong: "장성",
+    banAn: "반안",
+    mangSin: "망신",
+    yangIn: "양인",
+    gongMang: "공망",
+  };
+
+  const normalizeTenGod = (value) => {
+    if (!value || value === "日主") return "";
+    const raw = Array.isArray(value) ? value[0] : value;
+    return toHangul(raw) || raw;
   };
 
   const data = pillarOrder.map((pillarKey, index) => {
@@ -184,11 +243,11 @@ function buildTenGodTable(out, userInfo) {
       return ["", "", "", "", "", "", ""];
     }
 
-    const stemTenGod = out.tenGod[pillarKey]?.stem ?? "";
-    const branchTenGod = out.tenGod[pillarKey]?.branch ?? "";
+    const stemTenGod = normalizeTenGod(out.tenGod[pillarKey]?.stem);
+    const branchTenGod = normalizeTenGod(out.tenGod[pillarKey]?.branch);
     const gan = out.pillars[pillarKey]?.gan ?? "";
     const zhi = out.pillars[pillarKey]?.zhi ?? "";
-    const diShi = out.diShi[pillarKey] ?? "";
+    const diShi = toHangul(out.diShi[pillarKey] ?? "") || (out.diShi[pillarKey] ?? "");
 
     const shenShaNames = [];
     if (out.shenSha) {
@@ -218,6 +277,14 @@ function buildTenGodTable(out, userInfo) {
     columns,
     data
   };
+}
+
+function buildRealTenGodTable(userInfo) {
+  const solar = toSolarFromUserInfo(userInfo);
+  const lunar = solar.getLunar();
+  const ec = lunar.getEightChar();
+  const out = buildOutFromLunar(lunar, ec);
+  return buildTenGodTable(out, userInfo);
 }
 // --- End Lunar 기반 Helpers ---
 
@@ -3401,59 +3468,32 @@ let promtParts;
 
       // ✅ 1.5) GPT에게 보낼 SAJU_JSON 구조 생성 (callSample 로직 참고)
       const fixedUser = { ...userInfo, birthDate: userInfo.birthDate || userInfo.birthdate };
-      const deterministicTable = buildDeterministicTenGodTable(fixedUser);
+      const tenGodTable = buildRealTenGodTable(fixedUser);
 
-      const tenGodTable = {
-        headerRows: ["시주", "일주", "월주", "년주"],
-        columns: ["십성", "천간", "지지", "십성", "십이운성", "십이신살", "귀인"],
-        data: [
-          // index 0: 시주
-          ["", pillars.hour.gan, pillars.hour.ji, "", "", "", ""],
-          // index 1: 일주
-          ["", pillars.day.gan, pillars.day.ji, "", "", "", ""],
-          // index 2: 월주
-          ["", pillars.month.gan, pillars.month.ji, "", "", "", ""],
-          // index 3: 년주
-          ["", pillars.year.gan, pillars.year.ji, "", "", "", ""],
-        ],
-      };
-
-      // 계산된 천간/지지를 유지하면서 나머지 십성/운성 데이터를 덮어씌웁니다.
-      for (let i = 0; i < 4; i++) {
-        const detRow = deterministicTable.data[i];
-        const currentPillarRow = tenGodTable.data[i];
-        currentPillarRow[0] = detRow[0]; // 십성 (시주)
-        currentPillarRow[3] = detRow[3]; // 십성 (일주/월주/년주의 십성)
-        currentPillarRow[4] = detRow[4]; // 십이운성
-        currentPillarRow[5] = detRow[5]; // 십이신살
-        currentPillarRow[6] = detRow[6]; // 귀인
-      }
-
-      // MoneySteps, futurePartner 등도 GPT가 요청하는 구조에 맞춰 빈 배열/객체라도 넣어줍니다.
       const sajuJsonForGPT = {
         tenGodTable,
         fiveElements: {
-          elements: pillars.fiveElements,
+          elements: pillars.fiveElementsWeighted,
           gainFrom: "",
           lossFrom: ""
         },
-        daewoon: pillars.daewoon, // 대운 전달
-
+        daewoon: pillars.daewoon,
         sewun: pillars.sewun,
-
+        wolwoon: pillars.wolwoon,
         tenGod: pillars.tenGod,
+        relations: pillars.relations,
+        strength: pillars.strength,
+        yongshin: pillars.yongshin,
+        gongMang: pillars.gongMang,
         moneySteps: [],
         zodiacSign: pillars.zodiac,
-        // GPT가 프롬프트에서 요구하는 모든 키를 포함해야 합니다.
-        noblePeople: pillars.noble,     // 귀인(貴人)
-        spouse: pillars.spouse,         // 배우자궁 정보
-        monthRelation: pillars.relationYM, // 일간-월지 상생/상극
-        flow: pillars.flow,                 // 비겁·재성·관성 흐름 분석 결과
-        twelveGodKill: pillars.gods12,      // 12신살 & 살성
+        noblePeople: pillars.noble,
+        spouse: pillars.spouse,
+        monthRelation: pillars.relationYM,
+        flow: pillars.flow,
+        twelveGodKill: pillars.gods12,
         futurePartner: { job: "", appearance: [], personality: [], feature: [] },
-        hourUnknown: pillars.isUnknownTime,  // 시간 미상 인지 가능하게
-
-        // 추가 컨텍스트도 함께 보냅니다.
+        hourUnknown: pillars.isUnknownTime,
         userInfo: userInfo,
         currentYear: new Date().getFullYear(),
       };
@@ -3715,45 +3755,22 @@ while (retryCount <= 2 && !parsed) {
       };
       const pillars = getFourPillars(fixedUser);
 
-      // 2️⃣ deterministic table을 사용하여 십성, 운성, 귀인 등 미리보기에 필요한 데이터를 생성합니다.
-      const deterministicTable = buildDeterministicTenGodTable(fixedUser);
-      const hGan = pillars.hour.gan ?? "-";
-      const hJi = pillars.hour.ji ?? "-";
-
-      // 기본 데이터 배열을 시-일-월-년 순서로 초기화
+      const realTable = buildRealTenGodTable(fixedUser);
       const tenGodTable = {
-        headerRows: ["시주", "일주", "월주", "년주"], // EJS에서 이 순서대로 출력됨
-        columns: ["십성", "천간", "지지", "십성", "십이운성", "십이신살", "귀인"],
-        data: [
-          // index 0: 시주
-          ["", hGan, hJi, "", "", "", ""],
-          // index 1: 일주
-          ["", pillars.day.gan, pillars.day.ji, "", "", "", ""],
-          // index 2: 월주
-          ["", pillars.month.gan, pillars.month.ji, "", "", "", ""],
-          // index 3: 년주
-          ["", pillars.year.gan, pillars.year.ji, "", "", "", ""],
-        ],
+        ...realTable,
+        data: realTable.data.map((row, i) => {
+          const pillarKeys = ["hour", "day", "month", "year"];
+          const p = pillars[pillarKeys[i]];
+          return [row[0], p.gan ?? row[1], p.ji ?? row[2], row[3], row[4], row[5], row[6]];
+        }),
       };
-
-      // 계산된 천간/지지를 유지하면서 나머지 십성/운성 데이터를 덮어씌웁니다.
-      for (let i = 0; i < 4; i++) {
-        const detRow = deterministicTable.data[i];
-        const currentPillarRow = tenGodTable.data[i];
-
-        currentPillarRow[0] = detRow[0]; // 십성 (시주)
-        currentPillarRow[3] = detRow[3]; // 십성 (일주/월주/년주의 십성)
-        currentPillarRow[4] = detRow[4]; // 십이운성
-        currentPillarRow[5] = detRow[5]; // 십이신살
-        currentPillarRow[6] = detRow[6]; // 귀인
-      }
 
       // 3️⃣ 최종 결과 구조에 계산된 데이터를 정확히 매핑합니다.
       const result = {
         tenGodTable,
         luckCycle: [],
         fiveElements: {
-          elements: pillars.fiveElements,
+          elements: pillars.fiveElementsWeighted,
           gainFrom: "",
           lossFrom: ""
         },
@@ -3836,58 +3853,34 @@ while (retryCount <= 2 && !parsed) {
         birthDate: userInfo.birthDate || userInfo.birthdate,
       };
       const pillars = getFourPillars(fixedUser);
-      // console.log("[DEBUG] Sample Four Pillars:", pillars);
 
-      // 2️⃣ deterministic table을 사용하여 십성, 운성, 귀인 등 미리보기에 필요한 데이터를 생성합니다.
-      const deterministicTable = buildDeterministicTenGodTable(fixedUser);
-      const hGan = pillars.hour.gan ?? "-";
-      const hJi = pillars.hour.ji ?? "-";
-
-      // 기본 데이터 배열을 시-일-월-년 순서로 초기화
+      const realTable = buildRealTenGodTable(fixedUser);
       const tenGodTable = {
-        headerRows: ["시주", "일주", "월주", "년주"], // EJS에서 이 순서대로 출력됨
-        columns: ["십성", "천간", "지지", "십성", "십이운성", "십이신살", "귀인"],
-        data: [
-          // index 0: 시주
-          ["", toHanja(pillars.hour.gan), toHanja(pillars.hour.ji), "", "", "", ""],
-          // index 1: 일주
-          ["", toHanja(pillars.day.gan), toHanja(pillars.day.ji), "", "", "", ""],
-          // index 2: 월주
-          ["", toHanja(pillars.month.gan), toHanja(pillars.month.ji), "", "", "", ""],
-          // index 3: 년주
-          ["", toHanja(pillars.year.gan), toHanja(pillars.year.ji), "", "", "", ""],
-        ],
+        ...realTable,
+        data: realTable.data.map((row, i) => {
+          const pillarKeys = ["hour", "day", "month", "year"];
+          const p = pillars[pillarKeys[i]];
+          if (!p.gan || !p.ji || row[1] === "" || row[2] === "") {
+            return ["-", "-", "-", "-", "-", "-", "-"];
+          }
+          return [
+            cutToTwoChars(row[0]),
+            toHanja(p.gan),
+            toHanja(p.ji),
+            cutToTwoChars(row[3]),
+            cutToTwoChars(row[4]),
+            cutToTwoChars(row[5]),
+            cutToTwoChars(row[6]),
+          ];
+        }),
       };
-
-      // 계산된 천간/지지를 유지하면서 나머지 십성/운성 데이터를 덮어씌웁니다.
-      for (let i = 0; i < 4; i++) {
-        if (tenGodTable.data[i][1] == '-' || tenGodTable.data[i][2] == '-') {
-          const currentPillarRow = tenGodTable.data[i];
-          currentPillarRow[0] = '-'; // 십성 (시주)
-          currentPillarRow[3] = '-'; // 십성 (일주/월주/년주의 십성)
-          currentPillarRow[4] = '-'; // 십이운성
-          currentPillarRow[5] = '-'; // 십이신살
-          currentPillarRow[6] = '-'; // 귀인
-        }
-        else {
-          const detRow = deterministicTable.data[i];
-          const currentPillarRow = tenGodTable.data[i];
-
-          currentPillarRow[0] = cutToTwoChars(detRow[0]); // 십성 (시주)
-          currentPillarRow[3] = cutToTwoChars(detRow[3]); // 십성 (일주/월주/년주의 십성)
-          currentPillarRow[4] = cutToTwoChars(detRow[4]); // 십이운성
-          currentPillarRow[5] = cutToTwoChars(detRow[5]); // 십이신살
-          currentPillarRow[6] = cutToTwoChars(detRow[6]); // 귀인
-        }
-
-      }
 
       // 3️⃣ 최종 결과 구조에 계산된 데이터를 정확히 매핑합니다.
       const result = {
         tenGodTable,
         luckCycle: parsedResponse.luckCycle,
         fiveElements: {
-          elements: pillars.fiveElements,
+          elements: pillars.fiveElementsWeighted,
           gainFrom: parsedResponse.fiveElements.gainFrom,
           lossFrom: parsedResponse.fiveElements.lossFrom
         },
@@ -3972,93 +3965,6 @@ function convertTenGodTableToHanja(table) {
   );
 
   return converted;
-}
-
-// --- Deterministic TenGod (십성표) Helpers (sample 전용) ---
-const TEN_GOD_LIST = ["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"];
-const HEAVENLY_STEMS_HANJA = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]; // 천간
-const EARTHLY_BRANCHES_HANJA = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]; // 지지
-const TWELVE_STAGE = ["장생", "목욕", "관대", "건록", "제왕", "쇠", "병", "사", "묘", "절", "태", "양"]; // 십이운성
-const TWELVE_GODKILL = ["천을귀인", "현살", "태극귀인", "천살", "월살", "망신살", "장성살", "반안살", "육해살", "화개살", "지살", "겁살"]; // 십이신살 예시
-const NOBLE_STAR = ["문창귀인", "천덕귀인", "월덕귀인", "천을귀인", "학당귀인", "도화", "양인", "복성", "천기성", "천재성"]; // 귀인
-
-function stableHash(input) {
-  return crypto.createHash('sha256').update(String(input)).digest('hex');
-}
-function pick(list, hash, offset) {
-  const idx = parseInt(hash.slice(offset, offset + 2), 16) % list.length;
-  return list[idx];
-}
-function buildDeterministicTenGodTable(userInfo) {
-  const name = (userInfo?.name || '').trim().toUpperCase();
-  const birthDate = (userInfo?.birthDate || userInfo?.birthdate || '').replace(/[^0-9]/g, '');
-  const birthTime = (userInfo?.birthTime || userInfo?.birth_time || '').toString().padStart(2, '0');
-  const gender = (userInfo?.gender || '').trim().toUpperCase();
-  const key = `${name}|${birthDate}|${birthTime}|${gender}`;
-  const h = stableHash(key);
-
-  const headerRows = ["시주", "일주", "월주", "년주"]; // 고정
-  const columns = ["십성", "천간", "지지", "십성", "십이운성", "십이신살", "귀인"]; // 고정
-
-  const data = headerRows.map((_, i) => {
-    const base = i * 8; // 간격
-    const ten1 = pick(TEN_GOD_LIST, h, base);
-    const stem = pick(HEAVENLY_STEMS_HANJA, h, base + 2);
-    const branch = pick(EARTHLY_BRANCHES_HANJA, h, base + 4);
-    const ten2 = pick(TEN_GOD_LIST, h, base + 6);
-    const stage = pick(TWELVE_STAGE, h, base + 8);
-    const godKill = pick(TWELVE_GODKILL, h, base + 10);
-    const noble = pick(NOBLE_STAR, h, base + 12);
-    return [ten1, stem, branch, ten2, stage, godKill, noble];
-  });
-
-  return {
-    headerRows,
-    columns,
-    data,
-    deterministicKey: h.slice(0, 16)
-  };
-}
-function enforceDeterministicTenGodTable(resultObj, table) {
-  if (!resultObj || typeof resultObj !== 'object' || !table) return;
-  const target = (resultObj.tenGodTable && typeof resultObj.tenGodTable === 'object') ? resultObj.tenGodTable : {};
-  const srcData = Array.isArray(table.data) ? table.data : [];
-
-  // headerRows/columns: 기존 값 유지, 없으면 table 또는 기본값 사용
-  target.headerRows = Array.isArray(target.headerRows) && target.headerRows.length
-    ? target.headerRows
-    : (Array.isArray(table.headerRows) && table.headerRows.length ? table.headerRows : ["시주", "일주", "월주", "년주"]);
-
-  target.columns = Array.isArray(target.columns) && target.columns.length
-    ? target.columns
-    : (Array.isArray(table.columns) && table.columns.length ? table.columns : ["십성", "천간", "지지", "십성", "십이운성", "십이신살", "귀인"]);
-
-  // data 보정: 4행 x 7열 보장
-  const rows = Array.isArray(target.data) ? target.data : [];
-  for (let r = 0; r < 4; r++) {
-    if (!Array.isArray(rows[r])) rows[r] = new Array(7).fill("");
-    for (let c = 0; c < 7; c++) {
-      if (typeof rows[r][c] === 'undefined') rows[r][c] = "";
-    }
-  }
-
-  // 1~3행, 4~6열만 비어 있을 때 table 값으로 채움
-  for (let r = 1; r <= 3; r++) {
-    for (let c = 4; c <= 6; c++) {
-      const cur = rows?.[r]?.[c];
-      const src = srcData?.[r]?.[c];
-      const isEmpty = cur === "" || cur == null;
-      const hasSrc = src != null && src !== "";
-      if (isEmpty && hasSrc) rows[r][c] = src;
-    }
-  }
-
-  target.data = rows;
-  resultObj.tenGodTable = target;
-
-  if (table.deterministicKey) {
-    resultObj.tenGodDeterministicKey = table.deterministicKey;
-  }
 }
 
 // 0) 공통 클리너: 코드펜스/제로폭/이상 공백/이모지 일부 제거

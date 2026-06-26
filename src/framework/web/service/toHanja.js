@@ -47,6 +47,15 @@ export const SIPSEONG_REVERSE = Object.fromEntries(
   Object.entries(SIPSEONG_MAP).map(([k, v]) => [v, k])
 );
 
+// lunar-javascript 간체 한자 별칭
+Object.assign(SIPSEONG_REVERSE, {
+  "劫财": "겁재",
+  "伤官": "상관",
+  "七杀": "편관",
+  "正财": "정재",
+  "偏财": "편재",
+});
+
 
 /**************************************
  * 4) 지지-본기 기준 십성 (예: 자(癸)=정인 등)
@@ -104,6 +113,22 @@ export const SIPI_WUNSEONG_MAP = {
 export const SIPI_WUNSEONG_REVERSE = Object.fromEntries(
   Object.entries(SIPI_WUNSEONG_MAP).map(([k, v]) => [v, k])
 );
+
+// lunar-javascript 간체 한자 별칭
+Object.assign(SIPI_WUNSEONG_REVERSE, {
+  "长生": "장생",
+  "沐浴": "목욕",
+  "冠带": "관대",
+  "建禄": "건록",
+  "帝旺": "제왕",
+  "衰": "쇠",
+  "病": "병",
+  "死": "사",
+  "墓": "묘",
+  "绝": "절",
+  "胎": "태",
+  "养": "양",
+});
 
 
 /**************************************
