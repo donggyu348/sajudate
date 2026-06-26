@@ -2,8 +2,8 @@ export default {
 
     local: {
          username: 'root',
-         password: 'jyo07069!@#',
-         database: 'dblocal',
+         password: 'Qq4690qq!',
+         database: 'saju_local',
          host: '127.0.0.1',
          port: 3306,
        // username: 'dbmasteruser',
