@@ -9860,6 +9860,10 @@ button,
   height: 100vh
 }
 
+.h-\[360px\] {
+  height: 360px
+}
+
 .max-h-32 {
   max-height: 8rem
 }
@@ -11423,6 +11427,10 @@ button,
 
 .bg-zinc-900\/80 {
   background-color: rgb(24 24 27 / 0.8)
+}
+
+.bg-red-800\/90 {
+  background-color: rgb(153 27 27 / 0.9)
 }
 
 .bg-gradient-to-b {
