@@ -9848,6 +9848,10 @@ button,
   height: 2.25rem
 }
 
+.h-\[360px\] {
+  height: 360px
+}
+
 .h-auto {
   height: auto
 }
@@ -9860,10 +9864,6 @@ button,
   height: 100vh
 }
 
-.h-\[360px\] {
-  height: 360px
-}
-
 .max-h-32 {
   max-height: 8rem
 }
@@ -9874,10 +9874,6 @@ button,
 
 .min-h-16 {
   min-height: 4rem
-}
-
-.min-h-\[280px\] {
-  min-height: 280px
 }
 
 .min-h-\[3rem\] {
@@ -11402,6 +11398,10 @@ button,
   background-color: rgb(220 38 38 / var(--tw-bg-opacity))
 }
 
+.bg-red-800\/90 {
+  background-color: rgb(153 27 27 / 0.9)
+}
+
 .bg-rose-500\/90 {
   background-color: rgb(244 63 94 / 0.9)
 }
@@ -11427,10 +11427,6 @@ button,
 
 .bg-zinc-900\/80 {
   background-color: rgb(24 24 27 / 0.8)
-}
-
-.bg-red-800\/90 {
-  background-color: rgb(153 27 27 / 0.9)
 }
 
 .bg-gradient-to-b {

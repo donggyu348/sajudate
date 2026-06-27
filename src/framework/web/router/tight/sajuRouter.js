@@ -165,6 +165,11 @@ router.get("/adult/intro", (req, res) => {
   res.render("tight/saju/adult/intro");
 });
 
+/* 재회사주 인트로 */
+router.get("/reunion/intro", (req, res) => {
+  res.render("tight/saju/reunion/intro");
+});
+
 /* 29금사주 입력 */
 router.get("/adult/input", (req, res) => {
   res.render("tight/saju/adult/input");
