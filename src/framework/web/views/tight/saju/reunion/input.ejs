@@ -166,6 +166,8 @@
     }
 
     .card-step::-webkit-scrollbar { display: none; }
+    .card-step { outline: none; }
+    .card-grid { outline: none; }
 
     .card-step.active { display: block; }
 
@@ -290,7 +292,7 @@
   </form>
 
   <!-- STEP 5: 카드 선택 (form 바깥, 별도 레이어) -->
-  <div class="card-step" id="cardStep">
+  <div class="card-step" id="cardStep" tabindex="-1">
     <div class="card-grid">
 
       <!-- 왼쪽 열 -->
