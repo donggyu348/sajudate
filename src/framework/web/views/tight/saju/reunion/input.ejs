@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<head>
+  <style>
+    :root {
+      --red: #c0392b;
+      --red-soft: rgba(192,57,43,0.7);
+      --white-soft: rgba(255,255,255,0.6);
+      --white-dim: rgba(255,255,255,0.35);
+    }
+
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      overflow: auto;
+    }
+
+    .stage {
+      max-width: 480px;
+      height: 100dvh;
+      margin: 0 auto;
+      position: relative;
+      background: linear-gradient(180deg, #0a0000 0%, #070000 50%, #030000 100%);
+    }
+
+    .stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.8) 100%);
+    }
+
+    /* 진행바 */
+    .progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: var(--red);
+      transition: width 0.4s ease;
+      z-index: 10;
+    }
+
+    /* 질문 */
+    .question-layer {
+      position: absolute;
+      top: 36%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      padding: 0 24px;
+      text-align: center;
+      z-index: 5;
+    }
+
+    .question-sub {
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      opacity: 0.45;
+      margin-bottom: 10px;
+    }
+
+    .question-title {
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.5;
+      letter-spacing: -0.01em;
+    }
+
+    /* 스텝 */
+    .step { display: none; }
+    .step.active { display: block; }
+
+    /* 입력 영역 */
+    .input-area {
+      position: absolute;
+      top: 54%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 48px);
+      max-width: 420px;
+      z-index: 5;
+      animation: fadeUp 0.45s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translate(-50%, 14px); }
+      to   { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* 텍스트 인풋 */
+    .input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--white-dim);
+      padding: 10px 6px;
+      font-size: 20px;
+      color: #fff;
+      outline: none;
+      text-align: center;
+      letter-spacing: 0.02em;
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .input::placeholder { color: rgba(255,255,255,0.3); }
+    .input:focus { border-bottom-color: var(--red); }
+
+    select.input {
+      appearance: none;
+      text-align-last: center;
+      cursor: pointer;
+    }
+
+    select option {
+      background-color: #111;
+      color: #fff;
+    }
+
+    /* 다음 버튼 */
+    .next-btn {
+      position: fixed;
+      bottom: calc(20px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 48px);
+      max-width: 420px;
+      height: 52px;
+      border-radius: 26px;
+      border: 1px solid var(--red);
+      background: transparent;
+      color: var(--red);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      z-index: 10;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .next-btn:hover {
+      background: var(--red);
+      color: #fff;
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0px 1000px rgba(10,0,0,0.8) inset;
+      -webkit-text-fill-color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+<div class="stage">
+
+  <!-- 진행바 -->
+  <div class="progress-bar" id="progressBar" style="width:25%"></div>
+
+  <!-- 질문 -->
+  <div class="question-layer">
+    <p class="question-sub">재회 사주</p>
+    <h1 id="questionTitle" class="question-title">당신의 이름은?</h1>
+  </div>
+
+  <form id="sajuForm" method="POST" action="/saju/reunion/result">
+    <input type="hidden" name="birthType"        id="birthTypeInput">
+    <input type="hidden" name="partnerBirthType" id="partnerBirthTypeInput">
+
+    <!-- STEP 1: 내 이름 -->
+    <section class="step active">
+      <div class="input-area">
+        <input name="name" type="text" class="input" placeholder="이름을 입력하세요" autocomplete="off">
+      </div>
+    </section>
+
+    <!-- STEP 2: 상대방 이름 -->
+    <section class="step">
+      <div class="input-area">
+        <input name="partnerName" type="text" class="input" placeholder="상대방 이름을 입력하세요" autocomplete="off">
+      </div>
+    </section>
+
+    <!-- STEP 3: 내 생년월일 -->
+    <section class="step">
+      <div class="input-area">
+        <select id="birthTypeSelect" class="input" style="margin-bottom:14px">
+          <option value="양력">양력</option>
+          <option value="음력">음력</option>
+        </select>
+        <input name="birthdate" class="input" placeholder="YYYYMMDD" maxlength="8" inputmode="numeric">
+      </div>
+    </section>
+
+    <!-- STEP 4: 상대방 생년월일 -->
+    <section class="step">
+      <div class="input-area">
+        <select id="partnerBirthTypeSelect" class="input" style="margin-bottom:14px">
+          <option value="양력">양력</option>
+          <option value="음력">음력</option>
+        </select>
+        <input name="partnerBirthdate" class="input" placeholder="YYYYMMDD" maxlength="8" inputmode="numeric">
+      </div>
+    </section>
+
+    <button type="button" id="nextBtn" class="next-btn">다음으로</button>
+  </form>
+
+</div>
+
+<script>
+  let step = 0;
+  const steps = document.querySelectorAll(".step");
+  const questionTitle = document.getElementById("questionTitle");
+  const progressBar  = document.getElementById("progressBar");
+
+  const questions = [
+    "당신의 이름은?",
+    "상대방의 이름은?",
+    "당신의 생년월일을\n입력해주세요",
+    "상대방의 생년월일을\n입력해주세요"
+  ];
+
+  function showStep() {
+    steps.forEach((s, i) => s.classList.toggle("active", i === step));
+    questionTitle.innerText = questions[step];
+    progressBar.style.width = ((step + 1) / steps.length * 100) + "%";
+
+    // 해당 스텝의 첫 번째 input에 포커스
+    const activeInput = document.querySelector(".step.active input");
+    if (activeInput) setTimeout(() => activeInput.focus(), 100);
+  }
+
+  function shake(target) {
+    target.animate(
+      [{ transform:"translateX(0)" },{ transform:"translateX(-6px)" },{ transform:"translateX(6px)" },{ transform:"translateX(0)" }],
+      { duration: 300 }
+    );
+  }
+
+  function validateStep() {
+    if (step === 0) {
+      const v = document.querySelector("input[name='name']").value.trim();
+      if (!v) { shake(document.querySelector("input[name='name']")); return false; }
+    }
+    if (step === 1) {
+      const v = document.querySelector("input[name='partnerName']").value.trim();
+      if (!v) { shake(document.querySelector("input[name='partnerName']")); return false; }
+    }
+    if (step === 2) {
+      const v = document.querySelector("input[name='birthdate']").value.trim();
+      if (!/^\d{8}$/.test(v)) { shake(document.querySelector("input[name='birthdate']")); return false; }
+    }
+    if (step === 3) {
+      const v = document.querySelector("input[name='partnerBirthdate']").value.trim();
+      if (!/^\d{8}$/.test(v)) { shake(document.querySelector("input[name='partnerBirthdate']")); return false; }
+    }
+    return true;
+  }
+
+  document.getElementById("nextBtn").onclick = () => {
+    if (!validateStep()) return;
+    if (step < steps.length - 1) {
+      step++;
+      showStep();
+    } else {
+      document.getElementById("sajuForm").submit();
+    }
+  };
+
+  document.getElementById("birthTypeSelect").addEventListener("change", function () {
+    document.getElementById("birthTypeInput").value = this.value;
+  });
+  document.getElementById("birthTypeSelect").dispatchEvent(new Event("change"));
+
+  document.getElementById("partnerBirthTypeSelect").addEventListener("change", function () {
+    document.getElementById("partnerBirthTypeInput").value = this.value;
+  });
+  document.getElementById("partnerBirthTypeSelect").dispatchEvent(new Event("change"));
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      if (document.activeElement.tagName === "SELECT") return;
+      e.preventDefault();
+      document.getElementById("nextBtn").click();
+    }
+  });
+</script>
+
+</body>
+</html>

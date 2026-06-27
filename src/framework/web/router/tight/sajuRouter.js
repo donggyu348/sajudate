@@ -170,6 +170,11 @@ router.get("/reunion/intro", (req, res) => {
   res.render("tight/saju/reunion/intro");
 });
 
+/* 재회사주 입력 */
+router.get("/reunion/input", (req, res) => {
+  res.render("tight/saju/reunion/input");
+});
+
 /* 29금사주 입력 */
 router.get("/adult/input", (req, res) => {
   res.render("tight/saju/adult/input");
