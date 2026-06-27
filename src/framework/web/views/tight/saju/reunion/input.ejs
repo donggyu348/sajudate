@@ -163,11 +163,15 @@
       z-index: 5;
       background: transparent;
       animation: fadeUp2 0.45s ease;
+      outline: none !important;
+      border: none !important;
+      box-shadow: none !important;
     }
 
     .card-step::-webkit-scrollbar { display: none; }
-    .card-step { outline: none; }
-    .card-grid { outline: none; }
+    .card-step:focus { outline: none !important; border: none !important; box-shadow: none !important; }
+    .card-grid { outline: none !important; border: none !important; box-shadow: none !important; }
+    .col-left, .col-right { outline: none !important; border: none !important; }
 
     .card-step.active { display: block; }
 
@@ -437,6 +441,10 @@
     document.getElementById("partnerBirthTypeInput").value = this.value;
   });
   document.getElementById("partnerBirthTypeSelect").dispatchEvent(new Event("change"));
+
+  // 카드 영역 포커스 아웃라인 강제 제거
+  const cardStepEl = document.getElementById("cardStep");
+  cardStepEl.addEventListener("focus", () => { cardStepEl.blur(); }, true);
 
   document.addEventListener("keydown", function (e) {
     if (e.key === "Enter") {
