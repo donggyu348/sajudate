@@ -1,5 +1,5 @@
-import "dotenv/config";
-console.log("🔑 OPENAI_API_KEY =", process.env.OPENAI_API_KEY);
+import "../../loadEnv.js";
+console.log("🔑 OPENAI_API_KEY =", process.env.OPENAI_API_KEY ? "(설정됨)" : undefined);
 
 import { createServer } from "http";
 import bodyParser from "body-parser";

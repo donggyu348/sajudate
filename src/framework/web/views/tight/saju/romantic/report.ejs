@@ -1,18 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
-<%
-  const STEM_TO_FILE = {
-    "甲":"갑목","乙":"을목","丙":"병화","丁":"정화","戊":"무토",
-    "己":"기토","庚":"경금","辛":"신금","壬":"임수","癸":"계수",
-    "갑":"갑목","을":"을목","병":"병화","정":"정화","무":"무토",
-    "기":"기토","경":"경금","신":"신금","임":"임수","계":"계수"
-  };
-  const myDayStem = STEM_TO_FILE[saju.day.gan] || "갑목";
-
-  const g = String(userInfo.gender).trim();
-  let genderKey = (["여","여자","여성","female","woman"].includes(g)) ? "woman" : "man";
-%>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap');
 
@@ -264,47 +252,48 @@
   <div class="element-section">
     
     <% 
-       // 오행 수치를 퍼센트로 변환 (최대 8개 기준)
-       const getPercent = (val) => (Math.min((val / 8) * 100, 100)) + '%';
+       const elements = saju.fiveElementsWeighted || saju.fiveElements;
+       const elMax = Math.max(...Object.values(elements), 1);
+       const getPercent = (val) => (Math.min((Number(val) || 0) / elMax * 100, 100)) + '%';
     %>
     
-    <div class="el-card <%= saju.fiveElements.목 > 0 ? 'has-value' : '' %>">
+    <div class="el-card <%= elements.목 > 0 ? 'has-value' : '' %>">
       <span class="el-han color-wood">木</span>
-      <span class="el-val color-wood"><%= saju.fiveElements.목 %></span>
+      <span class="el-val color-wood"><%= elements.목 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-wood" style="height: <%= getPercent(saju.fiveElements.목) %>;"></div>
+        <div class="el-bar-fill bg-wood" style="height: <%= getPercent(elements.목) %>;"></div>
       </div>
     </div>
 
-    <div class="el-card <%= saju.fiveElements.화 > 0 ? 'has-value' : '' %>">
+    <div class="el-card <%= elements.화 > 0 ? 'has-value' : '' %>">
       <span class="el-han color-fire">火</span>
-      <span class="el-val color-fire"><%= saju.fiveElements.화 %></span>
+      <span class="el-val color-fire"><%= elements.화 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-fire" style="height: <%= getPercent(saju.fiveElements.화) %>;"></div>
+        <div class="el-bar-fill bg-fire" style="height: <%= getPercent(elements.화) %>;"></div>
       </div>
     </div>
 
-    <div class="el-card <%= saju.fiveElements.토 > 0 ? 'has-value' : '' %>">
+    <div class="el-card <%= elements.토 > 0 ? 'has-value' : '' %>">
       <span class="el-han color-earth">土</span>
-      <span class="el-val color-earth"><%= saju.fiveElements.토 %></span>
+      <span class="el-val color-earth"><%= elements.토 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-earth" style="height: <%= getPercent(saju.fiveElements.토) %>;"></div>
+        <div class="el-bar-fill bg-earth" style="height: <%= getPercent(elements.토) %>;"></div>
       </div>
     </div>
 
-    <div class="el-card <%= saju.fiveElements.금 > 0 ? 'has-value' : '' %>">
+    <div class="el-card <%= elements.금 > 0 ? 'has-value' : '' %>">
       <span class="el-han color-metal">金</span>
-      <span class="el-val color-metal"><%= saju.fiveElements.금 %></span>
+      <span class="el-val color-metal"><%= elements.금 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-metal" style="height: <%= getPercent(saju.fiveElements.금) %>;"></div>
+        <div class="el-bar-fill bg-metal" style="height: <%= getPercent(elements.금) %>;"></div>
       </div>
     </div>
 
-    <div class="el-card <%= saju.fiveElements.수 > 0 ? 'has-value' : '' %>">
+    <div class="el-card <%= elements.수 > 0 ? 'has-value' : '' %>">
       <span class="el-han color-water">水</span>
-      <span class="el-val color-water"><%= saju.fiveElements.수 %></span>
+      <span class="el-val color-water"><%= elements.수 %></span>
       <div class="el-bar-container">
-        <div class="el-bar-fill bg-water" style="height: <%= getPercent(saju.fiveElements.수) %>;"></div>
+        <div class="el-bar-fill bg-water" style="height: <%= getPercent(elements.수) %>;"></div>
       </div>
     </div>
   </div>
@@ -329,6 +318,9 @@
     </div>
   </div>
 </div>
+
+<%- include('./_hongyeonStats') %>
+
     <div id="container" class="pb-20">
       <% 
         const chapters = [...new Set(reportInfo.map(r => r.chapter))];
@@ -356,28 +348,6 @@
         <% } %>
 
        <div class="content-card">
-
-  <% if (item.title.includes("이 사주에서 특히 힘든 상대 유형")) { %>
-    <div class="w-full mb-6">
-      <img 
-        src="/assets/images/tight/romantic/report/<%= genderKey %>/<%= myDayStem %>.png"
-        class="w-full rounded-xl"
-        onerror="this.style.display='none';"
-      />
-    </div>
-  <% } %>
-
-  <% if (item.title.includes("이성에게 작용하는 기운의 결")) { %>
-    <div class="w-full mb-6">
-      <img 
-        src="/assets/images/tight/romantic/report/<%= genderKey %>1/<%= myDayStem %>.png"
-        class="w-full rounded-xl"
-        onerror="this.style.display='none';"
-      />
-    </div>
-  <% } %>
-
-
 
   <% if (item.title && item.title !== item.chapter) { %>
     <h3 class="report-title">

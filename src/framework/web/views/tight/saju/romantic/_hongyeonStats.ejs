@@ -1,0 +1,146 @@
+<%
+  const displayName =
+    (typeof userInfo !== 'undefined' && userInfo && userInfo.name) ||
+    (typeof romanticPreview !== 'undefined' && romanticPreview && romanticPreview.userName) ||
+    '당신';
+  const showHongyeon = typeof userInfo !== 'undefined' && userInfo;
+%>
+<% if (showHongyeon) { %>
+<style>
+  .hongyeon-stats {
+    margin: 0 20px 28px;
+    font-family: 'Noto Serif KR', serif;
+    color: #fff;
+  }
+
+  .hongyeon-intro {
+    background: linear-gradient(180deg, rgba(243, 230, 200, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(243, 230, 200, 0.14);
+    border-radius: 24px;
+    padding: 28px 22px;
+    text-align: center;
+  }
+
+  .hongyeon-intro__hanja {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    margin-bottom: 6px;
+    background: linear-gradient(180deg, #fff8ef 0%, #e6c27a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hongyeon-intro__headline {
+    font-size: 17px;
+    font-weight: 700;
+    color: #f8f0e6;
+    margin: 0 0 16px;
+    line-height: 1.5;
+    letter-spacing: -0.02em;
+  }
+
+  .hongyeon-intro__headline em {
+    font-style: normal;
+    color: #f3e6c8;
+  }
+
+  .hongyeon-intro__body {
+    font-size: 14px;
+    line-height: 1.85;
+    color: rgba(255, 255, 255, 0.72);
+    text-align: left;
+    margin: 0;
+    word-break: keep-all;
+  }
+
+  .hongyeon-intro__body + .hongyeon-intro__body {
+    margin-top: 12px;
+  }
+
+  .hongyeon-intro__body strong {
+    color: rgba(243, 230, 200, 0.95);
+    font-weight: 600;
+  }
+
+  .hongyeon-intro__body em {
+    font-style: normal;
+    color: rgba(243, 230, 200, 0.9);
+  }
+
+  .hongyeon-intro__points {
+    list-style: none;
+    margin: 18px 0 0;
+    padding: 16px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: left;
+  }
+
+  .hongyeon-intro__points li {
+    position: relative;
+    padding-left: 14px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.62);
+  }
+
+  .hongyeon-intro__points li:last-child {
+    margin-bottom: 0;
+  }
+
+  .hongyeon-intro__points li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #d4af37;
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.35);
+  }
+
+  .hongyeon-intro__points strong {
+    color: rgba(243, 230, 200, 0.95);
+    font-weight: 600;
+  }
+
+  .hongyeon-intro__note {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(243, 230, 200, 0.2);
+    font-size: 12px;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+  }
+</style>
+
+<div class="hongyeon-stats" aria-label="홍연 안내">
+  <section class="hongyeon-intro" aria-label="홍연이란">
+    <span class="hongyeon-intro__hanja" aria-hidden="true">紅緣</span>
+    <h2 class="hongyeon-intro__headline"><em>홍연</em>이란 무엇인가요?</h2>
+    <p class="hongyeon-intro__body">
+      홍연(紅緣)은 <strong>붉은 인연</strong>이라는 뜻입니다. 사주에 새겨진, 우연이 아닌
+      <strong>운명적으로 맺어지는 연애 인연</strong>을 가리킵니다. 가볍게 스치는 인연과 달리,
+      당신의 삶에 실제로 깊게 들어와 관계로 이어질 수 있는 사람 — 그 실루엣과 때를 읽어내는 것이 홍연입니다.
+    </p>
+    <p class="hongyeon-intro__body">
+      사주에서 홍연은 누구에게나 통하는 연애 조언이 아닙니다. 오직 당신의 명식(命式) 안에서만
+      그려지는 그림이기에, 이 보고서는 <em><%= displayName %></em>님의 사주만을 근거로 읽어냈습니다.
+    </p>
+    <ul class="hongyeon-intro__points">
+      <li><strong>배우자궁(일지)</strong> — 나와 배우자가 맺어지는 방식, 인연이 안정되는지·흔들리는지</li>
+      <li><strong>배우자성</strong> — 여성은 관성(官星), 남성은 재성(財星). 이 기운이 강해지는 때에 홍연이 가까워집니다</li>
+      <li><strong>도화·홍염</strong> — 끌림의 색깔과 강도. 첫눈에 닿는 인연의 온도를 말합니다</li>
+      <li><strong>대운·세운</strong> — 10년·1년 단위 운의 흐름. 홍연이 <em>언제</em> 문을 두드리는지는 여기서 짚습니다</li>
+    </ul>
+    <p class="hongyeon-intro__note">
+      이어지는 본문에서 홍연의 흐름을 더 깊이 풀어드립니다.
+    </p>
+  </section>
+</div>
+<% } %>

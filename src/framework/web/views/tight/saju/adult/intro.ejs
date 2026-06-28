@@ -15,9 +15,33 @@
     .page {
       max-width: 584px;
       margin: 0 auto;
+      padding-bottom: 71px;
     }
 
     .landing-img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .fixed-cta {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 584px;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .fixed-cta a {
+      display: block;
+      line-height: 0;
+      text-decoration: none;
+    }
+
+    .fixed-cta img {
       display: block;
       width: 100%;
       height: auto;
@@ -29,13 +53,24 @@
   <div class="page">
     <img
       class="landing-img"
-      src="/assets/images/tight/29/intro/landing-full.png"
-      alt="29금 정욕합 사주 — 천해랑이 읽어주는 욕망과 정욕합의 비밀"
+      src="/assets/images/tight/29/intro/landing-full.png?v=1"
+      alt="29금 속궁합 사주 — 천해랑이 읽어주는 욕망과 속궁합의 비밀"
       width="584"
-      height="12711"
+      height="19934"
       loading="eager"
       decoding="async"
     >
+  </div>
+
+  <div class="fixed-cta">
+    <a href="/saju/adult/input">
+      <img
+        src="/assets/images/tight/29/intro/cta-intro.png?v=1"
+        alt="🌹 나의 은밀한 욕망 확인하기"
+        width="389"
+        height="71"
+      >
+    </a>
   </div>
 
   <script>

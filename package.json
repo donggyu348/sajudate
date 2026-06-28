@@ -22,9 +22,9 @@
     "sequelize": "^6.37.7"
   },
   "scripts": {
-    "start-local-jujangso": "cross-env NODE_ENV=local DOTENV_CONFIG_PATH=.env.local concurrently \"yarn watch:css\" \"node -r dotenv/config src/initDB.js && nodemon --exec \\\"node -r dotenv/config\\\" src/jujangso.js\"",
+    "start-local-jujangso": "cross-env NODE_ENV=local concurrently \"yarn watch:css\" \"node --import ./src/loadEnv.js src/initDB.js && nodemon --exec \\\"node --import ./src/loadEnv.js\\\" src/jujangso.js\"",
     "start-prod-jujangso": "NODE_ENV=product node src/jujangso.js",
-    "start-local-tight": "cross-env NODE_ENV=local DOTENV_CONFIG_PATH=.env.local concurrently \"yarn watch:css\" \"node -r dotenv/config src/initDB.js && nodemon --exec \\\"node -r dotenv/config\\\" src/tight.js\"",
+    "start-local-tight": "cross-env NODE_ENV=local concurrently \"yarn watch:css\" \"node --import ./src/loadEnv.js src/initDB.js && nodemon --exec \\\"node --import ./src/loadEnv.js\\\" src/tight.js\"",
     "start-prod-tight": "NODE_ENV=product node src/tight.js",
     "build:css": "npx tailwindcss -i src/framework/web/styles/input.css -o public/assets/css/main.css",
     "watch:css": "npx tailwindcss -i src/framework/web/styles/input.css -o public/assets/css/main.css --watch"

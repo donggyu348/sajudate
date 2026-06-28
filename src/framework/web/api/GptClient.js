@@ -6,7 +6,7 @@ class GptClient {
    * ChatGPT 프롬프트 호출 함수
    * 최대 3회까지 재시도 (기본 1회 + 실패시 2회)
    */
-  async callChatGpt(messages, model = 'gpt-4o') {
+  async callChatGpt(messages, model = 'gpt-4o', maxTokens = 4096) {
     if (!OPENAI_API_KEY) {
       throw new Error('환경변수 OPENAI_API_KEY가 설정되지 않았습니다. .env에 설정 후 서버를 재시작하세요.');
     }
@@ -27,7 +27,7 @@ class GptClient {
             model,
             messages,
             temperature: 0.7,
-            max_tokens: 4096,
+            max_tokens: maxTokens,
             response_format: { type: "json_object" } // 모델 수준에서 JSON 출력 강제            
 
           }),

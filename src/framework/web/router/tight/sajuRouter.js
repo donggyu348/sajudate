@@ -9,6 +9,7 @@ import paymentService from "../../service/PaymentService.js";
 import { PaymentStatus } from "../../enums/Payment.js";
 import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
+import { buildLoveTendencyPreview, buildRomanticPreview } from "../../service/romanticPreviewService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
 import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
@@ -41,14 +42,18 @@ const sample = await gptService.callSample(userInfo);
       day: today.getDate()
     };
 
+    const loveTendencyPreview = buildLoveTendencyPreview(userInfo, saju);
+    const romanticPreview = buildRomanticPreview(userInfo, saju);
+
     // 2. 결과 페이지 렌더링
     res.render(`tight/saju/${goodsType.code.toLowerCase()}/result`, {
       userInfo: userInfo,
-      saju,        // 🔥 이것만 있으면 됨
+      saju,
       todayDate: todayDate,
       sample,
-            sampleInfo: sample   // ✅ 이 줄이 이번 에러의 정답
-
+      sampleInfo: sample,
+      loveTendencyPreview,
+      romanticPreview,
     });
   } catch (error) {
     console.error(`Error processing ${goodsType.code} GET result:`, error);
@@ -344,7 +349,7 @@ router.get("/report", async (req, res) => {
       },
       sample: reportHistory.sampleInfo,
       sampleInfo: reportHistory.sampleInfo,
-      saju 
+      saju,
     });
   } catch (error) {
     console.error("보고서 렌더링 에러:", error);

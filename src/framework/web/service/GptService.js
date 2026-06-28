@@ -3,6 +3,11 @@ import { GoodsType } from "../enums/Goods.js";
 import { getFourPillars } from "./sajuCalService.js";
 import { Solar } from "lunar-javascript";
 import { toHanja, toHangul } from "./toHanja.js";
+import {
+  ROMANTIC_LOVE_REPORT_BASE,
+  ROMANTIC_LOVE_REPORT_BATCHES,
+  getPartnerPreviewTitle,
+} from "./prompts/romanticLoveReportPrompt.js";
 
 // --- Lunar 기반 사주 계산 Helpers (sample 전용) ---
 
@@ -285,6 +290,92 @@ function buildRealTenGodTable(userInfo) {
   const ec = lunar.getEightChar();
   const out = buildOutFromLunar(lunar, ec);
   return buildTenGodTable(out, userInfo);
+}
+
+const STEM_ELEMENT_KR = {
+  갑: "목", 을: "목", 병: "화", 정: "화", 무: "토",
+  기: "토", 경: "금", 신: "금", 임: "수", 계: "수",
+};
+const STEM_DESC = {
+  갑: "큰 나무", 을: "부드러운 풀", 병: "태양의 불", 정: "촛불의 불",
+  무: "넓은 대지", 기: "비옥한 흙", 경: "단단한 쇠", 신: "보석 같은 쇠",
+  임: "큰 바다", 계: "이슬비",
+};
+
+function buildSajuJsonForReport(userInfo) {
+  const pillars = getFourPillars(userInfo);
+  const fixedUser = { ...userInfo, birthDate: userInfo.birthDate || userInfo.birthdate };
+  const tenGodTable = buildRealTenGodTable(fixedUser);
+
+  const solar = toSolarFromUserInfo(fixedUser);
+  const lunar = solar.getLunar();
+  const ec = lunar.getEightChar();
+  const out = buildOutFromLunar(lunar, ec);
+
+  const gender = String(userInfo.gender || "").trim();
+  const isFemale = ["여", "여자", "여성", "female", "F", "woman"].some(
+    (v) => gender === v || gender.toLowerCase() === v.toLowerCase()
+  );
+  const spouseTenGodTypes = isFemale ? ["정관", "편관"] : ["정재", "편재"];
+
+  const currentYear = new Date().getFullYear();
+  const rawBirth = String(fixedUser.birthDate || "").replace(/[^0-9]/g, "");
+  const birthYear = rawBirth.length >= 4 ? parseInt(rawBirth.slice(0, 4), 10) : currentYear;
+  const age = currentYear - birthYear;
+  const currentDaewoon = pillars.daewoon.find(
+    (dw) => age >= dw.startAge && age <= dw.endAge
+  ) || pillars.daewoon[0];
+
+  return {
+    tenGodTable,
+    fiveElements: {
+      elements: pillars.fiveElementsWeighted,
+      gainFrom: "",
+      lossFrom: "",
+    },
+    daewoon: pillars.daewoon,
+    sewun: pillars.sewun,
+    wolwoon: pillars.wolwoon,
+    tenGod: pillars.tenGod,
+    relations: pillars.relations,
+    strength: pillars.strength,
+    yongshin: pillars.yongshin,
+    gongMang: pillars.gongMang,
+    shenSha: out.shenSha,
+    spouse: pillars.spouse,
+    spouseTenGodTypes,
+    currentDaewoon,
+    dayPillar: { gan: pillars.day.gan, ji: pillars.day.ji },
+    dayGanLabel: `${pillars.day.gan}${STEM_ELEMENT_KR[pillars.day.gan] || ""} — ${STEM_DESC[pillars.day.gan] || ""}의 기운`,
+    zodiacSign: pillars.zodiac,
+    noblePeople: pillars.noble,
+    monthRelation: pillars.relationYM,
+    flow: pillars.flow,
+    twelveGodKill: pillars.gods12,
+    hourUnknown: pillars.isUnknownTime,
+    userInfo: fixedUser,
+    currentYear,
+  };
+}
+
+function flattenRomanticLoveReport(sections, meta = {}) {
+  const result = [];
+  const sorted = [...sections].sort((a, b) => Number(a.id) - Number(b.id));
+  for (const section of sorted) {
+    for (const sub of section.subsections || []) {
+      if (!sub?.content) continue;
+      result.push({
+        chapter: section.title,
+        title: sub.title,
+        content: removePlaceholders(sub.content),
+      });
+    }
+  }
+  if (meta.reportTitle && result.length) {
+    result[0]._reportTitle = meta.reportTitle;
+    result[0]._dayGan = meta.dayGan;
+  }
+  return result;
 }
 // --- End Lunar 기반 Helpers ---
 
@@ -3444,16 +3535,94 @@ function extractRomanticChapterTitleFromPrompt(promptStr) {
  */
 class GptService {
 
+  async callRomanticLoveReport(userInfo) {
+    const sajuJson = buildSajuJsonForReport(userInfo);
+    const pillarSummary = `${sajuJson.dayPillar.gan}${sajuJson.dayPillar.ji}일주 (${sajuJson.zodiacSign})`;
+    const contextInfo = `
+[사용자 사주 요약]
+이름: ${userInfo.name}
+성별: ${userInfo.gender}
+생년월일시: ${pillarSummary}
+${sajuJson.hourUnknown ? "\n⚠ 태어난 시간이 확인되지 않아 시주는 참고용으로만 활용하세요.\n" : ""}
+[CONTEXT] 현재 연도: ${sajuJson.currentYear}. 모든 시기 예측은 이 연도를 기준으로 하세요.
+`.trim();
+
+    const allSections = [];
+    const meta = {};
+    const ROMANTIC_MAX_TOKENS = 16384;
+
+    for (let b = 0; b < ROMANTIC_LOVE_REPORT_BATCHES.length; b++) {
+      const batch = ROMANTIC_LOVE_REPORT_BATCHES[b];
+      let instruction = batch.instruction;
+      if (batch.ids.includes("9")) {
+        const partnerTitle = getPartnerPreviewTitle(userInfo.gender);
+        instruction = instruction.replace("{{PARTNER_PREVIEW_TITLE}}", partnerTitle);
+        instruction = instruction.replace(
+          "섹션 9. {{PARTNER_PREVIEW_TITLE}}",
+          `섹션 9. ${partnerTitle}`
+        );
+      }
+
+      const systemPrompt = `${ROMANTIC_LOVE_REPORT_BASE}\n\n${instruction}\n\n${contextInfo}\n\n[중요: 반드시 유효한 JSON만 출력하세요.]`;
+      let parsed = null;
+      let retryCount = 0;
+
+      while (retryCount <= 2 && !parsed) {
+        try {
+          const response = await GptClient.callChatGpt(
+            [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: JSON.stringify(sajuJson) },
+            ],
+            "gpt-4o",
+            ROMANTIC_MAX_TOKENS
+          );
+
+          const cleaned = preClean(String(response));
+          parsed = safeJsonParseLooser(cleaned, `ROMANTIC-BATCH-${b}`);
+          if (!parsed?.sections?.length) {
+            const jsonOnly = forceJsonOnly(cleaned);
+            if (jsonOnly) parsed = safeJsonParseLooser(jsonOnly, `ROMANTIC-BATCH-FORCED-${b}`);
+          }
+          if (!parsed?.sections?.length) {
+            parsed = null;
+            throw new Error("sections 배열 없음");
+          }
+        } catch (err) {
+          retryCount++;
+          console.error(`[연애사주 배치 ${b + 1} 시도 ${retryCount}]`, err.message);
+          if (retryCount > 2) throw err;
+          await new Promise((res) => setTimeout(res, 800));
+        }
+      }
+
+      if (parsed.reportTitle) meta.reportTitle = parsed.reportTitle;
+      if (parsed.dayGan) meta.dayGan = parsed.dayGan;
+      allSections.push(...parsed.sections);
+      console.log(`✅ [연애사주] 배치 ${b + 1}/${ROMANTIC_LOVE_REPORT_BATCHES.length} 완료 (섹션 ${batch.ids.join(",")})`);
+    }
+
+    if (!meta.reportTitle) {
+      meta.reportTitle = `${userInfo.name}님의 홍연 사주 보고서`;
+    }
+    if (!meta.dayGan) {
+      meta.dayGan = sajuJson.dayGanLabel;
+    }
+
+    return flattenRomanticLoveReport(allSections, meta);
+  }
 
  async callReport(userInfo, goodsType) {
 let promtParts;
     // goodsType이 객체일 수도 있고 문자열일 수도 있으므로 안전하게 code 추출
     const gCode = typeof goodsType === 'string' ? goodsType : (goodsType?.code || goodsType); 
 
+    if (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE") {
+      return this.callRomanticLoveReport(userInfo);
+    }
+
     if (gCode === "CLASSIC" || gCode === "CLASSIC_BUNDLE") {
         promtParts = CLASSIC_REPORT_PROMPT_PARTS;
-    } else if (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE") {
-        promtParts = ROMANTIC_REPORT_PROMPT_PARTS;
     } else if (gCode === "ADULT" || gCode === "ADULT_BUNDLE") {
         promtParts = ADULT_REPORT_PROMPT_PARTS;
     } else if (gCode === "PREMIUM_SAJU") {
@@ -3464,39 +3633,10 @@ let promtParts;
 
     try {
       // ✅ 1) 사주 계산 (새 로직 적용)
-      const pillars = getFourPillars(userInfo);
-
-      // ✅ 1.5) GPT에게 보낼 SAJU_JSON 구조 생성 (callSample 로직 참고)
       const fixedUser = { ...userInfo, birthDate: userInfo.birthDate || userInfo.birthdate };
-      const tenGodTable = buildRealTenGodTable(fixedUser);
-
-      const sajuJsonForGPT = {
-        tenGodTable,
-        fiveElements: {
-          elements: pillars.fiveElementsWeighted,
-          gainFrom: "",
-          lossFrom: ""
-        },
-        daewoon: pillars.daewoon,
-        sewun: pillars.sewun,
-        wolwoon: pillars.wolwoon,
-        tenGod: pillars.tenGod,
-        relations: pillars.relations,
-        strength: pillars.strength,
-        yongshin: pillars.yongshin,
-        gongMang: pillars.gongMang,
-        moneySteps: [],
-        zodiacSign: pillars.zodiac,
-        noblePeople: pillars.noble,
-        spouse: pillars.spouse,
-        monthRelation: pillars.relationYM,
-        flow: pillars.flow,
-        twelveGodKill: pillars.gods12,
-        futurePartner: { job: "", appearance: [], personality: [], feature: [] },
-        hourUnknown: pillars.isUnknownTime,
-        userInfo: userInfo,
-        currentYear: new Date().getFullYear(),
-      };
+      const sajuJsonForGPT = buildSajuJsonForReport(userInfo);
+      const tenGodTable = sajuJsonForGPT.tenGodTable;
+      const pillars = getFourPillars(userInfo);
       // End of 1.5) GPT에게 보낼 SAJU_JSON 구조 생성
 
       const pillarSummary = `${pillars.year.gan}${pillars.year.ji}년 ${pillars.month.gan}${pillars.month.ji}월 ${pillars.day.gan}${pillars.day.ji}일 ${pillars.hour.gan}${pillars.hour.ji}시 (${pillars.zodiac})`;
