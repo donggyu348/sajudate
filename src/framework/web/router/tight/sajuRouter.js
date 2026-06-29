@@ -10,6 +10,7 @@ import { PaymentStatus } from "../../enums/Payment.js";
 import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
 import { buildLoveTendencyPreview, buildRomanticPreview } from "../../service/romanticPreviewService.js";
+import { buildAdultResultPreview, buildAdultCompatibilityPreview } from "../../service/adultPreviewService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
 import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
@@ -45,6 +46,23 @@ const sample = await gptService.callSample(userInfo);
     const loveTendencyPreview = buildLoveTendencyPreview(userInfo, saju);
     const romanticPreview = buildRomanticPreview(userInfo, saju);
 
+    // ADULT 전용: 파트너 사주 + 미리보기 텍스트
+    let adultPreview = null;
+    if (goodsType.code === 'ADULT' || goodsType.code === 'ADULT_BUNDLE') {
+      const partnerInfo = {
+        name: userInfo.partnerName || '상대방',
+        gender: userInfo.partnerGender || '',
+        birthDate: userInfo.partnerBirthdate || userInfo.partnerBirthDate || '',
+        birthTime: userInfo.partnerBirthTime || '',
+      };
+      let partnerSaju = null;
+      if (partnerInfo.birthDate) {
+        try { partnerSaju = getFourPillars(partnerInfo); } catch(e) {}
+      }
+      const compat = buildAdultCompatibilityPreview(userInfo, saju, partnerInfo, partnerSaju);
+      adultPreview = buildAdultResultPreview(userInfo, partnerInfo, saju, partnerSaju, compat);
+    }
+
     // 2. 결과 페이지 렌더링
     res.render(`tight/saju/${goodsType.code.toLowerCase()}/result`, {
       userInfo: userInfo,
@@ -54,6 +72,7 @@ const sample = await gptService.callSample(userInfo);
       sampleInfo: sample,
       loveTendencyPreview,
       romanticPreview,
+      adultPreview,
     });
   } catch (error) {
     console.error(`Error processing ${goodsType.code} GET result:`, error);

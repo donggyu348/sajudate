@@ -10,24 +10,29 @@
   <main id="container" class="pb-32">
 
 <%
-  // 오행 계산
   const _el = sample?.fiveElements?.elements || sampleInfo?.fiveElements?.elements || { 목:0, 화:0, 토:0, 금:0, 수:0 };
   const _tbl = sample?.tenGodTable || sampleInfo?.tenGodTable || {};
   const _data = _tbl.data || [];
-  const _topEl = ['목','화','토','금','수'].reduce((a, b) => (Number(_el[a]||0) >= Number(_el[b]||0) ? a : b), '목');
   const _g = String(userInfo?.gender || '').trim().toLowerCase();
   const _isFemale = ['여','여자','여성','female','f','woman'].some(v => _g === v);
-  const _dayGan = _data[1] ? (_data[1][1] || '') : '';
-  const _dayJi  = _data[1] ? (_data[1][2] || '') : '';
 
-  const TENDENCY_TEXT = {
-    목: `감정이 먼저 움직여야 몸이 반응하는 타입이에요. 손길보다 눈빛, 말 한마디가 더 강하게 파고들어요. 분위기가 무르익을수록 욕망이 짙어지고, 급하게 다가오는 상대에겐 오히려 문을 닫아버리는 경향이 있습니다. 단, 감정이 통하는 순간 그 어떤 오행보다 깊고 오래 빠져드는 게 목(木) 기운의 특징이에요.`,
-    화: `순간적으로 폭발하는 타입이에요. 자극이 오면 즉각 반응하고, 강렬한 분위기와 빠른 템포에서 쾌감이 극대화돼요. 주도하는 것도, 이끌리는 것도 모두 좋아하지만 결국 열기를 주도하는 쪽으로 흐르는 경향이 강합니다. 화(火) 기운이 강한 분은 반응이 솔직하고 뜨거워서 상대를 압도하는 매력이 있어요.`,
-    토: `서두르지 않아요. 신뢰가 쌓여야 몸이 열리는 타입이라 첫 만남에선 차가워 보일 수 있지만, 일단 마음을 열면 깊고 안정감 있는 밀도로 상대를 채워줘요. 반복될수록 강해지는 쾌락이 있고, 한 사람에게 집중될 때 욕망이 가장 선명하게 드러납니다.`,
-    금: `완벽한 세팅에서 쾌감이 극대화돼요. 분위기, 공간, 상대의 태도—이 세 가지가 갖춰져야 몸이 제대로 반응합니다. 통제된 긴장감과 절제된 욕망 사이에서 터지는 순간을 즐기는 타입이에요. 금(金) 기운은 표면적으로 차갑고 단정해 보이지만, 그 안에 강한 감각적 욕구가 숨어 있어요.`,
-    수: `말보다 분위기, 눈빛 하나로 몸이 먼저 반응해요. 본능적이고 직관적인 감각이 뛰어나 상대의 미세한 변화도 예민하게 포착합니다. 깊은 감각적 교감을 원하고, 상대가 나를 완전히 원한다는 느낌을 받을 때 욕망이 폭발적으로 커집니다. 수(水) 기운은 욕망이 조용히 흐르다 한순간 넘쳐버리는 특성을 가져요.`
+  // 일주 천간 → 이미지 파일명 매핑
+  const _stemKrMap = {
+    '甲':'갑목','乙':'을목','丙':'병화','丁':'정화','戊':'무토',
+    '己':'기토','庚':'경금','辛':'신금','壬':'임수','癸':'계수'
   };
-  const _tendencyText = TENDENCY_TEXT[_topEl] || TENDENCY_TEXT['화'];
+  const _dayStemHanja = _data[1] ? (_data[1][1] || '') : '';
+  const _stemKr = _stemKrMap[_dayStemHanja] || '갑목';
+  // 여자→남자, 남자→여자
+  const _faceGender = _isFemale ? 'man1' : 'woman1';
+  const _faceImg = `/assets/images/tight/romantic/result/${_faceGender}/${_stemKr}.png`;
+
+  // adultPreview 텍스트 (라우터에서 넘어옴, 없으면 기본값)
+  const _ap = adultPreview || {};
+  const _visible1  = _ap.preview1Visible  || `${userInfo.name}님은 특정 분위기에서만 몸이 뜨겁게 반응하는 패턴이 보입니다.`;
+  const _blurred1  = _ap.preview1Blurred  || '특히 특정 자극에 매우 강하게 반응하는 포인트가 숨어있습니다.';
+  const _visible2  = _ap.preview2Visible  || '두 사람의 일주 조합에서 속궁합 점수가 나왔습니다.';
+  const _blurred2  = _ap.preview2Blurred  || '더 구체적인 분석이 이어집니다.';
 %>
 
     <!-- part1: 이름 오버레이 -->
@@ -36,25 +41,35 @@
       <div class="name-overlay p1-name"><%= userInfo.name %>님은</div>
     </div>
 
+    <!-- 미리보기 텍스트 블록 -->
+    <div class="preview-text-block">
+      <p class="ptb-visible"><%- _visible1 %></p>
+      <div class="ptb-blur-wrap" data-submit>
+        <p class="ptb-blurred"><%- _blurred1 %></p>
+        <div class="ptb-lock">
+          <span class="ptb-lock-icon">🔒</span>
+          <span class="ptb-lock-label">잠금 해제하기</span>
+        </div>
+      </div>
+      <div class="ptb-divider"></div>
+      <p class="ptb-visible2"><%- _visible2 %></p>
+      <div class="ptb-blur-wrap" data-submit>
+        <p class="ptb-blurred"><%- _blurred2 %></p>
+        <div class="ptb-lock">
+          <span class="ptb-lock-icon">🔒</span>
+          <span class="ptb-lock-label">잠금 해제하기</span>
+        </div>
+      </div>
+    </div>
+
     <!-- part2: 이름 + 텍스트 오버레이 -->
     <div class="result-img-wrap">
       <img src="/assets/images/tight/29/result/part2.png" alt="" class="result-img" />
       <div class="name-overlay p2-name"><%= userInfo.name %></div>
-      <div class="p2-textbox"><%= _tendencyText %></div>
+      <div class="p2-textbox"><%= _ap.introLine || '' %></div>
     </div>
 
     <!-- part3: 상대 얼굴 이미지 오버레이 (여자→남자, 남자→여자) -->
-    <%
-      const _stemKrMap = {
-        '甲':'갑목','乙':'을목','丙':'병화','丁':'정화','戊':'무토',
-        '己':'기토','庚':'경금','辛':'신금','壬':'임수','癸':'계수'
-      };
-      const _dayStemHanja = _data[1] ? (_data[1][1] || '') : '';
-      const _stemKr = _stemKrMap[_dayStemHanja] || '갑목';
-      // 여자면 남자 이미지, 남자면 여자 이미지
-      const _faceGender = _isFemale ? 'man' : 'woman';
-      const _faceImg = `/assets/images/tight/classic/report/${_faceGender}/${_stemKr}.png`;
-    %>
     <div class="result-img-wrap">
       <img src="/assets/images/tight/29/result/part3.png" alt="" class="result-img" />
       <div class="p3-face-wrap">
@@ -116,6 +131,75 @@
   transform: translateX(-18%);
   font-size: clamp(13px, 3.8vw, 17px);
 }
+/* ── 미리보기 텍스트 블록 ── */
+.preview-text-block {
+  background: #0a0008;
+  padding: 24px 20px 28px;
+  border-top: 1px solid rgba(180,40,40,0.2);
+  border-bottom: 1px solid rgba(180,40,40,0.2);
+}
+.ptb-visible {
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgba(240,232,224,0.9);
+  word-break: keep-all;
+  margin: 0 0 16px;
+  letter-spacing: 0.01em;
+}
+/* strong 태그 → 빨간색 */
+.ptb-visible strong,
+.ptb-visible2 strong {
+  color: #e03040;
+  font-weight: 700;
+}
+.ptb-blur-wrap {
+  position: relative;
+  border: 1px solid rgba(180,40,40,0.3);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: rgba(20,4,8,0.7);
+  margin-bottom: 16px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.ptb-blurred {
+  font-size: 12px;
+  line-height: 1.8;
+  color: rgba(220,200,200,0.7);
+  filter: blur(4px);
+  user-select: none;
+  margin: 0;
+}
+.ptb-lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(10,0,8,0.35);
+}
+.ptb-lock-icon { font-size: 16px; }
+.ptb-lock-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e03040;
+  letter-spacing: 0.06em;
+}
+.ptb-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(180,40,40,0.4), transparent);
+  margin: 4px 0 16px;
+}
+.ptb-visible2 {
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgba(240,232,224,0.9);
+  word-break: keep-all;
+  margin: 0 0 16px;
+  letter-spacing: 0.01em;
+}
+
 /* part3: 얼굴 이미지 오버레이 */
 .p3-face-wrap {
   position: absolute;
