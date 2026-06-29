@@ -93,8 +93,9 @@
     inset: 0;
     z-index: 5;
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* 섹션 본문일 때 패딩은 JS에서 클래스로 제어 */
   }
   #content-area::-webkit-scrollbar { display: none; }
 
@@ -102,10 +103,16 @@
   #content-area.is-section {
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
   }
 
   /* ── 비주얼노벨 파트 도입 ── */
-  /* 상단 파트 레이블 (이미지 위에 살짝) */
+  .vn-slide-shell {
+    min-height: 100%;
+    position: relative;
+    padding-bottom: calc(210px + env(safe-area-inset-bottom, 0px));
+  }
   .vn-part-label {
     position: absolute;
     top: 52px;
@@ -123,7 +130,7 @@
   .vn-dialog {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    padding: 20px 22px 44px;
+    padding: 20px 22px calc(52px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(to top, rgba(4,1,8,0.97) 0%, rgba(4,1,8,0.88) 60%, transparent 100%);
     backdrop-filter: blur(2px);
     z-index: 10;
@@ -213,10 +220,8 @@
     font-size: 9px;
     letter-spacing: 0.12em;
     color: rgba(255,255,255,0.28);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 180px;
+    line-height: 1.4;
+    word-break: keep-all;
   }
   .sec-title {
     font-family: 'Noto Serif KR', serif;
@@ -239,8 +244,11 @@
   /* 본문 스크롤 영역 */
   .sec-body {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 20px 24px 64px;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 24px calc(88px + env(safe-area-inset-bottom, 0px));
     scrollbar-width: none;
   }
   .sec-body::-webkit-scrollbar { display: none; }
@@ -254,26 +262,134 @@
     letter-spacing: -0.015em;
   }
 
-  /* 본문 첫 글자 드롭캡 */
-  .sec-text::first-letter {
-    font-size: 2.2em;
-    font-family: 'Noto Serif KR', serif;
+  /* ── 목차 ── */
+  .toc-wrap {
+    min-height: 100%;
+    padding: 52px 22px calc(72px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to bottom, rgba(7,2,10,0.98) 0%, rgba(7,2,10,1) 100%);
+  }
+  .toc-head {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .toc-head__label {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.32em;
+    color: rgba(212,100,130,0.85);
+    border: 1px solid rgba(212,100,130,0.35);
+    padding: 4px 12px;
+    border-radius: 99px;
+    margin-bottom: 10px;
+  }
+  .toc-head__title {
+    font-size: 20px;
     font-weight: 700;
-    float: left;
-    line-height: 0.85;
-    margin-right: 6px;
-    margin-top: 4px;
-    background: linear-gradient(135deg, #f0bcc8, #d46482);
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #f8ede0 0%, #f0bcc8 50%, #d9b87a 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+  .toc-chapter {
+    margin-bottom: 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .toc-chapter:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+  .toc-chapter__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: rgba(248,240,232,0.95);
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .toc-chapter__subtitle {
+    font-size: 12px;
+    color: rgba(212,100,130,0.75);
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+    word-break: keep-all;
+  }
+  .toc-section {
+    display: flex;
+    gap: 10px;
+    padding: 9px 0;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .toc-section:first-of-type { border-top: none; }
+  .toc-section__no {
+    flex-shrink: 0;
+    min-width: 28px;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(212,100,130,0.65);
+    letter-spacing: 0.02em;
+    padding-top: 2px;
+  }
+  .toc-section__body { min-width: 0; }
+  .toc-section__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(240,232,224,0.88);
+    line-height: 1.45;
+    letter-spacing: -0.02em;
+    word-break: keep-all;
+  }
+  .toc-section__desc {
+    font-size: 11px;
+    color: rgba(255,255,255,0.38);
+    line-height: 1.5;
+    margin-top: 3px;
+    word-break: keep-all;
+  }
+
+  /* ── 스와이프 안내 ── */
+  #swipe-hint {
+    position: absolute;
+    bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+    left: 0;
+    right: 0;
+    z-index: 12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+  }
+  #swipe-hint.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .swipe-hint__text {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.42);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .swipe-hint__arrow {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(240,180,200,0.9);
+    animation: swipeHintBlink 1.4s ease-in-out infinite;
+  }
+  @keyframes swipeHintBlink {
+    0%, 100% { opacity: 0.25; transform: translateX(0); }
+    50% { opacity: 1; transform: translateX(4px); }
   }
 
 
   /* ── 화면 카운터 ── */
   #slide-counter {
     position: absolute;
-    bottom: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     left: 20px;
     font-size: 10px;
     letter-spacing: 0.1em;
@@ -458,6 +574,65 @@
     { icon: '⛧', bgClass: 'no-img-bg' },
   ];
 
+  /* 목차 (고정) */
+  const reportToc = [
+    {
+      num: 1,
+      chapter: '욕망의 해부학',
+      subtitle: '네 안에 숨겨진 본능은 무엇인가',
+      sections: [
+        { no: '1', title: '정욕합이 들어맞는 사람', desc: '당신의 욕망을 깨우는 상대의 특징' },
+        { no: '2', title: '너도 몰랐던 숨겨진 욕망들', desc: '무의식 속 끌림 분석' },
+        { no: '3', title: 'SM 성향 분석', desc: '두 사람의 관계 속 본능적 위치' },
+        { no: '추가', title: '시선이 오래 머무는 이유', desc: '당신이 유독 약한 성적 포인트' },
+      ],
+    },
+    {
+      num: 2,
+      chapter: '본능은 누구에게 반응하는가',
+      subtitle: '너에게 가장 위험한 사람',
+      sections: [
+        { no: '1', title: '너에게 먹히는 스타일링', desc: '당신만의 시각적 최음제 분석' },
+        { no: '2', title: '첫눈에 꽂히는 상대', desc: '외모·분위기·성향 분석' },
+        { no: '3', title: '본능을 자극하는 행동', desc: '당신을 흔드는 결정적 요소' },
+        { no: '추가', title: '절대 피할 수 없는 끌림', desc: '사주가 강하게 반응하는 상대' },
+      ],
+    },
+    {
+      num: 3,
+      chapter: '몸정일까 마음정일까',
+      subtitle: '둘의 정욕합 심층 분석',
+      sections: [
+        { no: '1', title: '손만 닿아도 전류가 흐르는 정욕합', desc: '둘 사이의 화학 반응' },
+        { no: '2', title: '서로가 굴복하는 지점', desc: '관계 속 약점과 치명적 포인트' },
+        { no: '3', title: '둘만의 주도권', desc: '누가 끌고 누가 따라가는가' },
+        { no: '추가', title: '한 번 스치면 잊히지 않는 이유', desc: '강한 잔상을 남기는 요소' },
+      ],
+    },
+    {
+      num: 4,
+      chapter: '스파크가 튀는 순간',
+      subtitle: '언제, 어디서 가장 강해지는가',
+      sections: [
+        { no: '1', title: '발정 시기 분석', desc: '서로의 사주가 동시에 성적으로 폭발하는 시기' },
+        { no: '2', title: '스파크 튀는 장소 스팟', desc: '관계 만족도가 폭발하는 공간' },
+        { no: '3', title: '둘이 만나면 강해지는 시간대', desc: '끌림이 극대화되는 타이밍' },
+        { no: '추가', title: '천해랑의 위험 경고', desc: '성욕이 폭주하는 순간' },
+      ],
+    },
+    {
+      num: 5,
+      chapter: '중독의 기술',
+      subtitle: '왜 자꾸 밤마다 생각나는가',
+      sections: [
+        { no: '1', title: '당신의 성적 필살기', desc: '상대를 사로잡는 무기' },
+        { no: '2', title: '서로의 바람기 분석', desc: '새로운 자극에 흔들리는 정도' },
+        { no: '3', title: '헤어지게 되도 못잊게 만드는 방법', desc: '' },
+        { no: '추가', title: '천해랑의 결론', desc: '둘의 정욕합은 운명인가, 중독인가' },
+      ],
+    },
+  ];
+
   /* ── 슬라이드 배열 생성 ── */
   /* 슬라이드 타입: intro | chapter-title | section | verdict */
   const slides = [];
@@ -468,6 +643,8 @@
     partIdx: 0,
     name: userInfo.name || '당신'
   });
+
+  slides.push({ type: 'toc' });
 
   /* 파트별 슬라이드 생성 */
   chapterOrder.forEach((chapter, ci) => {
@@ -533,16 +710,24 @@
 
   <!-- 하단 카운터만 -->
   <div id="slide-counter"></div>
+
+  <!-- 스와이프 안내 -->
+  <div id="swipe-hint">
+    <span class="swipe-hint__text">옆으로 넘겨 읽어보세요</span>
+    <span class="swipe-hint__arrow" aria-hidden="true">=&gt;</span>
+  </div>
 </div>
 
 <script>
 (function () {
   /* ── 슬라이드 데이터 (EJS → JS) ── */
   const SLIDES = <%- JSON.stringify(slides) %>;
+  const REPORT_TOC = <%- JSON.stringify(reportToc) %>;
   const TOTAL = SLIDES.length;
 
   let current = 0;
   let isAnimating = false;
+  let swipeHintHidden = false;
 
   /* ── 이미지 경로 (파트별 1장 + 인트로 1장, 총 7장) ── */
   /* 이미지 준비되면 아래 경로만 교체하면 됨 */
@@ -563,6 +748,23 @@
   const $bgImg      = document.getElementById('bg-img');
   const $content    = document.getElementById('content-area');
   const $counter    = document.getElementById('slide-counter');
+  const $swipeHint  = document.getElementById('swipe-hint');
+
+  function hideSwipeHint() {
+    if (swipeHintHidden) return;
+    swipeHintHidden = true;
+    $swipeHint.classList.add('is-hidden');
+  }
+
+  function updateSwipeHint(idx) {
+    if (swipeHintHidden) {
+      $swipeHint.classList.add('is-hidden');
+      return;
+    }
+    const s = SLIDES[idx];
+    const show = s.type !== 'verdict' && idx < TOTAL - 1;
+    $swipeHint.classList.toggle('is-hidden', !show);
+  }
 
   /* ── 슬라이드 렌더 ── */
   function render(idx, dir) {
@@ -578,7 +780,12 @@
 
     /* ── 배경 이미지: 인트로·파트 도입·최종 선고만 표시 ── */
     const showImg = s.type === 'intro' || s.type === 'chapter-title' || s.type === 'verdict';
-    if (showImg) {
+    if (s.type === 'toc') {
+      $bgImg.src = '';
+      $bgImg.style.display = 'none';
+      $bgLayer.className = 'no-img-bg';
+      $bgOverlay.style.background = 'none';
+    } else if (showImg) {
       let imgSrc;
       if (s.type === 'intro') imgSrc = PART_IMGS[0];
       else if (s.type === 'verdict') imgSrc = '/assets/images/tight/29/report/outro.png';
@@ -605,6 +812,9 @@
     if (s.type === 'intro') {
       html = renderIntro(s);
       $content.classList.remove('is-section');
+    } else if (s.type === 'toc') {
+      html = renderToc();
+      $content.classList.remove('is-section');
     } else if (s.type === 'chapter-title') {
       html = renderChapterTitle(s);
       $content.classList.remove('is-section');
@@ -621,6 +831,8 @@
     $content.style.transform = 'translateX(' + (dir > 0 ? '14px' : '-14px') + ')';
     $content.innerHTML = html;
     $content.scrollTop = 0;
+    const secBody = $content.querySelector('.sec-body');
+    if (secBody) secBody.scrollTop = 0;
 
     requestAnimationFrame(() => {
       $content.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
@@ -630,18 +842,59 @@
 
     /* nav 버튼 상태 업데이트 */
     updateNavBtns();
+    updateSwipeHint(idx);
+  }
+
+  /* ── 목차 ── */
+  function renderToc() {
+    const chapters = REPORT_TOC.map(function(ch) {
+      const sections = ch.sections.map(function(sec) {
+        const descHtml = sec.desc
+          ? `<p class="toc-section__desc">${sec.desc}</p>`
+          : '';
+        return `
+          <div class="toc-section">
+            <span class="toc-section__no">${sec.no}</span>
+            <div class="toc-section__body">
+              <p class="toc-section__title">${sec.title}</p>
+              ${descHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <section class="toc-chapter">
+          <h3 class="toc-chapter__title">제${ch.num}장: ${ch.chapter}</h3>
+          <p class="toc-chapter__subtitle">${ch.subtitle}</p>
+          ${sections}
+        </section>
+      `;
+    }).join('');
+
+    return `
+      <div class="toc-wrap">
+        <div class="toc-head">
+          <span class="toc-head__label">CONTENTS</span>
+          <h2 class="toc-head__title">목차</h2>
+        </div>
+        ${chapters}
+      </div>
+    `;
   }
 
   /* ── 인트로 ── */
   function renderIntro(s) {
     return `
-      <div class="vn-part-label">29금 · 성인 사주 리포트</div>
-      <div class="vn-dialog">
-        <div class="vn-name">천해랑</div>
-        <div class="vn-text">
-          ${s.name}님, 오셨군요.<br>
-          오늘 밤 당신 사주 다 들여다볼 거예요.<br>
-          각오는 됐죠?
+      <div class="vn-slide-shell">
+        <div class="vn-part-label">29금 · 성인 사주 리포트</div>
+        <div class="vn-dialog">
+          <div class="vn-name">천해랑</div>
+          <div class="vn-text">
+            ${s.name}님, 오셨군요.<br>
+            오늘 밤 당신 사주 다 들여다볼 거예요.<br>
+            각오는 됐죠?
+          </div>
         </div>
       </div>
     `;
@@ -651,10 +904,12 @@
   function renderChapterTitle(s) {
     const partRoman = ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ'][s.partIdx] || s.partIdx + 1;
     return `
-      <div class="vn-part-label">PART ${partRoman} · ${s.chapter}</div>
-      <div class="vn-dialog">
-        <div class="vn-name">천해랑</div>
-        <div class="vn-text">${chapterIntro(s.partIdx)}</div>
+      <div class="vn-slide-shell">
+        <div class="vn-part-label">PART ${partRoman} · ${s.chapter}</div>
+        <div class="vn-dialog">
+          <div class="vn-name">천해랑</div>
+          <div class="vn-text">${chapterIntro(s.partIdx)}</div>
+        </div>
       </div>
     `;
   }
@@ -681,16 +936,18 @@
   /* ── 최종 선고 ── */
   function renderVerdict() {
     return `
-      <div class="vn-part-label">天海娘 · 최종 선고</div>
-      <div class="vn-dialog">
-        <div class="vn-name">천해랑</div>
-        <div class="vn-text">
-          여기까지 다 읽었군요.<br>
-          당신 사주, 생각보다 훨씬 강렬했어요.<br><br>
-          이 이야기가 당신 안에 오래 남기를.<br>
-          그리고… 잘 써먹길 바랄게요.
+      <div class="vn-slide-shell">
+        <div class="vn-part-label">天海娘 · 최종 선고</div>
+        <div class="vn-dialog">
+          <div class="vn-name">천해랑</div>
+          <div class="vn-text">
+            여기까지 다 읽었군요.<br>
+            당신 사주, 생각보다 훨씬 강렬했어요.<br><br>
+            이 이야기가 당신 안에 오래 남기를.<br>
+            그리고… 잘 써먹길 바랄게요.
+          </div>
+          <button class="share-btn" onclick="goTo(0,-1)" style="margin-top:20px;width:100%;">처음부터 다시 보기</button>
         </div>
-        <button class="share-btn" onclick="goTo(0,-1)" style="margin-top:20px;width:100%;">처음부터 다시 보기</button>
       </div>
     `;
   }
@@ -721,6 +978,7 @@
   window.goTo = function goTo(idx, dir) {
     if (isAnimating) return;
     if (idx < 0 || idx >= TOTAL) return;
+    if (dir > 0 && idx > current) hideSwipeHint();
     isAnimating = true;
     current = idx;
     render(current, dir);
