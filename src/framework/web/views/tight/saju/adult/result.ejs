@@ -42,8 +42,11 @@
     </div>
 
 
-    <!-- part2 -->
-    <img src="/assets/images/tight/29/result/part2.png" alt="" class="result-img" />
+    <!-- part2: 이름 오버레이 -->
+    <div class="result-img-wrap">
+      <img src="/assets/images/tight/29/result/part2.png" alt="" class="result-img" />
+      <div class="name-overlay p2-name"><%= userInfo.name %></div>
+    </div>
 
     <!-- part3: 상대 얼굴 이미지 -->
     <div class="result-img-wrap">
@@ -191,6 +194,11 @@
   --p1-name-translate-x: -50%;
   --p1-name-font-size: clamp(13px, 3.5vw, 16px);
 
+  --p2-name-top: 4.5%;
+  --p2-name-left: 53%;
+  --p2-name-translate-x: -18%;
+  --p2-name-font-size: clamp(13px, 3.8vw, 17px);
+
   --p6-name-top: 71.9%;
   --p6-name-left: 13.5%;
   --p6-name-font-size: clamp(9px, 2.45vw, 11px);
@@ -239,10 +247,10 @@
 }
 /* part2: "더 자세한 [이름] 님의" — 이름만 */
 .p2-name {
-  top: 3.5%;
-  left: 50%;
-  transform: translateX(-18%);
-  font-size: clamp(13px, 3.8vw, 17px);
+  top: var(--p2-name-top);
+  left: var(--p2-name-left);
+  transform: translateX(var(--p2-name-translate-x));
+  font-size: var(--p2-name-font-size);
 }
 /* ── 미리보기 텍스트 블록 ── */
 .preview-text-block {

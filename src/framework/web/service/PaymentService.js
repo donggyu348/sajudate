@@ -108,20 +108,24 @@ console.log(`[LOG 4][Service_Approve] 시작 - orderId: ${orderId}, goodsType: $
 const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory(orderId);
   
   if (tx) {
-      // 리포트 히스토리에도 확실히 박아줌
-      if (tx.reportHistory) {
-          await ReportHistoryService.updateById({
-              id: tx.reportHistory.id,
-              goodsType: goodsType // 전달받은 원본 값을 직접 넣어주는 게 가장 안전함
-          });
+      let reportHistory = tx.reportHistory;
+      if (!reportHistory) {
+          reportHistory = await ReportHistoryService.getReportHistoryByShopOrderNo(orderId);
       }
 
-      // 4. 🔥 [중요] tx.id만 보내지 말고, 이미 알고 있는 goodsType을 직접 활용하도록 함수를 수정하거나
-      // 아래와 같이 최신화된 tx 정보를 바탕으로 실행되게 합니다.
+      if (reportHistory) {
+          await ReportHistoryService.updateById({
+              id: reportHistory.id,
+              goodsType: goodsType
+          });
+      } else {
+          console.error(`[CRITICAL] ReportHistory 없음 - orderId: ${orderId}`);
+      }
+
       console.log(` [DEBUG] 발송 시도 - txId: ${tx.id}, 타입: ${goodsType}`);
       
-      // 비동기로 실행하되, 순서를 보장하기 위해 필요한 경우 await를 걸 수도 있습니다.
-this.generateReportAndSendEmail(tx.id, goodsType).catch(err => console.error("[SMS Error]", err));  }
+      this.generateReportAndSendEmail(tx.id, goodsType).catch(err => console.error("[SMS Error]", err));
+  }
 
   return result;
 }
@@ -300,11 +304,18 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
     if (payment.paymentStatus !== PaymentStatus.APPROVED)
         throw new Error("승인 완료 상태가 아님");
 
-    const reportHistory = payment.reportHistory;
+    let reportHistory = payment.reportHistory;
+    if (!reportHistory && payment.shopOrderNo) {
+        reportHistory = await ReportHistoryService.getReportHistoryByShopOrderNo(payment.shopOrderNo);
+    }
+    if (!reportHistory) {
+        throw new Error(`ReportHistory not found for shopOrderNo: ${payment.shopOrderNo}`);
+    }
+
     let reportInfo = reportHistory.reportInfo;
     const userInfo = reportHistory.userInfo || {};
     const shopOrderNo = payment.shopOrderNo;
-    const finalType = passedGoodsType || reportHistory?.goodsType || payment.goodsType;
+    const finalType = passedGoodsType || reportHistory.goodsType || payment.goodsType;
 
     console.log(" [LOG 5] 최종 타입 확인:", finalType);
     const goodsType = GoodsType[finalType];
@@ -312,7 +323,7 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
 
     // 1. GPT 리포트 생성
     if (!reportInfo) {
-        const generated = await GptService.callReport(userInfo, goodsType);
+        const generated = await GptService.callReport(userInfo, goodsType.code || finalType);
         await ReportHistoryService.updateById({ id: reportHistory.id, reportInfo: generated });
         reportInfo = generated;
     }

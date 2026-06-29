@@ -58,10 +58,15 @@ function applyCookiesToResponse(res, builder) {
  */
 export function metaParamBuilderMiddleware(req, res, next) {
   try {
+    const host = req.headers.host || "";
+    if (!host) {
+      req.metaCapi = {};
+      return next();
+    }
+
     const domains = getRegisteredDomains();
     const builder = domains ? new ParamBuilder(domains) : new ParamBuilder();
 
-    const host = req.headers.host || "";
     const requestCookies = parseRequestCookies(req);
     const params = toQueryParams(req.query);
 

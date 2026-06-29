@@ -436,16 +436,28 @@
   }
 
   /* 메시지 */
+  .loading-msg-wrap {
+    position: relative;
+    min-height: 40px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
   .loading-msg {
     font-size: 13px;
     font-weight: 600;
     color: rgba(255,255,255,0.45);
     letter-spacing: -0.02em;
-    margin-bottom: 24px;
-    min-height: 20px;
-    transition: opacity 0.35s ease;
+    width: 100%;
+    margin: 0;
+    opacity: 1;
+    transition: opacity 0.4s ease;
   }
-  .loading-msg.fade { opacity: 0; }
+  .loading-msg.fade {
+    opacity: 0;
+  }
 
   /* 이름 라벨 */
   .ld-person-label {
@@ -670,7 +682,9 @@
       </div>
     </div>
 
-    <div class="loading-msg" id="loading-msg">사주 원국을 읽어내는 중이에요…</div>
+    <div class="loading-msg-wrap">
+      <div class="loading-msg" id="loading-msg"></div>
+    </div>
     <div class="loading-bar-wrap">
       <div class="loading-bar-fill" id="loading-bar"></div>
     </div>
@@ -962,17 +976,21 @@
       }, 900 + i * 180);
     });
 
-    // 메시지 순환 (fade)
+    // 메시지 순환 (fade out 완료 후 교체)
+    const MSG_FADE_MS = 400;
     const msgEl = document.getElementById('loading-msg');
-    LOADING_MSGS.forEach(function(msg, i) {
+    msgEl.textContent = LOADING_MSGS[0];
+    msgEl.classList.remove('fade');
+
+    for (let i = 1; i < LOADING_MSGS.length; i++) {
       setTimeout(function() {
         msgEl.classList.add('fade');
         setTimeout(function() {
-          msgEl.textContent = msg;
+          msgEl.textContent = LOADING_MSGS[i];
           msgEl.classList.remove('fade');
-        }, 180);
+        }, MSG_FADE_MS);
       }, i * 1000);
-    });
+    }
 
     // 진행 바 (5초)
     const bar = document.getElementById('loading-bar');
