@@ -50,11 +50,16 @@
       align-items: center;
       gap: 6px;
       margin-bottom: 44px;
+      padding: 0;
+      border: none;
+      background: transparent;
       color: rgba(255, 255, 255, 0.88);
       font-size: 14px;
       font-weight: 500;
       text-decoration: none;
       letter-spacing: -0.02em;
+      cursor: pointer;
+      font-family: inherit;
     }
 
     .back-btn svg {
@@ -169,6 +174,7 @@
     .pill-btn.active {
       background: #fff;
       color: #111;
+      border: none;
     }
 
     .time-picker {
@@ -214,8 +220,59 @@
 
     .gender-btn.active {
       background: #fff;
-      border-color: #fff;
+      border: 1px solid #fff;
       color: #111;
+    }
+
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .step-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .step-dot.active {
+      background: #fff;
+      border: none;
+      transform: scale(1.15);
+    }
+
+    .step-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: -0.02em;
+    }
+
+  /* main.css 전역 .active(흰 배경)와 충돌 방지 — romantic/input에는 form-step 없음 */
+    .form-step {
+      display: none;
+      background: transparent;
+      border: none;
+      color: inherit;
+    }
+
+    .form-step.active {
+      display: block;
+      background: transparent;
+      border: none;
+      color: inherit;
+    }
+
+    .stage .pill-btn,
+    .stage .gender-btn,
+    .stage .submit-btn,
+    .stage .back-btn {
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .submit-btn {
@@ -244,6 +301,131 @@
       -webkit-text-fill-color: #fff;
       transition: background-color 5000s ease-in-out 0s;
     }
+
+  /* ── 사주 원국 로딩 오버레이 ── */
+  #saju-loading {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #07020a;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', serif;
+  }
+  #saju-loading.show { display: flex; }
+
+  .loading-glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 20%, rgba(180,60,90,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 50% 90%, rgba(201,169,98,0.1) 0%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .loading-inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 340px;
+    padding: 0 24px;
+    text-align: center;
+  }
+
+  .loading-badge {
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    color: rgba(180,60,90,0.85);
+    margin-bottom: 10px;
+  }
+
+  .loading-name {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f0e0c8, #e8b4b8, #c9a962);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 32px;
+    letter-spacing: -0.02em;
+  }
+
+  /* 사주 원국 4기둥 */
+  .pillar-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .pillar-card {
+    flex: 1;
+    max-width: 68px;
+    background: rgba(28,8,14,0.85);
+    border: 1px solid rgba(180,60,90,0.25);
+    border-radius: 14px;
+    padding: 16px 8px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .pillar-card.visible { opacity: 1; transform: translateY(0); }
+  .pillar-card.is-me {
+    border-color: rgba(212,100,140,0.55);
+    background: rgba(180,60,90,0.12);
+    box-shadow: 0 0 20px rgba(180,60,90,0.15);
+  }
+
+  .pillar-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .pillar-hanja {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.5;
+    background: linear-gradient(135deg, #e8d5a3, #c9a962);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .pillar-hanja.rose {
+    background: linear-gradient(135deg, #f0c0c8, #d46482);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .loading-msg {
+    font-size: 13px;
+    color: rgba(240,232,224,0.55);
+    letter-spacing: 0.05em;
+    margin-bottom: 28px;
+    min-height: 20px;
+    transition: opacity 0.4s;
+  }
+
+  /* 진행 바 */
+  .loading-bar-wrap {
+    width: 100%;
+    height: 2px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #b43c5a, #e8b4b8);
+    border-radius: 1px;
+    transition: width linear;
+  }
   </style>
 </head>
 
@@ -252,57 +434,111 @@
 <div class="stage">
   <div class="stage-inner">
 
-    <a href="/saju/adult/intro" class="back-btn" aria-label="뒤로가기">
+    <button type="button" id="navBackBtn" class="back-btn" aria-label="뒤로가기">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M15 18l-6-6 6-6"/>
       </svg>
       뒤로가기
-    </a>
+    </button>
+
+    <div class="step-indicator" aria-hidden="true">
+      <div style="display:flex;gap:8px;">
+        <span class="step-dot active" id="stepDot0"></span>
+        <span class="step-dot" id="stepDot1"></span>
+      </div>
+      <p class="step-label" id="stepLabel">1 / 2 · 내 정보</p>
+    </div>
 
     <div class="form-header">
-      <h1>이름을 입력해주세요</h1>
+      <h1 id="formTitle">내 이름을 입력해주세요</h1>
+      <p id="formDesc">속궁합 분석을 위해 먼저 본인 정보를 입력해 주세요.</p>
     </div>
 
     <form id="sajuForm" method="POST" action="/saju/adult/result">
-      <input type="hidden" name="gender" id="genderInput">
-      <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
+      <div class="form-step active" id="step0">
+        <input type="hidden" name="gender" id="genderInput">
+        <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
 
-      <input name="name" type="text" class="name-input" placeholder="홍길동" autocomplete="name">
+        <input name="name" type="text" class="name-input" placeholder="자신 이름" autocomplete="name">
 
-      <div class="form-row">
-        <span class="form-row__label" id="timeDisplay">시간모름</span>
-        <div class="time-picker">
-          <span class="pill-btn active" id="timePill">시간모름</span>
-          <select name="birthTime" id="birthTimeSelect" aria-label="태어난 시">
-            <option selected value="unknown">시간모름</option>
-            <option value="00">조자/朝子 (00:00~01:29)</option>
-            <option value="02">축/丑 (01:30~03:29)</option>
-            <option value="04">인/寅 (03:30~05:29)</option>
-            <option value="06">묘/卯 (05:30~07:29)</option>
-            <option value="08">진/辰 (07:30~09:29)</option>
-            <option value="10">사/巳 (09:30~11:29)</option>
-            <option value="12">오/午 (11:30~13:29)</option>
-            <option value="14">미/未 (13:30~15:29)</option>
-            <option value="16">신/申 (15:30~17:29)</option>
-            <option value="18">유/酉 (17:30~19:29)</option>
-            <option value="20">술/戌 (19:30~21:29)</option>
-            <option value="22">해/亥 (21:30~23:29)</option>
-            <option value="24">야자/夜子 (23:30~23:59)</option>
-          </select>
+        <div class="form-row">
+          <span class="form-row__label" id="timeDisplay">시간모름</span>
+          <div class="time-picker">
+            <span class="pill-btn active" id="timePill">시간모름</span>
+            <select name="birthTime" id="birthTimeSelect" aria-label="태어난 시">
+              <option selected value="unknown">시간모름</option>
+              <option value="00">조자/朝子 (00:00~01:29)</option>
+              <option value="02">축/丑 (01:30~03:29)</option>
+              <option value="04">인/寅 (03:30~05:29)</option>
+              <option value="06">묘/卯 (05:30~07:29)</option>
+              <option value="08">진/辰 (07:30~09:29)</option>
+              <option value="10">사/巳 (09:30~11:29)</option>
+              <option value="12">오/午 (11:30~13:29)</option>
+              <option value="14">미/未 (13:30~15:29)</option>
+              <option value="16">신/申 (15:30~17:29)</option>
+              <option value="18">유/酉 (17:30~19:29)</option>
+              <option value="20">술/戌 (19:30~21:29)</option>
+              <option value="22">해/亥 (21:30~23:29)</option>
+              <option value="24">야자/夜子 (23:30~23:59)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <input name="birthdate" id="birthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="8" autocomplete="bday">
+          <div class="pill-group" role="group" aria-label="양력/음력">
+            <button type="button" class="pill-btn active" data-birth-type="양력" data-target="me">양력</button>
+            <button type="button" class="pill-btn" data-birth-type="음력" data-target="me">음력</button>
+          </div>
+        </div>
+
+        <div class="gender-row" id="genderRowMe" role="group" aria-label="성별">
+          <button type="button" class="gender-btn active" data-gender="남성" data-target="me">남자</button>
+          <button type="button" class="gender-btn" data-gender="여성" data-target="me">여자</button>
         </div>
       </div>
 
-      <div class="form-row">
-        <input name="birthdate" id="birthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="8" autocomplete="bday">
-        <div class="pill-group" role="group" aria-label="양력/음력">
-          <button type="button" class="pill-btn active" data-birth-type="양력">양력</button>
-          <button type="button" class="pill-btn" data-birth-type="음력">음력</button>
-        </div>
-      </div>
+      <div class="form-step" id="step1">
+        <input type="hidden" name="partnerGender" id="partnerGenderInput">
+        <input type="hidden" name="partnerBirthType" id="partnerBirthTypeInput" value="양력">
 
-      <div class="gender-row" role="group" aria-label="성별">
-        <button type="button" class="gender-btn active" data-gender="남성">남자</button>
-        <button type="button" class="gender-btn" data-gender="여성">여자</button>
+        <input name="partnerName" type="text" class="name-input" placeholder="상대 이름" autocomplete="off">
+
+        <div class="form-row">
+          <span class="form-row__label" id="partnerTimeDisplay">시간모름</span>
+          <div class="time-picker">
+            <span class="pill-btn active" id="partnerTimePill">시간모름</span>
+            <select name="partnerBirthTime" id="partnerBirthTimeSelect" aria-label="상대방 태어난 시">
+              <option selected value="unknown">시간모름</option>
+              <option value="00">조자/朝子 (00:00~01:29)</option>
+              <option value="02">축/丑 (01:30~03:29)</option>
+              <option value="04">인/寅 (03:30~05:29)</option>
+              <option value="06">묘/卯 (05:30~07:29)</option>
+              <option value="08">진/辰 (07:30~09:29)</option>
+              <option value="10">사/巳 (09:30~11:29)</option>
+              <option value="12">오/午 (11:30~13:29)</option>
+              <option value="14">미/未 (13:30~15:29)</option>
+              <option value="16">신/申 (15:30~17:29)</option>
+              <option value="18">유/酉 (17:30~19:29)</option>
+              <option value="20">술/戌 (19:30~21:29)</option>
+              <option value="22">해/亥 (21:30~23:29)</option>
+              <option value="24">야자/夜子 (23:30~23:59)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <input name="partnerBirthdate" id="partnerBirthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="8">
+          <div class="pill-group" role="group" aria-label="상대방 양력/음력">
+            <button type="button" class="pill-btn active" data-birth-type="양력" data-target="partner">양력</button>
+            <button type="button" class="pill-btn" data-birth-type="음력" data-target="partner">음력</button>
+          </div>
+        </div>
+
+        <div class="gender-row" id="genderRowPartner" role="group" aria-label="상대방 성별">
+          <button type="button" class="gender-btn active" data-gender="여성" data-target="partner">여자</button>
+          <button type="button" class="gender-btn" data-gender="남성" data-target="partner">남자</button>
+        </div>
       </div>
 
       <button type="button" id="submitBtn" class="submit-btn">다음으로</button>
@@ -310,9 +546,42 @@
   </div>
 </div>
 
+<!-- 사주 원국 로딩 오버레이 -->
+<div id="saju-loading">
+  <div class="loading-glow"></div>
+  <div class="loading-inner">
+    <div class="loading-badge">天海娘 · 사주 원국 분석 중</div>
+    <div class="loading-name" id="loading-name">이름</div>
+    <div class="pillar-row" id="pillar-row">
+      <div class="pillar-card" id="pc-hour">
+        <span class="pillar-label">시주</span>
+        <div class="pillar-hanja" id="ph-hour">－<br>－</div>
+      </div>
+      <div class="pillar-card is-me" id="pc-day">
+        <span class="pillar-label">일주</span>
+        <div class="pillar-hanja rose" id="ph-day">－<br>－</div>
+      </div>
+      <div class="pillar-card" id="pc-month">
+        <span class="pillar-label">월주</span>
+        <div class="pillar-hanja" id="ph-month">－<br>－</div>
+      </div>
+      <div class="pillar-card" id="pc-year">
+        <span class="pillar-label">년주</span>
+        <div class="pillar-hanja" id="ph-year">－<br>－</div>
+      </div>
+    </div>
+    <div class="loading-msg" id="loading-msg">사주 원국을 읽어내는 중입니다…</div>
+    <div class="loading-bar-wrap">
+      <div class="loading-bar-fill" id="loading-bar"></div>
+    </div>
+  </div>
+</div>
+
 <script>
   const urlParams = new URLSearchParams(window.location.search);
   const ticketCode = urlParams.get('ticket');
+
+  let currentStep = 0;
 
   const genderInput = document.getElementById('genderInput');
   const birthTypeInput = document.getElementById('birthTypeInput');
@@ -321,48 +590,77 @@
   const timeDisplay = document.getElementById('timeDisplay');
   const timePill = document.getElementById('timePill');
 
+  const partnerGenderInput = document.getElementById('partnerGenderInput');
+  const partnerBirthTypeInput = document.getElementById('partnerBirthTypeInput');
+  const partnerBirthdateInput = document.getElementById('partnerBirthdateInput');
+  const partnerBirthTimeSelect = document.getElementById('partnerBirthTimeSelect');
+  const partnerTimeDisplay = document.getElementById('partnerTimeDisplay');
+  const partnerTimePill = document.getElementById('partnerTimePill');
+
   genderInput.value = '남성';
+  partnerGenderInput.value = '여성';
+
+  function setupBirthdateInput(input) {
+    input.addEventListener('input', function () {
+      input.value = input.value.replace(/\D/g, '').slice(0, 8);
+    });
+    input.addEventListener('blur', function () {
+      const digits = input.value.replace(/\D/g, '');
+      if (/^\d{8}$/.test(digits)) {
+        input.value = digits.slice(0, 4) + '.' + digits.slice(4, 6) + '.' + digits.slice(6, 8);
+      }
+    });
+    input.addEventListener('focus', function () {
+      input.value = input.value.replace(/\D/g, '');
+    });
+  }
+
+  setupBirthdateInput(birthdateInput);
+  setupBirthdateInput(partnerBirthdateInput);
 
   document.querySelectorAll('.gender-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      document.querySelectorAll('.gender-btn').forEach(function (b) { b.classList.remove('active'); });
+      const target = btn.dataset.target;
+      const row = target === 'partner' ? document.getElementById('genderRowPartner') : document.getElementById('genderRowMe');
+      row.querySelectorAll('.gender-btn').forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      genderInput.value = btn.dataset.gender;
+      if (target === 'partner') {
+        partnerGenderInput.value = btn.dataset.gender;
+      } else {
+        genderInput.value = btn.dataset.gender;
+      }
     });
   });
 
   document.querySelectorAll('[data-birth-type]').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      document.querySelectorAll('[data-birth-type]').forEach(function (b) { b.classList.remove('active'); });
+      const target = btn.dataset.target;
+      const group = btn.closest('.pill-group');
+      group.querySelectorAll('[data-birth-type]').forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      birthTypeInput.value = btn.dataset.birthType;
+      if (target === 'partner') {
+        partnerBirthTypeInput.value = btn.dataset.birthType;
+      } else {
+        birthTypeInput.value = btn.dataset.birthType;
+      }
     });
   });
 
-  birthdateInput.addEventListener('input', function () {
-    birthdateInput.value = birthdateInput.value.replace(/\D/g, '').slice(0, 8);
-  });
-
-  birthdateInput.addEventListener('blur', function () {
-    const digits = birthdateInput.value.replace(/\D/g, '');
-    if (/^\d{8}$/.test(digits)) {
-      birthdateInput.value = digits.slice(0, 4) + '.' + digits.slice(4, 6) + '.' + digits.slice(6, 8);
-    }
-  });
-
-  birthdateInput.addEventListener('focus', function () {
-    birthdateInput.value = birthdateInput.value.replace(/\D/g, '');
-  });
-
-  function updateTimeDisplay() {
-    const option = birthTimeSelect.options[birthTimeSelect.selectedIndex];
+  function updateTimeDisplay(select, display, pill) {
+    const option = select.options[select.selectedIndex];
     const label = option.textContent.trim();
-    timeDisplay.textContent = label;
-    timePill.textContent = label.length > 8 ? '시간선택' : label;
+    display.textContent = label;
+    pill.textContent = label.length > 8 ? '시간선택' : label;
   }
 
-  birthTimeSelect.addEventListener('change', updateTimeDisplay);
-  updateTimeDisplay();
+  birthTimeSelect.addEventListener('change', function () {
+    updateTimeDisplay(birthTimeSelect, timeDisplay, timePill);
+  });
+  partnerBirthTimeSelect.addEventListener('change', function () {
+    updateTimeDisplay(partnerBirthTimeSelect, partnerTimeDisplay, partnerTimePill);
+  });
+  updateTimeDisplay(birthTimeSelect, timeDisplay, timePill);
+  updateTimeDisplay(partnerBirthTimeSelect, partnerTimeDisplay, partnerTimePill);
 
   function shake(target) {
     target.animate(
@@ -376,39 +674,194 @@
     );
   }
 
-  function validateForm() {
+  function renderStep() {
+    document.getElementById('step0').classList.toggle('active', currentStep === 0);
+    document.getElementById('step1').classList.toggle('active', currentStep === 1);
+    document.getElementById('stepDot0').classList.toggle('active', currentStep === 0);
+    document.getElementById('stepDot1').classList.toggle('active', currentStep === 1);
+
+    const title = document.getElementById('formTitle');
+    const desc = document.getElementById('formDesc');
+    const label = document.getElementById('stepLabel');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (currentStep === 0) {
+      title.textContent = '내 이름을 입력해주세요';
+      desc.textContent = '속궁합 분석을 위해 먼저 본인 정보를 입력해 주세요.';
+      label.textContent = '1 / 2 · 내 정보';
+      submitBtn.textContent = '다음으로';
+    } else {
+      title.textContent = '상대방 이름을 입력해주세요';
+      desc.textContent = '궁합을 볼 상대방의 생년월일·성별을 입력해 주세요.';
+      label.textContent = '2 / 2 · 상대방 정보';
+      submitBtn.textContent = '속궁합 보기';
+    }
+  }
+
+  function validateStep0() {
     const name = document.querySelector("input[name='name']").value.trim();
     if (!name) {
-      shake(document.querySelector('.name-input'));
-      document.querySelector('.name-input').focus();
+      shake(document.querySelector('#step0 .name-input'));
+      document.querySelector('#step0 .name-input').focus();
       return false;
     }
-
     const birthDigits = birthdateInput.value.replace(/\D/g, '');
     if (!/^\d{8}$/.test(birthDigits)) {
       shake(birthdateInput);
       birthdateInput.focus();
       return false;
     }
-
     if (!genderInput.value) {
-      shake(document.querySelector('.gender-row'));
+      shake(document.getElementById('genderRowMe'));
       return false;
     }
-
     return true;
   }
 
-  function submitForm() {
-    const birthDigits = birthdateInput.value.replace(/\D/g, '');
-    const data = {
+  function validateStep1() {
+    const name = document.querySelector("input[name='partnerName']").value.trim();
+    if (!name) {
+      shake(document.querySelector('#step1 .name-input'));
+      document.querySelector('#step1 .name-input').focus();
+      return false;
+    }
+    const birthDigits = partnerBirthdateInput.value.replace(/\D/g, '');
+    if (!/^\d{8}$/.test(birthDigits)) {
+      shake(partnerBirthdateInput);
+      partnerBirthdateInput.focus();
+      return false;
+    }
+    if (!partnerGenderInput.value) {
+      shake(document.getElementById('genderRowPartner'));
+      return false;
+    }
+    return true;
+  }
+
+  function buildUserData() {
+    return {
       name: document.querySelector("input[name='name']").value.trim(),
       gender: genderInput.value,
-      birthdate: birthDigits,
+      birthdate: birthdateInput.value.replace(/\D/g, ''),
       birthTime: birthTimeSelect.value,
       birthType: birthTypeInput.value,
+      partnerInfo: {
+        name: document.querySelector("input[name='partnerName']").value.trim(),
+        gender: partnerGenderInput.value,
+        birthdate: partnerBirthdateInput.value.replace(/\D/g, ''),
+        birthTime: partnerBirthTimeSelect.value,
+        birthType: partnerBirthTypeInput.value,
+      },
       ticket: ticketCode
     };
+  }
+
+  /* ── 60갑자 간단 계산 ── */
+  const GAN  = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  const JI   = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  const TIME_JI = { '00':'子','02':'丑','04':'寅','06':'卯','08':'辰','10':'巳','12':'午','14':'未','16':'申','18':'酉','20':'戌','22':'亥','24':'子','unknown':'－' };
+
+  function getGanJi(offset) {
+    return { gan: GAN[((offset % 10) + 10) % 10], ji: JI[((offset % 12) + 12) % 12] };
+  }
+
+  function calcPillars(birthdate, birthTime) {
+    // birthdate: "YYYYMMDD"
+    const y = parseInt(birthdate.slice(0,4));
+    const m = parseInt(birthdate.slice(4,6));
+    const d = parseInt(birthdate.slice(6,8));
+
+    // 년주: 1984=甲子 기준, offset=(year-4)%60
+    const yearOffset = y - 4;
+    const yearGJ = getGanJi(yearOffset);
+
+    // 월주: 년간에 따른 월간 기준 오프셋 (오호둔법)
+    const yearGanIdx = ((yearOffset % 10) + 10) % 10;
+    const monthGanBase = [2,4,6,8,0,2,4,6,8,0][yearGanIdx]; // 甲己년=丙寅월시작
+    // 절기 대신 월(m)로 근사: 월지 인=1월
+    const monthJiIdx = ((m + 1) % 12);
+    const monthGanIdx = (monthGanBase + (m - 1)) % 10;
+    const monthGJ = { gan: GAN[monthGanIdx], ji: JI[monthJiIdx] };
+
+    // 일주: 1900.1.1=甲戌(gan=0,ji=11) 기준 경과일수
+    function daysSince1900(yr, mo, dy) {
+      const d0 = new Date(1900, 0, 1);
+      const d1 = new Date(yr, mo - 1, dy);
+      return Math.round((d1 - d0) / 86400000);
+    }
+    const daysFromBase = daysSince1900(y, m, d);
+    const dayGJ = getGanJi(daysFromBase); // 甲戌=offset 0
+
+    // 시주: 일간에 따른 시간 (자시=子)
+    const dayGanIdx = ((daysFromBase % 10) + 10) % 10;
+    const hourGanBase = [0,2,4,6,8,0,2,4,6,8][dayGanIdx];
+    const timeJi = TIME_JI[birthTime] || '－';
+    const timeJiIdx = JI.indexOf(timeJi);
+    const hourGan = timeJi === '－' ? '－' : GAN[(hourGanBase + (timeJiIdx >= 0 ? timeJiIdx : 0)) % 10];
+    const hourGJ = { gan: hourGan, ji: timeJi };
+
+    return { year: yearGJ, month: monthGJ, day: dayGJ, hour: hourGJ };
+  }
+
+  /* ── 로딩 오버레이 표시 후 폼 제출 ── */
+  const LOADING_MSGS = [
+    '사주 원국을 읽어내는 중입니다…',
+    '천간지지의 기운을 분석하고 있습니다…',
+    '오행의 균형을 살펴보고 있습니다…',
+    '천해랑이 당신의 사주를 들여다보고 있습니다…',
+    '거의 다 됐어요, 잠시만 기다려 주세요…',
+  ];
+
+  function showLoadingAndSubmit(submitCallback) {
+    const data = buildUserData();
+    const birthdate = data.birthdate.replace(/\D/g,'');
+    const pillars = /^\d{8}$/.test(birthdate)
+      ? calcPillars(birthdate, data.birthTime)
+      : null;
+
+    // 이름 표시
+    document.getElementById('loading-name').textContent = (data.name || '') + '님의 사주 원국';
+
+    // 기둥 채우기
+    if (pillars) {
+      document.getElementById('ph-year').innerHTML  = pillars.year.gan  + '<br>' + pillars.year.ji;
+      document.getElementById('ph-month').innerHTML = pillars.month.gan + '<br>' + pillars.month.ji;
+      document.getElementById('ph-day').innerHTML   = pillars.day.gan   + '<br>' + pillars.day.ji;
+      document.getElementById('ph-hour').innerHTML  = pillars.hour.gan  + '<br>' + pillars.hour.ji;
+    }
+
+    // 오버레이 표시
+    document.getElementById('saju-loading').classList.add('show');
+
+    // 기둥 순서대로 등장
+    const cards = ['pc-hour','pc-day','pc-month','pc-year'];
+    cards.forEach(function(id, i) {
+      setTimeout(function() {
+        document.getElementById(id).classList.add('visible');
+      }, 200 + i * 180);
+    });
+
+    // 메시지 순환
+    const msgEl = document.getElementById('loading-msg');
+    LOADING_MSGS.forEach(function(msg, i) {
+      setTimeout(function() { msgEl.textContent = msg; }, i * 1000);
+    });
+
+    // 진행 바 (5초)
+    const bar = document.getElementById('loading-bar');
+    setTimeout(function() {
+      bar.style.transition = 'width 5s linear';
+      bar.style.width = '100%';
+    }, 50);
+
+    // 5초 후 폼 제출
+    setTimeout(submitCallback, 5000);
+  }
+
+  function submitForm() {
+    const data = buildUserData();
+    birthdateInput.value = data.birthdate;
+    partnerBirthdateInput.value = data.partnerInfo.birthdate;
 
     if (data.name === '테스트' || data.name === '관리자') {
       const $form = $('#sajuForm');
@@ -419,7 +872,6 @@
       $('<input>').attr({ type: 'hidden', name: 'userInfo', value: JSON.stringify(data) }).appendTo($form);
       $('<input>').attr({ type: 'hidden', name: 'sample', value: '{}' }).appendTo($form);
       $('<input>').attr({ type: 'hidden', name: 'goodsType', value: 'ADULT' }).appendTo($form);
-      birthdateInput.value = birthDigits;
       $form[0].submit();
       return;
     }
@@ -428,13 +880,28 @@
       $('#sajuForm').attr('action', '/saju/adult/result?ticket=' + encodeURIComponent(ticketCode));
     }
 
-    birthdateInput.value = birthDigits;
     document.getElementById('sajuForm').submit();
   }
 
+  document.getElementById('navBackBtn').addEventListener('click', function () {
+    if (currentStep > 0) {
+      currentStep = 0;
+      renderStep();
+      return;
+    }
+    window.location.href = '/saju/adult/intro';
+  });
+
   document.getElementById('submitBtn').addEventListener('click', function () {
-    if (!validateForm()) return;
-    submitForm();
+    if (currentStep === 0) {
+      if (!validateStep0()) return;
+      currentStep = 1;
+      renderStep();
+      document.querySelector('#step1 .name-input').focus();
+      return;
+    }
+    if (!validateStep1()) return;
+    showLoadingAndSubmit(submitForm);
   });
 
   document.addEventListener('keydown', function (e) {
@@ -443,6 +910,8 @@
       document.getElementById('submitBtn').click();
     }
   });
+
+  renderStep();
 </script>
 
 </body>
