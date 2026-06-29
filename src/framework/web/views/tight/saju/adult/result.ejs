@@ -43,6 +43,25 @@
       <div class="p2-textbox"><%= _tendencyText %></div>
     </div>
 
+    <!-- part3: 상대 얼굴 이미지 오버레이 (여자→남자, 남자→여자) -->
+    <%
+      const _stemKrMap = {
+        '甲':'갑목','乙':'을목','丙':'병화','丁':'정화','戊':'무토',
+        '己':'기토','庚':'경금','辛':'신금','壬':'임수','癸':'계수'
+      };
+      const _dayStemHanja = _data[1] ? (_data[1][1] || '') : '';
+      const _stemKr = _stemKrMap[_dayStemHanja] || '갑목';
+      // 여자면 남자 이미지, 남자면 여자 이미지
+      const _faceGender = _isFemale ? 'man' : 'woman';
+      const _faceImg = `/assets/images/tight/classic/report/${_faceGender}/${_stemKr}.png`;
+    %>
+    <div class="result-img-wrap">
+      <img src="/assets/images/tight/29/result/part3.png" alt="" class="result-img" />
+      <div class="p3-face-wrap">
+        <img src="<%= _faceImg %>" alt="" class="p3-face-img" />
+      </div>
+    </div>
+
     <!-- 결제 CTA 트리거 -->
     <div id="result10-button" class="h-4"></div>
 
@@ -97,6 +116,25 @@
   transform: translateX(-18%);
   font-size: clamp(13px, 3.8vw, 17px);
 }
+/* part3: 얼굴 이미지 오버레이 */
+.p3-face-wrap {
+  position: absolute;
+  top: 9%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 54%;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  border-radius: 4px;
+}
+.p3-face-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  filter: blur(6px);
+}
+
 /* part2: 하단 빨간 박스 텍스트 */
 .p2-textbox {
   position: absolute;
