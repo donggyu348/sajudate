@@ -1,752 +1,634 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
-<%
-  const STEM_TO_FILE = {
-    "甲":"갑목","乙":"을목","丙":"병화","丁":"정화","戊":"무토",
-    "己":"기토","庚":"경금","辛":"신금","壬":"임수","癸":"계수",
-    "갑":"갑목","을":"을목","병":"병화","정":"정화","무":"무토",
-    "기":"기토","경":"경금","신":"신금","임":"임수","계":"계수"
-  };
-  const myDayStem = STEM_TO_FILE[saju.day.gan] || "갑목";
-  const g = String(userInfo.gender).trim();
-  let genderKey = (["여","여자","여성","female","woman"].includes(g)) ? "woman" : "man";
-%>
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-  :root {
-    --adult-bg: #0d0508;
-    --adult-card: rgba(28, 8, 14, 0.85);
-    --adult-border: rgba(180, 60, 90, 0.25);
-    --adult-glow: rgba(220, 100, 130, 0.35);
-    --accent-wine: #b43c5a;
-    --accent-rose: #d46482;
-    --accent-gold: #c9a962;
-    --gold-shine: linear-gradient(135deg, #e8d5a3 0%, #c9a962 40%, #a67c52 100%);
-    --text-soft: rgba(255, 255, 255, 0.88);
-    --text-dim: rgba(255, 255, 255, 0.55);
+  body.cheonhaerang-report {
+    background: #07020a;
+    color: #f0e8e0;
+    font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', serif;
+    overscroll-behavior: none;
   }
 
-  .report-bg-adult {
-    background: var(--adult-bg);
-    background-image:
-      radial-gradient(ellipse 120% 80% at 50% 0%, rgba(180, 60, 90, 0.12) 0%, transparent 50%),
-      radial-gradient(ellipse 80% 50% at 80% 80%, rgba(200, 80, 120, 0.08) 0%, transparent 45%),
-      radial-gradient(ellipse 60% 40% at 20% 70%, rgba(201, 169, 98, 0.06) 0%, transparent 40%);
-    min-height: 100vh;
+  /* ── 전체 스테이지 ── */
+  #stage {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
   }
 
-  .chapter-progress-wrap.adult {
-    padding-top: 72px;
-    padding-bottom: 36px;
-    text-align: center;
+  /* ── 배경 이미지 ── */
+  #bg-layer {
+    position: absolute;
+    inset: 0;
+    background: #07020a;
+    transition: opacity 0.6s ease;
+  }
+  #bg-layer img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
   }
 
-  .chapter-dots.adult {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
+  /* 파트별 배경 딤 오버레이 */
+  #bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(7,2,10,0.15) 0%,
+      rgba(7,2,10,0.25) 40%,
+      rgba(7,2,10,0.82) 68%,
+      rgba(7,2,10,0.97) 100%
+    );
+    transition: opacity 0.6s ease;
   }
 
-  .dot.adult {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    transition: all 0.35s ease;
-    box-shadow: 0 0 0 1px rgba(180, 60, 90, 0.2);
-  }
-
-  .dot.adult.active {
-    background: var(--accent-rose);
-    transform: scale(1.4);
-    box-shadow: 0 0 16px var(--adult-glow), 0 0 0 1px rgba(212, 100, 140, 0.4);
-  }
-
-  .chapter-badge.adult {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    color: var(--accent-gold);
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    text-shadow: 0 0 20px rgba(201, 169, 98, 0.4);
-  }
-
-  .chapter-title.adult {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 26px;
-    font-weight: 700;
-    background: var(--gold-shine);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 12px;
-    letter-spacing: -0.02em;
-    line-height: 1.35;
-  }
-
-  .chapter-line.adult {
-    width: 48px;
+  /* ── 진행 바 ── */
+  #progress-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent-rose), transparent);
-    margin: 16px auto;
-    opacity: 0.7;
+    background: rgba(255,255,255,0.08);
+    z-index: 10;
+  }
+  #progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #b43c5a, #e8b4b8);
+    transition: width 0.4s ease;
   }
 
-  .content-card.adult {
-    background: var(--adult-card);
-    border: 1px solid var(--adult-border);
-    border-radius: 20px;
-    padding: 28px 22px;
-    margin-bottom: 28px;
-    backdrop-filter: blur(12px);
-    box-shadow:
-      0 4px 24px rgba(0,0,0,0.4),
-      inset 0 1px 0 rgba(255,255,255,0.04);
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  /* ── 상단 파트 표시 ── */
+  #part-label {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: rgba(232,180,184,0.7);
+    z-index: 10;
+    white-space: nowrap;
   }
 
-  .content-card.adult:hover {
-    border-color: rgba(180, 60, 90, 0.4);
-    box-shadow:
-      0 6px 32px rgba(0,0,0,0.45),
-      0 0 24px rgba(180, 60, 90, 0.08),
-      inset 0 1px 0 rgba(255,255,255,0.05);
+  /* ── 콘텐츠 영역 ── */
+  #content-area {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 0 20px 32px;
+    z-index: 5;
+    max-height: 62dvh;
+    overflow-y: auto;
+    scrollbar-width: none;
   }
+  #content-area::-webkit-scrollbar { display: none; }
 
-  .report-title.adult {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: #e8d5c4;
-    margin-bottom: 16px;
-    line-height: 1.45;
+  /* ── 캐릭터 대사 박스 ── */
+  .char-speech {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
+    margin-bottom: 16px;
   }
-
-  .report-title.adult::before {
-    content: '';
+  .char-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(180,60,90,0.5);
+    background: rgba(180,60,90,0.12);
     flex-shrink: 0;
-    width: 3px;
-    height: 100%;
-    min-height: 20px;
-    background: var(--gold-shine);
-    border-radius: 2px;
-    box-shadow: 0 0 10px rgba(201, 169, 98, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
   }
-
-  .report-content.adult {
-    font-size: 15px;
-    line-height: 1.9;
-    color: var(--text-soft);
-    white-space: pre-line;
-    word-break: keep-all;
+  .char-bubble {
+    background: rgba(20,6,14,0.88);
+    border: 1px solid rgba(180,60,90,0.3);
+    border-top-left-radius: 2px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: rgba(240,232,224,0.92);
+    backdrop-filter: blur(8px);
   }
-
-  .report-content.adult .highlight {
-    color: var(--accent-rose);
-    font-weight: 600;
-    text-shadow: 0 0 12px rgba(212, 100, 140, 0.25);
-  }
-
-  /* ========== 섹션별 시각 요소 (29금 분위기) ========== */
-  .adult-visual-block {
-    margin-bottom: 20px;
-    text-align: center;
-  }
-
-  .adult-visual-block svg {
-    max-width: 100%;
-    height: auto;
-  }
-
-  .adult-visual-flame {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto;
-    opacity: 0.85;
-  }
-
-  .adult-visual-moon {
-    width: 72px;
-    height: 72px;
-    margin: 0 auto;
-    opacity: 0.9;
-  }
-
-  .adult-visual-gauge-wrap {
-    max-width: 280px;
-    margin: 0 auto 8px;
-    padding: 16px 20px;
-    background: rgba(0,0,0,0.25);
-    border-radius: 16px;
-    border: 1px solid rgba(180, 60, 90, 0.2);
-  }
-
-  .adult-visual-gauge-label {
-    font-size: 11px;
-    color: var(--text-dim);
+  .char-name {
+    font-size: 10px;
+    color: rgba(232,180,184,0.8);
     letter-spacing: 0.15em;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
   }
 
-  .adult-visual-gauge-bar {
-    height: 10px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 5px;
-    overflow: hidden;
-  }
-
-  .adult-visual-gauge-fill {
-    height: 100%;
-    border-radius: 5px;
-    background: linear-gradient(90deg, var(--accent-wine), var(--accent-rose));
-    box-shadow: 0 0 12px rgba(212, 100, 140, 0.4);
-    transition: width 1s ease-out;
-  }
-
-  .adult-visual-gauge-num {
-    font-size: 22px;
-    font-weight: 700;
-    background: var(--gold-shine);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-top: 8px;
-  }
-
-  .adult-visual-duo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 24px;
-    margin: 0 auto 8px;
-  }
-
-  .adult-visual-duo-item {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    opacity: 0.9;
-  }
-
-  .adult-visual-duo-item.predator {
-    background: linear-gradient(135deg, rgba(180, 60, 90, 0.35), rgba(140, 40, 70, 0.25));
-    border: 1px solid rgba(212, 100, 140, 0.5);
-    box-shadow: 0 0 20px rgba(180, 60, 90, 0.2);
-  }
-
-  .adult-visual-duo-item.prey {
-    background: linear-gradient(135deg, rgba(201, 169, 98, 0.2), rgba(160, 130, 70, 0.15));
-    border: 1px solid rgba(201, 169, 98, 0.4);
-  }
-
-  .adult-visual-ohang-strip {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    margin: 0 auto 12px;
-    flex-wrap: wrap;
-  }
-
-  .adult-visual-ohang-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    opacity: 0.85;
-  }
-
-  .adult-visual-divider {
-    width: 60%;
-    height: 2px;
-    margin: 16px auto;
-    background: linear-gradient(90deg, transparent, var(--accent-rose), var(--accent-gold), var(--accent-rose), transparent);
-    opacity: 0.5;
-    border-radius: 1px;
-  }
-
-  .adult-visual-silhouette {
-    width: 100px;
-    height: 48px;
-    margin: 0 auto;
-    opacity: 0.6;
-  }
-
-  .adult-visual-spark {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto;
-    opacity: 0.85;
-  }
-
-  .adult-visual-items {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin: 0 auto 8px;
-  }
-
-  .adult-visual-item-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(180, 60, 90, 0.15);
-    border: 1px solid rgba(180, 60, 90, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-  }
-
-  /* ========== 상단: 오행 + 천간지지 (29금 사주 분위기) ========== */
-  .adult-saju-intro {
-    margin: 0 16px 24px;
-    padding: 0 0 28px;
-    border-bottom: 1px solid rgba(180, 60, 90, 0.2);
-  }
-
-  .adult-saju-intro-head {
-    text-align: center;
-    padding: 28px 16px 20px;
-  }
-
-  .adult-saju-intro-label {
-    display: inline-block;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.35em;
-    color: var(--accent-rose);
-    margin-bottom: 8px;
+  /* ── 섹션 제목 ── */
+  .section-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: rgba(180,60,90,0.9);
+    margin-bottom: 6px;
     text-transform: uppercase;
-    opacity: 0.95;
   }
-
-  .adult-saju-intro-title {
-    font-family: 'Noto Serif KR', serif;
+  .section-title {
     font-size: 20px;
     font-weight: 700;
-    background: var(--gold-shine);
+    background: linear-gradient(135deg, #f0e0c8 0%, #e8b4b8 50%, #c9a962 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: -0.02em;
-    text-shadow: 0 0 30px rgba(201, 169, 98, 0.2);
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  .section-divider {
+    width: 36px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(180,60,90,0.8), transparent);
+    margin-bottom: 16px;
   }
 
-  .adult-saju-intro-desc {
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-top: 10px;
-    letter-spacing: 0.02em;
+  /* ── 본문 텍스트 ── */
+  .section-content {
+    font-size: 14.5px;
+    line-height: 1.95;
+    color: rgba(240,232,224,0.88);
+    word-break: keep-all;
+    white-space: pre-line;
   }
-
-  /* 오행 블록 */
-  .adult-ohang-wrap {
-    background: linear-gradient(165deg, rgba(28, 10, 18, 0.95) 0%, rgba(18, 5, 12, 0.98) 100%);
-    border: 1px solid rgba(180, 60, 90, 0.22);
-    border-radius: 20px;
-    padding: 22px 16px;
-    margin-bottom: 20px;
-    box-shadow: 0 6px 28px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
-  }
-
-  .adult-ohang-title {
-    font-size: 11px;
-    color: var(--accent-gold);
-    text-align: center;
-    letter-spacing: 0.25em;
-    margin-bottom: 18px;
+  .section-content .highlight {
+    color: #e8b4b8;
     font-weight: 600;
-    opacity: 0.9;
   }
 
-  .adult-ohang-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-  }
-
-  .adult-ohang-item {
-    flex: 1;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 14px 8px;
-    text-align: center;
-    transition: all 0.3s ease;
-  }
-
-  .adult-ohang-item.has-val {
-    border-color: rgba(180, 60, 90, 0.35);
-    background: rgba(180, 60, 90, 0.06);
-    box-shadow: 0 0 18px rgba(180, 60, 90, 0.12);
-  }
-
-  .adult-ohang-han { font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px; }
-  .adult-ohang-num { font-size: 20px; font-weight: 700; display: block; margin: 6px 0; }
-  .adult-ohang-bar-wrap {
-    height: 40px;
-    width: 5px;
-    background: rgba(255,255,255,0.06);
-    margin: 0 auto;
-    border-radius: 3px;
-    position: relative;
-    overflow: hidden;
-  }
-  .adult-ohang-bar {
+  /* ── 하단 탭 안내 ── */
+  #tap-hint {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    border-radius: 3px;
-    transition: height 0.7s ease-out;
-  }
-
-  /* 천간지지 블록 */
-  .adult-pillar-wrap {
-    background: linear-gradient(165deg, rgba(28, 10, 18, 0.95) 0%, rgba(18, 5, 12, 0.98) 100%);
-    border: 1px solid rgba(180, 60, 90, 0.22);
-    border-radius: 20px;
-    padding: 24px 16px;
-    box-shadow: 0 6px 28px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
-  }
-
-  .adult-pillar-title {
-    font-size: 11px;
-    color: var(--accent-gold);
-    text-align: center;
-    letter-spacing: 0.25em;
-    margin-bottom: 18px;
-    font-weight: 600;
-    opacity: 0.9;
-  }
-
-  .adult-pillar-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-
-  .adult-pillar-node {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 18px 8px;
-    text-align: center;
-    transition: all 0.3s ease;
-  }
-
-  .adult-pillar-node.is-me {
-    border-color: var(--accent-rose);
-    background: rgba(180, 60, 90, 0.1);
-    box-shadow: 0 0 24px rgba(180, 60, 90, 0.18);
-    position: relative;
-  }
-
-  .adult-pillar-node.is-me::after {
-    content: '나';
-    position: absolute;
-    top: -6px;
-    right: -6px;
-    background: var(--accent-rose);
-    color: #fff;
-    font-size: 9px;
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-weight: 700;
-  }
-
-  .adult-pillar-label {
+    bottom: 10px;
+    right: 20px;
     font-size: 10px;
-    color: var(--text-dim);
-    margin-bottom: 10px;
-    display: block;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.25);
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+
+  /* ── 화면 카운터 ── */
+  #slide-counter {
+    position: absolute;
+    bottom: 10px;
+    left: 20px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.2);
+    z-index: 10;
+  }
+
+  /* ── 탭 존 ── */
+  #tap-prev {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 30%;
+    z-index: 8;
+    cursor: pointer;
+  }
+  #tap-next {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 70%;
+    z-index: 8;
+    cursor: pointer;
+  }
+
+  /* ── 인트로 특별 스타일 ── */
+  .intro-title {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .intro-title .badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.35em;
+    color: rgba(180,60,90,0.9);
+    border: 1px solid rgba(180,60,90,0.35);
+    padding: 4px 12px;
+    border-radius: 99px;
+    margin-bottom: 12px;
+  }
+  .intro-title h1 {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f0e0c8, #e8b4b8, #c9a962);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.35;
+  }
+  .intro-title p {
+    font-size: 12px;
+    color: rgba(240,232,224,0.5);
+    margin-top: 8px;
     letter-spacing: 0.05em;
   }
 
-  .adult-pillar-hanja {
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 1.35;
-    background: var(--gold-shine);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: 0.02em;
+  /* ── 최종 선고 ── */
+  .verdict-wrap {
+    text-align: center;
+    padding: 8px 0 16px;
+  }
+  .verdict-wrap .label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: rgba(180,60,90,0.8);
+    margin-bottom: 12px;
+  }
+  .verdict-wrap .verdict-text {
+    font-size: 17px;
+    line-height: 1.85;
+    color: rgba(240,232,224,0.9);
+    word-break: keep-all;
+    margin-bottom: 24px;
+  }
+  .verdict-wrap .share-btn {
+    display: inline-block;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #b43c5a, #d46482);
+    border-radius: 99px;
+    font-size: 13px;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 4px 20px rgba(180,60,90,0.35);
   }
 
-  .saju-summary-tool.adult {
-    display: none; /* 기존 블록 숨김, 아래 새 블록 사용 */
+  /* ── 슬라이드 트랜지션 ── */
+  #slide-wrapper {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+  }
+  .slide-enter {
+    animation: slideIn 0.35s ease forwards;
+  }
+  .slide-exit {
+    animation: slideOut 0.35s ease forwards;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(18px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(-18px); }
   }
 
-  .preview-badge-wrap.adult { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 18px; }
-  .preview-badge.adult { font-size: 9px; font-weight: 700; letter-spacing: 0.25em; color: var(--accent-rose); border: 1px solid rgba(212, 100, 140, 0.4); padding: 4px 12px; border-radius: 99px; text-transform: uppercase; }
-  .preview-main-title.adult { font-size: 13px; color: rgba(232, 213, 196, 0.9); font-weight: 400; letter-spacing: 0.08em; }
-  .element-section.adult { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 24px; }
-  .el-card.adult { flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 4px; text-align: center; }
-  .el-card.adult.has-value { border-color: rgba(180, 60, 90, 0.35); background: rgba(180, 60, 90, 0.06); }
-  .el-han.adult { font-size: 11px; opacity: 0.65; display: block; }
-  .el-val.adult { font-size: 17px; font-weight: 700; margin: 4px 0; display: block; }
-  .el-bar-container.adult { height: 36px; width: 4px; background: rgba(255,255,255,0.08); margin: 0 auto; border-radius: 2px; position: relative; }
-  .el-bar-fill.adult { position: absolute; bottom: 0; width: 100%; border-radius: 2px; transition: height 0.8s ease-out; }
-  .color-wood { color: #A8D5BA; } .bg-wood { background: #A8D5BA; }
-  .color-fire { color: #e8a0a8; } .bg-fire { background: #e8a0a8; }
-  .color-earth { color: #d4c4a8; } .bg-earth { background: #d4c4a8; }
-  .color-metal { color: #c8c4c0; } .bg-metal { background: #c8c4c0; }
-  .color-water { color: #a8c0d8; } .bg-water { background: #a8c0d8; }
-  .saju-grid-title.adult { font-size: 11px; color: var(--text-dim); text-align: center; letter-spacing: 0.2em; margin-bottom: 14px; }
-  .saju-grid.adult { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  .saju-node.adult { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 0; text-align: center; }
-  .node-label.adult { font-size: 10px; color: var(--text-dim); margin-bottom: 6px; display: block; }
-  .hanja-text.adult { font-size: 22px; font-weight: 700; line-height: 1.2; background: var(--gold-shine); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .saju-node.adult.is-me { border-color: var(--accent-rose); background: rgba(180, 60, 90, 0.08); position: relative; box-shadow: 0 0 20px rgba(180, 60, 90, 0.15); }
-  .saju-node.adult.is-me::after { content: '나'; position: absolute; top: -5px; right: -5px; background: var(--accent-rose); color: #fff; font-size: 9px; padding: 2px 5px; border-radius: 4px; }
+  /* ── 파트 전환 배경 이미지 없을 때 패턴 ── */
+  .no-img-bg {
+    background:
+      radial-gradient(ellipse 100% 60% at 50% 0%, rgba(180,60,90,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 40% at 80% 90%, rgba(201,169,98,0.1) 0%, transparent 50%),
+      #07020a;
+  }
 </style>
 
-<body class="page-adult">
-  <div class="flex flex-col w-full max-w-[480px] mx-auto report-bg-adult min-h-screen">
-    <%- include('./../../common/common') %>
+<body class="cheonhaerang-report">
+<%
+  /* ── 데이터 준비 ── */
+  const g = String(userInfo.gender || '').trim();
+  const isFemale = ["여","여자","여성","female","woman"].includes(g.toLowerCase());
 
-    <% const getPercent = (val) => (Math.min((val / 8) * 100, 100)) + '%'; %>
+  /* reportInfo: [{ chapter, title, content }] */
+  /* 장(chapter)별로 그룹핑 */
+  const chapterMap = {};
+  const chapterOrder = [];
+  (reportInfo || []).forEach(item => {
+    if (!chapterMap[item.chapter]) {
+      chapterMap[item.chapter] = [];
+      chapterOrder.push(item.chapter);
+    }
+    chapterMap[item.chapter].push(item);
+  });
 
-    <!-- 상단: 오행 → 천간지지 (29금 사주 분위기) -->
-    <section class="adult-saju-intro">
-      <div class="adult-saju-intro-head">
-        <div class="adult-saju-intro-label">29+</div>
-        <h1 class="adult-saju-intro-title">당신의 사주</h1>
-        <p class="adult-saju-intro-desc">오행과 사주팔자를 먼저 확인한 뒤, 아래 해석을 읽어보세요.</p>
-      </div>
+  /* 파트 아이콘 & 연출 지문 */
+  const partMeta = [
+    { icon: '🪄', pose: '붉은 부채를 펼치며 윙크', bgClass: 'no-img-bg' },
+    { icon: '🌙', pose: '엽전을 손가락으로 굴리며', bgClass: 'no-img-bg' },
+    { icon: '🔮', pose: '은색 방울을 흔들며', bgClass: 'no-img-bg' },
+    { icon: '🕯️', pose: '촛불 앞에서 턱을 괴며', bgClass: 'no-img-bg' },
+    { icon: '💀', pose: '차갑게 미소를 지으며', bgClass: 'no-img-bg' },
+    { icon: '⛧', pose: '붉은 실을 감으며', bgClass: 'no-img-bg' },
+  ];
 
-      <div class="adult-ohang-wrap">
-        <div class="adult-ohang-title">오행 · 五行</div>
-        <div class="adult-ohang-row">
-          <div class="adult-ohang-item <%= saju.fiveElements.목 > 0 ? 'has-val' : '' %>">
-            <span class="adult-ohang-han color-wood">木</span>
-            <span class="adult-ohang-num color-wood"><%= saju.fiveElements.목 %></span>
-            <div class="adult-ohang-bar-wrap"><div class="adult-ohang-bar bg-wood" style="height: <%= getPercent(saju.fiveElements.목) %>;"></div></div>
-          </div>
-          <div class="adult-ohang-item <%= saju.fiveElements.화 > 0 ? 'has-val' : '' %>">
-            <span class="adult-ohang-han color-fire">火</span>
-            <span class="adult-ohang-num color-fire"><%= saju.fiveElements.화 %></span>
-            <div class="adult-ohang-bar-wrap"><div class="adult-ohang-bar bg-fire" style="height: <%= getPercent(saju.fiveElements.화) %>;"></div></div>
-          </div>
-          <div class="adult-ohang-item <%= saju.fiveElements.토 > 0 ? 'has-val' : '' %>">
-            <span class="adult-ohang-han color-earth">土</span>
-            <span class="adult-ohang-num color-earth"><%= saju.fiveElements.토 %></span>
-            <div class="adult-ohang-bar-wrap"><div class="adult-ohang-bar bg-earth" style="height: <%= getPercent(saju.fiveElements.토) %>;"></div></div>
-          </div>
-          <div class="adult-ohang-item <%= saju.fiveElements.금 > 0 ? 'has-val' : '' %>">
-            <span class="adult-ohang-han color-metal">金</span>
-            <span class="adult-ohang-num color-metal"><%= saju.fiveElements.금 %></span>
-            <div class="adult-ohang-bar-wrap"><div class="adult-ohang-bar bg-metal" style="height: <%= getPercent(saju.fiveElements.금) %>;"></div></div>
-          </div>
-          <div class="adult-ohang-item <%= saju.fiveElements.수 > 0 ? 'has-val' : '' %>">
-            <span class="adult-ohang-han color-water">水</span>
-            <span class="adult-ohang-num color-water"><%= saju.fiveElements.수 %></span>
-            <div class="adult-ohang-bar-wrap"><div class="adult-ohang-bar bg-water" style="height: <%= getPercent(saju.fiveElements.수) %>;"></div></div>
-          </div>
-        </div>
-      </div>
+  /* ── 슬라이드 배열 생성 ── */
+  /* 슬라이드 타입: intro | chapter-title | section | verdict */
+  const slides = [];
 
-      <div class="adult-pillar-wrap">
-        <div class="adult-pillar-title">천간지지 · 四柱</div>
-        <div class="adult-pillar-grid">
-          <div class="adult-pillar-node">
-            <span class="adult-pillar-label">시주</span>
-            <div class="adult-pillar-hanja"><%= saju.hour.gan || "－" %><br><%= saju.hour.ji || "－" %></div>
-          </div>
-          <div class="adult-pillar-node is-me">
-            <span class="adult-pillar-label">일주</span>
-            <div class="adult-pillar-hanja"><%= saju.day.gan %><br><%= saju.day.ji %></div>
-          </div>
-          <div class="adult-pillar-node">
-            <span class="adult-pillar-label">월주</span>
-            <div class="adult-pillar-hanja"><%= saju.month.gan %><br><%= saju.month.ji %></div>
-          </div>
-          <div class="adult-pillar-node">
-            <span class="adult-pillar-label">년주</span>
-            <div class="adult-pillar-hanja"><%= saju.year.gan %><br><%= saju.year.ji %></div>
-          </div>
-        </div>
-      </div>
-    </section>
+  /* 0. 인트로 */
+  slides.push({
+    type: 'intro',
+    partIdx: 0,
+    name: userInfo.name || '당신'
+  });
 
-    <div id="container" class="pb-24">
-      <%
-        const chapters = [...new Set(reportInfo.map(r => r.chapter))];
-        const totalChapters = chapters.length;
-        let currentChapter = '';
-      %>
-      <% reportInfo.forEach((item, index) => { %>
-        <% if (item.chapter !== currentChapter) { %>
-          <% currentChapter = item.chapter; %>
-          <% const chapterIndex = chapters.indexOf(item.chapter); %>
-          <div class="chapter-progress-wrap adult px-6">
-            <div class="chapter-dots adult">
-              <% for (let i = 0; i < totalChapters; i++) { %>
-                <div class="dot adult <%= i === chapterIndex ? 'active' : '' %>"></div>
-              <% } %>
-            </div>
-            <span class="chapter-badge adult">Chapter 0<%= chapterIndex + 1 %></span>
-            <h2 class="chapter-title adult"><%= item.chapter %></h2>
-            <div class="chapter-line adult"></div>
-          </div>
-          <div class="px-5 space-y-6">
-        <% } %>
+  /* 파트별 슬라이드 생성 */
+  chapterOrder.forEach((chapter, ci) => {
+    const meta = partMeta[ci] || partMeta[0];
+    const sections = chapterMap[chapter];
 
-        <div class="content-card adult">
-          <% if (item.title && item.title !== item.chapter) { %>
-            <h3 class="report-title adult"><%= item.title %></h3>
-          <% } %>
+    /* 파트 도입 */
+    slides.push({
+      type: 'chapter-title',
+      partIdx: ci,
+      chapter,
+      meta,
+      partNum: ci + 1
+    });
 
-          <% const t = (item.title || '').trim(); %>
-          <% if (t.includes('붉은 연정')) { %>
-            <div class="adult-visual-block">
-              <svg class="adult-visual-flame" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs><linearGradient id="flameGrad-<%= index %>" x1="32" y1="56" x2="32" y2="8" gradientUnits="userSpaceOnUse"><stop stop-color="#d46482"/><stop offset="0.5" stop-color="#b43c5a"/><stop offset="1" stop-color="#c9a962"/></linearGradient></defs>
-                <path d="M32 8c-4 12-12 20-12 32a12 12 0 0024 0C46 28 38 20 32 8z" fill="url(#flameGrad-<%= index %>)" opacity="0.9"/>
-                <path d="M32 16c-2 8-6 14-6 24a6 6 0 0012 0c0-10-4-16-6-24z" fill="rgba(255,255,255,0.35)"/>
-              </svg>
-            </div>
-          <% } else if (t.includes('이성 마비')) { %>
-            <div class="adult-visual-block">
-              <div class="adult-visual-gauge-wrap">
-                <div class="adult-visual-gauge-label">페로몬 지수</div>
-                <div class="adult-visual-gauge-bar"><div class="adult-visual-gauge-fill" style="width: <%= 70 + (saju.fiveElements.화 || 0) * 3 %>%"></div></div>
-                <div class="adult-visual-gauge-num"><%= Math.min(99, 70 + (saju.fiveElements.화 || 0) * 3) %>점</div>
-              </div>
-            </div>
-          <% } else if (t.includes('밤의 필살기')) { %>
-            <div class="adult-visual-block">
-              <svg class="adult-visual-moon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs><linearGradient id="moonGrad-<%= index %>" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e8d5a3"/><stop offset="1" stop-color="#c9a962"/></linearGradient></defs>
-                <circle cx="32" cy="32" r="24" fill="url(#moonGrad-<%= index %>)" opacity="0.85"/>
-                <circle cx="42" cy="28" r="22" fill="#0d0508"/>
-              </svg>
-              <div class="adult-visual-ohang-strip">
-                <span class="adult-visual-ohang-dot bg-wood" title="木"></span>
-                <span class="adult-visual-ohang-dot bg-fire" title="火"></span>
-                <span class="adult-visual-ohang-dot bg-earth" title="土"></span>
-                <span class="adult-visual-ohang-dot bg-metal" title="金"></span>
-                <span class="adult-visual-ohang-dot bg-water" title="水"></span>
-              </div>
-            </div>
-          <% } else if (t.includes('운명의 란제리')) { %>
-            <div class="adult-visual-block">
-              <div class="adult-visual-divider"></div>
-              <div style="font-size:11px; color: var(--text-dim); letter-spacing: 0.2em;">MATERIAL & COLOR</div>
-            </div>
-          <% } else if (t.includes('매력 포인트')) { %>
-            <div class="adult-visual-block">
-              <svg class="adult-visual-silhouette" viewBox="0 0 100 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="50" cy="28" rx="22" ry="18" stroke="rgba(212,100,140,0.5)" stroke-width="1.5" fill="none"/>
-                <circle cx="50" cy="12" r="8" stroke="rgba(212,100,140,0.5)" stroke-width="1.5" fill="none"/>
-                <circle cx="50" cy="20" r="2" fill="rgba(212,100,140,0.6)"/>
-              </svg>
-            </div>
-          <% } else if (t.includes('유혹의 향기')) { %>
-            <div class="adult-visual-block">
-              <svg class="adult-visual-spark" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M32 8L36 28L32 56L28 28L32 8z" stroke="#c9a962" stroke-width="1.5" fill="none" opacity="0.8"/>
-                <path d="M8 32L28 36L56 32L28 28L8 32z" stroke="#d46482" stroke-width="1.5" fill="none" opacity="0.7"/>
-                <circle cx="32" cy="32" r="4" fill="rgba(201,169,98,0.4)"/>
-              </svg>
-            </div>
-          <% } else if (t.includes('포식자 vs 사냥감') || t.includes('포식자 vs')) { %>
-            <div class="adult-visual-block">
-              <div class="adult-visual-duo">
-                <div class="adult-visual-duo-item predator" title="주도권">♠</div>
-                <span style="color: var(--text-dim); font-size: 12px;">vs</span>
-                <div class="adult-visual-duo-item prey" title="사로잡힌">♥</div>
-              </div>
-            </div>
-          <% } else if (t.includes('발화점')) { %>
-            <div class="adult-visual-block">
-              <svg class="adult-visual-spark" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M32 4L34 22L32 60L30 22L32 4z" stroke="#d46482" stroke-width="2" fill="none"/>
-                <path d="M4 32L22 34L60 32L22 30L4 32z" stroke="#c9a962" stroke-width="2" fill="none"/>
-                <circle cx="32" cy="32" r="6" fill="none" stroke="#b43c5a" stroke-width="2"/>
-              </svg>
-            </div>
-          <% } else if (t.includes('에너지 수치')) { %>
-            <div class="adult-visual-block">
-              <div class="adult-visual-gauge-wrap">
-                <div class="adult-visual-gauge-label">쾌락 궁합 에너지</div>
-                <div class="adult-visual-gauge-bar"><div class="adult-visual-gauge-fill" style="width: <%= Math.min(100, (saju.fiveElements.목 + saju.fiveElements.화 + saju.fiveElements.수) * 6) %>%"></div></div>
-                <div class="adult-visual-gauge-num"><%= Math.min(99, Math.floor((saju.fiveElements.목 + saju.fiveElements.화 + saju.fiveElements.수) * 6)) %>점</div>
-              </div>
-            </div>
-          <% } else if (t.includes('에너지 아이템')) { %>
-            <div class="adult-visual-block">
-              <div class="adult-visual-items">
-                <div class="adult-visual-item-icon">✦</div>
-                <div class="adult-visual-item-icon">◎</div>
-                <div class="adult-visual-item-icon">◉</div>
-              </div>
-              <div style="font-size:10px; color: var(--text-dim); letter-spacing: 0.15em; margin-top: 6px;">ITEM</div>
-            </div>
-          <% } else if (t.includes('은밀한 판타지')) { %>
-            <div class="adult-visual-block">
-              <svg class="adult-visual-moon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="26" stroke="rgba(180,60,90,0.4)" stroke-width="1" fill="none"/>
-                <circle cx="32" cy="32" r="20" stroke="rgba(201,169,98,0.3)" stroke-width="1" fill="none"/>
-                <path d="M32 12v8M32 44v8M12 32h8M44 32h8M18 18l5.6 5.6M40.4 40.4l5.6 5.6M18 46l5.6-5.6M40.4 23.6l5.6-5.6" stroke="rgba(212,100,140,0.35)" stroke-width="1"/>
-              </svg>
-            </div>
-          <% } else if (t.includes('육체의 기억')) { %>
-            <div class="adult-visual-block">
-              <svg class="adult-visual-silhouette" viewBox="0 0 80 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="28" cy="24" r="14" stroke="rgba(212,100,140,0.5)" stroke-width="1.5" fill="none"/>
-                <circle cx="52" cy="24" r="14" stroke="rgba(201,169,98,0.5)" stroke-width="1.5" fill="none"/>
-                <path d="M38 24h8" stroke="rgba(212,100,140,0.6)" stroke-width="2"/>
-              </svg>
-            </div>
-          <% } else if (t.includes('낮과 밤의 반전')) { %>
-            <div class="adult-visual-block">
-              <svg viewBox="0 0 64 32" width="120" height="60" style="margin:0 auto; opacity:0.85;">
-                <circle cx="16" cy="16" r="14" fill="rgba(255,255,255,0.06)" stroke="rgba(201,169,98,0.4)" stroke-width="1"/>
-                <circle cx="48" cy="16" r="14" fill="rgba(180,60,90,0.15)" stroke="rgba(212,100,140,0.5)" stroke-width="1"/>
-                <path d="M32 4v24" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="4 2"/>
-              </svg>
-              <div style="font-size:10px; color: var(--text-dim); letter-spacing: 0.12em;">DAY · NIGHT</div>
-            </div>
-          <% } else if (t.includes('만족의 비결')) { %>
-            <div class="adult-visual-block">
-              <div class="adult-visual-ohang-strip">
-                <span class="adult-visual-ohang-dot bg-wood"></span>
-                <span class="adult-visual-ohang-dot bg-fire"></span>
-                <span class="adult-visual-ohang-dot bg-earth"></span>
-                <span class="adult-visual-ohang-dot bg-metal"></span>
-                <span class="adult-visual-ohang-dot bg-water"></span>
-              </div>
-              <div style="font-size:10px; color: var(--text-dim); letter-spacing: 0.12em;">BALANCE</div>
-            </div>
-          <% } %>
+    /* 섹션별 슬라이드 */
+    sections.forEach(sec => {
+      slides.push({
+        type: 'section',
+        partIdx: ci,
+        chapter,
+        meta,
+        title: sec.title,
+        content: sec.content
+      });
+    });
+  });
 
-          <%
-            let formattedContent = item.content || '';
-          %>
-          <div class="report-content adult"><%= formattedContent %></div>
-        </div>
+  /* 최종 선고 */
+  slides.push({ type: 'verdict', partIdx: chapterOrder.length });
 
-        <%
-          const nextItem = reportInfo[index + 1];
-          if (!nextItem || nextItem.chapter !== currentChapter) {
-        %>
-          </div>
-        <% } %>
-      <% }); %>
-    </div>
+  const totalSlides = slides.length;
+%>
+
+<div id="stage">
+  <!-- 진행 바 -->
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+
+  <!-- 파트 라벨 -->
+  <div id="part-label"></div>
+
+  <!-- 배경 레이어 -->
+  <div id="bg-layer" class="no-img-bg">
+    <img id="bg-img" src="" alt="" style="display:none; width:100%; height:100%; object-fit:cover; object-position:top center;">
   </div>
+  <div id="bg-overlay"></div>
+
+  <!-- 탭 존 -->
+  <div id="tap-prev"></div>
+  <div id="tap-next"></div>
+
+  <!-- 슬라이드 콘텐츠 -->
+  <div id="slide-wrapper">
+    <div id="content-area"></div>
+  </div>
+
+  <!-- 하단 UI -->
+  <div id="slide-counter"></div>
+  <div id="tap-hint">탭하여 넘기기</div>
+</div>
+
+<script>
+(function () {
+  /* ── 슬라이드 데이터 (EJS → JS) ── */
+  const SLIDES = <%- JSON.stringify(slides) %>;
+  const TOTAL = SLIDES.length;
+
+  let current = 0;
+  let isAnimating = false;
+
+  /* ── 이미지 경로 (파트별 1장 + 인트로 1장, 총 7장) ── */
+  /* 이미지 준비되면 아래 경로만 교체하면 됨 */
+  const PART_IMGS = [
+    '/assets/images/cheonhaerang/intro.png',   // 인트로
+    '/assets/images/cheonhaerang/part1.png',   // PART 1
+    '/assets/images/cheonhaerang/part2.png',   // PART 2
+    '/assets/images/cheonhaerang/part3.png',   // PART 3
+    '/assets/images/cheonhaerang/part4.png',   // PART 4
+    '/assets/images/cheonhaerang/part5.png',   // PART 5
+    '/assets/images/cheonhaerang/part6.png',   // PART 6
+  ];
+
+  /* ── DOM refs ── */
+  const $progress   = document.getElementById('progress-fill');
+  const $partLabel  = document.getElementById('part-label');
+  const $bgLayer    = document.getElementById('bg-layer');
+  const $bgOverlay  = document.getElementById('bg-overlay');
+  const $bgImg      = document.getElementById('bg-img');
+  const $content    = document.getElementById('content-area');
+  const $counter    = document.getElementById('slide-counter');
+  const $tapHint    = document.getElementById('tap-hint');
+
+  /* ── 슬라이드 렌더 ── */
+  function render(idx, dir) {
+    const s = SLIDES[idx];
+
+    /* 진행 바 */
+    $progress.style.width = ((idx + 1) / TOTAL * 100) + '%';
+
+    /* 카운터 */
+    $counter.textContent = (idx + 1) + ' / ' + TOTAL;
+
+    /* 파트 라벨 */
+    const partNames = ['PART Ⅰ','PART Ⅱ','PART Ⅲ','PART Ⅳ','PART Ⅴ','PART Ⅵ'];
+    if (s.type === 'intro') {
+      $partLabel.textContent = '천해랑의 은밀한 정욕합 사주';
+    } else if (s.type === 'verdict') {
+      $partLabel.textContent = '天海娘 · 최종 선고';
+    } else {
+      $partLabel.textContent = (partNames[s.partIdx] || '') + ' · ' + (s.chapter || '');
+    }
+
+    /* ── 배경 이미지: 인트로·파트 도입만 표시, 나머지는 숨김 ── */
+    const showImg = s.type === 'intro' || s.type === 'chapter-title';
+    if (showImg) {
+      const imgSrc = s.type === 'intro'
+        ? PART_IMGS[0]
+        : PART_IMGS[s.partIdx + 1] || PART_IMGS[0];
+      $bgImg.src = imgSrc;
+      $bgImg.style.display = 'block';
+      $bgLayer.className = '';
+      /* 이미지 초입: 딤을 살짝 밝게 */
+      $bgOverlay.style.background = 'linear-gradient(to bottom, rgba(7,2,10,0.1) 0%, rgba(7,2,10,0.2) 35%, rgba(7,2,10,0.75) 65%, rgba(7,2,10,0.97) 100%)';
+    } else {
+      $bgImg.src = '';
+      $bgImg.style.display = 'none';
+      $bgLayer.className = 'no-img-bg';
+      /* 본문: 오버레이 필요 없음 */
+      $bgOverlay.style.background = 'none';
+    }
+
+    /* 콘텐츠 HTML */
+    let html = '';
+
+    if (s.type === 'intro') {
+      html = renderIntro(s);
+    } else if (s.type === 'chapter-title') {
+      html = renderChapterTitle(s);
+    } else if (s.type === 'section') {
+      html = renderSection(s);
+    } else if (s.type === 'verdict') {
+      html = renderVerdict();
+    }
+
+    /* 애니메이션 */
+    $content.style.opacity = '0';
+    $content.style.transform = 'translateX(' + (dir > 0 ? '14px' : '-14px') + ')';
+    $content.innerHTML = html;
+    $content.scrollTop = 0;
+
+    requestAnimationFrame(() => {
+      $content.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      $content.style.opacity = '1';
+      $content.style.transform = 'translateX(0)';
+    });
+
+    /* 탭 힌트 마지막 슬라이드에서 숨김 */
+    $tapHint.style.opacity = idx >= TOTAL - 1 ? '0' : '1';
+  }
+
+  /* ── 인트로 ── */
+  function renderIntro(s) {
+    return `
+      <div class="intro-title">
+        <div class="badge">29금 · 성인 사주 리포트</div>
+        <h1>천해랑의<br>은밀한 정욕합 사주</h1>
+        <p>${s.name}님의 사주로 읽어드립니다</p>
+      </div>
+      <div class="char-speech">
+        <div class="char-avatar">🪄</div>
+        <div class="char-bubble">
+          <div class="char-name">천해랑 天海娘</div>
+          어서 오세요. 오늘 밤 당신의 사주를 들여다보겠어요.<br>
+          마음의 준비가 되셨나요? 탭하여 시작하세요.
+        </div>
+      </div>
+    `;
+  }
+
+  /* ── 파트 도입 ── */
+  function renderChapterTitle(s) {
+    const roman = ['壹','貳','參','肆','伍','陸'];
+    const num = roman[s.partIdx] || String(s.partIdx + 1);
+    return `
+      <div class="char-speech">
+        <div class="char-avatar">${s.meta.icon}</div>
+        <div class="char-bubble">
+          <div class="char-name">천해랑 天海娘</div>
+          ${chapterIntro(s.partIdx, s.chapter)}
+        </div>
+      </div>
+      <div class="section-eyebrow">PART ${['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ'][s.partIdx] || s.partIdx + 1}</div>
+      <div class="section-title">${s.chapter}</div>
+      <div class="section-divider"></div>
+      <div class="section-content" style="color:rgba(240,232,224,0.55);font-size:13px;">
+        ${s.meta.pose}… 옷깃을 여미며 이야기를 시작합니다.
+      </div>
+    `;
+  }
+
+  /* ── 섹션 본문 ── */
+  function renderSection(s) {
+    const partRoman = ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ'][s.partIdx] || '';
+    return `
+      <div class="section-eyebrow">PART ${partRoman} · ${s.chapter}</div>
+      <div class="section-title">${s.title}</div>
+      <div class="section-divider"></div>
+      <div class="section-content">${formatContent(s.content)}</div>
+    `;
+  }
+
+  /* ── 최종 선고 ── */
+  function renderVerdict() {
+    return `
+      <div class="char-speech">
+        <div class="char-avatar">⛧</div>
+        <div class="char-bubble">
+          <div class="char-name">천해랑 天海娘</div>
+          이걸로 당신의 사주를 다 읽었어요.<br>
+          이 이야기가 당신 안에 오래 남기를 바라겠습니다.
+        </div>
+      </div>
+      <div class="verdict-wrap">
+        <div class="label">天海娘 · 최종 선고</div>
+        <div class="verdict-text">
+          당신의 욕망은 운명이 아니에요.<br>
+          하지만 사주는 그 욕망이<br>어디서 왔는지 알고 있습니다.
+        </div>
+        <button class="share-btn" onclick="window.scrollTo(0,0)">처음부터 다시 보기</button>
+      </div>
+    `;
+  }
+
+  /* ── 파트별 캐릭터 도입 대사 ── */
+  function chapterIntro(idx, chapter) {
+    const lines = [
+      '첫 번째 이야기예요. 당신 안에 잠든 본능부터 꺼내볼게요.',
+      '이번엔 밤을 지배하는 기운을 읽어드리겠어요. 눈 감아도 괜찮아요.',
+      '당신이 상대를 홀리는 방식을 알려드릴게요. 꽤 흥미롭더군요.',
+      '침대 위의 권력 이야기예요. 긴장하지 않아도 되지만… 아마 긴장하실 거예요.',
+      '궁합의 진실이에요. 쾌락이 일치하는 상대와, 그렇지 않은 상대.',
+      '마지막이에요. 묘월무녀가 직접 드리는 비책이니까 잘 새겨두세요.',
+    ];
+    return lines[idx] || chapter + '에 대해 이야기할게요.';
+  }
+
+  /* ── 본문 포맷 ── */
+  function formatContent(text) {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+  }
+
+  /* ── 이동 ── */
+  function goTo(idx, dir) {
+    if (isAnimating) return;
+    if (idx < 0 || idx >= TOTAL) return;
+    isAnimating = true;
+    current = idx;
+    render(current, dir);
+    setTimeout(() => { isAnimating = false; }, 350);
+  }
+
+  /* ── 탭 이벤트 ── */
+  document.getElementById('tap-next').addEventListener('click', () => goTo(current + 1, 1));
+  document.getElementById('tap-prev').addEventListener('click', () => goTo(current - 1, -1));
+
+  /* ── 스와이프 ── */
+  let touchStartX = 0;
+  document.getElementById('stage').addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  document.getElementById('stage').addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) {
+      dx < 0 ? goTo(current + 1, 1) : goTo(current - 1, -1);
+    }
+  }, { passive: true });
+
+  /* ── 키보드 ── */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') goTo(current + 1, 1);
+    if (e.key === 'ArrowLeft') goTo(current - 1, -1);
+  });
+
+  /* ── 초기 렌더 ── */
+  $content.style.transition = 'none';
+  render(0, 1);
+})();
+</script>
 </body>
 </html>
