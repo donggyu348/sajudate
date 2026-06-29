@@ -453,10 +453,13 @@
     width: 100%;
     margin: 0;
     opacity: 1;
-    transition: opacity 0.4s ease;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s linear;
   }
   .loading-msg.fade {
     opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
   }
 
   /* 이름 라벨 */
@@ -976,19 +979,27 @@
       }, 900 + i * 180);
     });
 
-    // 메시지 순환 (fade out 완료 후 교체)
-    const MSG_FADE_MS = 400;
+    // 메시지 순환: 사라짐 → 0.2초 공백 → 다음 텍스트
+    const MSG_FADE_MS = 300;
+    const MSG_GAP_MS = 200;
     const msgEl = document.getElementById('loading-msg');
     msgEl.textContent = LOADING_MSGS[0];
     msgEl.classList.remove('fade');
 
+    function switchLoadingMsg(text) {
+      msgEl.classList.add('fade');
+      setTimeout(function() {
+        msgEl.textContent = '';
+        setTimeout(function() {
+          msgEl.textContent = text;
+          msgEl.classList.remove('fade');
+        }, MSG_GAP_MS);
+      }, MSG_FADE_MS);
+    }
+
     for (let i = 1; i < LOADING_MSGS.length; i++) {
       setTimeout(function() {
-        msgEl.classList.add('fade');
-        setTimeout(function() {
-          msgEl.textContent = LOADING_MSGS[i];
-          msgEl.classList.remove('fade');
-        }, MSG_FADE_MS);
+        switchLoadingMsg(LOADING_MSGS[i]);
       }, i * 1000);
     }
 
