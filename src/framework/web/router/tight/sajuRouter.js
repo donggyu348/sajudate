@@ -1,5 +1,5 @@
 import express from "express";
-import gptService from "../../service/GptService.js";
+import gptService, { buildRealTenGodTable } from "../../service/GptService.js";
 import reportHistoryService from "../../service/ReportHistoryService.js";
 import { sendReportLink } from "../../service/SmsService.js";
 import PaymentService from "../../service/PaymentService.js";
@@ -48,6 +48,8 @@ const sample = await gptService.callSample(userInfo);
 
     // ADULT 전용: 파트너 사주 + 미리보기 텍스트
     let adultPreview = null;
+    let partnerSaju = null;
+    let partnerTenGodTable = null;
     if (goodsType.code === 'ADULT' || goodsType.code === 'ADULT_BUNDLE') {
       const partnerInfo = {
         name: userInfo.partnerName || '상대방',
@@ -55,18 +57,35 @@ const sample = await gptService.callSample(userInfo);
         birthDate: userInfo.partnerBirthdate || userInfo.partnerBirthDate || '',
         birthTime: userInfo.partnerBirthTime || '',
       };
-      let partnerSaju = null;
       if (partnerInfo.birthDate) {
-        try { partnerSaju = getFourPillars(partnerInfo); } catch(e) {}
+        try {
+          partnerSaju = getFourPillars(partnerInfo);
+          const realPartnerTable = buildRealTenGodTable(partnerInfo);
+          partnerTenGodTable = {
+            ...realPartnerTable,
+            data: realPartnerTable.data.map((row, i) => {
+              const pillarKeys = ["hour", "day", "month", "year"];
+              const p = partnerSaju[pillarKeys[i]];
+              return [row[0], p.gan ?? row[1], p.ji ?? row[2], row[3], row[4], row[5], row[6]];
+            }),
+          };
+        } catch(e) {}
       }
       const compat = buildAdultCompatibilityPreview(userInfo, saju, partnerInfo, partnerSaju);
       adultPreview = buildAdultResultPreview(userInfo, partnerInfo, saju, partnerSaju, compat);
     }
 
+    const myTenGodTable = (goodsType.code === 'ADULT' || goodsType.code === 'ADULT_BUNDLE')
+      ? (sample?.tenGodTable || buildRealTenGodTable(userInfo))
+      : null;
+
     // 2. 결과 페이지 렌더링
     res.render(`tight/saju/${goodsType.code.toLowerCase()}/result`, {
       userInfo: userInfo,
       saju,
+      partnerSaju,
+      myTenGodTable,
+      partnerTenGodTable,
       todayDate: todayDate,
       sample,
       sampleInfo: sample,

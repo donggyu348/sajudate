@@ -284,7 +284,7 @@ function buildTenGodTable(out, userInfo) {
   };
 }
 
-function buildRealTenGodTable(userInfo) {
+export function buildRealTenGodTable(userInfo) {
   const solar = toSolarFromUserInfo(userInfo);
   const lunar = solar.getLunar();
   const ec = lunar.getEightChar();

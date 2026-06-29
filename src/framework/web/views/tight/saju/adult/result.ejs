@@ -33,23 +33,19 @@
 
   // adultPreview 텍스트 (라우터에서 넘어옴, 없으면 기본값)
   const _ap = adultPreview || {};
-  const _visible1  = _ap.preview1Visible  || `${userInfo.name}님은 특정 분위기에서만 몸이 뜨겁게 반응하는 패턴이 보입니다.`;
-  const _blurred1  = _ap.preview1Blurred  || '특히 특정 자극에 매우 강하게 반응하는 포인트가 숨어있습니다.';
-  const _visible2  = _ap.preview2Visible  || '두 사람의 일주 조합에서 속궁합 점수가 나왔습니다.';
-  const _blurred2  = _ap.preview2Blurred  || '더 구체적인 분석이 이어집니다.';
 %>
 
     <!-- part1: 이름 오버레이 -->
     <div class="result-img-wrap">
       <img src="/assets/images/tight/29/result/part1.png" alt="" class="result-img" />
-      <div class="name-overlay p1-name"><%= userInfo.name %>님은</div>
+      <div class="name-overlay p1-name"><%= userInfo.name %></div>
     </div>
 
 
     <!-- part2 -->
     <img src="/assets/images/tight/29/result/part2.png" alt="" class="result-img" />
 
-    <!-- part3: 상대 얼굴 이미지 오버레이 (여자→남자, 남자→여자) -->
+    <!-- part3: 상대 얼굴 이미지 -->
     <div class="result-img-wrap">
       <img src="/assets/images/tight/29/result/part3.png" alt="" class="result-img" />
       <div class="p3-face-wrap">
@@ -57,17 +53,130 @@
       </div>
     </div>
 
+    <!-- 속궁합 사주 명식 -->
+    <%
+      const _sokScore = _ap.score || 0;
+      const CGAN = {"갑":"甲","을":"乙","병":"丙","정":"丁","무":"戊","기":"己","경":"庚","신":"辛","임":"壬","계":"癸"};
+      const CJIJ = {"자":"子","축":"丑","인":"寅","묘":"卯","진":"辰","사":"巳","오":"午","미":"未","신":"申","유":"酉","술":"戌","해":"亥"};
+      const _toHanjaStem = (s) => (s ? (CGAN[s] || s) : "");
+      const _toHanjaBranch = (s) => (s ? (CJIJ[s] || s) : "");
+      const _stemElemMap = {
+        "甲":"wood","乙":"wood","丙":"fire","丁":"fire","戊":"earth","己":"earth",
+        "庚":"metal","辛":"metal","壬":"water","癸":"water",
+        "갑":"wood","을":"wood","병":"fire","정":"fire","무":"earth","기":"earth",
+        "경":"metal","신":"metal","임":"water","계":"water"
+      };
+      const _branchElemMap = {
+        "子":"water","丑":"earth","寅":"wood","卯":"wood","辰":"earth","巳":"fire",
+        "午":"fire","未":"earth","申":"metal","酉":"metal","戌":"earth","亥":"water",
+        "자":"water","축":"earth","인":"wood","묘":"wood","진":"earth","사":"fire",
+        "오":"fire","미":"earth","신":"metal","유":"metal","술":"earth","해":"water"
+      };
+      const _colLabels = ["시주", "일주", "월주", "년주"];
+      const _elemOf = (ch, map) => map[ch] || "earth";
+      const _parseManseryeok = (tbl) => _colLabels.map(function(label, i) {
+        const row = (tbl && tbl.data) ? (tbl.data[i] || []) : [];
+        const stemRaw = row[1] || "";
+        const branchRaw = row[2] || "";
+        const stem = _toHanjaStem(stemRaw);
+        const branch = _toHanjaBranch(branchRaw);
+        const unknown = i === 0 && !stemRaw && !branchRaw;
+        return {
+          label: label,
+          isDay: i === 1,
+          stemGod: i === 1 ? "일간(나)" : (row[0] || ""),
+          branchGod: row[3] || "",
+          stem: unknown ? "─" : stem,
+          branch: unknown ? "─" : branch,
+          stemElem: unknown ? "unknown" : _elemOf(stemRaw, _stemElemMap) || _elemOf(stem, _stemElemMap),
+          branchElem: unknown ? "unknown" : _elemOf(branchRaw, _branchElemMap) || _elemOf(branch, _branchElemMap),
+          diShi: row[4] || "",
+          shenSha: row[5] || "",
+          unknown: unknown,
+        };
+      });
+      const _myCols = _parseManseryeok(typeof myTenGodTable !== "undefined" ? myTenGodTable : (_tbl.data ? _tbl : null));
+      const _ptCols = _parseManseryeok(typeof partnerTenGodTable !== "undefined" ? partnerTenGodTable : null);
+      const _scoreVisible = _ap.scoreReasonVisible || `${userInfo.name || '나'}님과 ${_ap.partnerName || '상대'}님의 속궁합은 <strong>${_sokScore}점</strong>입니다. 두 사람이 맞닿을 때 몸이 먼저 반응하는 흐름이 읽힙니다.`;
+      const _scoreBlurred = _ap.scoreReasonBlurred || '어떤 분위기에서 가장 빠르게 달아오르는지, 상대의 어떤 손길에 몸이 먼저 굴복하는지까지는 사주 원국 전체를 맞춰 봐야 정확히 드러납니다.';
+    %>
+    <section class="sokgung-panel" aria-label="속궁합 사주 명식">
+      <div class="sokgung-panel__head">
+        <p class="sokgung-panel__eyebrow">속궁합 분석</p>
+      </div>
+
+      <div class="manseryeok manseryeok--mine">
+        <p class="manseryeok__title"><%= userInfo.name || '나' %>님의 사주</p>
+        <div class="manseryeok__grid">
+          <% _myCols.forEach(function(col) { %>
+          <div class="manseryeok__col<%= col.isDay ? ' manseryeok__col--day' : '' %><%= col.unknown ? ' manseryeok__col--unknown' : '' %>">
+            <span class="manseryeok__pillar-label"><%= col.label %></span>
+            <span class="manseryeok__god manseryeok__god--top"><%= col.stemGod || ' ' %></span>
+            <div class="manseryeok__box manseryeok__box--<%= col.stemElem %>"><%= col.stem %></div>
+            <div class="manseryeok__box manseryeok__box--<%= col.branchElem %>"><%= col.branch %></div>
+            <span class="manseryeok__god manseryeok__god--bottom"><%= col.branchGod || ' ' %></span>
+            <% if (col.diShi) { %><span class="manseryeok__meta"><%= col.diShi %></span><% } %>
+            <% if (col.shenSha) { %><span class="manseryeok__meta manseryeok__meta--sha"><%= col.shenSha %></span><% } %>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+
+      <div class="manseryeok__vs" aria-hidden="true">VS</div>
+
+      <div class="manseryeok manseryeok--partner">
+        <p class="manseryeok__title"><%= _ap.partnerName || '상대' %>님의 사주</p>
+        <div class="manseryeok__grid">
+          <% _ptCols.forEach(function(col) { %>
+          <div class="manseryeok__col<%= col.isDay ? ' manseryeok__col--day' : '' %><%= col.unknown ? ' manseryeok__col--unknown' : '' %>">
+            <span class="manseryeok__pillar-label"><%= col.label %></span>
+            <span class="manseryeok__god manseryeok__god--top"><%= col.stemGod || ' ' %></span>
+            <div class="manseryeok__box manseryeok__box--<%= col.stemElem %>"><%= col.stem %></div>
+            <div class="manseryeok__box manseryeok__box--<%= col.branchElem %>"><%= col.branch %></div>
+            <span class="manseryeok__god manseryeok__god--bottom"><%= col.branchGod || ' ' %></span>
+            <% if (col.diShi) { %><span class="manseryeok__meta"><%= col.diShi %></span><% } %>
+            <% if (col.shenSha) { %><span class="manseryeok__meta manseryeok__meta--sha"><%= col.shenSha %></span><% } %>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+
+      <div class="sokgung-panel__footer">
+        <p class="sokgung-panel__score-label">속궁합 점수</p>
+        <div class="sokgung-panel__score">
+          <span class="sokgung-panel__score-num"><%= _sokScore %></span>
+          <span class="sokgung-panel__score-unit">점</span>
+        </div>
+        <p class="sokgung-panel__reason">
+          <span class="sokgung-panel__reason-clear"><%- _scoreVisible %></span><span class="sokgung-panel__reason-fade"> <%= _scoreBlurred %></span>
+        </p>
+      </div>
+    </section>
+
+    <!-- part4~7 -->
+    <img src="/assets/images/tight/29/result/part4.png" alt="" class="result-img" />
+    <img src="/assets/images/tight/29/result/part5.png" alt="" class="result-img" />
+    <div class="result-img-wrap">
+      <img src="/assets/images/tight/29/result/part6.png" alt="" class="result-img" />
+      <span class="p6-name"><%= userInfo.name %></span>
+    </div>
+    <img src="/assets/images/tight/29/result/part7.png" alt="" class="result-img" />
+
     <!-- 결제 CTA 트리거 -->
     <div id="result10-button" class="h-4"></div>
 
     <form method="POST" action="<%= (userInfo.name === '관리자' || userInfo.name === '테스트') ? '/saju/skip-payment' : '/saju/payment' %>" class="w-full hidden">
       <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
+      <input type="hidden" name="sample" value='<%= JSON.stringify(sample || sampleInfo || {}) %>' />
       <input type="hidden" name="goodsType" value="ADULT" />
     </form>
   </main>
 
-  <div id="floating-btn" class="floating-banner">
-    <span class="floating-banner-text">지금 바로 확인하러 가기</span>
+  <div id="floating-btn" class="floating-cta">
+    <div class="cta-btn">
+      <span class="cta-btn__text">나의 정욕합 리포트 보러가기</span>
+      <span class="cta-btn__arrow" aria-hidden="true">--></span>
+    </div>
   </div>
 </div>
 
@@ -75,6 +184,16 @@
 .result-page {
   background: #0a0008;
   min-height: 100vh;
+
+  /* ── 오버레이 위치 조절 (이 값만 수정) ── */
+  --p1-name-top: 8%;
+  --p1-name-left: 47%;
+  --p1-name-translate-x: -50%;
+  --p1-name-font-size: clamp(13px, 3.5vw, 16px);
+
+  --p6-name-top: 71.9%;
+  --p6-name-left: 13.5%;
+  --p6-name-font-size: clamp(9px, 2.45vw, 11px);
 }
 .result-img {
   width: 100%;
@@ -97,12 +216,26 @@
   text-shadow: 0 1px 6px rgba(0,0,0,0.7);
   pointer-events: none;
 }
-/* part1: "남은" 자리 */
+/* part1: 이름 자리 — 위치는 .result-page 변수로 조절 */
 .p1-name {
-  top: 5.2%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: clamp(13px, 3.5vw, 16px);
+  top: var(--p1-name-top);
+  left: var(--p1-name-left);
+  transform: translateX(var(--p1-name-translate-x));
+  font-size: var(--p1-name-font-size);
+}
+/* part6: 빨간 박스 내 이름 — 위치는 .result-page 변수로 조절 */
+.p6-name {
+  position: absolute;
+  top: var(--p6-name-top);
+  left: var(--p6-name-left);
+  font-family: 'Noto Serif KR', serif;
+  font-size: var(--p6-name-font-size);
+  font-weight: 400;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  white-space: nowrap;
 }
 /* part2: "더 자세한 [이름] 님의" — 이름만 */
 .p2-name {
@@ -199,6 +332,206 @@
   filter: blur(6px);
 }
 
+/* ── 속궁합 사주 명식 패널 ── */
+.sokgung-panel {
+  background: #080006;
+  padding: 28px 16px 32px;
+  border-top: 1px solid rgba(180, 40, 40, 0.25);
+  border-bottom: 1px solid rgba(180, 40, 40, 0.25);
+}
+.sokgung-panel__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.sokgung-panel__footer {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(230, 194, 122, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.sokgung-panel__score-label {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+}
+.sokgung-panel__eyebrow {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(230, 194, 122, 0.55);
+  margin: 0;
+}
+.sokgung-panel__score {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+.sokgung-panel__score-num {
+  font-family: 'Noto Serif KR', Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  background: linear-gradient(180deg, #fff8ef 0%, #e6c27a 60%, #c9a066 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.sokgung-panel__score-unit {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px;
+  color: rgba(230, 194, 122, 0.6);
+}
+
+.manseryeok {
+  position: relative;
+  padding: 16px 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.manseryeok--mine {
+  border-color: rgba(230, 194, 122, 0.18);
+}
+.manseryeok--partner {
+  border-color: rgba(180, 40, 40, 0.15);
+}
+.manseryeok__title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  margin: 0 0 14px;
+}
+.manseryeok__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.manseryeok__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.manseryeok__col--day .manseryeok__pillar-label {
+  color: rgba(230, 194, 122, 0.8);
+}
+.manseryeok__pillar-label {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.28);
+  letter-spacing: 0.04em;
+}
+.manseryeok__god {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: -0.02em;
+  min-height: 12px;
+  text-align: center;
+  line-height: 1.2;
+}
+.manseryeok__col--day .manseryeok__god--top {
+  color: rgba(255, 180, 180, 0.85);
+  font-weight: 600;
+}
+.manseryeok__box {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Noto Serif KR', 'GyeonggiBatang', Georgia, serif;
+  font-size: clamp(20px, 6.5vw, 28px);
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.manseryeok__box--wood {
+  background: radial-gradient(ellipse at 50% 30%, #c8e8d0 0%, #8ab898 55%, #5a8870 100%);
+  color: #1a2820;
+  border-color: rgba(120, 170, 130, 0.5);
+}
+.manseryeok__box--fire {
+  background: radial-gradient(ellipse at 50% 30%, #ffc8cc 0%, #e88890 55%, #c05058 100%);
+  color: #2a1018;
+  border-color: rgba(200, 100, 110, 0.5);
+}
+.manseryeok__box--earth {
+  background: radial-gradient(ellipse at 50% 30%, #f0e4c0 0%, #d4b880 55%, #a88850 100%);
+  color: #2a2010;
+  border-color: rgba(180, 150, 90, 0.5);
+}
+.manseryeok__box--metal {
+  background: radial-gradient(ellipse at 50% 30%, #e8ecf0 0%, #b8c0c8 55%, #889098 100%);
+  color: #1a2028;
+  border-color: rgba(160, 170, 180, 0.5);
+}
+.manseryeok__box--water {
+  background: radial-gradient(ellipse at 50% 30%, #b8d4f0 0%, #78a8d0 55%, #4878a8 100%);
+  color: #0a1828;
+  border-color: rgba(100, 150, 200, 0.5);
+}
+.manseryeok__box--unknown {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+.manseryeok__meta {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.38);
+  text-align: center;
+  line-height: 1.3;
+  min-height: 10px;
+}
+.manseryeok__meta--sha {
+  font-size: 7px;
+  color: rgba(255, 255, 255, 0.28);
+  word-break: keep-all;
+}
+.manseryeok__vs {
+  text-align: center;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: rgba(230, 194, 122, 0.35);
+  padding: 14px 0;
+}
+.sokgung-panel__reason {
+  width: 100%;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 13px;
+  line-height: 1.85;
+  color: rgba(240, 232, 224, 0.9);
+  word-break: keep-all;
+  margin: 8px 0 0;
+  letter-spacing: 0.01em;
+  text-align: left;
+}
+.sokgung-panel__reason strong,
+.sokgung-panel__reason-clear strong {
+  color: #e6c27a;
+  font-weight: 700;
+}
+.sokgung-panel__reason-fade {
+  filter: blur(4px);
+  opacity: 0.45;
+  user-select: none;
+}
+
 /* part2: 하단 빨간 박스 텍스트 */
 .p2-textbox {
   position: absolute;
@@ -214,7 +547,7 @@
   pointer-events: none;
   text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
-#floating-btn {
+.floating-cta {
   position: fixed;
   bottom: 0;
   left: 50%;
@@ -223,26 +556,52 @@
   max-width: 480px;
   z-index: 9999;
   transition: transform 0.3s ease, opacity 0.3s ease;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, rgba(230,194,122,0.95) 0%, rgba(180,140,80,0.95) 100%);
-  border-top: 1px solid rgba(255,255,255,0.2);
+  padding: 16px 20px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: #000;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 -4px 24px rgba(0,0,0,0.25);
+  -webkit-tap-highlight-color: transparent;
 }
 #floating-btn.hide {
   transform: translateX(-50%) translateY(100%);
   opacity: 0;
   pointer-events: none;
 }
-.floating-banner-text {
+.floating-cta .cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 56px;
+  border-radius: 12px;
+  background: #e91e7a;
+  color: #fff;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
   font-size: 16px;
   font-weight: 700;
-  color: #1a1812;
-  letter-spacing: 0.04em;
-  font-family: 'Noto Serif KR', serif;
+  letter-spacing: -0.02em;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.45),
+    0 2px 10px rgba(233, 30, 122, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.floating-cta:active .cta-btn {
+  transform: scale(0.98);
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, 0.4),
+    0 1px 6px rgba(233, 30, 122, 0.3);
+}
+.floating-cta .cta-btn__arrow {
+  font-size: 1.12em;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 1;
+  letter-spacing: -0.05em;
+  margin-left: 4px;
+}
+.floating-cta .cta-btn__text {
+  line-height: 1;
 }
 </style>
 
