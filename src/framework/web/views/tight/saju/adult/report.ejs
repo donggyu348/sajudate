@@ -116,7 +116,49 @@
     flex-direction: column;
   }
 
-  /* ── 캐릭터 대사 박스 ── */
+  /* ── 비주얼노벨 파트 도입 ── */
+  /* 상단 파트 레이블 (이미지 위에 살짝) */
+  .vn-part-label {
+    position: absolute;
+    top: 52px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* 하단 대화창 */
+  .vn-dialog {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 20px 22px 44px;
+    background: linear-gradient(to top, rgba(4,1,8,0.97) 0%, rgba(4,1,8,0.88) 60%, transparent 100%);
+    backdrop-filter: blur(2px);
+    z-index: 10;
+  }
+  .vn-name {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #d46482;
+    border-bottom: 1px solid rgba(212,100,130,0.4);
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+  }
+  .vn-text {
+    font-size: 16px;
+    line-height: 1.8;
+    color: rgba(248,240,232,0.95);
+    word-break: keep-all;
+    letter-spacing: -0.01em;
+  }
+
+  /* 레거시 대사 박스 (인트로·verdict용) */
   .char-speech {
     display: flex;
     align-items: flex-start;
@@ -124,8 +166,7 @@
     margin-bottom: 16px;
   }
   .char-avatar {
-    width: 36px;
-    height: 36px;
+    width: 36px; height: 36px;
     border-radius: 50%;
     border: 1px solid rgba(180,60,90,0.5);
     background: rgba(180,60,90,0.12);
@@ -596,21 +637,12 @@
 
   /* ── 파트 도입 ── */
   function renderChapterTitle(s) {
-    const roman = ['壹','貳','參','肆','伍','陸'];
-    const num = roman[s.partIdx] || String(s.partIdx + 1);
+    const partRoman = ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ'][s.partIdx] || s.partIdx + 1;
     return `
-      <div class="char-speech">
-        <div class="char-avatar">${s.meta.icon}</div>
-        <div class="char-bubble">
-          <div class="char-name">천해랑 天海娘</div>
-          ${chapterIntro(s.partIdx, s.chapter)}
-        </div>
-      </div>
-      <div class="section-eyebrow">PART ${['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ'][s.partIdx] || s.partIdx + 1}</div>
-      <div class="section-title">${s.chapter}</div>
-      <div class="section-divider"></div>
-      <div class="section-content" style="color:rgba(240,232,224,0.55);font-size:13px;">
-        ${s.meta.pose}… 옷깃을 여미며 이야기를 시작합니다.
+      <div class="vn-part-label">PART ${partRoman} · ${s.chapter}</div>
+      <div class="vn-dialog">
+        <div class="vn-name">천해랑</div>
+        <div class="vn-text">${chapterIntro(s.partIdx)}</div>
       </div>
     `;
   }
@@ -657,16 +689,16 @@
   }
 
   /* ── 파트별 캐릭터 도입 대사 ── */
-  function chapterIntro(idx, chapter) {
+  function chapterIntro(idx) {
     const lines = [
-      '첫 번째 이야기예요. 당신 안에 잠든 본능부터 꺼내볼게요.',
-      '이번엔 밤을 지배하는 기운을 읽어드리겠어요. 눈 감아도 괜찮아요.',
-      '당신이 상대를 홀리는 방식을 알려드릴게요. 꽤 흥미롭더군요.',
-      '침대 위의 권력 이야기예요. 긴장하지 않아도 되지만… 아마 긴장하실 거예요.',
-      '궁합의 진실이에요. 쾌락이 일치하는 상대와, 그렇지 않은 상대.',
-      '마지막이에요. 묘월무녀가 직접 드리는 비책이니까 잘 새겨두세요.',
+      '당신 사주에서 제일 먼저 보인 게 뭔지 알아요?\n욕망이에요. 생각보다 훨씬 짙은.',
+      '지금부터가 진짜예요.\n당신 밤을 움직이는 기운, 제가 읽어드릴게요.',
+      '상대가 당신한테 끌리는 건 우연이 아니에요.\n어떻게 홀리는지, 지금 보여드릴게요.',
+      '권력이요? 침대 위에도 있어요.\n당신이 포식자인지 사냥감인지, 이미 사주에 다 나와 있거든요.',
+      '지금부터는 둘 이야기예요.\n이 사람이랑 맞는지, 몸으로도 맞는지.',
+      '마지막이에요.\n제가 직접 드리는 비책이니까, 이건 꼭 기억해두세요.',
     ];
-    return lines[idx] || chapter + '에 대해 이야기할게요.';
+    return (lines[idx] || '이제 다음 이야기로 넘어가요.').replace(/\n/g, '<br>');
   }
 
   /* ── 본문 포맷 ── */
