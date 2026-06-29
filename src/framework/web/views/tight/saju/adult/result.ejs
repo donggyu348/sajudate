@@ -9,13 +9,39 @@
 
   <main id="container" class="pb-32">
 
+<%
+  // 오행 계산
+  const _el = sample?.fiveElements?.elements || sampleInfo?.fiveElements?.elements || { 목:0, 화:0, 토:0, 금:0, 수:0 };
+  const _tbl = sample?.tenGodTable || sampleInfo?.tenGodTable || {};
+  const _data = _tbl.data || [];
+  const _topEl = ['목','화','토','금','수'].reduce((a, b) => (Number(_el[a]||0) >= Number(_el[b]||0) ? a : b), '목');
+  const _g = String(userInfo?.gender || '').trim().toLowerCase();
+  const _isFemale = ['여','여자','여성','female','f','woman'].some(v => _g === v);
+  const _dayGan = _data[1] ? (_data[1][1] || '') : '';
+  const _dayJi  = _data[1] ? (_data[1][2] || '') : '';
+
+  const TENDENCY_TEXT = {
+    목: `감정이 먼저 움직여야 몸이 반응하는 타입이에요. 손길보다 눈빛, 말 한마디가 더 강하게 파고들어요. 분위기가 무르익을수록 욕망이 짙어지고, 급하게 다가오는 상대에겐 오히려 문을 닫아버리는 경향이 있습니다. 단, 감정이 통하는 순간 그 어떤 오행보다 깊고 오래 빠져드는 게 목(木) 기운의 특징이에요.`,
+    화: `순간적으로 폭발하는 타입이에요. 자극이 오면 즉각 반응하고, 강렬한 분위기와 빠른 템포에서 쾌감이 극대화돼요. 주도하는 것도, 이끌리는 것도 모두 좋아하지만 결국 열기를 주도하는 쪽으로 흐르는 경향이 강합니다. 화(火) 기운이 강한 분은 반응이 솔직하고 뜨거워서 상대를 압도하는 매력이 있어요.`,
+    토: `서두르지 않아요. 신뢰가 쌓여야 몸이 열리는 타입이라 첫 만남에선 차가워 보일 수 있지만, 일단 마음을 열면 깊고 안정감 있는 밀도로 상대를 채워줘요. 반복될수록 강해지는 쾌락이 있고, 한 사람에게 집중될 때 욕망이 가장 선명하게 드러납니다.`,
+    금: `완벽한 세팅에서 쾌감이 극대화돼요. 분위기, 공간, 상대의 태도—이 세 가지가 갖춰져야 몸이 제대로 반응합니다. 통제된 긴장감과 절제된 욕망 사이에서 터지는 순간을 즐기는 타입이에요. 금(金) 기운은 표면적으로 차갑고 단정해 보이지만, 그 안에 강한 감각적 욕구가 숨어 있어요.`,
+    수: `말보다 분위기, 눈빛 하나로 몸이 먼저 반응해요. 본능적이고 직관적인 감각이 뛰어나 상대의 미세한 변화도 예민하게 포착합니다. 깊은 감각적 교감을 원하고, 상대가 나를 완전히 원한다는 느낌을 받을 때 욕망이 폭발적으로 커집니다. 수(水) 기운은 욕망이 조용히 흐르다 한순간 넘쳐버리는 특성을 가져요.`
+  };
+  const _tendencyText = TENDENCY_TEXT[_topEl] || TENDENCY_TEXT['화'];
+%>
+
     <!-- part1: 이름 오버레이 -->
     <div class="result-img-wrap">
       <img src="/assets/images/tight/29/result/part1.png" alt="" class="result-img" />
-      <div class="name-overlay"><%= userInfo.name %>님은</div>
+      <div class="name-overlay p1-name"><%= userInfo.name %>님은</div>
     </div>
 
-    <img src="/assets/images/tight/29/result/part2.png" alt="" class="result-img" />
+    <!-- part2: 이름 + 텍스트 오버레이 -->
+    <div class="result-img-wrap">
+      <img src="/assets/images/tight/29/result/part2.png" alt="" class="result-img" />
+      <div class="name-overlay p2-name"><%= userInfo.name %></div>
+      <div class="p2-textbox"><%= _tendencyText %></div>
+    </div>
 
     <!-- 결제 CTA 트리거 -->
     <div id="result10-button" class="h-4"></div>
@@ -49,10 +75,6 @@
 }
 .name-overlay {
   position: absolute;
-  top: 5.2%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: clamp(13px, 3.5vw, 16px);
   font-weight: 700;
   color: #ffffff;
   font-family: 'Noto Serif KR', serif;
@@ -60,6 +82,35 @@
   white-space: nowrap;
   text-shadow: 0 1px 6px rgba(0,0,0,0.7);
   pointer-events: none;
+}
+/* part1: "남은" 자리 */
+.p1-name {
+  top: 5.2%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(13px, 3.5vw, 16px);
+}
+/* part2: "더 자세한 [이름] 님의" — 이름만 */
+.p2-name {
+  top: 3.5%;
+  left: 50%;
+  transform: translateX(-18%);
+  font-size: clamp(13px, 3.8vw, 17px);
+}
+/* part2: 하단 빨간 박스 텍스트 */
+.p2-textbox {
+  position: absolute;
+  bottom: 3%;
+  left: 5%;
+  right: 5%;
+  font-size: clamp(11px, 2.8vw, 13px);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.88);
+  font-family: 'Noto Serif KR', serif;
+  letter-spacing: 0.02em;
+  word-break: keep-all;
+  pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
 }
 #floating-btn {
   position: fixed;
