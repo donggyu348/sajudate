@@ -615,22 +615,26 @@
       $partLabel.textContent = (partNames[s.partIdx] || '') + ' · ' + (s.chapter || '');
     }
 
-    /* ── 배경 이미지: 인트로·파트 도입만 표시, 나머지는 숨김 ── */
-    const showImg = s.type === 'intro' || s.type === 'chapter-title';
+    /* ── 배경 이미지: 인트로·파트 도입·최종 선고만 표시 ── */
+    const showImg = s.type === 'intro' || s.type === 'chapter-title' || s.type === 'verdict';
     if (showImg) {
-      const imgSrc = s.type === 'intro'
-        ? PART_IMGS[0]
-        : PART_IMGS[s.partIdx + 1] || PART_IMGS[0];
+      let imgSrc;
+      if (s.type === 'intro') imgSrc = PART_IMGS[0];
+      else if (s.type === 'verdict') imgSrc = '/assets/images/tight/29/report/outro.png';
+      else imgSrc = PART_IMGS[s.partIdx + 1] || PART_IMGS[0];
+      /* outro 없으면 intro 이미지 재활용 */
+      const img = new Image();
+      img.onload = () => { $bgImg.src = imgSrc; };
+      img.onerror = () => { $bgImg.src = PART_IMGS[0]; };
+      img.src = imgSrc;
       $bgImg.src = imgSrc;
       $bgImg.style.display = 'block';
       $bgLayer.className = '';
-      /* 이미지 초입: 딤을 살짝 밝게 */
       $bgOverlay.style.background = 'linear-gradient(to bottom, rgba(7,2,10,0.1) 0%, rgba(7,2,10,0.2) 35%, rgba(7,2,10,0.75) 65%, rgba(7,2,10,0.97) 100%)';
     } else {
       $bgImg.src = '';
       $bgImg.style.display = 'none';
       $bgLayer.className = 'no-img-bg';
-      /* 본문: 오버레이 필요 없음 */
       $bgOverlay.style.background = 'none';
     }
 
@@ -723,22 +727,16 @@
   /* ── 최종 선고 ── */
   function renderVerdict() {
     return `
-      <div class="verdict-wrap">
-        <div class="verdict-seal">⛧</div>
-        <div class="label">天海娘 · 최종 선고</div>
-        <div class="verdict-text">
-          당신의 욕망은 운명이 아니에요.<br>
-          그냥 당신이에요.<br><br>
-          사주는 그걸 숨기지 말라고 했고<br>
-          저는 그걸 읽었을 뿐이에요.
+      <div class="vn-part-label">天海娘 · 최종 선고</div>
+      <div class="vn-dialog">
+        <div class="vn-name">천해랑</div>
+        <div class="vn-text">
+          여기까지 다 읽었군요.<br>
+          당신 사주, 생각보다 훨씬 강렬했어요.<br><br>
+          이 이야기가 당신 안에 오래 남기를.<br>
+          그리고… 잘 써먹길 바랄게요.
         </div>
-        <div class="vn-dialog" style="position:relative;background:none;backdrop-filter:none;padding:0 0 20px;border-top:1px solid rgba(180,60,90,0.15);">
-          <div class="vn-name" style="margin-top:20px;">천해랑</div>
-          <div class="vn-text" style="font-size:14px;color:rgba(240,232,224,0.65);">
-            이 이야기, 오래 기억해줘요.<br>당신 사주가 그렇게 말하라고 했으니까.
-          </div>
-        </div>
-        <button class="share-btn" onclick="goTo(0,−1)">처음부터 다시 보기</button>
+        <button class="share-btn" onclick="goTo(0,-1)" style="margin-top:20px;width:100%;">처음부터 다시 보기</button>
       </div>
     `;
   }
@@ -766,8 +764,8 @@
       .replace(/\n/g, '<br>');
   }
 
-  /* ── 이동 ── */
-  function goTo(idx, dir) {
+  /* ── 이동 (전역 노출 — verdict 버튼에서 사용) ── */
+  window.goTo = function goTo(idx, dir) {
     if (isAnimating) return;
     if (idx < 0 || idx >= TOTAL) return;
     isAnimating = true;
