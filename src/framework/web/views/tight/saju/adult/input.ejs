@@ -302,28 +302,33 @@
       transition: background-color 5000s ease-in-out 0s;
     }
 
-  /* ── 사주 원국 로딩 오버레이 ── */
+  /* ── 사주 원국 로딩 오버레이 (MZ ver.) ── */
   #saju-loading {
     display: none;
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: #07020a;
+    background: #0e0014;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', serif;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
   }
   #saju-loading.show { display: flex; }
 
-  .loading-glow {
+  /* 배경 블러 원 */
+  .ld-blob {
     position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% 20%, rgba(180,60,90,0.18) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 50% 90%, rgba(201,169,98,0.1) 0%, transparent 55%);
+    border-radius: 50%;
+    filter: blur(60px);
     pointer-events: none;
+    animation: blobPulse 3s ease-in-out infinite alternate;
   }
+  .ld-blob-1 { width: 260px; height: 260px; background: rgba(168,85,247,0.25); top: -60px; left: -60px; animation-delay: 0s; }
+  .ld-blob-2 { width: 200px; height: 200px; background: rgba(236,72,153,0.2);  bottom: -40px; right: -40px; animation-delay: 1s; }
+  .ld-blob-3 { width: 150px; height: 150px; background: rgba(59,130,246,0.15); top: 40%; left: 50%; transform: translate(-50%,-50%); animation-delay: 0.5s; }
+  @keyframes blobPulse { from { opacity: 0.7; transform: scale(1); } to { opacity: 1; transform: scale(1.12); } }
 
   .loading-inner {
     position: relative;
@@ -334,96 +339,125 @@
     text-align: center;
   }
 
-  .loading-badge {
-    font-size: 10px;
-    letter-spacing: 0.35em;
-    color: rgba(180,60,90,0.85);
-    margin-bottom: 10px;
-  }
-
-  .loading-name {
-    font-size: 22px;
+  /* 상단 태그 */
+  .ld-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(168,85,247,0.15);
+    border: 1px solid rgba(168,85,247,0.35);
+    border-radius: 99px;
+    padding: 5px 14px;
+    font-size: 11px;
     font-weight: 700;
-    background: linear-gradient(135deg, #f0e0c8, #e8b4b8, #c9a962);
+    color: #c084fc;
+    letter-spacing: 0.05em;
+    margin-bottom: 18px;
+  }
+  .ld-tag-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #c084fc;
+    animation: dotBlink 1s ease-in-out infinite;
+  }
+  @keyframes dotBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* 이름 */
+  .ld-name {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #f0abfc, #a78bfa, #60a5fa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: 32px;
-    letter-spacing: -0.02em;
+  }
+  .ld-sub {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.38);
+    margin-bottom: 28px;
+    letter-spacing: -0.01em;
   }
 
-  /* 사주 원국 4기둥 */
+  /* 4기둥 카드 */
   .pillar-row {
     display: flex;
     justify-content: center;
-    gap: 12px;
-    margin-bottom: 32px;
+    gap: 10px;
+    margin-bottom: 28px;
   }
-
   .pillar-card {
     flex: 1;
-    max-width: 68px;
-    background: rgba(28,8,14,0.85);
-    border: 1px solid rgba(180,60,90,0.25);
-    border-radius: 14px;
-    padding: 16px 8px;
+    max-width: 72px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    padding: 14px 6px;
     text-align: center;
     opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateY(16px) scale(0.92);
+    transition: opacity 0.45s cubic-bezier(.34,1.56,.64,1), transform 0.45s cubic-bezier(.34,1.56,.64,1);
   }
-  .pillar-card.visible { opacity: 1; transform: translateY(0); }
+  .pillar-card.visible { opacity: 1; transform: translateY(0) scale(1); }
   .pillar-card.is-me {
-    border-color: rgba(212,100,140,0.55);
-    background: rgba(180,60,90,0.12);
-    box-shadow: 0 0 20px rgba(180,60,90,0.15);
+    background: linear-gradient(145deg, rgba(168,85,247,0.18), rgba(236,72,153,0.12));
+    border-color: rgba(192,132,252,0.5);
+    box-shadow: 0 0 24px rgba(168,85,247,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
   }
 
   .pillar-label {
-    font-size: 10px;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 0.08em;
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.1em;
     margin-bottom: 10px;
     display: block;
+    text-transform: uppercase;
   }
+  .pillar-card.is-me .pillar-label { color: rgba(192,132,252,0.7); }
+
   .pillar-hanja {
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1.5;
-    background: linear-gradient(135deg, #e8d5a3, #c9a962);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.75);
+    font-family: 'Noto Serif KR', serif;
   }
-  .pillar-hanja.rose {
-    background: linear-gradient(135deg, #f0c0c8, #d46482);
+  .pillar-card.is-me .pillar-hanja {
+    background: linear-gradient(135deg, #f0abfc, #a78bfa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
+  /* 메시지 */
   .loading-msg {
     font-size: 13px;
-    color: rgba(240,232,224,0.55);
-    letter-spacing: 0.05em;
-    margin-bottom: 28px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
     min-height: 20px;
-    transition: opacity 0.4s;
+    transition: opacity 0.35s ease;
   }
+  .loading-msg.fade { opacity: 0; }
 
   /* 진행 바 */
   .loading-bar-wrap {
     width: 100%;
-    height: 2px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 1px;
+    height: 3px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 99px;
     overflow: hidden;
   }
   .loading-bar-fill {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #b43c5a, #e8b4b8);
-    border-radius: 1px;
+    background: linear-gradient(90deg, #a78bfa, #f0abfc, #60a5fa);
+    border-radius: 99px;
     transition: width linear;
   }
   </style>
@@ -546,20 +580,23 @@
   </div>
 </div>
 
-<!-- 사주 원국 로딩 오버레이 -->
+<!-- 사주 원국 로딩 오버레이 (MZ ver.) -->
 <div id="saju-loading">
-  <div class="loading-glow"></div>
+  <div class="ld-blob ld-blob-1"></div>
+  <div class="ld-blob ld-blob-2"></div>
+  <div class="ld-blob ld-blob-3"></div>
   <div class="loading-inner">
-    <div class="loading-badge">天海娘 · 사주 원국 분석 중</div>
-    <div class="loading-name" id="loading-name">이름</div>
-    <div class="pillar-row" id="pillar-row">
+    <div class="ld-tag"><span class="ld-tag-dot"></span>사주 분석 중</div>
+    <div class="ld-name" id="loading-name">이름</div>
+    <div class="ld-sub">원국을 읽어내고 있어요 🔮</div>
+    <div class="pillar-row">
       <div class="pillar-card" id="pc-hour">
         <span class="pillar-label">시주</span>
         <div class="pillar-hanja" id="ph-hour">－<br>－</div>
       </div>
       <div class="pillar-card is-me" id="pc-day">
-        <span class="pillar-label">일주</span>
-        <div class="pillar-hanja rose" id="ph-day">－<br>－</div>
+        <span class="pillar-label">일주 ✦</span>
+        <div class="pillar-hanja" id="ph-day">－<br>－</div>
       </div>
       <div class="pillar-card" id="pc-month">
         <span class="pillar-label">월주</span>
@@ -570,7 +607,7 @@
         <div class="pillar-hanja" id="ph-year">－<br>－</div>
       </div>
     </div>
-    <div class="loading-msg" id="loading-msg">사주 원국을 읽어내는 중입니다…</div>
+    <div class="loading-msg" id="loading-msg">사주 원국을 읽어내는 중이에요…</div>
     <div class="loading-bar-wrap">
       <div class="loading-bar-fill" id="loading-bar"></div>
     </div>
@@ -805,11 +842,11 @@
 
   /* ── 로딩 오버레이 표시 후 폼 제출 ── */
   const LOADING_MSGS = [
-    '사주 원국을 읽어내는 중입니다…',
-    '천간지지의 기운을 분석하고 있습니다…',
-    '오행의 균형을 살펴보고 있습니다…',
-    '천해랑이 당신의 사주를 들여다보고 있습니다…',
-    '거의 다 됐어요, 잠시만 기다려 주세요…',
+    '사주 원국을 읽어내는 중이에요… 🔮',
+    '오행 균형 분석 중… 근데 좀 복잡하네요 👀',
+    '일주 기운이 심상치 않은데요? 🫣',
+    '천해랑이 당신 사주 들여다보는 중… 🕯️',
+    '거의 다 됐어요! 각오 단단히 하세요 😈',
   ];
 
   function showLoadingAndSubmit(submitCallback) {
@@ -841,10 +878,16 @@
       }, 200 + i * 180);
     });
 
-    // 메시지 순환
+    // 메시지 순환 (fade)
     const msgEl = document.getElementById('loading-msg');
     LOADING_MSGS.forEach(function(msg, i) {
-      setTimeout(function() { msgEl.textContent = msg; }, i * 1000);
+      setTimeout(function() {
+        msgEl.classList.add('fade');
+        setTimeout(function() {
+          msgEl.textContent = msg;
+          msgEl.classList.remove('fade');
+        }, 180);
+      }, i * 1000);
     });
 
     // 진행 바 (5초)
