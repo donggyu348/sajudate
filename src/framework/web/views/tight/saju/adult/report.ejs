@@ -152,6 +152,13 @@
     word-break: keep-all;
     letter-spacing: -0.01em;
   }
+  .vn-chapter-sub {
+    font-size: 13px;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.48);
+    margin-top: 10px;
+    word-break: keep-all;
+  }
 
   /* 레거시 대사 박스 (인트로·verdict용) */
   .char-speech {
@@ -221,6 +228,51 @@
     letter-spacing: 0.12em;
     color: rgba(255,255,255,0.28);
     line-height: 1.4;
+    word-break: keep-all;
+  }
+  .sec-chapter-head {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: rgba(212,100,130,0.75);
+    margin: 0 0 6px;
+    word-break: keep-all;
+  }
+  .sec-chapter-sub {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: rgba(255,255,255,0.42);
+    margin: 0 0 16px;
+    word-break: keep-all;
+  }
+  .sec-section-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+    margin: 0;
+    background: linear-gradient(135deg, #f8ede0 0%, #f0bcc8 50%, #d9b87a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    word-break: keep-all;
+  }
+  .sec-section-no {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-right: 4px;
+    -webkit-text-fill-color: rgba(240,180,200,0.9);
+  }
+  .sec-section-desc {
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.38);
+    margin: 8px 0 0;
     word-break: keep-all;
   }
   .sec-title {
@@ -652,24 +704,31 @@
   chapterOrder.forEach((chapter, ci) => {
     const meta = partMeta[ci] || partMeta[0];
     const sections = chapterMap[chapter];
+    const toc = reportToc[ci] || null;
+    const tocChapterLabel = toc ? ('제' + toc.num + '장: ' + toc.chapter) : chapter;
+    const tocSubtitle = toc ? toc.subtitle : '';
 
     /* 파트 도입 */
     slides.push({
       type: 'chapter-title',
       partIdx: ci,
-      chapter,
+      chapter: tocChapterLabel,
+      chapterSubtitle: tocSubtitle,
       meta,
       partNum: ci + 1
     });
 
     /* 섹션별 슬라이드 */
-    sections.forEach(sec => {
+    sections.forEach(function(sec, si) {
+      const tocSec = toc && toc.sections ? toc.sections[si] : null;
       slides.push({
         type: 'section',
         partIdx: ci,
-        chapter,
-        meta,
-        title: sec.title,
+        chapter: tocChapterLabel,
+        chapterSubtitle: tocSubtitle,
+        sectionNo: tocSec ? tocSec.no : String(si + 1),
+        title: tocSec ? tocSec.title : sec.title,
+        sectionDesc: tocSec ? (tocSec.desc || '') : '',
         content: sec.content
       });
     });
@@ -906,12 +965,15 @@
   /* ── 파트 도입 ── */
   function renderChapterTitle(s) {
     const partRoman = ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ'][s.partIdx] || s.partIdx + 1;
+    const subHtml = s.chapterSubtitle
+      ? `<p class="vn-chapter-sub">${esc(s.chapterSubtitle)}</p>`
+      : '';
     return `
       <div class="vn-slide-shell">
-        <div class="vn-part-label">PART ${partRoman} · ${s.chapter}</div>
+        <div class="vn-part-label">PART ${partRoman} · ${esc(s.chapter)}</div>
         <div class="vn-dialog">
           <div class="vn-name">천해랑</div>
-          <div class="vn-text">${chapterIntro(s.partIdx)}</div>
+          <div class="vn-text">${chapterIntro(s.partIdx)}${subHtml}</div>
         </div>
       </div>
     `;
@@ -919,15 +981,15 @@
 
   /* ── 섹션 본문 (풀스크린) ── */
   function renderSection(s) {
-    const partRoman = ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ'][s.partIdx] || '';
+    const descHtml = s.sectionDesc
+      ? `<p class="sec-section-desc">${esc(s.sectionDesc)}</p>`
+      : '';
     return `
       <div class="sec-header">
-        <div class="sec-eyebrow">
-          <span class="sec-part-tag">PART ${partRoman}</span>
-          <div class="sec-eyebrow-sep"></div>
-          <span class="sec-chapter-name">${s.chapter}</span>
-        </div>
-        <div class="sec-title">${s.title}</div>
+        <p class="sec-chapter-head">${esc(s.chapter)}</p>
+        <p class="sec-chapter-sub">${esc(s.chapterSubtitle || '')}</p>
+        <h2 class="sec-section-title"><span class="sec-section-no">${esc(s.sectionNo)}</span>| ${esc(s.title)}</h2>
+        ${descHtml}
         <div class="sec-title-line"></div>
       </div>
       <div class="sec-body">
@@ -968,6 +1030,14 @@
   }
 
   /* ── 본문 포맷 ── */
+  function esc(text) {
+    if (!text) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   function formatContent(text) {
     if (!text) return '';
     return text
