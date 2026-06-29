@@ -86,18 +86,6 @@
     transition: width 0.4s ease;
   }
 
-  /* ── 상단 파트 표시 ── */
-  #part-label {
-    position: absolute;
-    top: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    letter-spacing: 0.3em;
-    color: rgba(232,180,184,0.7);
-    z-index: 10;
-    white-space: nowrap;
-  }
 
   /* ── 콘텐츠 영역 ── */
   #content-area {
@@ -281,18 +269,6 @@
     background-clip: text;
   }
 
-  /* ── 하단 탭 안내 ── */
-  #tap-hint {
-    position: absolute;
-    bottom: 10px;
-    right: 20px;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    color: rgba(255,255,255,0.25);
-    z-index: 10;
-    pointer-events: none;
-    transition: opacity 0.4s;
-  }
 
   /* ── 화면 카운터 ── */
   #slide-counter {
@@ -531,9 +507,6 @@
   <!-- 진행 바 -->
   <div id="progress-bar"><div id="progress-fill"></div></div>
 
-  <!-- 파트 라벨 -->
-  <div id="part-label"></div>
-
   <!-- 배경 레이어 -->
   <div id="bg-layer" class="no-img-bg">
     <img id="bg-img" src="" alt="" style="display:none; width:100%; height:100%; object-fit:cover; object-position:top center;">
@@ -559,9 +532,8 @@
     <div id="content-area"></div>
   </div>
 
-  <!-- 하단 UI -->
+  <!-- 하단 카운터만 -->
   <div id="slide-counter"></div>
-  <div id="tap-hint">탭하여 넘기기</div>
 </div>
 
 <script>
@@ -587,13 +559,11 @@
 
   /* ── DOM refs ── */
   const $progress   = document.getElementById('progress-fill');
-  const $partLabel  = document.getElementById('part-label');
   const $bgLayer    = document.getElementById('bg-layer');
   const $bgOverlay  = document.getElementById('bg-overlay');
   const $bgImg      = document.getElementById('bg-img');
   const $content    = document.getElementById('content-area');
   const $counter    = document.getElementById('slide-counter');
-  const $tapHint    = document.getElementById('tap-hint');
 
   /* ── 슬라이드 렌더 ── */
   function render(idx, dir) {
@@ -606,14 +576,6 @@
     $counter.textContent = (idx + 1) + ' / ' + TOTAL;
 
     /* 파트 라벨 */
-    const partNames = ['PART Ⅰ','PART Ⅱ','PART Ⅲ','PART Ⅳ','PART Ⅴ','PART Ⅵ'];
-    if (s.type === 'intro') {
-      $partLabel.textContent = '천해랑의 은밀한 정욕합 사주';
-    } else if (s.type === 'verdict') {
-      $partLabel.textContent = '天海娘 · 최종 선고';
-    } else {
-      $partLabel.textContent = (partNames[s.partIdx] || '') + ' · ' + (s.chapter || '');
-    }
 
     /* ── 배경 이미지: 인트로·파트 도입·최종 선고만 표시 ── */
     const showImg = s.type === 'intro' || s.type === 'chapter-title' || s.type === 'verdict';
@@ -667,9 +629,6 @@
       $content.style.transform = 'translateX(0)';
     });
 
-    /* 탭 힌트 마지막 슬라이드에서 숨김 */
-    $tapHint.style.opacity = idx >= TOTAL - 1 ? '0' : '1';
-
     /* nav 버튼 상태 업데이트 */
     updateNavBtns();
   }
@@ -677,17 +636,13 @@
   /* ── 인트로 ── */
   function renderIntro(s) {
     return `
-      <div class="intro-title">
-        <div class="badge">29금 · 성인 사주 리포트</div>
-        <h1>천해랑의<br>은밀한 정욕합 사주</h1>
-        <p>${s.name}님의 사주로 읽어드립니다</p>
-      </div>
-      <div class="char-speech">
-        <div class="char-avatar">🪄</div>
-        <div class="char-bubble">
-          <div class="char-name">천해랑 天海娘</div>
-          어서 오세요. 오늘 밤 당신의 사주를 들여다보겠어요.<br>
-          마음의 준비가 되셨나요? 탭하여 시작하세요.
+      <div class="vn-part-label">29금 · 성인 사주 리포트</div>
+      <div class="vn-dialog">
+        <div class="vn-name">천해랑</div>
+        <div class="vn-text">
+          ${s.name}님, 오셨군요.<br>
+          오늘 밤 당신 사주 다 들여다볼 거예요.<br>
+          각오는 됐죠?
         </div>
       </div>
     `;
