@@ -352,6 +352,36 @@
     letter-spacing: 0.05em;
   }
 
+  /* ── 상단 네비게이션 버튼 ── */
+  #nav-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .nav-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(10,3,16,0.55);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: all;
+    transition: background 0.2s, opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-btn:active { background: rgba(180,60,90,0.35); }
+  .nav-btn svg { width: 14px; height: 14px; fill: none; stroke: rgba(255,255,255,0.7); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #nav-prev.hidden, #nav-next.hidden { opacity: 0; pointer-events: none; }
+
   /* ── 최종 선고 ── */
   .verdict-wrap {
     text-align: center;
@@ -369,6 +399,17 @@
     color: rgba(240,232,224,0.9);
     word-break: keep-all;
     margin-bottom: 24px;
+  }
+  .verdict-seal {
+    width: 72px; height: 72px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    border: 1px solid rgba(180,60,90,0.4);
+    background: radial-gradient(circle, rgba(180,60,90,0.15) 0%, transparent 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
   }
   .verdict-wrap .share-btn {
     display: inline-block;
@@ -499,6 +540,16 @@
   </div>
   <div id="bg-overlay"></div>
 
+  <!-- 상단 네비게이션 -->
+  <div id="nav-bar">
+    <button class="nav-btn" id="nav-prev" aria-label="이전">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="nav-btn" id="nav-next" aria-label="다음">
+      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
+  </div>
+
   <!-- 탭 존 -->
   <div id="tap-prev"></div>
   <div id="tap-next"></div>
@@ -614,6 +665,9 @@
 
     /* 탭 힌트 마지막 슬라이드에서 숨김 */
     $tapHint.style.opacity = idx >= TOTAL - 1 ? '0' : '1';
+
+    /* nav 버튼 상태 업데이트 */
+    updateNavBtns();
   }
 
   /* ── 인트로 ── */
@@ -669,21 +723,22 @@
   /* ── 최종 선고 ── */
   function renderVerdict() {
     return `
-      <div class="char-speech">
-        <div class="char-avatar">⛧</div>
-        <div class="char-bubble">
-          <div class="char-name">천해랑 天海娘</div>
-          이걸로 당신의 사주를 다 읽었어요.<br>
-          이 이야기가 당신 안에 오래 남기를 바라겠습니다.
-        </div>
-      </div>
       <div class="verdict-wrap">
+        <div class="verdict-seal">⛧</div>
         <div class="label">天海娘 · 최종 선고</div>
         <div class="verdict-text">
           당신의 욕망은 운명이 아니에요.<br>
-          하지만 사주는 그 욕망이<br>어디서 왔는지 알고 있습니다.
+          그냥 당신이에요.<br><br>
+          사주는 그걸 숨기지 말라고 했고<br>
+          저는 그걸 읽었을 뿐이에요.
         </div>
-        <button class="share-btn" onclick="window.scrollTo(0,0)">처음부터 다시 보기</button>
+        <div class="vn-dialog" style="position:relative;background:none;backdrop-filter:none;padding:0 0 20px;border-top:1px solid rgba(180,60,90,0.15);">
+          <div class="vn-name" style="margin-top:20px;">천해랑</div>
+          <div class="vn-text" style="font-size:14px;color:rgba(240,232,224,0.65);">
+            이 이야기, 오래 기억해줘요.<br>당신 사주가 그렇게 말하라고 했으니까.
+          </div>
+        </div>
+        <button class="share-btn" onclick="goTo(0,−1)">처음부터 다시 보기</button>
       </div>
     `;
   }
@@ -724,6 +779,17 @@
   /* ── 탭 이벤트 ── */
   document.getElementById('tap-next').addEventListener('click', () => goTo(current + 1, 1));
   document.getElementById('tap-prev').addEventListener('click', () => goTo(current - 1, -1));
+
+  /* ── 상단 nav 버튼 ── */
+  const $navPrev = document.getElementById('nav-prev');
+  const $navNext = document.getElementById('nav-next');
+  $navPrev.addEventListener('click', () => goTo(current - 1, -1));
+  $navNext.addEventListener('click', () => goTo(current + 1, 1));
+
+  function updateNavBtns() {
+    $navPrev.classList.toggle('hidden', current === 0);
+    $navNext.classList.toggle('hidden', current >= TOTAL - 1);
+  }
 
   /* ── 스와이프 ── */
   let touchStartX = 0;
