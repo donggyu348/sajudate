@@ -102,14 +102,19 @@
   /* ── 콘텐츠 영역 ── */
   #content-area {
     position: absolute;
-    bottom: 0; left: 0; right: 0;
-    padding: 0 20px 32px;
+    inset: 0;
     z-index: 5;
-    max-height: 62dvh;
     overflow-y: auto;
     scrollbar-width: none;
+    /* 섹션 본문일 때 패딩은 JS에서 클래스로 제어 */
   }
   #content-area::-webkit-scrollbar { display: none; }
+
+  /* 섹션 풀스크린 모드 */
+  #content-area.is-section {
+    display: flex;
+    flex-direction: column;
+  }
 
   /* ── 캐릭터 대사 박스 ── */
   .char-speech {
@@ -150,98 +155,89 @@
     margin-bottom: 5px;
   }
 
-  /* ── 섹션 카드 ── */
-  .sec-card {
-    background: linear-gradient(160deg, rgba(28,8,18,0.92) 0%, rgba(14,4,10,0.96) 100%);
-    border: 1px solid rgba(180,60,90,0.22);
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04);
-    margin-bottom: 12px;
-  }
+  /* ── 섹션 풀스크린 레이아웃 ── */
 
-  /* 카드 상단 컬러 바 */
-  .sec-card-bar {
-    height: 3px;
-    background: linear-gradient(90deg, #b43c5a, #d46482, #c9a962);
-    opacity: 0.85;
+  /* 상단 헤더 고정 영역 */
+  .sec-header {
+    flex-shrink: 0;
+    padding: 52px 24px 20px;
+    background: linear-gradient(to bottom, rgba(7,2,10,1) 0%, rgba(7,2,10,0.96) 70%, transparent 100%);
   }
-
-  .sec-card-head {
-    padding: 18px 20px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-
-  .sec-card-eyebrow {
+  .sec-eyebrow {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 7px;
+    margin-bottom: 10px;
   }
-  .sec-card-part {
+  .sec-part-tag {
     font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.25em;
-    color: rgba(212,100,130,0.75);
+    letter-spacing: 0.28em;
+    color: #d46482;
     text-transform: uppercase;
   }
-  .sec-card-dot {
-    width: 3px; height: 3px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    flex-shrink: 0;
+  .sec-eyebrow-sep {
+    width: 16px; height: 1px;
+    background: rgba(212,100,130,0.35);
   }
-  .sec-card-chapter {
+  .sec-chapter-name {
     font-size: 9px;
-    letter-spacing: 0.15em;
-    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.28);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 180px;
   }
-
-  .sec-card-title {
+  .sec-title {
     font-family: 'Noto Serif KR', serif;
-    font-size: 19px;
+    font-size: 22px;
     font-weight: 700;
     line-height: 1.35;
-    background: linear-gradient(135deg, #f5e6d0 0%, #eec0c8 55%, #d4ae7a 100%);
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #f8ede0 0%, #f0bcc8 50%, #d9b87a 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: -0.01em;
+  }
+  .sec-title-line {
+    margin-top: 14px;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(180,60,90,0.5), rgba(201,169,98,0.2), transparent);
   }
 
-  /* 카드 본문 */
-  .sec-card-body {
-    padding: 16px 20px 20px;
+  /* 본문 스크롤 영역 */
+  .sec-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px 64px;
+    scrollbar-width: none;
   }
-  .sec-card-content {
-    font-size: 14px;
-    line-height: 2;
-    color: rgba(240,232,224,0.82);
+  .sec-body::-webkit-scrollbar { display: none; }
+
+  .sec-text {
+    font-size: 15px;
+    line-height: 2.05;
+    color: rgba(240,232,224,0.86);
     word-break: keep-all;
     white-space: pre-line;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
   }
 
-  /* 카드 하단 스크롤 힌트 */
-  .sec-card-footer {
-    padding: 0 20px 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .sec-card-footer-line {
-    flex: 1;
-    height: 1px;
-    background: rgba(255,255,255,0.06);
-  }
-  .sec-card-footer-txt {
-    font-size: 10px;
-    color: rgba(255,255,255,0.18);
-    letter-spacing: 0.08em;
-    white-space: nowrap;
+  /* 본문 첫 글자 드롭캡 */
+  .sec-text::first-letter {
+    font-size: 2.2em;
+    font-family: 'Noto Serif KR', serif;
+    font-weight: 700;
+    float: left;
+    line-height: 0.85;
+    margin-right: 6px;
+    margin-top: 4px;
+    background: linear-gradient(135deg, #f0bcc8, #d46482);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   /* ── 하단 탭 안내 ── */
@@ -551,12 +547,16 @@
 
     if (s.type === 'intro') {
       html = renderIntro(s);
+      $content.classList.remove('is-section');
     } else if (s.type === 'chapter-title') {
       html = renderChapterTitle(s);
+      $content.classList.remove('is-section');
     } else if (s.type === 'section') {
       html = renderSection(s);
+      $content.classList.add('is-section');
     } else if (s.type === 'verdict') {
       html = renderVerdict();
+      $content.classList.remove('is-section');
     }
 
     /* 애니메이션 */
@@ -615,28 +615,21 @@
     `;
   }
 
-  /* ── 섹션 본문 (카드형) ── */
+  /* ── 섹션 본문 (풀스크린) ── */
   function renderSection(s) {
     const partRoman = ['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ'][s.partIdx] || '';
     return `
-      <div class="sec-card">
-        <div class="sec-card-bar"></div>
-        <div class="sec-card-head">
-          <div class="sec-card-eyebrow">
-            <span class="sec-card-part">PART ${partRoman}</span>
-            <span class="sec-card-dot"></span>
-            <span class="sec-card-chapter">${s.chapter}</span>
-          </div>
-          <div class="sec-card-title">${s.title}</div>
+      <div class="sec-header">
+        <div class="sec-eyebrow">
+          <span class="sec-part-tag">PART ${partRoman}</span>
+          <div class="sec-eyebrow-sep"></div>
+          <span class="sec-chapter-name">${s.chapter}</span>
         </div>
-        <div class="sec-card-body">
-          <div class="sec-card-content">${formatContent(s.content)}</div>
-        </div>
-        <div class="sec-card-footer">
-          <div class="sec-card-footer-line"></div>
-          <span class="sec-card-footer-txt">탭하여 다음으로</span>
-          <div class="sec-card-footer-line"></div>
-        </div>
+        <div class="sec-title">${s.title}</div>
+        <div class="sec-title-line"></div>
+      </div>
+      <div class="sec-body">
+        <div class="sec-text">${formatContent(s.content)}</div>
       </div>
     `;
   }
