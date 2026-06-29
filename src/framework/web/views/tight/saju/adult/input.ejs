@@ -445,6 +445,41 @@
   }
   .loading-msg.fade { opacity: 0; }
 
+  /* 이름 라벨 */
+  .ld-person-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(192,132,252,0.8);
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    text-align: left;
+  }
+  .ld-person-label.partner { color: rgba(251,146,186,0.8); }
+
+  /* vs 구분 */
+  .ld-vs {
+    font-size: 12px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.1em;
+    margin: 2px 0 10px;
+    text-align: center;
+  }
+
+  /* 상대방 일주 강조 */
+  .pillar-card.is-partner {
+    background: linear-gradient(145deg, rgba(236,72,153,0.18), rgba(251,146,186,0.1));
+    border-color: rgba(251,146,186,0.5);
+    box-shadow: 0 0 24px rgba(236,72,153,0.2), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .pillar-card.is-partner .pillar-label { color: rgba(251,146,186,0.7); }
+  .pillar-card.is-partner .pillar-hanja {
+    background: linear-gradient(135deg, #fda4af, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   /* 진행 바 */
   .loading-bar-wrap {
     width: 100%;
@@ -587,8 +622,9 @@
   <div class="ld-blob ld-blob-3"></div>
   <div class="loading-inner">
     <div class="ld-tag"><span class="ld-tag-dot"></span>사주 분석 중</div>
-    <div class="ld-name" id="loading-name">이름</div>
-    <div class="ld-sub">원국을 읽어내고 있어요 🔮</div>
+
+    <!-- 나 -->
+    <div class="ld-person-label" id="loading-name-me">나</div>
     <div class="pillar-row">
       <div class="pillar-card" id="pc-hour">
         <span class="pillar-label">시주</span>
@@ -607,6 +643,31 @@
         <div class="pillar-hanja" id="ph-year">－<br>－</div>
       </div>
     </div>
+
+    <!-- vs 구분선 -->
+    <div class="ld-vs">💞 vs</div>
+
+    <!-- 상대방 -->
+    <div class="ld-person-label partner" id="loading-name-partner">상대방</div>
+    <div class="pillar-row">
+      <div class="pillar-card partner-card" id="ppc-hour">
+        <span class="pillar-label">시주</span>
+        <div class="pillar-hanja" id="pph-hour">－<br>－</div>
+      </div>
+      <div class="pillar-card partner-card is-partner" id="ppc-day">
+        <span class="pillar-label">일주 ✦</span>
+        <div class="pillar-hanja" id="pph-day">－<br>－</div>
+      </div>
+      <div class="pillar-card partner-card" id="ppc-month">
+        <span class="pillar-label">월주</span>
+        <div class="pillar-hanja" id="pph-month">－<br>－</div>
+      </div>
+      <div class="pillar-card partner-card" id="ppc-year">
+        <span class="pillar-label">년주</span>
+        <div class="pillar-hanja" id="pph-year">－<br>－</div>
+      </div>
+    </div>
+
     <div class="loading-msg" id="loading-msg">사주 원국을 읽어내는 중이에요…</div>
     <div class="loading-bar-wrap">
       <div class="loading-bar-fill" id="loading-bar"></div>
@@ -857,9 +918,10 @@
       : null;
 
     // 이름 표시
-    document.getElementById('loading-name').textContent = (data.name || '') + '님의 사주 원국';
+    document.getElementById('loading-name-me').textContent = (data.name || '나') + ' 사주';
+    document.getElementById('loading-name-partner').textContent = (data.partnerInfo.name || '상대방') + ' 사주';
 
-    // 기둥 채우기
+    // 내 기둥 채우기
     if (pillars) {
       document.getElementById('ph-year').innerHTML  = pillars.year.gan  + '<br>' + pillars.year.ji;
       document.getElementById('ph-month').innerHTML = pillars.month.gan + '<br>' + pillars.month.ji;
@@ -867,15 +929,35 @@
       document.getElementById('ph-hour').innerHTML  = pillars.hour.gan  + '<br>' + pillars.hour.ji;
     }
 
+    // 상대방 기둥 채우기
+    const partnerBirthdate = (data.partnerInfo.birthdate || '').replace(/\D/g,'');
+    const partnerPillars = /^\d{8}$/.test(partnerBirthdate)
+      ? calcPillars(partnerBirthdate, data.partnerInfo.birthTime)
+      : null;
+    if (partnerPillars) {
+      document.getElementById('pph-year').innerHTML  = partnerPillars.year.gan  + '<br>' + partnerPillars.year.ji;
+      document.getElementById('pph-month').innerHTML = partnerPillars.month.gan + '<br>' + partnerPillars.month.ji;
+      document.getElementById('pph-day').innerHTML   = partnerPillars.day.gan   + '<br>' + partnerPillars.day.ji;
+      document.getElementById('pph-hour').innerHTML  = partnerPillars.hour.gan  + '<br>' + partnerPillars.hour.ji;
+    }
+
     // 오버레이 표시
     document.getElementById('saju-loading').classList.add('show');
 
-    // 기둥 순서대로 등장
+    // 내 기둥 순서대로 등장
     const cards = ['pc-hour','pc-day','pc-month','pc-year'];
     cards.forEach(function(id, i) {
       setTimeout(function() {
         document.getElementById(id).classList.add('visible');
       }, 200 + i * 180);
+    });
+
+    // 상대방 기둥 순서대로 등장 (내 기둥 다 뜬 후)
+    const partnerCards = ['ppc-hour','ppc-day','ppc-month','ppc-year'];
+    partnerCards.forEach(function(id, i) {
+      setTimeout(function() {
+        document.getElementById(id).classList.add('visible');
+      }, 900 + i * 180);
     });
 
     // 메시지 순환 (fade)
