@@ -1793,80 +1793,89 @@ SAJU_JSON 구조:
 
 const ADULT_REPORT_PROMPT_PARTS = [
   `${ADULT_REPORT_PROMPT_PREFIX}
-장 제목: 묘월무녀의 은밀한 해석
+장 제목: 욕망의 해부학
 
-섹션 제목(순서대로):
-- 붉은 연정: 도화살과 홍염살이 뒤섞인 당신만의 치명적인 성적 에너지 분석.
-- 이성 마비: 첫눈에 상대를 '짐승'으로 만드는 당신의 타고난 페로몬 지수.
-- 육체의 기억: 영혼보다 몸이 먼저 반응하게 될 운명적 상대와의 조우.
+⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. SAJU_JSON에 my와 partner 두 사람의 사주가 담겨 있습니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
-작성 가이드(반드시 반영):
-1) tenGodTable에서 일주·시주의 천간·지지, twelveGodKill에서 도화·홍염·역마 등 실제로 있는 신살 이름을 적어 넣고, 그 조합이 만드는 "붉은 연정" 성적 에너지를 구체적으로 8~14문장으로 길게.
-2) 일간(일주 천간)·십성·지지로 첫인상과 "이성 마비" 페로몬 지수를, userInfo.name·gender를 활용해 개인화하여 8~14문장으로.
-3) 지지 합·충, 또는 귀인·띠(zodiacSign)를 이용해 "육체가 먼저 반응하는 운명적 상대" 유형을 구체적으로 8~14문장. 톤은 야하고 관능적으로.
+섹션 제목(순서대로, 4개):
+- 정욕합이 들어맞는 사람: my의 사주에서 성적으로 끌리는 상대의 특징 분석. partner의 사주가 my와 어떻게 맞아 들어가는지 구체적으로.
+- 너도 몰랐던 숨겨진 욕망들: my의 무의식 속 끌림 분석. 스스로도 억눌렀던 본능과 성적 취향.
+- SM 성향 분석: 두 사람(my·partner)의 관계 속 본능적 위치. 누가 지배하고 누가 복종하는지 사주로 분석.
+- 시선이 오래 머무는 이유: my가 유독 약한 성적 포인트. partner의 어떤 부분이 my의 시선을 사로잡는가.
+
+작성 가이드:
+1) my.tenGodTable 일주·월주의 간지·십성, my.twelveGodKill의 도화·홍염 신살을 인용해 "정욕합 상대의 특징"을 8~14문장. partner의 일주·오행도 함께 언급하며 둘의 궁합을 풀어쓸 것.
+2) my.flow·십성·지지에서 숨겨진 욕망·끌림 패턴을 8~14문장. my.userInfo.name·gender 반영.
+3) my와 partner의 flow(비겁·관성·재성 비율)를 비교해 SM 위치(주도/복종 성향)를 8~14문장. 두 이름 모두 사용.
+4) my.tenGodTable 일지·시지와 partner의 일주·오행을 연결해 "시선을 잡아끄는 포인트"를 8~14문장. 관능적 톤.
 `,
   `${ADULT_REPORT_PROMPT_PREFIX}
-장 제목: 당신의 밤을 지배하는 기운
+장 제목: 본능은 누구에게 반응하는가
 
-섹션 제목(순서대로):
-- 밤의 필살기: 오행(목, 화, 토, 금, 수)의 기질에 따른 뜨거운 정복욕과 애무 스킬.
-- 극강의 합: 나의 부족한 오행을 채워주며 쾌감을 폭발시킬 최적의 사주 상대.
-- 낮과 밤의 반전: 단정함 뒤에 숨겨진 당신의 이중적이고 은밀한 성적 자아.
+⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
-작성 가이드(반드시 반영):
-1) fiveElements.elements의 목·화·토·금·수 **실제 수치**를 적고, 가장 강한/약한 오행에 따라 "밤의 필살기" 정복욕·애무 스타일(속도·강도·포인트)을 8~14문장으로 구체화. tenGodTable의 십성(비겁·식상·재성 등)도 함께 쓸 것.
-2) 부족한 오행(gainFrom·lossFrom 또는 elements 최소값)을 명시하고, 그 오행을 많이 가진 상대의 간지·띠·기운으로 "쾌감 폭발" 궁합을 8~14문장으로 길게.
-3) flow·십성(겉으로 드러나는 기운 vs 내면)을 사용해 낮에는 단정·차분하고 밤에는 반전되는 이중성·은밀한 성적 자아를 8~14문장. 야한 톤 유지.
+섹션 제목(순서대로, 4개):
+- 너에게 먹히는 스타일링: my의 시각적 최음제 분석. partner의 어떤 외형·스타일링이 my를 자극하는가.
+- 첫눈에 꽂히는 상대: my가 첫눈에 끌리는 상대의 외모·분위기·성향 분석. partner가 여기 해당하는 이유.
+- 본능을 자극하는 행동: my를 흔드는 partner의 결정적 행동·말투·태도 분석.
+- 절대 피할 수 없는 끌림: my의 사주가 강하게 반응하는 상대의 기운. partner와의 불가피한 인력.
+
+작성 가이드:
+1) my.fiveElements와 partner.fiveElements를 비교해 "시각적 자극 포인트"를 8~14문장. 구체적 스타일링(색·소재·체형) 언급.
+2) my.twelveGodKill 도화·홍염·역마, my.zodiacSign과 partner.zodiacSign 관계로 "첫눈에 끌림"을 8~14문장.
+3) my.tenGodTable 십성·일간과 partner.tenGodTable을 연결해 "본능을 자극하는 행동"을 8~14문장. 관능적 묘사.
+4) my.dayPillar·지지 합·충 관계와 partner.dayPillar를 이용해 "피할 수 없는 끌림"의 사주적 근거를 8~14문장.
 `,
   `${ADULT_REPORT_PROMPT_PREFIX}
-장 제목: 상대를 홀리는 29금 연출
+장 제목: 몸정일까 마음정일까
 
-섹션 제목(순서대로):
-- 운명의 란제리: 당신의 매력을 극대화할 오행 맞춤 소재(시스루, 레더 등)와 컬러.
-- 매력 포인트: 사주상 가장 발달한 신체 부위와 그곳을 강조할 액세서리 제안.
-- 유혹의 향기: 상대의 이성을 단숨에 무너뜨릴 체취와 향수 아이템.
+⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
-작성 가이드(반드시 반영):
-1) fiveElements·일간(목=녹색/실크, 화=레드/시스루, 토=네이비/레더, 금=골드/메탈, 수=블랙/실크 등)를 **실제 사주에 맞춰** 소재·컬러를 구체적으로 8~14문장. userInfo.gender에 맞는 연출로.
-2) tenGodTable의 일주·시주·십이운성·지지(해당 지지가 상징하는 신체 부위)를 인용해 "가장 발달한 매력 포인트"와 액세서리(목걸이·팔찌·귀걸이 등)를 구체적으로 8~14문장으로 길게.
-3) 오행·신살(도화=매혹적, 홍염=열정 등)에 맞는 향기·체취 관리·향수 노트를 8~14문장. 야하고 구체적으로.
+섹션 제목(순서대로, 4개):
+- 손만 닿아도 전류가 흐르는 정욕합: 두 사람 사이의 화학 반응. 일주 합·충, 오행 상생·상극으로 분석.
+- 서로가 굴복하는 지점: 두 사람 관계 속 약점과 치명적 포인트. 상대가 어디서 무너지는지.
+- 둘만의 주도권: 누가 끌고 누가 따라가는가. 시간에 따라 주도권이 바뀌는 패턴.
+- 한 번 스치면 잊히지 않는 이유: 강한 잔상을 남기는 요소. 이 둘이 헤어져도 서로를 못 잊는 사주적 이유.
+
+작성 가이드:
+1) my.dayPillar와 partner.dayPillar의 합·충·형 관계, my와 partner의 fiveElements 상생·상극을 분석해 "화학 반응"을 8~14문장.
+2) my와 partner 각각의 tenGodTable 약한 십성·신살(공망, 월살 등)을 인용해 "굴복하는 지점"을 8~14문장. 두 이름 번갈아 사용.
+3) my.flow와 partner.flow 비교로 주도권 구조를 8~14문장. 관계 역학 구체적으로.
+4) my와 partner의 도화·홍염·역마 등 잔상 유발 신살을 인용해 "잊지 못하는 이유"를 8~14문장.
 `,
   `${ADULT_REPORT_PROMPT_PREFIX}
-장 제목: 침대 위 권력과 판타지
+장 제목: 스파크가 튀는 순간
 
-섹션 제목(순서대로):
-- 포식자 vs 사냥감: 관계 속 주도권을 쥐는 리더인가, 사로잡힌 타겟인가?
-- 발화점: 당신의 욕망을 단숨에 달궈지게 만드는 특정 장소와 분위기.
-- 은밀한 판타지: 평소 억눌러왔던 당신만의 깊은 성적 취향과 임계점 공개.
+⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
-작성 가이드(반드시 반영):
-1) flow(비겁·관성·재성 비율), tenGodTable의 십성·일간 성향을 사용해 주도권/피동성·"포식자 vs 사냥감"을 구체적으로 8~14문장. 이름·성별 반영.
-2) twelveGodKill·지지(예: 오=정열, 해=비밀 등)·대운/세운 기운을 이용해 "발화점"이 되는 장소·분위기·시간대를 구체적으로 8~14문장. 야한 톤.
-3) 십이운성·지지에 숨겨진 심리, 일지·시지 등을 인용해 은밀한 판타지·취향·임계점을 8~14문장으로 구체화. 노골적 금지, 은밀·유혹 톤.
+섹션 제목(순서대로, 4개):
+- 발정 시기 분석: 두 사람의 사주가 동시에 성적으로 폭발하는 시기. 대운·세운 기준.
+- 스파크 튀는 장소 스팟: 두 사람의 관계 만족도가 폭발하는 공간·환경.
+- 둘이 만나면 강해지는 시간대: 끌림이 극대화되는 타이밍. 시간대·계절·날씨까지.
+- 천해랑의 위험 경고: 두 사람의 성욕이 동시에 폭주하는 순간. 조심해야 할 상황.
+
+작성 가이드:
+1) my.daewoon·sewun과 partner.daewoon을 교차 분석해 "동시 폭발 시기"를 구체적 연도·나이로 8~14문장.
+2) my.twelveGodKill·지지(오=정열, 해=비밀, 인=새벽 등)와 partner 지지를 결합해 "장소·공간"을 8~14문장. 관능적 묘사.
+3) my와 partner의 시주·월주를 이용해 "극대화 타이밍(시간대·계절)"을 8~14문장.
+4) 두 사람의 도화·홍염 신살이 동시에 발동하는 조건과 위험 상황을 8~14문장. 경고 톤으로 야하게.
 `,
   `${ADULT_REPORT_PROMPT_PREFIX}
-장 제목: [궁합] 쾌락의 일치와 속궁합
+장 제목: 중독의 기술
 
-섹션 제목(순서대로):
-- 에너지 수치: 두 사람의 기운이 충돌하고 융합할 때 발생하는 폭발적인 쾌락 점수.
-- 탐닉의 방식: 애무의 속도와 터치의 강도 등 육체적으로 가장 잘 맞는 접점.
-- 마약 같은 인연: 헤어진 후에도 밤의 기억 때문에 잊지 못할 강렬한 상대.
+⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
-작성 가이드(반드시 반영):
-1) fiveElements(나의 오행)·일간·지지 합·상생 관계를 사용해 "나와 쾌락이 폭발하는 상대"의 오행·간지 유형을 명시하고, 에너지 수치(예: 90점)처럼 구체적 비유로 8~14문장으로 길게.
-2) 십성·오행(목=부드러운 터치, 화=강렬·속도 등)을 인용해 "탐닉의 방식"—애무 속도·강도·리듬—을 8~14문장. 야하고 구체적으로.
-3) 도화·홍염·역마·띠 등으로 "헤어져도 잊지 못할" 인연 유형·상대의 사주 특징을 8~14문장. userInfo 반영.
-`,
-  `${ADULT_REPORT_PROMPT_PREFIX}
-장 제목: 묘월무녀의 섹슈얼 비책
+섹션 제목(순서대로, 4개):
+- 당신의 성적 필살기: my가 상대(partner)를 사로잡는 무기. 사주가 부여한 타고난 성적 기술.
+- 서로의 바람기 분석: my와 partner 각각이 새로운 자극에 흔들리는 정도. 역마·도화 기반.
+- 헤어지게 되도 못잊게 만드는 방법: my가 partner의 기억 속에 영원히 남는 방법.
+- 천해랑의 결론: 둘의 정욕합은 운명인가, 중독인가. 두 사람의 사주를 종합한 최종 판정.
 
-섹션 제목(순서대로):
-- 에너지 아이템: 성적 활력을 깨워줄 성인용품 및 천연 정력 식품 제안.
-- 만족의 비결: 부족한 사주 기운을 보완하여 밤의 질을 높이는 야한 처방전.
-
-작성 가이드(반드시 반영):
-1) fiveElements에서 **가장 부족한 오행**(수치가 낮은 것)과 일간·지지를 명시하고, 그에 맞는 성인용품 유형·천연 식품(예: 수 기운 부족이면 수분·블랙푸드 등)을 8~14문장으로 구체 제안. 야한 톤 유지.
-2) 대운·세운·십성 보완, 일지·시지 강화 관점에서 "밤의 질을 높이는" 구체적 처방(습관·타이밍·파트너 기운 보완)을 8~14문장. SAJU_JSON 값 반드시 인용.
+작성 가이드:
+1) my.tenGodTable 일주·시주의 식상·비겁·도화를 이용해 "성적 필살기"를 8~14문장. partner에게 어떻게 작용하는지 연결.
+2) my.twelveGodKill 역마·도화와 partner의 역마·도화를 비교해 "바람기 지수"를 8~14문장. 두 사람 수치 비교 표현 사용.
+3) my.dayPillar·홍염·잔상 신살로 "못 잊게 만드는 기술"을 8~14문장. 관능적이고 전략적으로.
+4) my와 partner의 일주 합·오행 관계·신살 총합으로 "운명 vs 중독" 최종 판정을 8~14문장. 천해랑의 직접 말투로.
 `
 ];
 
@@ -3634,10 +3643,34 @@ let promtParts;
     try {
       // ✅ 1) 사주 계산 (새 로직 적용)
       const fixedUser = { ...userInfo, birthDate: userInfo.birthDate || userInfo.birthdate };
-      const sajuJsonForGPT = buildSajuJsonForReport(userInfo);
-      const tenGodTable = sajuJsonForGPT.tenGodTable;
+      const mySajuJson = buildSajuJsonForReport(userInfo);
       const pillars = getFourPillars(userInfo);
-      // End of 1.5) GPT에게 보낼 SAJU_JSON 구조 생성
+
+      // ADULT 궁합 리포트: 파트너 사주도 함께 계산
+      let sajuJsonForGPT = mySajuJson;
+      if (gCode === "ADULT" || gCode === "ADULT_BUNDLE") {
+        const partnerInfo = {
+          name: userInfo.partnerName || "상대방",
+          gender: userInfo.partnerGender || "",
+          birthDate: userInfo.partnerBirthdate || userInfo.partnerBirthDate || "",
+          birthTime: userInfo.partnerBirthTime || "",
+          birthType: userInfo.partnerBirthType || "양력",
+        };
+        let partnerSajuJson = null;
+        if (partnerInfo.birthDate) {
+          try {
+            partnerSajuJson = buildSajuJsonForReport(partnerInfo);
+          } catch(e) {
+            console.warn("파트너 사주 계산 실패:", e.message);
+          }
+        }
+        sajuJsonForGPT = {
+          my: { userInfo: { name: userInfo.name, gender: userInfo.gender }, ...mySajuJson },
+          partner: partnerSajuJson
+            ? { userInfo: { name: partnerInfo.name, gender: partnerInfo.gender }, ...partnerSajuJson }
+            : { userInfo: { name: partnerInfo.name, gender: partnerInfo.gender } },
+        };
+      }
 
       const pillarSummary = `${pillars.year.gan}${pillars.year.ji}년 ${pillars.month.gan}${pillars.month.ji}월 ${pillars.day.gan}${pillars.day.ji}일 ${pillars.hour.gan}${pillars.hour.ji}시 (${pillars.zodiac})`;
 
