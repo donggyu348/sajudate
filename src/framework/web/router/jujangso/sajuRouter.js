@@ -7,6 +7,7 @@
   import { GoodsType } from "../../enums/Goods.js";
   import { PaymentStatus } from "../../enums/Payment.js";
   import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
+  import PaymentTransactionRepository from "../../repository/PaymentTransactionRepository.js";
 
   const router = express.Router();
 
@@ -99,6 +100,11 @@
 
       // 1) 테스트용 shopOrderNo 생성
       const shopOrderNo = `TEST-${Date.now()}`;
+
+      await PaymentTransactionRepository.createPrepaidPayment({
+        shopOrderNo,
+        platform: Platform.JUJANGSO.code,
+      });
 
       // 2) 우선 reportHistory row 생성 (reportInfo 비어있음)
       const created = await ReportHistoryService.registerReportHistory({

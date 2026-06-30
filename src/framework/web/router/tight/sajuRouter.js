@@ -17,8 +17,18 @@ import { GoodsType } from "../../enums/Goods.js";
 import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
 import { buildMetaAdvancedMatching } from "../../utils/metaAdvancedMatching.js";
 import Coupons from "../../orm/models/coupons.js";
+import PaymentTransactionRepository from "../../repository/PaymentTransactionRepository.js";
 const router = express.Router();
 const CouponsModel = Coupons;
+
+async function ensurePrepaidPayment(shopOrderNo, goodsType, userInfo = {}) {
+  await PaymentTransactionRepository.createPrepaidPayment({
+    shopOrderNo,
+    platform: goodsType.platform.code,
+    userTelNo: userInfo.phone || userInfo.tel || userInfo.userTelNo,
+    userPw: userInfo.pw || userInfo.userPw,
+  });
+}
 //미리보기 렌더링
 // [추가 시작: 이 블록을 파일 상단에 추가하세요]
 // URL 쿼리 파라미터에서 사용자 정보를 추출하고 유효성 검사를 수행하는 함수
@@ -130,6 +140,8 @@ if (ticketCode) {
       await ticket.update({ isUsed: true });
       const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
 
+      await ensurePrepaidPayment(shopOrderNo, GoodsType.CLASSIC, userInfo);
+
       // [A] 리포트 내역 먼저 생성 (GPT 안 기다림)
       const created = await reportHistoryService.registerReportHistory({
         userInfo,
@@ -157,6 +169,8 @@ if (ticketCode) {
     try {
       const shopOrderNo = `FREE-TEST-${Date.now()}`;
       
+      await ensurePrepaidPayment(shopOrderNo, GoodsType.CLASSIC, userInfo);
+
       // 1) 리포트 내역 생성 (결제 완료 상태처럼 저장)
       const created = await reportHistoryService.registerReportHistory({
         userInfo,
@@ -231,6 +245,8 @@ if (ticketCode) {
       await ticket.update({ isUsed: true });
       const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
 
+      await ensurePrepaidPayment(shopOrderNo, GoodsType.ROMANTIC, userInfo);
+
       // [A] 리포트 내역 먼저 생성 (GPT 안 기다림)
       const created = await reportHistoryService.registerReportHistory({
         userInfo,
@@ -257,6 +273,8 @@ if (ticketCode) {
     try {
       const shopOrderNo = `FREE-ADMIN-${Date.now()}`;
       
+      await ensurePrepaidPayment(shopOrderNo, GoodsType.ROMANTIC, userInfo);
+
       // 1) 리포트 내역 생성
       const created = await reportHistoryService.registerReportHistory({
         userInfo,
@@ -308,6 +326,7 @@ router.post("/adult/result", async (req, res) => {
     if (ticket) {
       await ticket.update({ isUsed: true });
       const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
+      await ensurePrepaidPayment(shopOrderNo, GoodsType.ADULT, userInfo);
       const created = await reportHistoryService.registerReportHistory({
         userInfo,
         sampleInfo: {},
@@ -326,6 +345,7 @@ router.post("/adult/result", async (req, res) => {
   if (userInfo.name === "테스트" || userInfo.name === "관리자") {
     try {
       const shopOrderNo = `FREE-ADULT-${Date.now()}`;
+      await ensurePrepaidPayment(shopOrderNo, GoodsType.ADULT, userInfo);
       const created = await reportHistoryService.registerReportHistory({
         userInfo,
         sampleInfo: await gptService.callSample(userInfo),
@@ -405,6 +425,8 @@ router.post("/skip-payment", async (req, res) => {
     const goodsType = GoodsType[goodsTypeCode] || GoodsType.ROMANTIC;
 
     const shopOrderNo = `TEST-${Date.now()}`;
+
+    await ensurePrepaidPayment(shopOrderNo, goodsType, userInfo);
 
     const created = await ReportHistoryService.registerReportHistory({
       userInfo,

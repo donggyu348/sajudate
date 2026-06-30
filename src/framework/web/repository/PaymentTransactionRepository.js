@@ -3,7 +3,7 @@
 import PaymentTransaction from "../orm/models/paymentTransaction.js";
 import ReportHistory from "../orm/models/reportHistory.js"; // ReportHistory 모델 import
 import { Op, fn, col, literal } from "sequelize"; // ✅ 추가: Op, fn, col import
-import { PaymentStatus } from "../enums/Payment.js"; // ✅ 추가: PaymentStatus import
+import { PaymentStatus, PayMethodTypeCode, DeviceType, ClientType } from "../enums/Payment.js";
 class PaymentTransactionRepository {
   
   /**
@@ -191,6 +191,23 @@ async getDailyApprovedAmount(platform, dateStr = null) {
    */
   async createPayment(data) {
     return await PaymentTransaction.create(data);
+  }
+
+  /** 티켓·무료·테스트 등 결제 없이 shopOrderNo가 필요한 경우 부모 행 선생성 */
+  async createPrepaidPayment({ shopOrderNo, platform, userTelNo, userPw }) {
+    return await PaymentTransaction.create({
+      platform,
+      shopOrderNo,
+      userTelNo: userTelNo || "01000000000",
+      userPw: userPw || "0000",
+      amount: 0,
+      currencyCode: "00",
+      payMethodTypeCode: PayMethodTypeCode.CARD,
+      deviceType: DeviceType.PC,
+      clientType: ClientType.INTEGRATED,
+      paymentStatus: PaymentStatus.APPROVED,
+      approvalDate: new Date(),
+    });
   }
 
   /**
