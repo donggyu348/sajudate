@@ -43,7 +43,7 @@
     .page {
       max-width: 393px;
       margin: 0 auto;
-      padding-bottom: 71px;
+      padding-bottom: 96px;
     }
 
     .preview-wrap {
@@ -254,22 +254,66 @@
       text-overflow: ellipsis;
     }
 
-    .fixed-cta {
+    .floating-cta {
       position: fixed;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
       width: 100%;
       max-width: 393px;
-      z-index: 100;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
+      z-index: 9999;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      padding: 16px 20px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      background: #0a0a0c;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .fixed-cta img {
-      display: block;
+    #floating-btn.hide {
+      transform: translateX(-50%) translateY(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .floating-cta .cta-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       width: 100%;
-      height: auto;
+      height: 56px;
+      border-radius: 12px;
+      background: #e91e7a;
+      color: #fff;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.45),
+        0 2px 10px rgba(233, 30, 122, 0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .floating-cta:active .cta-btn {
+      transform: scale(0.98);
+      box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.4),
+        0 1px 6px rgba(233, 30, 122, 0.3);
+    }
+
+    .floating-cta .cta-btn__arrow {
+      font-size: 1.12em;
+      font-weight: 700;
+      line-height: 1;
+      opacity: 1;
+      letter-spacing: -0.05em;
+      margin-left: 4px;
+    }
+
+    .floating-cta .cta-btn__text {
+      line-height: 1;
     }
   </style>
 </head>
@@ -383,6 +427,8 @@
       >
     </div>
 
+    <div id="result10-button" class="h-4"></div>
+
     <div class="preview-wrap preview-wrap--section2">
       <img
         class="preview-img"
@@ -402,32 +448,36 @@
     <input type="hidden" name="goodsType" value="ROMANTIC" />
   </form>
 
-  <div class="fixed-cta js-payment-submit" id="floating-btn" role="button" tabindex="0">
-    <img
-      src="/assets/images/tight/romantic/preview/cta-result.png?v=3"
-      alt="홍연 보고서 해석 전체보기"
-      width="389"
-      height="71"
-    >
+  <div id="floating-btn" class="floating-cta">
+    <div class="cta-btn">
+      <span class="cta-btn__text">나의 홍연 리포트 확인하기</span>
+      <span class="cta-btn__arrow" aria-hidden="true">--></span>
+    </div>
   </div>
 
   <script>
-    $(document).ready(function() {
-      function goPayment() {
-        document.querySelector('form').submit();
+    document.addEventListener("DOMContentLoaded", function () {
+      var form = document.querySelector("form");
+      var floatingBtn = document.getElementById("floating-btn");
+      var target = document.getElementById("result10-button");
+
+      if (floatingBtn && target) {
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) floatingBtn.classList.add("hide");
+            else floatingBtn.classList.remove("hide");
+          });
+        }, { threshold: 0.1 });
+        observer.observe(target);
       }
 
-      document.querySelectorAll('.js-payment-submit').forEach(function(el) {
-        el.addEventListener('click', goPayment);
-        el.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            goPayment();
-          }
+      if (floatingBtn) {
+        floatingBtn.addEventListener("click", function () {
+          if (form) form.submit();
         });
-      });
+      }
 
-      if (window.karrotPixel) window.karrotPixel.track('Lead');
+      if (window.karrotPixel) window.karrotPixel.track("Lead");
     });
   </script>
 </body>
