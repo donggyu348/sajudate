@@ -1,6 +1,6 @@
   // src/framework/web/service/PaymentService.js
 
-  import GptService from "./GptService.js";
+  import reportGenerationService from "./reportGenerationService.js";
   import UsersRepository from "../repository/UsersRepository.js";
   import PaymentTransactionRepository from "../repository/PaymentTransactionRepository.js";
   import ReportHistoryService from "./ReportHistoryService.js";
@@ -323,9 +323,7 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
 
     // 1. GPT 리포트 생성
     if (!reportInfo) {
-        const generated = await GptService.callReport(userInfo, goodsType.code || finalType);
-        await ReportHistoryService.updateById({ id: reportHistory.id, reportInfo: generated });
-        reportInfo = generated;
+        reportInfo = await reportGenerationService.generateReportForOrder(shopOrderNo);
     }
 
     // 2. 번들인 경우 티켓 생성 로직

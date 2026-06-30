@@ -1,4 +1,4 @@
-import GptClient from "../api/GptClient.js";
+import GptClient, { parseRateLimitWaitMs, isRateLimitError } from "../api/GptClient.js";
 import { GoodsType } from "../enums/Goods.js";
 import { getFourPillars } from "./sajuCalService.js";
 import { Solar } from "lunar-javascript";
@@ -8,6 +8,9 @@ import {
   ROMANTIC_LOVE_REPORT_BATCHES,
   getPartnerPreviewTitle,
 } from "./prompts/romanticLoveReportPrompt.js";
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const GPT_CHAPTER_DELAY_MS = Number(process.env.GPT_CHAPTER_DELAY_MS) || 16000;
 
 // --- Lunar 기반 사주 계산 Helpers (sample 전용) ---
 
@@ -1758,56 +1761,76 @@ const ROMANTIC_REPORT_PROMPT_PREFIX = `
 `;
 
 const ADULT_REPORT_PROMPT_PREFIX = `
-당신은 사주를 바탕으로 29금(성인용) 연애·관계 운세를 작성하는 전문가입니다.
+너는 30대의 경험 많은 역술가이자 S궁합(2인) 리포트를 쓰는 작가야.
+문체는 단 둘이 있는 방 안에서 귀에 대고 속삭이듯 ("~요"체). 야하고 천박하고 집요해도 된다—둘이 붙었을 때 누가 먼저 숨이 가빠지는지, 어디서 케미가 터지는지까지 긁어낼 것. 다만 노골적 성기명·행위를 직접 쓰는 표현은 금지. '그 순간·그 간격·그 온도·손이 먼저 가는 쪽' 등 은유·사주 용어만 써.
 
-[SAJU_JSON 사용 — 절대 규칙]
-사용자 메시지로 전달되는 SAJU_JSON의 **실제 값**을 반드시 사용하세요. 제네릭한 문장만 쓰면 안 됩니다.
+[SAJU_JSON — 절대 규칙]
+- my(본인)와 partner(상대) **둘 다** 근거로 작성. 일간·일지, 도화·홍염, 지지 합·충·형·파, 오행 상극/상생으로 '둘만의 화학반응'을 분석. 한 사람만 보는 듯한 문장 금지.
+- 실제 이름·간지·신살·오행 수치를 문장에 넣을 것. "본인", "상대", "A", "B" 가명 금지.
+- hourUnknown: true이면 시주는 참고만.
 
-SAJU_JSON 구조:
-- userInfo: { name, gender, birthDate/birthdate, birthTime } — 이름·성별·생일·태어난 시는 반드시 문장에 녹여 쓸 것.
-- tenGodTable: { headerRows, data } — data[i]는 시주(i=0)·일주(1)·월주(2)·년주(3) 순. 각 행에 [십성, 천간, 지지, 십이운성, 십이신살, 귀인] 등이 있음. 일주의 천간=일간(나), 지지=일지. 반드시 구체적인 간지·십성·신살 이름을 인용할 것.
-- fiveElements: { elements: { 목, 화, 토, 금, 수 } } — 각 오행의 수치. 가장 많은/적은 오행을 꼭 언급하고, 그에 따른 성적 기질·쾌감 유형을 구체적으로 해석할 것.
-- twelveGodKill: 12신살(도화, 홍염, 역마, 장성, 월살 등) — 있는 신살을 나열하고, 도화·홍염이 있으면 성적 매력·폭발력으로 연결해 반드시 서술할 것.
-- flow: 비겁·재성·관성 등 기운 흐름 — 관계에서 주도/피동, 욕망 표현 방식을 이 데이터로 구체화할 것.
-- noblePeople(귀인), zodiacSign(띠), daewoon, sewun — 필요한 장에서 해당 값을 인용해 개인화할 것.
-- hourUnknown: true이면 시주 해석은 참고 수준으로만 언급.
+[톤·분량]
+- 말투: "~요"체, 이모지 2~4개. 문장은 짧게 끊되 **각 섹션당 15~24문장**으로 길고 알차게. 같은 표현·사주 근거 반복 금지, 묘사 각도를 다양하게.
+- 마크다운 기호(** __ ## 백틱) content에 절대 금지. 강조는 평문으로.
 
-[글의 톤과 분량]
-- 톤: 야하고 관능적이되, 노골적 저속 표현은 금지. 은밀·유혹·육체·쾌감·정복·굴복·발화·판타지 등 감각적 어휘 사용.
-- 분량: 각 섹션당 **최소 8문장, 권장 12문장 이상**으로 길고 알차게. 짧게 끝내지 말고, SAJU_JSON의 여러 요소를 하나씩 짚어가며 구체적으로 풀어쓸 것. 내용이 길수록 좋음.
-
-# 출력 형식(고정)
+# 출력 형식(고정) — sections는 반드시 4개, 누락·병합 금지
 {
-  "chapter": "장 제목",
+  "chapter": "아래 '장 제목:'에 적힌 문자열 그대로",
   "sections": [
-    { "title": "섹션 제목", "content": "8~14문장 이상 내용" }
+    { "title": "섹션 제목 1", "content": "15~24문장" },
+    { "title": "섹션 제목 2", "content": "15~24문장" },
+    { "title": "섹션 제목 3", "content": "15~24문장" },
+    { "title": "섹션 제목 4", "content": "15~24문장" }
   ]
 }
 
 규칙:
-- "chapter"는 아래 지정된 장 제목을 그대로 복사.
-- "sections[].title"은 내가 주는 섹션 제목을 그대로 복사(순서·누락 금지).
-- "sections[].content"는 위 SAJU_JSON 규칙을 지키며 **8문장 이상, 가능하면 12~14문장**으로 길게 작성. 반드시 실제 간지·오행·신살·이름·성별 등을 문장 안에 넣을 것.
-- JSON만 출력. 설명·사과·코드펜스 금지.
+- "chapter"는 아래 '장 제목:' 한 줄의 제목만 그대로 복사 (예: 욕망의 해부학). "장 제목"이라는 글자 자체를 넣지 마.
+- "sections" 배열 길이는 **정확히 4**. 3개 이하·1개로 합치면 실패.
+- "sections[].title"은 아래 섹션 제목을 **그대로 복사** (순서·누락 금지).
+- "sections[].content"는 각 섹션별 가이드를 반영해 **15~24문장**. '우리 둘·서로·한쪽은~한쪽은' 식으로 케미를 엮을 것.
+- JSON만 출력. 코드펜스·설명문 금지.
 `;
+
+/** ADULT 전용: 프롬프트에서 장 제목 추출 (장 제목: XXX) */
+function extractAdultChapterTitleFromPrompt(promptStr) {
+  const lines = String(promptStr).split(/\r?\n/);
+  for (const line of lines) {
+    const m = line.trim().match(/^장\s*제목\s*:\s*(.+)$/);
+    if (m) return m[1].trim();
+  }
+  return null;
+}
+
+function countSectionsInParsed(parsed) {
+  if (!parsed) return 0;
+  if (parsed?.sections && Array.isArray(parsed.sections)) return parsed.sections.length;
+  if (Array.isArray(parsed)) {
+    if (parsed[0]?.sections) {
+      return parsed.reduce((n, ch) => n + (Array.isArray(ch.sections) ? ch.sections.length : 0), 0);
+    }
+    if (parsed[0]?.title && parsed[0]?.content) return parsed.length;
+  }
+  return 0;
+}
 
 const ADULT_REPORT_PROMPT_PARTS = [
   `${ADULT_REPORT_PROMPT_PREFIX}
 장 제목: 욕망의 해부학
 
-⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. SAJU_JSON에 my와 partner 두 사람의 사주가 담겨 있습니다. 반드시 두 사람 모두 언급하며 작성하세요.
+⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
 섹션 제목(순서대로, 4개):
-- 정욕합이 들어맞는 사람: my의 사주에서 성적으로 끌리는 상대의 특징 분석. partner의 사주가 my와 어떻게 맞아 들어가는지 구체적으로.
-- 너도 몰랐던 숨겨진 욕망들: my의 무의식 속 끌림 분석. 스스로도 억눌렀던 본능과 성적 취향.
-- SM 성향 분석: 두 사람(my·partner)의 관계 속 본능적 위치. 누가 지배하고 누가 복종하는지 사주로 분석.
-- 시선이 오래 머무는 이유: my가 유독 약한 성적 포인트. partner의 어떤 부분이 my의 시선을 사로잡는가.
+- 정욕합이 들어맞는 사람
+- 너도 몰랐던 숨겨진 욕망들
+- SM 성향 분석
+- 시선이 오래 머무는 이유
 
 작성 가이드:
-1) my.tenGodTable 일주·월주의 간지·십성, my.twelveGodKill의 도화·홍염 신살을 인용해 "정욕합 상대의 특징"을 8~14문장. partner의 일주·오행도 함께 언급하며 둘의 궁합을 풀어쓸 것.
-2) my.flow·십성·지지에서 숨겨진 욕망·끌림 패턴을 8~14문장. my.userInfo.name·gender 반영.
-3) my와 partner의 flow(비겁·관성·재성 비율)를 비교해 SM 위치(주도/복종 성향)를 8~14문장. 두 이름 모두 사용.
-4) my.tenGodTable 일지·시지와 partner의 일주·오행을 연결해 "시선을 잡아끄는 포인트"를 8~14문장. 관능적 톤.
+1) my.tenGodTable 일주·월주의 간지·십성, my.twelveGodKill의 도화·홍염 신살을 인용해 "정욕합 상대의 특징"을 15~24문장. partner의 일주·오행도 함께 언급.
+2) my.flow·십성·지지에서 숨겨진 욕망·끌림 패턴을 15~24문장. my.userInfo.name·gender 반영.
+3) my와 partner의 flow(비겁·관성·재성 비율)를 비교해 SM 위치(주도/복종 성향)를 15~24문장. 두 이름 모두 사용.
+4) my.tenGodTable 일지·시지와 partner의 일주·오행을 연결해 "시선을 잡아끄는 포인트"를 15~24문장.
 `,
   `${ADULT_REPORT_PROMPT_PREFIX}
 장 제목: 본능은 누구에게 반응하는가
@@ -1815,16 +1838,16 @@ const ADULT_REPORT_PROMPT_PARTS = [
 ⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
 섹션 제목(순서대로, 4개):
-- 너에게 먹히는 스타일링: my의 시각적 최음제 분석. partner의 어떤 외형·스타일링이 my를 자극하는가.
-- 첫눈에 꽂히는 상대: my가 첫눈에 끌리는 상대의 외모·분위기·성향 분석. partner가 여기 해당하는 이유.
-- 본능을 자극하는 행동: my를 흔드는 partner의 결정적 행동·말투·태도 분석.
-- 절대 피할 수 없는 끌림: my의 사주가 강하게 반응하는 상대의 기운. partner와의 불가피한 인력.
+- 너에게 먹히는 스타일링
+- 첫눈에 꽂히는 상대
+- 본능을 자극하는 행동
+- 절대 피할 수 없는 끌림
 
 작성 가이드:
-1) my.fiveElements와 partner.fiveElements를 비교해 "시각적 자극 포인트"를 8~14문장. 구체적 스타일링(색·소재·체형) 언급.
-2) my.twelveGodKill 도화·홍염·역마, my.zodiacSign과 partner.zodiacSign 관계로 "첫눈에 끌림"을 8~14문장.
-3) my.tenGodTable 십성·일간과 partner.tenGodTable을 연결해 "본능을 자극하는 행동"을 8~14문장. 관능적 묘사.
-4) my.dayPillar·지지 합·충 관계와 partner.dayPillar를 이용해 "피할 수 없는 끌림"의 사주적 근거를 8~14문장.
+1) my.fiveElements와 partner.fiveElements를 비교해 "시각적 자극 포인트"를 15~24문장. 구체적 스타일링(색·소재·체형) 언급.
+2) my.twelveGodKill 도화·홍염·역마, my.zodiacSign과 partner.zodiacSign 관계로 "첫눈에 끌림"을 15~24문장.
+3) my.tenGodTable 십성·일간과 partner.tenGodTable을 연결해 "본능을 자극하는 행동"을 15~24문장.
+4) my.dayPillar·지지 합·충 관계와 partner.dayPillar를 이용해 "피할 수 없는 끌림"의 사주적 근거를 15~24문장.
 `,
   `${ADULT_REPORT_PROMPT_PREFIX}
 장 제목: 몸정일까 마음정일까
@@ -1832,16 +1855,16 @@ const ADULT_REPORT_PROMPT_PARTS = [
 ⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
 섹션 제목(순서대로, 4개):
-- 손만 닿아도 전류가 흐르는 정욕합: 두 사람 사이의 화학 반응. 일주 합·충, 오행 상생·상극으로 분석.
-- 서로가 굴복하는 지점: 두 사람 관계 속 약점과 치명적 포인트. 상대가 어디서 무너지는지.
-- 둘만의 주도권: 누가 끌고 누가 따라가는가. 시간에 따라 주도권이 바뀌는 패턴.
-- 한 번 스치면 잊히지 않는 이유: 강한 잔상을 남기는 요소. 이 둘이 헤어져도 서로를 못 잊는 사주적 이유.
+- 손만 닿아도 전류가 흐르는 정욕합
+- 서로가 굴복하는 지점
+- 둘만의 주도권
+- 한 번 스치면 잊히지 않는 이유
 
 작성 가이드:
-1) my.dayPillar와 partner.dayPillar의 합·충·형 관계, my와 partner의 fiveElements 상생·상극을 분석해 "화학 반응"을 8~14문장.
-2) my와 partner 각각의 tenGodTable 약한 십성·신살(공망, 월살 등)을 인용해 "굴복하는 지점"을 8~14문장. 두 이름 번갈아 사용.
-3) my.flow와 partner.flow 비교로 주도권 구조를 8~14문장. 관계 역학 구체적으로.
-4) my와 partner의 도화·홍염·역마 등 잔상 유발 신살을 인용해 "잊지 못하는 이유"를 8~14문장.
+1) my.dayPillar와 partner.dayPillar의 합·충·형 관계, my와 partner의 fiveElements 상생·상극을 분석해 "화학 반응"을 15~24문장.
+2) my와 partner 각각의 tenGodTable 약한 십성·신살을 인용해 "굴복하는 지점"을 15~24문장. 두 이름 번갈아 사용.
+3) my.flow와 partner.flow 비교로 주도권 구조를 15~24문장.
+4) my와 partner의 도화·홍염·역마 등 잔상 유발 신살을 인용해 "잊지 못하는 이유"를 15~24문장.
 `,
   `${ADULT_REPORT_PROMPT_PREFIX}
 장 제목: 스파크가 튀는 순간
@@ -1849,16 +1872,16 @@ const ADULT_REPORT_PROMPT_PARTS = [
 ⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
 섹션 제목(순서대로, 4개):
-- 발정 시기 분석: 두 사람의 사주가 동시에 성적으로 폭발하는 시기. 대운·세운 기준.
-- 스파크 튀는 장소 스팟: 두 사람의 관계 만족도가 폭발하는 공간·환경.
-- 둘이 만나면 강해지는 시간대: 끌림이 극대화되는 타이밍. 시간대·계절·날씨까지.
-- 천해랑의 위험 경고: 두 사람의 성욕이 동시에 폭주하는 순간. 조심해야 할 상황.
+- 발정 시기 분석
+- 스파크 튀는 장소 스팟
+- 둘이 만나면 강해지는 시간대
+- 천해랑의 위험 경고
 
 작성 가이드:
-1) my.daewoon·sewun과 partner.daewoon을 교차 분석해 "동시 폭발 시기"를 구체적 연도·나이로 8~14문장.
-2) my.twelveGodKill·지지(오=정열, 해=비밀, 인=새벽 등)와 partner 지지를 결합해 "장소·공간"을 8~14문장. 관능적 묘사.
-3) my와 partner의 시주·월주를 이용해 "극대화 타이밍(시간대·계절)"을 8~14문장.
-4) 두 사람의 도화·홍염 신살이 동시에 발동하는 조건과 위험 상황을 8~14문장. 경고 톤으로 야하게.
+1) my.daewoon·sewun과 partner.daewoon을 교차 분석해 "동시 폭발 시기"를 구체적 연도·나이로 15~24문장.
+2) my.twelveGodKill·지지와 partner 지지를 결합해 "장소·공간"을 15~24문장.
+3) my와 partner의 시주·월주를 이용해 "극대화 타이밍(시간대·계절)"을 15~24문장.
+4) 두 사람의 도화·홍염 신살이 동시에 발동하는 조건과 위험 상황을 15~24문장. 경고 톤.
 `,
   `${ADULT_REPORT_PROMPT_PREFIX}
 장 제목: 중독의 기술
@@ -1866,16 +1889,16 @@ const ADULT_REPORT_PROMPT_PARTS = [
 ⚠ 이 리포트는 나(my)와 상대방(partner) 두 사람의 정욕합 궁합 분석입니다. 반드시 두 사람 모두 언급하며 작성하세요.
 
 섹션 제목(순서대로, 4개):
-- 당신의 성적 필살기: my가 상대(partner)를 사로잡는 무기. 사주가 부여한 타고난 성적 기술.
-- 서로의 바람기 분석: my와 partner 각각이 새로운 자극에 흔들리는 정도. 역마·도화 기반.
-- 헤어지게 되도 못잊게 만드는 방법: my가 partner의 기억 속에 영원히 남는 방법.
-- 천해랑의 결론: 둘의 정욕합은 운명인가, 중독인가. 두 사람의 사주를 종합한 최종 판정.
+- 당신의 성적 필살기
+- 서로의 바람기 분석
+- 헤어지게 되도 못잊게 만드는 방법
+- 천해랑의 결론
 
 작성 가이드:
-1) my.tenGodTable 일주·시주의 식상·비겁·도화를 이용해 "성적 필살기"를 8~14문장. partner에게 어떻게 작용하는지 연결.
-2) my.twelveGodKill 역마·도화와 partner의 역마·도화를 비교해 "바람기 지수"를 8~14문장. 두 사람 수치 비교 표현 사용.
-3) my.dayPillar·홍염·잔상 신살로 "못 잊게 만드는 기술"을 8~14문장. 관능적이고 전략적으로.
-4) my와 partner의 일주 합·오행 관계·신살 총합으로 "운명 vs 중독" 최종 판정을 8~14문장. 천해랑의 직접 말투로.
+1) my.tenGodTable 일주·시주의 식상·비겁·도화를 이용해 "성적 필살기"를 15~24문장. partner에게 어떻게 작용하는지 연결.
+2) my.twelveGodKill 역마·도화와 partner의 역마·도화를 비교해 "바람기 지수"를 15~24문장.
+3) my.dayPillar·홍염·잔상 신살로 "못 잊게 만드는 기술"을 15~24문장.
+4) my와 partner의 일주 합·오행 관계·신살 총합으로 "운명 vs 중독" 최종 판정을 15~24문장. 천해랑 말투.
 `
 ];
 
@@ -3561,6 +3584,10 @@ ${sajuJson.hourUnknown ? "\n⚠ 태어난 시간이 확인되지 않아 시주�
     const ROMANTIC_MAX_TOKENS = 16384;
 
     for (let b = 0; b < ROMANTIC_LOVE_REPORT_BATCHES.length; b++) {
+      if (b > 0) {
+        console.log(`[GPT] 연애사주 배치 ${b + 1} 전 ${GPT_CHAPTER_DELAY_MS}ms 대기`);
+        await sleep(GPT_CHAPTER_DELAY_MS);
+      }
       const batch = ROMANTIC_LOVE_REPORT_BATCHES[b];
       let instruction = batch.instruction;
       if (batch.ids.includes("9")) {
@@ -3601,7 +3628,8 @@ ${sajuJson.hourUnknown ? "\n⚠ 태어난 시간이 확인되지 않아 시주�
           retryCount++;
           console.error(`[연애사주 배치 ${b + 1} 시도 ${retryCount}]`, err.message);
           if (retryCount > 2) throw err;
-          await new Promise((res) => setTimeout(res, 800));
+          const waitMs = isRateLimitError(err.message) ? parseRateLimitWaitMs(err.message) : 2000;
+          await sleep(waitMs);
         }
       }
 
@@ -3684,11 +3712,17 @@ let promtParts;
       `;
 
       let result = [];
-      const currentYear = new Date().getFullYear();
-      const yearContext = `\n\n[CONTEXT] The current year for this analysis is ${currentYear}. All predictions and timeline references must be based on this year.`;
+      const nowKst = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+      const currentYear = nowKst.getFullYear();
+      const kstAnchor = `${nowKst.getFullYear()}-${String(nowKst.getMonth() + 1).padStart(2, "0")}-${String(nowKst.getDate()).padStart(2, "0")}`;
+      const yearContext = `\n\n[CONTEXT] KST 기준일: ${kstAnchor}. The current year for this analysis is ${currentYear}. All predictions and timeline references must be based on this anchor date. Peak/reversal dates must fall within ~1–4 months after this date.`;
 
       // ✅ 4) 챕터별로 프롬프트 조합 시 계산값 삽입
       for (let i = 0; i < promtParts.length; i++) {
+        if (i > 0) {
+          console.log(`[GPT] 챕터 ${i + 1} 전 ${GPT_CHAPTER_DELAY_MS}ms 대기 (rate limit 방지)`);
+          await sleep(GPT_CHAPTER_DELAY_MS);
+        }
         const fullSystemPrompt = `
         ${promtParts[i]}
 
@@ -3696,15 +3730,19 @@ let promtParts;
         [참고] GPT 분석을 위해 필요한 SAJU_JSON 데이터를 사용자 메시지에 담아 제공합니다.
         ${yearContext}`.trim();
 
+        const isAdultReport = gCode === "ADULT" || gCode === "ADULT_BUNDLE";
+        const expectedAdultChapter = isAdultReport ? extractAdultChapterTitleFromPrompt(promtParts[i]) : null;
+        const gptMaxTokens = isAdultReport ? 16384 : 4096;
+
 let parsed = null;
 let retryCount = 0;
 
 while (retryCount <= 2 && !parsed) {
   try {
     const response = await GptClient.callChatGpt([
-      { role: "system", content: fullSystemPrompt + "\n[중요: 반드시 JSON 형식으로만 답변하세요.]\n[절대 금지: {묘사 전문}, {사주 특징}, {연결 문구}, {키워드} 같은 플레이스홀더를 그대로 출력하지 마세요. 반드시 사전에서 선택한 실제 내용으로 대체해야 합니다.]" },
+      { role: "system", content: fullSystemPrompt + "\n[중요: 반드시 JSON 형식으로만 답변하세요. sections 배열은 정확히 4개여야 합니다.]\n[절대 금지: {묘사 전문}, {사주 특징}, {연결 문구}, {키워드} 같은 플레이스홀더를 그대로 출력하지 마세요. 반드시 사전에서 선택한 실제 내용으로 대체해야 합니다.]" },
       { role: "user", content: JSON.stringify(sajuJsonForGPT) },
-    ]);
+    ], "gpt-4o", gptMaxTokens);
 
     const cleanedResponse = preClean(String(response));
     
@@ -3760,11 +3798,25 @@ while (retryCount <= 2 && !parsed) {
         }
       }
     }
+
+    const sectionCount = countSectionsInParsed(parsed);
+    if (isAdultReport && sectionCount < 4) {
+      console.warn(`[챕터 ${i}] ADULT 섹션 ${sectionCount}개 — 4개 필요, 재시도합니다.`);
+      parsed = null;
+      retryCount++;
+      if (retryCount > 2) {
+        console.error(`[챕터 ${i}] 섹션 4개 미달. 마지막 응답으로 진행합니다.`);
+      } else {
+        await sleep(2000);
+        continue;
+      }
+    }
   } catch (err) {
     retryCount++;
     console.error(`[타이트 챕터 ${i} 시도 ${retryCount}] 실패:`, err.message);
-    if (retryCount > 2) throw err; // 3번 실패 시 에러 상위 전달
-    await new Promise(res => setTimeout(res, 500)); // 0.5초 후 재시도
+    if (retryCount > 2) throw err;
+    const waitMs = isRateLimitError(err.message) ? parseRateLimitWaitMs(err.message) : 2000;
+    await sleep(waitMs);
   }
 }
 
@@ -3775,10 +3827,11 @@ while (retryCount <= 2 && !parsed) {
         // 파싱 결과 처리 및 검증
         if (!parsed) {
           console.error(`[챕터 ${i}] 파싱 실패: parsed가 null입니다.`);
-          // 파싱 실패 시에도 기본 구조라도 추가하여 장은 표시되도록 함
-          const expectedChapter = goodsType === GoodsType.ROMANTIC 
-            ? extractRomanticChapterTitleFromPrompt(promtParts[i]) 
-            : `제${i + 1}장`;
+          const expectedChapter = isAdultReport
+            ? (expectedAdultChapter || `제${i + 1}장`)
+            : (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE")
+              ? extractRomanticChapterTitleFromPrompt(promtParts[i])
+              : `제${i + 1}장`;
           result.push({
             chapter: expectedChapter || `제${i + 1}장`,
             title: "내용 생성 중 오류 발생",
@@ -3791,7 +3844,7 @@ while (retryCount <= 2 && !parsed) {
                 if (section && (section.title || section.content)) {
                   const cleanedContent = removePlaceholders(section.content || "");
                   result.push({
-                    chapter: chapter.chapter || `제${i + 1}장`,
+                    chapter: (isAdultReport && expectedAdultChapter) ? expectedAdultChapter : (chapter.chapter || `제${i + 1}장`),
                     title: section.title || "제목 없음",
                     content: cleanedContent,
                   });
@@ -3808,7 +3861,7 @@ while (retryCount <= 2 && !parsed) {
             if (item && item.content) {
               const cleanedContent = removePlaceholders(item.content || "");
               result.push({
-                chapter: item.chapter || `제${i + 1}장`,
+                chapter: (isAdultReport && expectedAdultChapter) ? expectedAdultChapter : (item.chapter || `제${i + 1}장`),
                 title: item.title || "제목 없음",
                 content: cleanedContent,
               });
@@ -3816,7 +3869,9 @@ while (retryCount <= 2 && !parsed) {
           });
         } else if (parsed?.sections) {
           let chapterValue = parsed.chapter;
-          if (goodsType === GoodsType.ROMANTIC) {
+          if (isAdultReport && expectedAdultChapter) {
+            chapterValue = expectedAdultChapter;
+          } else if (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE") {
             const expectedChapter = extractRomanticChapterTitleFromPrompt(promtParts[i]) || parsed.chapter;
             const looksLikeSectionTitle = typeof chapterValue === "string" && /^\d+-\d+\.\s/.test(chapterValue);
             if (!chapterValue || looksLikeSectionTitle) {

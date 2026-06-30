@@ -1,17 +1,34 @@
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
+/** OpenAI rate_limit 응답에서 권장 대기 시간(ms) 추출 */
+export function parseRateLimitWaitMs(message) {
+  const text = String(message || '');
+  const match = text.match(/try again in ([\d.]+)s/i);
+  if (match) {
+    return Math.ceil(parseFloat(match[1]) * 1000) + 800;
+  }
+  if (/rate_limit_exceeded/i.test(text)) {
+    return 15000;
+  }
+  return 1500;
+}
+
+export function isRateLimitError(message) {
+  return /rate_limit_exceeded/i.test(String(message || ''));
+}
+
 class GptClient {
   /**
    * ChatGPT 프롬프트 호출 함수
-   * 최대 3회까지 재시도 (기본 1회 + 실패시 2회)
+   * rate limit 시 API 권장 대기 후 재시도 (최대 6회)
    */
   async callChatGpt(messages, model = 'gpt-4o', maxTokens = 4096) {
     if (!OPENAI_API_KEY) {
       throw new Error('환경변수 OPENAI_API_KEY가 설정되지 않았습니다. .env에 설정 후 서버를 재시작하세요.');
     }
 
-    const MAX_RETRIES = 2; // 최초 1회 + 추가 2회 = 총 3회
+    const MAX_RETRIES = 5;
     let attempt = 0;
     let lastError;
 
@@ -28,8 +45,7 @@ class GptClient {
             messages,
             temperature: 0.7,
             max_tokens: maxTokens,
-            response_format: { type: "json_object" } // 모델 수준에서 JSON 출력 강제            
-
+            response_format: { type: "json_object" },
           }),
         });
 
@@ -45,20 +61,22 @@ class GptClient {
         lastError = err;
         console.error(`[GPT ERROR] 시도 ${attempt + 1}회 실패:`, err.message);
 
-        // 마지막 시도라면 바로 throw
         if (attempt === MAX_RETRIES) {
           console.error("[GPT ERROR] 최대 재시도 횟수 초과");
           throw lastError;
         }
 
-        // 재시도 전 약간의 대기 (100~300ms)
-        await new Promise(resolve => setTimeout(resolve, 150));
+        const waitMs = parseRateLimitWaitMs(err.message);
+        if (isRateLimitError(err.message)) {
+          console.log(`[GPT] rate limit — ${waitMs}ms 후 재시도`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
       }
 
       attempt++;
     }
 
-    throw lastError; // 논리적으로 여기까지 올 일은 거의 없음
+    throw lastError;
   }
 }
 

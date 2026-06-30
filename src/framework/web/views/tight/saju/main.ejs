@@ -5,7 +5,7 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
-<body style="background:#0a0a0a; color:#fff; font-family:'Pretendard',-apple-system,sans-serif; padding-bottom:80px; margin:0;">
+<body style="background:#0a0a0a; color:#fff; font-family:'Pretendard',-apple-system,sans-serif; margin:0;">
 
   <div class="page-wrapper w-full max-w-[480px] mx-auto min-h-screen flex flex-col">
     <%- include('./../common/common') %>
@@ -141,41 +141,6 @@
     </div>
 
   </div>
-
-  <!-- 하단 네비게이션 바 -->
-  <nav id="bottom-nav-bar" style="position:fixed; bottom:0; left:0; right:0; z-index:50; background:#111; border-top:1px solid rgba(255,255,255,0.06);">
-    <div style="max-width:480px; margin:0 auto; display:flex; justify-content:space-around; align-items:center; height:68px; padding:0 8px;">
-
-      <!-- 홈 (활성) -->
-      <a href="/saju" style="display:flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color:#fff; flex:1;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-        </svg>
-      </a>
-
-      <!-- 채팅 -->
-      <a href="javascript:void(0)" style="display:flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color:rgba(255,255,255,0.35); flex:1;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-      </a>
-
-      <!-- 검색 -->
-      <a href="javascript:void(0)" style="display:flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color:rgba(255,255,255,0.35); flex:1;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-      </a>
-
-      <!-- 박스 -->
-      <a href="javascript:void(0)" style="display:flex; flex-direction:column; align-items:center; gap:4px; text-decoration:none; color:rgba(255,255,255,0.35); flex:1;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
-        </svg>
-      </a>
-
-    </div>
-  </nav>
 
   <style>
     section div::-webkit-scrollbar { display: none; }
@@ -461,11 +426,6 @@
       #main-navbar {
         left:   max(0px, calc(50% - 240px)) !important;
         right:  max(0px, calc(50% - 240px)) !important;
-      }
-      #bottom-nav-bar {
-        left:   max(0px, calc(50% - 240px)) !important;
-        right:  max(0px, calc(50% - 240px)) !important;
-        border-radius: 0 0 12px 12px;
       }
       .page-wrapper {
         border-left:  1px solid rgba(255,255,255,0.07);

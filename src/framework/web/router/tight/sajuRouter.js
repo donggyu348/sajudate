@@ -11,6 +11,7 @@ import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
 import { buildLoveTendencyPreview, buildRomanticPreview } from "../../service/romanticPreviewService.js";
 import { buildAdultResultPreview, buildAdultCompatibilityPreview } from "../../service/adultPreviewService.js";
+import reportGenerationService from "../../service/reportGenerationService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
 import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
@@ -553,27 +554,16 @@ router.get("/payment_success", async (req, res) => {
     }
 
     /**
-     * ③ 결과 확인 및 GPT 호출
+     * ③ 결과 확인 및 GPT 호출 (중복 방지 — /api/gpt/report 와 동일 서비스)
      */
    if (reportHistory.reportInfo) {
       return res.redirect("/saju/report?shopOrderNo=" + shopOrderNo);
     }
 
-    // 비동기 GPT 호출 (기존 유지)
-    (async () => {
-      try {
-        const goodsTypeObject = GoodsType[reportHistory.goodsType];
-        console.log(`[SERVER_START] 결제 승인 즉시 GPT 호출: ${shopOrderNo}`);
-        const response = await gptService.callReport(reportHistory.userInfo, goodsTypeObject);
-        await reportHistoryService.updateById({
-          id: reportHistory.id,
-          reportInfo: response
-        });
-        console.log(`[SERVER_SUCCESS] GPT 생성 완료: ${shopOrderNo}`);
-      } catch (err) {
-        console.error("[SERVER_ERROR] 즉시 실행 GPT 오류:", err);
-      }
-    })();
+    reportGenerationService
+      .generateReportForOrder(shopOrderNo)
+      .then(() => console.log(`[SERVER_SUCCESS] GPT 생성 완료: ${shopOrderNo}`))
+      .catch((err) => console.error("[SERVER_ERROR] 즉시 실행 GPT 오류:", err));
 
 let fileDir = 'tight';
 
