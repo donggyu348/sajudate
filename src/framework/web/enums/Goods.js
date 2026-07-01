@@ -23,9 +23,9 @@ export const GoodsType = Object.freeze({
   ROMANTIC: {
     code: "ROMANTIC",
     title: '연애사주',
-    originalPrice: 56000,
-    discountPrice: 37100,
-    price: 18900,
+    originalPrice: 53800,
+    discountPrice: 21900,
+    price: 31900,
     platform: Platform.TIGHT
   },
    CLASSIC_BUNDLE: {
@@ -42,9 +42,9 @@ export const GoodsType = Object.freeze({
   ROMANTIC_BUNDLE: {
     code: "ROMANTIC_BUNDLE",
     title: '연애사주 + 29금 사주',
-    originalPrice: 74200,
-    discountPrice: 39300,
-    price: 34900,
+    originalPrice: 71700,
+    discountPrice: 21900,
+    price: 49800,
     platform: Platform.TIGHT,
     giveTicket: "ADULT" // 이 상품을 사면 ADULT(29금) 티켓을 줌
   },
@@ -53,9 +53,9 @@ export const GoodsType = Object.freeze({
   ADULT: {
     code: "ADULT",
     title: "29금 사주",
-    originalPrice: 49000,
-    discountPrice: 27100,
-    price: 21900,
+    originalPrice: 56800,
+    discountPrice: 21900,
+    price: 34900,
     platform: Platform.TIGHT
   },
 
@@ -63,9 +63,9 @@ export const GoodsType = Object.freeze({
   ADULT_BUNDLE: {
     code: "ADULT_BUNDLE",
     title: "29금 사주 + 연애사주",
-    originalPrice: 74200,
-    discountPrice: 39300,
-    price: 34900,
+    originalPrice: 71700,
+    discountPrice: 21900,
+    price: 49800,
     platform: Platform.TIGHT,
     giveTicket: "ROMANTIC"
   }
