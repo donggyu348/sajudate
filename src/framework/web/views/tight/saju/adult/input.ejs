@@ -571,7 +571,7 @@
         </div>
 
         <div class="form-row">
-          <input name="birthdate" id="birthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="8" autocomplete="bday">
+          <input name="birthdate" id="birthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="10" autocomplete="bday">
           <div class="pill-group" role="group" aria-label="양력/음력">
             <button type="button" class="pill-btn active" data-birth-type="양력" data-target="me">양력</button>
             <button type="button" class="pill-btn" data-birth-type="음력" data-target="me">음력</button>
@@ -614,7 +614,7 @@
         </div>
 
         <div class="form-row">
-          <input name="partnerBirthdate" id="partnerBirthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="8">
+          <input name="partnerBirthdate" id="partnerBirthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="10">
           <div class="pill-group" role="group" aria-label="상대방 양력/음력">
             <button type="button" class="pill-btn active" data-birth-type="양력" data-target="partner">양력</button>
             <button type="button" class="pill-btn" data-birth-type="음력" data-target="partner">음력</button>
@@ -717,23 +717,8 @@
   genderInput.value = '남성';
   partnerGenderInput.value = '여성';
 
-  function setupBirthdateInput(input) {
-    input.addEventListener('input', function () {
-      input.value = input.value.replace(/\D/g, '').slice(0, 8);
-    });
-    input.addEventListener('blur', function () {
-      const digits = input.value.replace(/\D/g, '');
-      if (/^\d{8}$/.test(digits)) {
-        input.value = digits.slice(0, 4) + '.' + digits.slice(4, 6) + '.' + digits.slice(6, 8);
-      }
-    });
-    input.addEventListener('focus', function () {
-      input.value = input.value.replace(/\D/g, '');
-    });
-  }
-
-  setupBirthdateInput(birthdateInput);
-  setupBirthdateInput(partnerBirthdateInput);
+  window.setupBirthdateInput(birthdateInput);
+  window.setupBirthdateInput(partnerBirthdateInput);
 
   document.querySelectorAll('.gender-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -1016,8 +1001,8 @@
 
   function submitForm() {
     const data = buildUserData();
-    birthdateInput.value = data.birthdate;
-    partnerBirthdateInput.value = data.partnerInfo.birthdate;
+    window.setBirthdateInputValue(birthdateInput, data.birthdate);
+    window.setBirthdateInputValue(partnerBirthdateInput, data.partnerInfo.birthdate);
 
     if (data.name === '테스트' || data.name === '관리자') {
       const $form = $('#sajuForm');

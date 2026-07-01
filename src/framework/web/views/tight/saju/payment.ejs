@@ -152,6 +152,45 @@
         </div>
     </div>
 
+    <!-- 결제 이탈 방지 모달 -->
+    <div id="exit-modal" class="exit-modal hidden" aria-hidden="true">
+        <div class="exit-modal__backdrop"></div>
+        <div class="exit-modal__sheet" role="dialog" aria-modal="true" aria-labelledby="exit-modal-title">
+            <div class="exit-modal__handle" aria-hidden="true"></div>
+
+            <div class="exit-modal__badge">지금만 적용되는 할인</div>
+            <h3 id="exit-modal-title" class="exit-modal__title">잠깐만요!<br>할인 혜택이 사라져요</h3>
+            <p class="exit-modal__subtitle">아래 시간이 지나면 특별 할인이 종료됩니다</p>
+
+            <div class="exit-modal__timer-wrap">
+                <div class="exit-timer-unit">
+                    <span id="exit-hours" class="exit-timer-num">00</span>
+                    <span class="exit-timer-label">시간</span>
+                </div>
+                <span class="exit-timer-colon">:</span>
+                <div class="exit-timer-unit">
+                    <span id="exit-minutes" class="exit-timer-num">00</span>
+                    <span class="exit-timer-label">분</span>
+                </div>
+                <span class="exit-timer-colon">:</span>
+                <div class="exit-timer-unit">
+                    <span id="exit-seconds" class="exit-timer-num">00</span>
+                    <span class="exit-timer-label">초</span>
+                </div>
+            </div>
+
+            <div class="exit-modal__benefit-card">
+                <p class="exit-modal__benefit-label">지금 나가면 놓치는 혜택</p>
+                <p id="exit-benefit" class="exit-modal__benefit-amount">21,900원</p>
+            </div>
+
+            <div class="exit-modal__actions">
+                <button type="button" id="exit-stay-btn" class="exit-modal__btn exit-modal__btn--primary">할인 받고 계속하기</button>
+                <button type="button" id="exit-leave-btn" class="exit-modal__btn exit-modal__btn--ghost">그냥 나갈래요</button>
+            </div>
+        </div>
+    </div>
+
     <style>
         .goods-card { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-radius: 12px; border: 1.5px solid #f3f4f6; cursor: pointer; transition: all 0.2s; }
         .goods-card.is-selected { border-color: #0064ff; background-color: #f0f7ff; }
@@ -212,6 +251,148 @@
   transform: scale(1.2);
 }
 
+/* 결제 이탈 방지 모달 — 바텀시트 */
+.exit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.exit-modal.hidden {
+  display: none;
+}
+.exit-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(2px);
+}
+.exit-modal__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  padding: 12px 24px calc(24px + env(safe-area-inset-bottom));
+  text-align: center;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12);
+  animation: exit-sheet-up 0.32s ease-out;
+}
+@keyframes exit-sheet-up {
+  from { transform: translateY(100%); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.exit-modal__handle {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 16px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+.exit-modal__badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fff1f2;
+  color: #ec4899;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.exit-modal__title {
+  color: #111827;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+.exit-modal__subtitle {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.exit-modal__timer-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.exit-timer-unit {
+  min-width: 72px;
+  padding: 12px 8px 10px;
+  border-radius: 14px;
+  background: #f0f7ff;
+  border: 1px solid #dbeafe;
+}
+.exit-timer-num {
+  display: block;
+  color: #0064ff;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.exit-timer-label {
+  display: block;
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+}
+.exit-timer-colon {
+  color: #9ca3af;
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: -18px;
+}
+.exit-modal__benefit-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.exit-modal__benefit-label {
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.exit-modal__benefit-amount {
+  color: #0064ff;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.exit-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.exit-modal__btn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.exit-modal__btn--primary {
+  background: #0064ff;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(0, 100, 255, 0.25);
+}
+.exit-modal__btn--ghost {
+  background: transparent;
+  color: #9ca3af;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 
     </style>
 
@@ -220,6 +401,104 @@
         let finalGoodsCode = "<%= goodsInfo.code %>";
         const goodsNameBase = "<%= goodsInfo.title %>";
         const reportHistoryId = "<%= reportHistoryId %>";
+        let allowLeave = false;
+        let pendingLeaveUrl = null;
+        let countdownTimerId = null;
+        const COUNTDOWN_STORAGE_KEY = "payment_exit_countdown_end";
+        const COUNTDOWN_DURATION_MS = 20 * 60 * 60 * 1000;
+
+        const exitModal = document.getElementById("exit-modal");
+        const exitHoursEl = document.getElementById("exit-hours");
+        const exitMinutesEl = document.getElementById("exit-minutes");
+        const exitSecondsEl = document.getElementById("exit-seconds");
+        const exitBenefitEl = document.getElementById("exit-benefit");
+        const exitLeaveBtn = document.getElementById("exit-leave-btn");
+        const exitStayBtn = document.getElementById("exit-stay-btn");
+        const backLink = document.querySelector(".border-b a");
+
+        function getCountdownEndTime() {
+            let end = sessionStorage.getItem(COUNTDOWN_STORAGE_KEY);
+            if (!end) {
+                end = String(Date.now() + COUNTDOWN_DURATION_MS);
+                sessionStorage.setItem(COUNTDOWN_STORAGE_KEY, end);
+            }
+            return Number(end);
+        }
+
+        function formatCountdown(ms) {
+            const totalSec = Math.max(0, Math.floor(ms / 1000));
+            const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
+            const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
+            const s = String(totalSec % 60).padStart(2, "0");
+            return { h, m, s };
+        }
+
+        function startExitCountdown() {
+            if (countdownTimerId) clearInterval(countdownTimerId);
+            const tick = () => {
+                const remain = getCountdownEndTime() - Date.now();
+                const { h, m, s } = formatCountdown(remain);
+                exitHoursEl.textContent = h;
+                exitMinutesEl.textContent = m;
+                exitSecondsEl.textContent = s;
+            };
+            tick();
+            countdownTimerId = setInterval(tick, 1000);
+        }
+
+        function updateExitBenefitText() {
+            const data = GOODS_MAP[finalGoodsCode];
+            const discount = data?.discountPrice || <%= goodsInfo.discountPrice %>;
+            exitBenefitEl.textContent = `${discount.toLocaleString()}원`;
+        }
+
+        function showExitModal(leaveUrl) {
+            pendingLeaveUrl = leaveUrl || null;
+            updateExitBenefitText();
+            exitModal.classList.remove("hidden");
+            exitModal.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+        }
+
+        function hideExitModal() {
+            exitModal.classList.add("hidden");
+            exitModal.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+            pendingLeaveUrl = null;
+        }
+
+        function confirmLeave() {
+            allowLeave = true;
+            hideExitModal();
+            if (pendingLeaveUrl) {
+                window.location.href = pendingLeaveUrl;
+                return;
+            }
+            history.back();
+        }
+
+        function setupExitGuard() {
+            history.pushState({ paymentGuard: true }, "", location.href);
+
+            window.addEventListener("popstate", () => {
+                if (allowLeave) return;
+                history.pushState({ paymentGuard: true }, "", location.href);
+                showExitModal();
+            });
+
+            if (backLink) {
+                backLink.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    showExitModal(backLink.getAttribute("href"));
+                });
+            }
+
+            exitStayBtn.addEventListener("click", hideExitModal);
+            exitLeaveBtn.addEventListener("click", confirmLeave);
+            exitModal.querySelector(".exit-modal__backdrop").addEventListener("click", hideExitModal);
+
+            startExitCountdown();
+        }
 
         const tossPayments = TossPayments("live_ck_yZqmkKeP8gB9OlXz5ggnrbQRxB9l");
         const payment = tossPayments.payment({ customerKey: "USER_" + reportHistoryId });
@@ -286,6 +565,7 @@ if (type === 'bundle') {
                 } else {
                     dDiscountRow.classList.add('hidden');
                 }
+                updateExitBenefitText();
             }
         }
 
@@ -334,7 +614,10 @@ console.log(" [FRONT] 전송 데이터 확인:", {
   const bundleCard = document.getElementById("card-bundle");
   if (bundleCard) {
     selectOption("bundle");
+  } else {
+    updateExitBenefitText();
   }
+  setupExitGuard();
 });
     </script>
 </body>

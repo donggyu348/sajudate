@@ -63,7 +63,44 @@ const sendPaymentCallback = (data) => {
     });
 }
 
+/** 생년월일 입력 — 입력 중 YYYY.MM.DD 자동 포맷 */
+window.formatBirthdateDots = function (value) {
+  const digits = String(value).replace(/\D/g, "").slice(0, 8);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}.${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6)}`;
+};
 
+window.setupBirthdateInput = function (input) {
+  if (!input || input.dataset.birthdateBound === "1") return;
+  input.dataset.birthdateBound = "1";
+  input.setAttribute("maxlength", "10");
+  if (!input.getAttribute("placeholder")) {
+    input.setAttribute("placeholder", "2001.01.01");
+  }
+  input.addEventListener("input", function () {
+    const caret = input.selectionStart || 0;
+    const digitsBeforeCaret = input.value.slice(0, caret).replace(/\D/g, "").length;
+    input.value = window.formatBirthdateDots(input.value);
+    let newCaret = 0;
+    let digitsSeen = 0;
+    for (let i = 0; i < input.value.length; i++) {
+      if (/\d/.test(input.value[i])) {
+        digitsSeen++;
+        if (digitsSeen >= digitsBeforeCaret) {
+          newCaret = i + 1;
+          break;
+        }
+      }
+      newCaret = i + 1;
+    }
+    input.setSelectionRange(newCaret, newCaret);
+  });
+};
 
-
+window.setBirthdateInputValue = function (input, raw) {
+  if (!input) return;
+  const digits = String(raw).replace(/\D/g, "").slice(0, 8);
+  input.value = digits.length === 8 ? window.formatBirthdateDots(digits) : digits;
+};
 

@@ -208,13 +208,12 @@ const steps = [
   {
     key: "birthdate",
     title: "태어난 날을 알려주세요",
-    desc: "YYYYMMDD 형식으로 입력해주세요.",
-    render: () => `<input type="text" maxlength="8" placeholder="예) 19940517">`,
+    desc: "생년월일을 입력해주세요.",
+    render: () => `<input type="text" maxlength="10" inputmode="numeric" placeholder="2001.01.01">`,
     validate: () => {
-      const v = document.querySelector('.answer-area input').value.trim();
-      if (!v || !/^\d{8}$/.test(v)) return false;
-      const formatted = `${v.slice(0, 4)}-${v.slice(4, 6)}-${v.slice(6, 8)}`;
-      document.getElementById('birthDateInput').value = formatted; // 데이터 유지
+      const v = document.querySelector('.answer-area input').value.replace(/\D/g, '');
+      if (!/^\d{8}$/.test(v)) return false;
+      document.getElementById('birthDateInput').value = v;
       return true;
     }
   },
@@ -265,6 +264,13 @@ function renderStep() {
       document.getElementById('genderInput').value = btn.dataset.value;
     };
   });
+
+  if (step.key === 'birthdate') {
+    const birthInput = answerArea.querySelector('input');
+    if (birthInput && window.setupBirthdateInput) {
+      window.setupBirthdateInput(birthInput);
+    }
+  }
 
   nextBtn.textContent = stepIndex === steps.length - 1 ? '기록을 시작합니다' : '다음으로';
 }

@@ -434,7 +434,7 @@
       </div>
 
       <div class="form-row">
-        <input name="birthdate" id="birthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="8" autocomplete="bday">
+        <input name="birthdate" id="birthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="10" autocomplete="bday">
         <div class="pill-group" role="group" aria-label="양력/음력">
           <button type="button" class="pill-btn active" data-birth-type="양력">양력</button>
           <button type="button" class="pill-btn" data-birth-type="음력">음력</button>
@@ -480,28 +480,7 @@
     });
   });
 
-  function formatBirthdate(value) {
-    const digits = value.replace(/\D/g, '').slice(0, 8);
-    if (digits.length === 8) {
-      return digits.slice(0, 4) + '.' + digits.slice(4, 6) + '.' + digits.slice(6, 8);
-    }
-    return digits;
-  }
-
-  birthdateInput.addEventListener('input', function () {
-    const digits = birthdateInput.value.replace(/\D/g, '').slice(0, 8);
-    birthdateInput.value = digits;
-  });
-
-  birthdateInput.addEventListener('blur', function () {
-    if (/^\d{8}$/.test(birthdateInput.value)) {
-      birthdateInput.value = formatBirthdate(birthdateInput.value);
-    }
-  });
-
-  birthdateInput.addEventListener('focus', function () {
-    birthdateInput.value = birthdateInput.value.replace(/\D/g, '');
-  });
+  window.setupBirthdateInput(birthdateInput);
 
   function updateTimeDisplay() {
     const option = birthTimeSelect.options[birthTimeSelect.selectedIndex];
