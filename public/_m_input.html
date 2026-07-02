@@ -1,6 +1,87 @@
 <!DOCTYPE html>
 <html lang="ko">
-<%- include('./../../common/header') %>
+<head>
+
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>사주정감</title>
+    <link href="/assets/css/main.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="icon" href="/assets/images/unsejujangso_favicon.ico" />
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/assets/js/main.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<!-- Meta CAPI Parameter Builder (클라이언트) — 랜딩 시 _fbc/_fbp 수집, fbclid 미변형 -->
+<script src="https://unpkg.com/meta-capi-param-builder-clientjs@1.3.0/dist/clientParamBuilder.bundle.js"></script>
+<script>
+(function () {
+  function run() {
+    if (typeof clientParamBuilder === "undefined" || !clientParamBuilder.processAndCollectAllParams) return;
+    clientParamBuilder.processAndCollectAllParams(window.location.href).catch(function (e) {
+      console.warn("[Meta ParamBuilder client]", e);
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
+})();
+</script>
+
+<!-- Meta Pixel Code -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1865484017449049', {});
+  fbq('track', 'PageView', {}, { eventID: 'x' });
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1865484017449049&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Code -->
+
+
+
+
+
+ 
+
+
+   
+<style>
+  #home-logo {
+    position: fixed; top: 14px; left: 16px; z-index: 9999;
+    font-family: 'Noto Serif KR', serif; font-size: 15px; font-weight: 700;
+    color: #c9a84c; text-decoration: none; letter-spacing: 0.02em;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.85); padding: 4px 4px;
+  }
+  #home-logo:hover { color: #e0b866; }
+</style>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (document.getElementById("home-logo")) return;
+    var a = document.createElement("a");
+    a.id = "home-logo";
+    a.href = "/saju";
+    a.textContent = "사주정감";
+    document.body.appendChild(a);
+  });
+</script>
+</head>
 <head>
   <style>
     :root {

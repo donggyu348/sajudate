@@ -1,0 +1,1 @@
+{ "version": "0.0.1", "configurations": [ { "name": "saju-static", "runtimeExecutable": "node", "runtimeArgs": ["scratch-static-server.mjs"], "port": 4173 } ] }

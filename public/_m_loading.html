@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>사주정감</title>
+    <link href="/assets/css/main.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="icon" href="/assets/images/unsejujangso_favicon.ico" />
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/assets/js/main.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<!-- Meta CAPI Parameter Builder (클라이언트) — 랜딩 시 _fbc/_fbp 수집, fbclid 미변형 -->
+<script src="https://unpkg.com/meta-capi-param-builder-clientjs@1.3.0/dist/clientParamBuilder.bundle.js"></script>
+<script>
+(function () {
+  function run() {
+    if (typeof clientParamBuilder === "undefined" || !clientParamBuilder.processAndCollectAllParams) return;
+    clientParamBuilder.processAndCollectAllParams(window.location.href).catch(function (e) {
+      console.warn("[Meta ParamBuilder client]", e);
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
+})();
+</script>
+
+<!-- Meta Pixel Code -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1865484017449049', {});
+  fbq('track', 'PageView', {}, { eventID: 'x' });
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1865484017449049&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Code -->
+
+
+
+
+
+ 
+
+
+   
+<style>
+  #home-logo {
+    position: fixed; top: 14px; left: 16px; z-index: 9999;
+    font-family: 'Noto Serif KR', serif; font-size: 15px; font-weight: 700;
+    color: #c9a84c; text-decoration: none; letter-spacing: 0.02em;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.85); padding: 4px 4px;
+  }
+  #home-logo:hover { color: #e0b866; }
+</style>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (document.getElementById("home-logo")) return;
+    var a = document.createElement("a");
+    a.id = "home-logo";
+    a.href = "/saju";
+    a.textContent = "사주정감";
+    document.body.appendChild(a);
+  });
+</script>
+</head>
+<head>
+  <style>
+    :root {
+      --red: #c0392b;
+      --red-deep: #8b1a1a;
+      --gold: #c9a84c;
+      --red-fill: rgba(192,57,43,0.30);
+    }
+
+    html, body { background: #000 !important; }
+
+    body {
+      margin: 0;
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    }
+
+    .stage {
+      max-width: 480px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      position: relative;
+      background: linear-gradient(180deg, #0a0000 0%, #070000 55%, #030000 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 44px 20px calc(90px + env(safe-area-inset-bottom));
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,0.7) 100%);
+    }
+
+    /* 헤더 문구 */
+    .head {
+      text-align: center;
+      margin-bottom: 24px;
+      z-index: 1;
+    }
+    .head .sub-tag {
+      font-size: 11px;
+      letter-spacing: 0.24em;
+      color: var(--gold);
+      opacity: 0.85;
+      margin: 0 0 12px;
+    }
+    .head h1 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      letter-spacing: 0.01em;
+    }
+    .head p {
+      font-size: 15px;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.68);
+      margin: 0;
+      word-break: keep-all;
+    }
+
+    /* 차트 카드 */
+    .chart-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(201,168,76,0.18);
+      border-radius: 20px;
+      padding: 22px 16px 26px;
+      box-sizing: border-box;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .signal-badge {
+      display: inline-block;
+      white-space: nowrap;
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      box-sizing: border-box;
+      margin: 0 auto 8px;
+      background: linear-gradient(135deg, var(--red-deep), var(--red));
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.4;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 8px 22px;
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 0 16px rgba(192,57,43,0.5);
+    }
+
+    .radar-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+    #radar { width: 100%; height: 100%; display: block; overflow: visible; }
+
+    .grid-poly { fill: none; stroke: rgba(255,255,255,0.10); stroke-width: 1; }
+    .axis-line { stroke: rgba(255,255,255,0.10); stroke-width: 1; }
+    .scale-txt { fill: rgba(255,255,255,0.32); font-size: 9px; }
+    .axis-label { fill: rgba(255,255,255,0.85); font-size: 13px; font-weight: 600; }
+
+    .data-poly {
+      fill: var(--red-fill);
+      stroke: var(--gold);
+      stroke-width: 2.5;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 8px rgba(192,57,43,0.6));
+    }
+    .data-dot { fill: var(--gold); filter: drop-shadow(0 0 5px rgba(201,168,76,0.9)); }
+
+    /* 상태 문구 */
+    .status {
+      margin: 22px 0 0;
+      font-size: 13.5px;
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+      min-height: 20px;
+      transition: opacity 0.35s ease;
+      z-index: 1;
+    }
+
+    /* 진행바 */
+    .progress-outer {
+      width: 100%;
+      max-width: 420px;
+      height: 34px;
+      margin-top: 26px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    .progress-inner {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #8b1a1a, #c0392b 70%, #d9a441);
+      border-radius: 20px;
+      transition: width 0.25s ease;
+      box-shadow: 0 0 16px rgba(192,57,43,0.6);
+    }
+    .progress-pct {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* 하단 고정 */
+    .footer-note {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      padding: 20px 0 calc(20px + env(safe-area-inset-bottom));
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--gold);
+      background: linear-gradient(180deg, transparent, #030000 40%);
+      z-index: 2;
+    }
+    .footer-note::after {
+      content: "";
+      display: inline-block;
+      width: 1.2em;
+      text-align: left;
+      animation: dots 1.4s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0% { content: ""; } 25% { content: "."; }
+      50% { content: ".."; } 75% { content: "..."; }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="stage">
+
+  <div class="head">
+    <p class="sub-tag">재회 사주</p>
+    <h1>홍길동님과 그 사람의 재회운</h1>
+    <p>붉은 실로 이어진 두 사람의<br>인연을 풀어내고 있어요</p>
+  </div>
+
+  <div class="chart-card">
+    <span class="signal-badge">재회 가능성 시그널</span>
+    <div class="radar-wrap">
+      <svg id="radar" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <p class="status" id="statusText">붉은 실로 이어진 인연을 읽는 중이에요...</p>
+
+  <div class="progress-outer">
+    <div class="progress-inner" id="progressInner"></div>
+    <div class="progress-pct" id="progressPct">0%</div>
+  </div>
+
+</div>
+
+<div class="footer-note">인연을 풀어내는 중</div>
+
+<!-- 결과 준비 페이지로 넘길 입력값 -->
+<form id="resultForm" method="POST" action="/saju/reunion/ready">
+
+  <input type="hidden" name="name" value="홍길동">
+
+  <input type="hidden" name="partnerName" value="성춘향">
+
+  <input type="hidden" name="gender" value="남자">
+
+  <input type="hidden" name="birthdate" value="20020202">
+
+  <input type="hidden" name="birthType" value="양력">
+
+  <input type="hidden" name="birthTime" value="01:30">
+
+  <input type="hidden" name="partnerGender" value="여자">
+
+  <input type="hidden" name="partnerBirthdate" value="20031128">
+
+  <input type="hidden" name="partnerBirthType" value="양력">
+
+  <input type="hidden" name="partnerBirthTime" value="13:12">
+
+  <input type="hidden" name="relationStatus" value="닫힌 문">
+
+  <input type="hidden" name="breakupReason" value="성격 차이와 잦은 다툼">
+
+  <input type="hidden" name="breakupInitiator" value="상대방이 먼저">
+
+</form>
+
+<script>
+  /* ===== 레이더 차트 ===== */
+  const svg = document.getElementById("radar");
+  const NS = "http://www.w3.org/2000/svg";
+  const cx = 150, cy = 150, R = 108;
+  const labels = ["재회운", "속마음", "연락운", "타이밍", "인연력"];
+  const base   = [83, 88, 70, 76, 90];
+  const amp    = [6, 5, 8, 7, 5];
+  const phase  = [0, 1.1, 2.2, 3.3, 4.4];
+
+  function angle(i) { return (-90 + 72 * i) * Math.PI / 180; }
+  function pt(val, i) {
+    const r = R * val / 100, a = angle(i);
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+  function polyStr(vals) {
+    return vals.map((v, i) => pt(v, i).join(",")).join(" ");
+  }
+  function make(tag, attrs) {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  [20, 40, 60, 80, 100].forEach(level => {
+    svg.appendChild(make("polygon", {
+      class: "grid-poly",
+      points: polyStr([level, level, level, level, level])
+    }));
+    const [lx, ly] = pt(level, 0);
+    svg.appendChild(Object.assign(make("text", {
+      class: "scale-txt", x: cx + 4, y: ly + 3
+    }), { textContent: level }));
+  });
+
+  labels.forEach((lab, i) => {
+    const [x, y] = pt(100, i);
+    svg.appendChild(make("line", { class: "axis-line", x1: cx, y1: cy, x2: x, y2: y }));
+    const [lx, ly] = pt(122, i);
+    const t = make("text", {
+      class: "axis-label", x: lx, y: ly + 4, "text-anchor": "middle"
+    });
+    t.textContent = lab;
+    svg.appendChild(t);
+  });
+
+  const dataPoly = make("polygon", { class: "data-poly", points: polyStr(base) });
+  svg.appendChild(dataPoly);
+  const dots = base.map((v, i) => {
+    const [x, y] = pt(v, i);
+    const c = make("circle", { class: "data-dot", cx: x, cy: y, r: 3.5 });
+    svg.appendChild(c);
+    return c;
+  });
+
+  let t0 = null;
+  function frame(ts) {
+    if (t0 === null) t0 = ts;
+    const t = (ts - t0) / 1000;
+    const intro = Math.min(t / 0.9, 1);
+    const ease = 1 - Math.pow(1 - intro, 3);
+    const vals = base.map((b, i) => {
+      const wobble = amp[i] * Math.sin(t * 1.6 + phase[i]);
+      return Math.max(6, Math.min(98, (b + wobble) * ease));
+    });
+    dataPoly.setAttribute("points", polyStr(vals));
+    vals.forEach((v, i) => {
+      const [x, y] = pt(v, i);
+      dots[i].setAttribute("cx", x);
+      dots[i].setAttribute("cy", y);
+    });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* ===== 상태 문구 로테이션 ===== */
+  const messages = [
+    "붉은 실로 이어진 인연을 읽는 중이에요...",
+    "두 사람의 인연의 흐름을 짚어보고 있어요...",
+    "재회의 결정적 타이밍을 계산하고 있어요...",
+    "상대의 속마음과 연락운을 살펴보고 있어요..."
+  ];
+  const statusEl = document.getElementById("statusText");
+  let mi = 0;
+  setInterval(() => {
+    mi = (mi + 1) % messages.length;
+    statusEl.style.opacity = 0;
+    setTimeout(() => { statusEl.textContent = messages[mi]; statusEl.style.opacity = 1; }, 350);
+  }, 2200);
+
+  /* ===== 진행바 ===== */
+  const inner = document.getElementById("progressInner");
+  const pct = document.getElementById("progressPct");
+  const DURATION = 7000;
+  let start = null;
+  function progress(ts) {
+    if (start === null) start = ts;
+    const p = Math.min((ts - start) / DURATION, 1);
+    const eased = Math.round((1 - Math.pow(1 - p, 2)) * 100);
+    inner.style.width = eased + "%";
+    pct.textContent = eased + "%";
+    if (p < 1) {
+      requestAnimationFrame(progress);
+    } else {
+      document.getElementById("resultForm").submit();
+    }
+  }
+  requestAnimationFrame(progress);
+</script>
+
+</body>
+</html>

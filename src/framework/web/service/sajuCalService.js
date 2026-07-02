@@ -53,9 +53,12 @@ function getSolarTermMonth(date) {
     `${year}-10-08`, `${year}-11-07`, `${year}-12-07`, `${year+1}-01-06`
   ];
 
+  // 소한(1/6) 이전(전년 대설~소한)은 자월(子, 11)
+  if (date.isBefore(dayjs(`${year}-01-06`))) return 11;
+
   for (let i=0;i<terms.length;i++){
     if(date.isBefore(dayjs(terms[i]))){
-      return i === 0 ? 12 : i; // 입춘 이전은 전년도 12월(축월)
+      return i === 0 ? 12 : i; // 소한~입춘은 축월(12)
     }
   }
   return 12;

@@ -9,6 +9,8 @@ import paymentService from "../../service/PaymentService.js";
 import { PaymentStatus } from "../../enums/Payment.js";
 import KakaoPayClient from "../../api/KakaoPayClient.js";
 import { getFourPillars } from "../../service/sajuCalService.js";
+import { buildManse } from "../../utils/manseView.js";
+import { pickReunionKeywords } from "../../utils/reunionKeywords.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
 import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
@@ -173,6 +175,37 @@ router.get("/reunion/intro", (req, res) => {
 /* 재회사주 입력 */
 router.get("/reunion/input", (req, res) => {
   res.render("tight/saju/reunion/input");
+});
+
+/* 재회사주 로딩(리포트 생성 중) */
+router.post("/reunion/loading", (req, res) => {
+  res.render("tight/saju/reunion/loading", {
+    form: req.body,
+    name: req.body.name
+  });
+});
+
+/* 재회사주 리포트 생성 완료 */
+router.post("/reunion/ready", (req, res) => {
+  res.render("tight/saju/reunion/ready", {
+    form: req.body,
+    name: req.body.name
+  });
+});
+
+/* 재회사주 미리보기(결제/전체 열람 유도) */
+router.post("/reunion/preview", (req, res) => {
+  const b = req.body;
+  const meManse  = buildManse({ birthdate: b.birthdate,        birthType: b.birthType,        birthTime: b.birthTime,        gender: b.gender });
+  const youManse = buildManse({ birthdate: b.partnerBirthdate, birthType: b.partnerBirthType, birthTime: b.partnerBirthTime, gender: b.partnerGender });
+  const keywords = pickReunionKeywords(b);
+  res.render("tight/saju/reunion/preview", {
+    form: b,
+    name: b.name,
+    meManse,
+    youManse,
+    keywords
+  });
 });
 
 /* 29금사주 입력 */

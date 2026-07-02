@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<head>
+  <style>
+    :root {
+      --bg: #090303;
+      --bg-2: #050202;
+      --card: rgba(18,10,10,0.85);
+      --gold: #c99a45;
+      --gold-soft: #e0b866;
+      --red: #b3261e;
+      --red-bright: #d9362b;
+      --text: #f4ede5;
+      --sub: #a79b90;
+    }
+
+    html, body { background: var(--bg-2) !important; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .stage {
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      background: linear-gradient(180deg, #0d0404 0%, #090303 40%, #050202 100%);
+      position: relative;
+      padding-bottom: calc(120px + env(safe-area-inset-bottom));
+      overflow: hidden;
+    }
+
+    /* ===== 히어로 ===== */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 78vh;
+      max-height: 720px;
+      overflow: hidden;
+    }
+    .hero-img {
+      position: absolute;
+      inset: -4% -4% -4% -4%;
+      width: 108%;
+      height: 108%;
+      object-fit: cover;
+      object-position: center 28%;
+      transform-origin: center 30%;
+      animation: kenburns 20s ease-in-out infinite alternate;
+      will-change: transform;
+    }
+    @keyframes kenburns {
+      0%   { transform: scale(1.04) translate(0, 0); }
+      100% { transform: scale(1.17) translate(-1.5%, -2.5%); }
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(5,2,2,0.55) 0%, rgba(5,2,2,0) 26%, rgba(5,2,2,0.15) 55%, rgba(5,2,2,0.85) 88%, #050202 100%);
+    }
+
+    .hero-top {
+      position: absolute;
+      top: 44px; left: 0; right: 0;
+      text-align: center;
+      z-index: 2;
+      padding: 0 20px;
+      animation: fadeDown 1s ease both;
+    }
+    .rate-q {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.6;
+      color: var(--text);
+      margin: 0 0 6px;
+      letter-spacing: 0.01em;
+      text-shadow: 0 2px 14px rgba(0,0,0,0.9);
+      word-break: keep-all;
+    }
+    .rate-q .rq-name {
+      color: var(--gold-soft);
+      font-weight: 700;
+    }
+    .rate-num {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 68px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      color: #fff;
+      text-shadow: 0 0 26px rgba(217,54,43,0.6), 0 2px 18px rgba(0,0,0,0.8);
+    }
+    .rate-num #rate { color: var(--gold-soft); }
+
+    .hero-bottom {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 30px;
+      text-align: center;
+      z-index: 2;
+      padding: 0 24px;
+      animation: fadeUp 1s ease 0.5s both;
+    }
+    .reunion-line {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 23px;
+      font-weight: 700;
+      line-height: 1.5;
+      margin: 0;
+      color: #fff;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.9);
+    }
+    .reunion-line b { color: var(--gold-soft); font-weight: 700; }
+    .reunion-line .blur-text {
+      color: var(--gold-soft);
+      filter: blur(7px);
+      user-select: none;
+      -webkit-user-select: none;
+      pointer-events: none;
+    }
+
+    /* ===== 소개 문구 ===== */
+    .intro-wrap {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 4px 26px 8px;
+      margin-top: -6px;
+    }
+    .poem {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 15.5px;
+      line-height: 1.85;
+      color: var(--gold-soft);
+      margin: 0 0 18px;
+      word-break: keep-all;
+    }
+    .intro {
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--sub);
+      margin: 0;
+      word-break: keep-all;
+    }
+
+    /* ===== 만세력(사주 원국) ===== */
+    .manse { padding: 0 20px; margin-top: 8px; }
+    .manse-block-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 18px; font-weight: 700; text-align: center;
+      color: #fff; margin: 0 0 18px;
+    }
+    .manse-person { margin-bottom: 24px; }
+    .manse-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .manse-head .who {
+      font-family: 'Noto Serif KR', serif; font-weight: 700;
+      font-size: 17px; color: #fff; letter-spacing: 0.04em;
+    }
+    .manse-head .meta { font-size: 11.5px; color: var(--sub); letter-spacing: 0.02em; }
+    .pillars { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+    .pillar { text-align: center; }
+    .pillar .god-top {
+      font-size: 11.5px; color: var(--sub); margin-bottom: 7px; height: 15px;
+      white-space: nowrap;
+    }
+    .pillar.day .god-top { color: var(--gold-soft); }
+    /* 사주 한자 명패 셀 */
+    .saju-cell {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 14px;
+      margin-bottom: 6px;
+      border: 1px solid rgba(224,184,102,0.38);
+      box-shadow: inset 0 0 14px rgba(0,0,0,0.42), 0 0 12px rgba(180,42,32,0.14);
+      overflow: hidden;
+    }
+    .saju-cell::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      opacity: 0.30;
+      background:
+        radial-gradient(circle at 50% 16%, rgba(255,230,170,0.16), transparent 32%),
+        radial-gradient(circle at 50% 60%, rgba(224,184,102,0.10), transparent 55%),
+        linear-gradient(135deg, rgba(255,255,255,0.06), transparent 45%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: auto, auto, auto, 90px 90px;
+    }
+    .saju-cell::after {
+      content: ""; position: absolute; inset: 5px; pointer-events: none;
+      border: 1px solid rgba(224,184,102,0.16); border-radius: 11px;
+    }
+    .saju-hanja {
+      position: relative; z-index: 1;
+      font-family: 'Noto Serif KR', serif;
+      font-size: 26px; font-weight: 700; line-height: 1;
+      color: #fff7e6;
+      text-shadow: 0 0 8px rgba(224,184,102,0.30), 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .saju-korean {
+      position: relative; z-index: 1;
+      margin-top: 4px; font-size: 11px; color: rgba(244,237,229,0.72);
+    }
+    .element-wood  { background: linear-gradient(145deg, #1f5139, #183528); }
+    .element-fire  { background: linear-gradient(145deg, #6b1717, #3b0c0c); }
+    .element-earth { background: linear-gradient(145deg, #9a6424, #5a3714); }
+    .element-metal { background: linear-gradient(145deg, #5d5a50, #36342f); }
+    .element-water { background: linear-gradient(145deg, #252f42, #151b28); }
+    .pillar .god-bot { font-size: 12px; color: var(--text); margin-top: 2px; }
+    .pillar .unseong { font-size: 10.5px; color: var(--sub); margin-top: 2px; }
+
+    /* ===== 방해별 ===== */
+    .obstacle { padding: 0 20px; text-align: center; }
+    .obstacle .oh {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 24px; font-weight: 700; line-height: 1.45;
+      color: #fff; margin: 0 0 18px; letter-spacing: 0.01em;
+    }
+    .obstacle .oh b { color: var(--red-bright); font-weight: 700; }
+    .obstacle .frame {
+      position: relative;
+      border-radius: 18px; overflow: hidden;
+      border: 1px solid rgba(201,154,69,0.45);
+      box-shadow: 0 0 34px rgba(179,38,30,0.28);
+    }
+    .obstacle .frame img {
+      display: block; width: 100%;
+    }
+    .obstacle .frame::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(circle at 50% 44%, rgba(217,54,43,0.22), transparent 56%);
+      animation: obGlow 3.6s ease-in-out infinite;
+    }
+    @keyframes obGlow { 0%,100% { opacity: 0.45; } 50% { opacity: 1; } }
+    .obstacle .frame .vig {
+      position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(180deg, rgba(5,2,2,0.35), transparent 22%, transparent 68%, rgba(5,2,2,0.9));
+    }
+    .obstacle .cap {
+      font-size: 14px; line-height: 1.75; color: var(--text);
+      margin: 18px 0 0; word-break: keep-all; opacity: 0.92;
+    }
+    .obstacle .lock {
+      display: inline-flex; align-items: center; gap: 7px;
+      margin: 13px 0 0; font-size: 12.5px; color: var(--gold-soft);
+    }
+
+    /* 공통 골드 구분선 */
+    .gold-divider {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; margin: 26px 0 6px; color: var(--gold); opacity: 0.7;
+    }
+    .gold-divider::before, .gold-divider::after {
+      content: ""; height: 1px; width: 46px;
+      background: linear-gradient(90deg, transparent, var(--gold));
+    }
+    .gold-divider::after { background: linear-gradient(90deg, var(--gold), transparent); }
+    .gold-divider span { font-size: 10px; }
+
+    /* ===== 미리보기 카드 ===== */
+    .wrap { padding: 0 20px; }
+    .cards { position: relative; z-index: 1; margin-top: 16px; }
+
+    .p-card {
+      position: relative;
+      background: var(--card);
+      border: 1px solid rgba(201,154,69,0.4);
+      border-radius: 20px;
+      padding: 22px 20px 18px;
+      margin-bottom: 18px;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+    }
+    .p-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; width: 3px; height: 100%;
+      background: linear-gradient(180deg, var(--red-bright), var(--red));
+    }
+    .p-card:nth-child(1) { animation-delay: 0.05s; }
+    .p-card:nth-child(2) { animation-delay: 0.15s; }
+    .p-card:nth-child(3) { animation-delay: 0.25s; }
+
+    .p-card .idx { font-size: 11px; letter-spacing: 0.2em; color: var(--gold); margin: 0 0 8px; }
+    .p-card h3 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 19px; font-weight: 700; margin: 0 0 12px; color: #fff;
+    }
+    .p-card p {
+      font-size: 14.5px; line-height: 1.75; color: var(--text);
+      margin: 0 0 16px; word-break: keep-all; opacity: 0.92;
+    }
+    .lock-row {
+      display: flex; align-items: center; gap: 8px;
+      border-top: 1px solid rgba(201,154,69,0.18);
+      padding-top: 13px; font-size: 12.5px; color: var(--gold-soft);
+    }
+    .lock-row .ico { flex: 0 0 auto; font-size: 12px; color: var(--gold); }
+
+    /* 키워드 카드 */
+    .kw-keyword {
+      display: flex; align-items: baseline; gap: 9px;
+      margin: 2px 0 14px; padding-bottom: 14px;
+      border-bottom: 1px solid rgba(201,154,69,0.18);
+    }
+    .kw-han { font-family: 'Noto Serif KR', serif; font-size: 27px; font-weight: 700; color: var(--gold-soft); letter-spacing: 0.02em; }
+    .kw-kor { font-size: 14px; color: var(--gold); letter-spacing: 0.06em; }
+    .kw-body p {
+      font-size: 14px; line-height: 1.75; color: var(--text);
+      opacity: 0.92; margin: 0 0 12px; word-break: keep-all;
+    }
+    .kw-body p:last-child { margin-bottom: 0; }
+    .kw-body p.kw-blur {
+      filter: blur(5px);
+      user-select: none; -webkit-user-select: none; pointer-events: none;
+    }
+    .kw-lock {
+      display: flex; align-items: flex-start; gap: 8px;
+      margin-top: 15px; padding-top: 13px;
+      border-top: 1px solid rgba(201,154,69,0.18);
+    }
+    .kw-lockicon { flex: 0 0 auto; font-size: 13px; color: var(--gold); margin-top: 1px; }
+    .kw-locked {
+      font-size: 13px; line-height: 1.6; color: var(--gold-soft);
+      word-break: keep-all;
+      filter: blur(4.5px);
+      user-select: none; -webkit-user-select: none; pointer-events: none;
+    }
+
+    /* 이미지가 텍스트로 자연스럽게 이어지는 카드 */
+    .p-card.has-hero { padding: 0; overflow: hidden; background: #120a0a; }
+    .p-card.has-hero::before { display: none; }
+    .kw-hero { position: relative; height: 360px; overflow: hidden; }
+    .kw-hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; display: block; }
+    .kw-hero::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 62%;
+      background: linear-gradient(180deg, rgba(18,10,10,0) 0%, rgba(18,10,10,0.55) 45%, rgba(18,10,10,0.92) 78%, #120a0a 100%);
+      pointer-events: none;
+    }
+    .kw-hero-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 20px 14px; z-index: 1; }
+    .kw-hero-cap .idx { display: block; font-size: 11px; letter-spacing: 0.2em; color: var(--gold); margin: 0 0 7px; }
+    .kw-hero-cap h3 {
+      font-family: 'Noto Serif KR', serif; font-size: 19px; font-weight: 700;
+      color: #fff; margin: 0; line-height: 1.4; text-shadow: 0 2px 16px rgba(0,0,0,0.85);
+    }
+    .kw-inner { padding: 16px 20px 20px; }
+    /* 이미지 아래 첫 문단은 여백을 좁혀 이미지와 이어지는 느낌 */
+    .kw-inner .kw-keyword { margin-top: 0; }
+
+    /* ===== 전체 리포트 목록 ===== */
+    .section { position: relative; z-index: 1; margin-top: 34px; }
+    .section-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 20px; font-weight: 700; text-align: center; margin: 0 0 20px; color: #fff;
+    }
+    .report-list {
+      list-style: none; padding: 0; margin: 0;
+      background: var(--card);
+      border: 1px solid rgba(201,154,69,0.28);
+      border-radius: 18px; overflow: hidden;
+    }
+    .report-list li {
+      display: flex; align-items: center; gap: 12px;
+      padding: 15px 18px; font-size: 14.5px; color: var(--text);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .report-list li:last-child { border-bottom: none; }
+    .report-list li .mark {
+      flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .mark.open { background: rgba(201,154,69,0.16); color: var(--gold-soft); border: 1px solid rgba(201,154,69,0.5); }
+    .mark.lock { background: rgba(179,38,30,0.18); color: var(--red-bright); border: 1px solid rgba(217,54,43,0.5); }
+    .report-list li.locked .txt { filter: blur(3.5px); opacity: 0.75; user-select: none; }
+    .report-list li .tail { margin-left: auto; font-size: 11px; color: var(--sub); }
+
+    /* ===== 리포트 안내 ===== */
+    .notice {
+      position: relative; z-index: 1; margin-top: 30px; text-align: center;
+      background: linear-gradient(180deg, rgba(179,38,30,0.10), rgba(18,10,10,0.6));
+      border: 1px solid rgba(201,154,69,0.25);
+      border-radius: 18px; padding: 26px 20px;
+    }
+    .notice .chapters {
+      display: inline-block; font-size: 12px; letter-spacing: 0.06em; color: var(--gold);
+      border: 1px solid rgba(201,154,69,0.4); border-radius: 20px; padding: 5px 14px; margin-bottom: 14px;
+    }
+    .notice h4 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 17px; font-weight: 700; margin: 0 0 12px; color: #fff; line-height: 1.5;
+    }
+    .notice p { font-size: 14px; line-height: 1.75; color: var(--sub); margin: 0; word-break: keep-all; }
+
+    /* ===== 하단 CTA (고정) ===== */
+    .cta-bar {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; z-index: 20;
+      padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+      box-sizing: border-box;
+      background: linear-gradient(180deg, rgba(5,2,2,0) 0%, #050202 38%);
+    }
+    .cta-btn {
+      display: block; width: 100%; padding: 17px 0;
+      border: 1px solid rgba(224,184,102,0.6); border-radius: 16px;
+      background: linear-gradient(135deg, #8b1a1a 0%, #b3261e 55%, #d9362b 100%);
+      color: #fff7ee; font-size: 16.5px; font-weight: 700; font-family: inherit;
+      letter-spacing: 0.04em; cursor: pointer;
+      box-shadow: 0 0 22px rgba(179,38,30,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
+      animation: glow 2.6s ease-in-out infinite;
+    }
+    .cta-btn:active { transform: scale(0.99); }
+    .cta-sub { text-align: center; font-size: 11.5px; color: var(--sub); margin: 10px 0 0; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 18px rgba(179,38,30,0.4), inset 0 1px 0 rgba(255,255,255,0.12); }
+      50%      { box-shadow: 0 0 30px rgba(217,54,43,0.7), inset 0 1px 0 rgba(255,255,255,0.12); }
+    }
+  </style>
+</head>
+
+<body>
+<%
+  const nm  = (typeof name !== 'undefined' && name ? String(name).trim() : '');
+  const pnm = (typeof form !== 'undefined' && form && form.partnerName ? String(form.partnerName).trim() : '');
+  const meLabel = nm || '나';
+  const youLabel = pnm || '그 사람';
+  const seedStr = (nm + pnm + (form && form.birthdate || '') + (form && form.partnerBirthdate || '')) || 'reunion';
+  function elClass(el) {
+    return ({ '목':'element-wood', '화':'element-fire', '토':'element-earth', '금':'element-metal', '수':'element-water' })[el] || '';
+  }
+%>
+<div class="stage">
+
+  <!-- 히어로 -->
+  <div class="hero">
+    <img class="hero-img" src="/assets/images/tight/reunion/teaser_hero.png" alt="재회사주">
+    <div class="hero-top">
+      <p class="rate-q"><span class="rq-name"><%= meLabel %></span>님과 <span class="rq-name"><%= youLabel %></span>님의<br>재회 가능성은?</p>
+      <div class="rate-num"><span id="rate">0</span>%</div>
+    </div>
+    <div class="hero-bottom">
+      <p class="reunion-line">상대방의 속마음은?<br><span class="blur-text">아직 남은 미련</span> 입니다.</p>
+    </div>
+  </div>
+
+  <!-- 소개 문구 -->
+  <div class="intro-wrap">
+    <p class="poem">끊어진 듯 보이는 인연에도<br>아직 풀리지 않은 마음의 실이 남아 있을 때가 있습니다.</p>
+    <p class="intro">사주가 모든 마음을 대신 말해줄 수는 없지만,<br>다시 한 번 그 사람과의 흐름을 알고 싶은 분들을 위해<br>두 사람의 인연과 재회 가능성을 조심스럽게 살펴봅니다.</p>
+    <div class="gold-divider"><span>&#10022;</span></div>
+  </div>
+
+  <!-- 사주 원국(만세력) -->
+  <% function renderManse(who, manse) { %>
+    <% if (manse && manse.pillars && manse.pillars.length) { %>
+      <div class="manse-person">
+        <div class="manse-head">
+          <span class="who"><%= who %></span>
+          <span class="meta"><%= manse.dateLabel %><%= manse.timeLabel ? ' · ' + manse.timeLabel : '' %><%= manse.calLabel ? ' · ' + manse.calLabel : '' %><%= manse.genderLabel ? ' · ' + manse.genderLabel : '' %></span>
+        </div>
+        <div class="pillars">
+          <% manse.pillars.forEach(function (p) { %>
+            <div class="pillar<%= p.isDay ? ' day' : '' %>">
+              <div class="god-top"><%= p.topGod %></div>
+              <div class="saju-cell <%= elClass(p.ganEl) %>">
+                <span class="saju-hanja"><%= p.ganHanja %></span>
+                <span class="saju-korean"><%= p.ganKor %></span>
+              </div>
+              <div class="saju-cell <%= elClass(p.jiEl) %>">
+                <span class="saju-hanja"><%= p.jiHanja %></span>
+                <span class="saju-korean"><%= p.jiKor %></span>
+              </div>
+              <div class="god-bot"><%= p.bottomGod %></div>
+              <div class="unseong"><%= p.unseong %></div>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    <% } %>
+  <% } %>
+
+  <% if ((typeof meManse !== 'undefined' && meManse) || (typeof youManse !== 'undefined' && youManse)) { %>
+    <div class="manse">
+      <h2 class="manse-block-title">두 사람의 사주 원국</h2>
+      <% renderManse(meLabel, typeof meManse !== 'undefined' ? meManse : null); %>
+      <% renderManse(youLabel, typeof youManse !== 'undefined' ? youManse : null); %>
+    </div>
+    <div class="gold-divider"><span>&#10022;</span></div>
+  <% } %>
+
+  <!-- 방해별 -->
+  <div class="obstacle">
+    <p class="oh">재회의 문을 가로막고 있는<br><b>붉은 줄</b></p>
+    <div class="frame">
+      <img src="/assets/images/tight/reunion/obstacle.png" alt="붉은 줄">
+      <span class="vig"></span>
+    </div>
+    <p class="cap">두 사람의 인연 흐름 위에, 지금의 재회를 가로막는 하나의 기운이 자리하고 있습니다.</p>
+    <p class="lock"><span>&#128274;</span> 붉은 줄의 정체와 풀리는 시기는 전체 리포트에서</p>
+  </div>
+  <div class="gold-divider"><span>&#10022;</span></div>
+
+  <div class="wrap">
+
+    <!-- 미리보기 카드 (입력 기반 키워드) -->
+    <div class="cards">
+      <%
+        var KW_IMAGES = {
+          blocker: "/assets/images/tight/reunion/blocker_scene.png",
+          heart:   "/assets/images/tight/reunion/heart_scene.png",
+          reunion: "/assets/images/tight/reunion/reunion_scene.png"
+        };
+        (typeof keywords !== 'undefined' && keywords ? keywords : [])
+          .filter(function (k) { return ['blocker','heart','reunion'].indexOf(k.category) !== -1; })
+          .forEach(function (kw) {
+            var kwImg = KW_IMAGES[kw.category];
+      %>
+        <div class="p-card<%= kwImg ? ' has-hero' : '' %>">
+          <% if (kwImg) { %>
+            <div class="kw-hero">
+              <img src="<%= kwImg %>" alt="<%= kw.cardTitle %>">
+              <div class="kw-hero-cap">
+                <span class="idx"><%= kw.cardLabel %></span>
+                <h3><%= kw.cardTitle %></h3>
+              </div>
+            </div>
+          <% } else { %>
+            <p class="idx"><%= kw.cardLabel %></p>
+            <h3><%= kw.cardTitle %></h3>
+          <% } %>
+          <div class="<%= kwImg ? 'kw-inner' : '' %>">
+            <div class="kw-keyword">
+              <span class="kw-han"><%= kw.hanja %></span>
+              <span class="kw-kor"><%= kw.label %></span>
+            </div>
+            <div class="kw-body">
+              <p><%= kw.previewText[0] %></p>
+              <% kw.previewText.slice(1).forEach(function (para) { %><p class="kw-blur"><%= para %></p><% }); %>
+            </div>
+            <div class="kw-lock">
+              <span class="kw-lockicon">&#128274;</span>
+              <span class="kw-locked"><%= kw.lockedText %></span>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+
+  </div>
+
+  <!-- 리포트 목차 (장별) -->
+  <%- include('./_report_toc', { showTocCta: false }) %>
+</div>
+
+<!-- 하단 고정 CTA -->
+<div class="cta-bar">
+  <form id="fullReportForm" method="POST" action="/saju/reunion/result">
+<% Object.entries(typeof form !== 'undefined' && form ? form : {}).forEach(function (e) { %>
+    <input type="hidden" name="<%= e[0] %>" value="<%= e[1] %>">
+<% }) %>
+    <button type="submit" class="cta-btn">전체 재회 흐름 확인하기</button>
+  </form>
+  <p class="cta-sub">봉인된 인연의 기록이 모두 열립니다</p>
+</div>
+
+<script>
+  // 재회 가능성 % : 입력값 기반 결정적 수치(60~92) → 0에서 카운트업
+  (function () {
+    var seed = "<%= seedStr %>";
+    var h = 0;
+    for (var i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+    var target = 60 + (h % 33); // 60 ~ 92
+    var el = document.getElementById("rate");
+    var dur = 1600, t0 = null;
+    function step(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(eased * target);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  })();
+
+  // TODO: 재회사주 결과/결제 라우트 연동 필요.
+  //  - 현재는 입력값을 담아 POST /saju/reunion/result 로 제출 (해당 라우트 미구현)
+  //  - 결제 플로우(/saju/payment)를 붙일 경우 userInfo/sample/goodsType 구성 후 교체
+  document.getElementById("fullReportForm").addEventListener("submit", function (e) {
+    // 결과/결제 라우트 준비되면 그대로 제출되게 두면 됩니다.
+  });
+</script>
+
+</body>
+</html>

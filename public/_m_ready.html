@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>사주정감</title>
+    <link href="/assets/css/main.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="icon" href="/assets/images/unsejujangso_favicon.ico" />
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/assets/js/main.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<!-- Meta CAPI Parameter Builder (클라이언트) — 랜딩 시 _fbc/_fbp 수집, fbclid 미변형 -->
+<script src="https://unpkg.com/meta-capi-param-builder-clientjs@1.3.0/dist/clientParamBuilder.bundle.js"></script>
+<script>
+(function () {
+  function run() {
+    if (typeof clientParamBuilder === "undefined" || !clientParamBuilder.processAndCollectAllParams) return;
+    clientParamBuilder.processAndCollectAllParams(window.location.href).catch(function (e) {
+      console.warn("[Meta ParamBuilder client]", e);
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
+})();
+</script>
+
+<!-- Meta Pixel Code -->
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1865484017449049', {});
+  fbq('track', 'PageView', {}, { eventID: 'x' });
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1865484017449049&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Code -->
+
+
+
+
+
+ 
+
+
+   
+<style>
+  #home-logo {
+    position: fixed; top: 14px; left: 16px; z-index: 9999;
+    font-family: 'Noto Serif KR', serif; font-size: 15px; font-weight: 700;
+    color: #c9a84c; text-decoration: none; letter-spacing: 0.02em;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.85); padding: 4px 4px;
+  }
+  #home-logo:hover { color: #e0b866; }
+</style>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (document.getElementById("home-logo")) return;
+    var a = document.createElement("a");
+    a.id = "home-logo";
+    a.href = "/saju";
+    a.textContent = "사주정감";
+    document.body.appendChild(a);
+  });
+</script>
+</head>
+<head>
+  <style>
+    html, body { background: #000 !important; }
+
+    body {
+      margin: 0;
+      color: #fff;
+      font-family: 'Noto Serif KR', system-ui, -apple-system, sans-serif;
+    }
+
+    .stage {
+      max-width: 480px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 상단 일러스트 */
+    .hero {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .hero-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      animation: heroIn 1.2s ease both;
+    }
+    @keyframes heroIn {
+      from { opacity: 0; transform: scale(1.06); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.55) 78%, #000 100%);
+    }
+    .hero-text {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: 34px;
+      text-align: center;
+      padding: 0 24px;
+      animation: fadeUp 1.1s ease 0.4s both;
+    }
+    .hero-text .tag {
+      display: inline-block;
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: #c9a84c;
+      margin: 0 0 14px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    }
+    .hero-text h1 {
+      font-size: 42px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      letter-spacing: 0.04em;
+      color: #fff;
+      text-shadow: 0 2px 22px rgba(0,0,0,0.75), 0 0 30px rgba(192,57,43,0.3);
+    }
+    .hero-text h1 span { color: #c9a84c; }
+    .hero-text p {
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0;
+      color: rgba(255,255,255,0.82);
+      letter-spacing: 0.01em;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 하단 CTA */
+    .cta-area {
+      flex: 0 0 auto;
+      background: #060000;
+      border-top: 1px solid rgba(201,168,76,0.18);
+      padding: 30px 24px calc(30px + env(safe-area-inset-bottom));
+      text-align: center;
+      animation: fadeUp 0.9s ease 0.7s both;
+    }
+    .ready-msg {
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1.5;
+      margin: 0 0 22px;
+      color: #fff;
+    }
+    .ready-msg b { color: #c9a84c; font-weight: 700; }
+    .result-btn {
+      display: block;
+      width: 100%;
+      padding: 18px 0;
+      border: 1px solid rgba(201,168,76,0.35);
+      border-radius: 14px;
+      background: linear-gradient(135deg, #8b1a1a, #c0392b);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(192,57,43,0.4);
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+    .result-btn:active { transform: scale(0.98); }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 6px 24px rgba(192,57,43,0.35); }
+      50%      { box-shadow: 0 6px 30px rgba(192,57,43,0.7); }
+    }
+  </style>
+</head>
+
+<body>
+<div class="stage">
+
+  <div class="hero">
+    <img class="hero-img" src="/assets/images/tight/reunion/report_bg.png" alt="재회사주">
+    <div class="hero-overlay"></div>
+    <div class="hero-text">
+      <span class="tag">R E U N I O N</span>
+      <h1>재회<span>사주</span></h1>
+      <p>더 늦기 전에, 다시 만날 수 있을까?</p>
+    </div>
+  </div>
+
+  <div class="cta-area">
+    <p class="ready-msg"><b>재회 사주 리포트</b>가<br>완성되었어요!</p>
+    <form id="resultForm" method="POST" action="/saju/reunion/preview">
+
+      <input type="hidden" name="name" value="홍길동">
+
+      <input type="hidden" name="partnerName" value="성춘향">
+
+      <input type="hidden" name="gender" value="남자">
+
+      <input type="hidden" name="birthdate" value="20020202">
+
+      <input type="hidden" name="birthType" value="양력">
+
+      <input type="hidden" name="birthTime" value="01:30">
+
+      <input type="hidden" name="partnerGender" value="여자">
+
+      <input type="hidden" name="partnerBirthdate" value="20031128">
+
+      <input type="hidden" name="partnerBirthType" value="양력">
+
+      <input type="hidden" name="partnerBirthTime" value="13:12">
+
+      <input type="hidden" name="relationStatus" value="닫힌 문">
+
+      <input type="hidden" name="breakupReason" value="성격 차이와 잦은 다툼">
+
+      <input type="hidden" name="breakupInitiator" value="상대방이 먼저">
+
+      <button type="submit" class="result-btn">클릭하고 결과 보러가기</button>
+    </form>
+  </div>
+
+</div>
+</body>
+</html>
