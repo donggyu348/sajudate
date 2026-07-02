@@ -615,10 +615,14 @@ function getTwelveGodKill(dayJi) {
 export function getFourPillars(userInfo) {
   if (Array.isArray(userInfo)) userInfo = userInfo[0];
 
-  let raw = String(userInfo.birthDate || userInfo.birthdate || "").trim();
-  if (/^\d{8}$/.test(raw)) raw = `${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
+  const digits = String(userInfo.birthDate || userInfo.birthdate || "").replace(/\D/g, "");
+  if (!/^\d{8}$/.test(digits)) {
+    throw new Error(`유효하지 않은 birthDate/birthdate 값입니다: ${userInfo.birthDate || userInfo.birthdate}`);
+  }
 
-  const [y,m,d] = raw.split("-").map(Number);
+  const y = Number(digits.slice(0, 4));
+  const m = Number(digits.slice(4, 6));
+  const d = Number(digits.slice(6, 8));
 
   // 🟦 시간이 숫자가 아니면 = 시간 모름 처리
   let birthTime = userInfo.birthTime;
