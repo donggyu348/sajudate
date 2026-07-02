@@ -18,6 +18,64 @@
       padding-bottom: 96px;
     }
 
+    .intro-hero {
+      position: relative;
+      width: 100%;
+      background: #000;
+      --intro-black-height: clamp(200px, 42vw, 300px);
+    }
+
+    .intro-hero__visual {
+      position: relative;
+      width: 100%;
+    }
+
+    .intro-hero__gif {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .intro-hero__black {
+      width: 100%;
+      height: var(--intro-black-height);
+      background: #000;
+    }
+
+    .intro-hero__gradient {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        transparent 48%,
+        rgba(0, 0, 0, 0.22) 58%,
+        rgba(0, 0, 0, 0.52) 68%,
+        rgba(0, 0, 0, 0.82) 78%,
+        #000 88%,
+        #000 100%
+      );
+    }
+
+    .intro-hero__pont {
+      position: absolute;
+      top: 58%;
+      right: 0;
+      bottom: calc(-1 * var(--intro-black-height));
+      width: auto;
+      max-width: 42%;
+      object-fit: contain;
+      object-position: right bottom;
+      transform: translateY(12px);
+      pointer-events: none;
+      z-index: 2;
+    }
+
     .landing-img {
       display: block;
       width: 100%;
@@ -85,6 +143,29 @@
 
 <body>
   <div class="page">
+    <div class="intro-hero">
+      <div class="intro-hero__visual">
+        <img
+          class="intro-hero__gif"
+          src="/assets/images/tight/29/intro/0702.gif"
+          alt="29금 속궁합 사주 인트로"
+          width="584"
+          loading="eager"
+          decoding="async"
+        >
+        <img
+          class="intro-hero__pont"
+          src="/assets/images/tight/29/intro/pont.png"
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          decoding="async"
+        >
+      </div>
+      <div class="intro-hero__black" aria-hidden="true"></div>
+      <div class="intro-hero__gradient" aria-hidden="true"></div>
+    </div>
+
     <img
       class="landing-img"
       src="/assets/images/tight/29/intro/landing-full.png?v=1"
