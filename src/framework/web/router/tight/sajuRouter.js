@@ -655,7 +655,7 @@ router.post("/report/check", (req, res) => {
 
         const paymentTransaction = await PaymentService.getPaymentTransaction(shopOrderNo);
 
-        let domain = "http://sajudate.store";
+        let domain = "http://wolhajeom.shop";
         if (paymentTransaction.platform === Platform.JUJANGSO.code) {
           domain = "https://saju-maeul.kr";
         }
