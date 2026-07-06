@@ -9387,6 +9387,10 @@ button,
   z-index: 50
 }
 
+.order-none {
+  order: 0
+}
+
 .float-start {
   float: inline-start
 }
@@ -9661,6 +9665,10 @@ button,
   display: flow-root
 }
 
+.\!grid {
+  display: grid !important
+}
+
 .grid {
   display: grid
 }
@@ -9702,6 +9710,11 @@ button,
 .size-9 {
   width: 2.25rem;
   height: 2.25rem
+}
+
+.size-auto {
+  width: auto;
+  height: auto
 }
 
 .h-1 {
@@ -9778,6 +9791,14 @@ button,
 
 .max-h-32 {
   max-height: 8rem
+}
+
+.max-h-none {
+  max-height: none
+}
+
+.max-h-screen {
+  max-height: 100vh
 }
 
 .min-h-16 {
@@ -9909,6 +9930,10 @@ button,
   width: 100%
 }
 
+.w-screen {
+  width: 100vw
+}
+
 .min-w-0 {
   min-width: 0px
 }
@@ -9961,6 +9986,14 @@ button,
   flex: 1 1 0%
 }
 
+.flex-auto {
+  flex: 1 1 auto
+}
+
+.flex-initial {
+  flex: 0 1 auto
+}
+
 .flex-none {
   flex: none
 }
@@ -9983,6 +10016,14 @@ button,
 
 .grow {
   flex-grow: 1
+}
+
+.basis-auto {
+  flex-basis: auto
+}
+
+.basis-full {
+  flex-basis: 100%
 }
 
 .table-auto {
@@ -11148,6 +11189,10 @@ button,
   border-color: rgb(167 139 250 / 0.2)
 }
 
+.border-violet-500\/30 {
+  border-color: rgb(139 92 246 / 0.3)
+}
+
 .border-white\/10 {
   border-color: rgb(255 255 255 / 0.1)
 }
@@ -11166,6 +11211,11 @@ button,
 
 .border-t-transparent {
   border-top-color: transparent
+}
+
+.bg-\[\#08060e\] {
+  --tw-bg-opacity: 1;
+  background-color: rgb(8 6 14 / var(--tw-bg-opacity))
 }
 
 .bg-\[\#0a0a0b\] {
@@ -11297,6 +11347,10 @@ button,
   background-color: rgb(139 92 246 / 0.2)
 }
 
+.bg-violet-900\/40 {
+  background-color: rgb(76 29 149 / 0.4)
+}
+
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity))
@@ -11349,6 +11403,10 @@ button,
 
 .bg-gradient-to-t {
   background-image: linear-gradient(to top, var(--tw-gradient-stops))
+}
+
+.bg-none {
+  background-image: none
 }
 
 .from-black\/90 {
@@ -11427,6 +11485,18 @@ button,
           box-decoration-break: clone
 }
 
+.bg-auto {
+  background-size: auto
+}
+
+.bg-contain {
+  background-size: contain
+}
+
+.bg-cover {
+  background-size: cover
+}
+
 .bg-fixed {
   background-attachment: fixed
 }
@@ -11454,6 +11524,42 @@ button,
 .bg-clip-text {
   -webkit-background-clip: text;
           background-clip: text
+}
+
+.bg-bottom {
+  background-position: bottom
+}
+
+.bg-center {
+  background-position: center
+}
+
+.bg-left {
+  background-position: left
+}
+
+.bg-left-bottom {
+  background-position: left bottom
+}
+
+.bg-left-top {
+  background-position: left top
+}
+
+.bg-right {
+  background-position: right
+}
+
+.bg-right-bottom {
+  background-position: right bottom
+}
+
+.bg-right-top {
+  background-position: right top
+}
+
+.bg-top {
+  background-position: top
 }
 
 .bg-repeat {
@@ -11492,8 +11598,16 @@ button,
   background-origin: content-box
 }
 
+.fill-none {
+  fill: none
+}
+
 .stroke-current {
   stroke: currentColor
+}
+
+.stroke-none {
+  stroke: none
 }
 
 .object-contain {
@@ -11519,6 +11633,26 @@ button,
 .object-scale-down {
   -o-object-fit: scale-down;
      object-fit: scale-down
+}
+
+.object-left-bottom {
+  -o-object-position: left bottom;
+     object-position: left bottom
+}
+
+.object-left-top {
+  -o-object-position: left top;
+     object-position: left top
+}
+
+.object-right-bottom {
+  -o-object-position: right bottom;
+     object-position: right bottom
+}
+
+.object-right-top {
+  -o-object-position: right top;
+     object-position: right top
 }
 
 .p-1 {
@@ -12035,6 +12169,10 @@ button,
   letter-spacing: 0.15em
 }
 
+.tracking-\[0\.2em\] {
+  letter-spacing: 0.2em
+}
+
 .tracking-\[0\.45em\] {
   letter-spacing: 0.45em
 }
@@ -12208,6 +12346,10 @@ button,
   color: rgb(221 214 254 / var(--tw-text-opacity))
 }
 
+.text-violet-300\/70 {
+  color: rgb(196 181 253 / 0.7)
+}
+
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity))
@@ -12281,6 +12423,14 @@ button,
   text-decoration-style: wavy
 }
 
+.decoration-auto {
+  text-decoration-thickness: auto
+}
+
+.decoration-from-font {
+  text-decoration-thickness: from-font
+}
+
 .underline-offset-2 {
   text-underline-offset: 2px
 }
@@ -12293,6 +12443,10 @@ button,
 .subpixel-antialiased {
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto
+}
+
+.accent-auto {
+  accent-color: auto
 }
 
 .opacity-50 {
@@ -12535,6 +12689,11 @@ button,
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)
 }
 
+.drop-shadow-none {
+  --tw-drop-shadow: drop-shadow(0 0 #0000);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)
+}
+
 .grayscale {
   --tw-grayscale: grayscale(100%);
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)
@@ -12642,8 +12801,29 @@ button,
   transition-timing-function: cubic-bezier(0, 0, 0.2, 1)
 }
 
+.will-change-auto {
+  will-change: auto
+}
+
+.will-change-contents {
+  will-change: contents
+}
+
+.will-change-scroll {
+  will-change: scroll-position
+}
+
+.will-change-transform {
+  will-change: transform
+}
+
 .content-\[\'this-is-also-valid\]-weirdly-enough\'\] {
   --tw-content: 'this-is-also-valid]-weirdly-enough';
+  content: var(--tw-content)
+}
+
+.content-none {
+  --tw-content: none;
   content: var(--tw-content)
 }
 
@@ -12661,6 +12841,18 @@ button,
 
 .\[a-zA-Z-\:\#\] {
   a-z-a--z-: #
+}
+
+.\[a-zA-Z0-9\:\\\\-\\\\\._\$\] {
+  a-z-a--z0-9: \\-\\. $
+}
+
+.\[vite\:css\] {
+  vite: css
+}
+
+.\[vite\:html\] {
+  vite: html
 }
 
 @font-face {
@@ -12833,6 +13025,10 @@ button,
 .hover\:bg-red-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(185 28 28 / var(--tw-bg-opacity))
+}
+
+.hover\:bg-violet-900\/60:hover {
+  background-color: rgb(76 29 149 / 0.6)
 }
 
 .hover\:bg-white\/5:hover {

@@ -164,6 +164,16 @@ router.get("/adult/intro", (req, res) => {
   res.render("tight/saju/adult/intro");
 });
 
+/* 무녀 사주 인트로 */
+router.get("/reunion/intro", (req, res) => {
+  res.render("tight/saju/reunion/intro");
+});
+
+/* 무녀 사주 입력 */
+router.get("/reunion/input", (req, res) => {
+  res.render("tight/saju/reunion/input");
+});
+
 /* 연애 사주 입력 */
 router.get("/romantic/input", (req, res) => {
   res.render("tight/saju/romantic/input");

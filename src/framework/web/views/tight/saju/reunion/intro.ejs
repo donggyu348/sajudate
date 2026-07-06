@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="video" href="/assets/videos/step1.mp4" type="video/mp4">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #08060e;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .frame-wrap {
+      display: flex;
+      justify-content: center;
+      background: #08060e;
+      height: 100%;
+    }
+
+    .video-stage {
+      position: relative;
+      width: 100%;
+      max-width: 448px;
+      height: 100vh;
+      height: calc(var(--vh, 1vh) * 100);
+      overflow: hidden;
+      background: #08060e;
+    }
+
+    .video-frame {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .intro-video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      opacity: 0;
+      transition: opacity 500ms ease;
+      z-index: 1;
+    }
+
+    .intro-video.is-active {
+      opacity: 1;
+    }
+
+    .video-loading {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: #08060e;
+    }
+
+    .video-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 28px;
+      text-align: center;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(124, 58, 237, 0.18) 0%, transparent 70%),
+        linear-gradient(180deg, #0f0a18 0%, #08060e 100%);
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 400ms ease, filter 800ms ease, transform 800ms ease;
+    }
+
+    .video-fallback.is-visible {
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .fallback-label {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      color: rgba(196, 181, 253, 0.7);
+      margin-bottom: 16px;
+    }
+
+    .fallback-text {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(18px, 4.8vw, 22px);
+      line-height: 1.7;
+      color: rgba(255, 250, 255, 0.92);
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      white-space: pre-line;
+    }
+
+    .top-fade, .bottom-fade {
+      position: absolute;
+      left: 0;
+      right: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .top-fade {
+      top: 0;
+      height: 120px;
+      background: linear-gradient(to bottom, rgba(8, 6, 14, 0.75) 0%, transparent 100%);
+    }
+
+    .bottom-fade {
+      bottom: 0;
+      height: 220px;
+      background: linear-gradient(to top, rgba(8, 4, 6, 0.72) 0%, transparent 100%);
+    }
+
+    .step-indicator {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .step-dot {
+      width: 28px;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      transition: background 300ms ease, width 300ms ease;
+    }
+
+    .step-dot.is-active {
+      width: 36px;
+      background: rgba(196, 181, 253, 0.9);
+    }
+
+    .step-dot.is-done {
+      background: rgba(167, 139, 250, 0.45);
+    }
+
+    .choice-panel {
+      position: absolute;
+      left: 50%;
+      bottom: 36px;
+      transform: translateX(-50%) translateY(20px);
+      width: calc(100% - 32px);
+      max-width: 400px;
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 500ms ease, transform 500ms cubic-bezier(.2, .85, .2, 1);
+    }
+
+    .choice-panel.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    .choice-question {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(17px, 4.4vw, 20px);
+      font-weight: 600;
+      color: #f5f0ff;
+      text-align: center;
+      margin: 0 0 14px;
+      text-shadow: 0 4px 16px rgba(0, 0, 0, 0.85);
+      line-height: 1.5;
+    }
+
+    .choice-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .choice-btn {
+      border: none;
+      cursor: pointer;
+      font-family: 'Noto Serif KR', serif;
+      transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+    }
+
+    .choice-btn:active {
+      transform: scale(0.98);
+      filter: brightness(0.94);
+    }
+
+    /* 메인 버튼 — 신당 입장 프레임 */
+    .choice-btn.is-ornate {
+      width: 100%;
+      padding: 20px 18px;
+      border-radius: 2px;
+      background:
+        linear-gradient(180deg, rgba(255, 200, 180, 0.06) 0%, transparent 18%),
+        linear-gradient(180deg, #4a1018 0%, #1e060a 42%, #2a0a10 100%);
+      color: #faf3ef;
+      font-size: clamp(16px, 4.3vw, 18px);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 210, 190, 0.14),
+        inset 0 -8px 20px rgba(0, 0, 0, 0.45),
+        0 0 0 1px #a82828,
+        0 0 0 3px #5c1010,
+        0 0 0 4px rgba(180, 130, 50, 0.55),
+        0 10px 28px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .choice-btn.is-ornate::before,
+    .choice-btn.is-ornate::after {
+      content: "◆";
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 9px;
+      color: rgba(200, 150, 70, 0.75);
+      text-shadow: 0 0 6px rgba(200, 150, 70, 0.4);
+    }
+
+    .choice-btn.is-ornate::before { left: 12px; }
+    .choice-btn.is-ornate::after { right: 12px; }
+
+    /* 보조 버튼 — 필 말풍선 */
+    .choice-btn.is-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: auto;
+      max-width: 100%;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(12, 8, 10, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 242, 236, 0.82);
+      font-size: 13px;
+      font-weight: 400;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    .choice-btn.is-pill .pill-icon {
+      color: #e879a8;
+      font-size: 11px;
+      text-shadow: 0 0 8px rgba(232, 121, 168, 0.75);
+      line-height: 1;
+    }
+
+    .cta-panel {
+      position: absolute;
+      left: 50%;
+      bottom: 40px;
+      transform: translateX(-50%) translateY(24px);
+      width: calc(100% - 40px);
+      max-width: 400px;
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 420ms ease, transform 420ms cubic-bezier(.2, .85, .2, 1);
+      text-align: center;
+    }
+
+    .cta-panel.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    .cta-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(20px, 5vw, 24px);
+      font-weight: 700;
+      color: #faf5ff;
+      margin: 0 0 8px;
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+    }
+
+    .cta-sub {
+      font-size: 14px;
+      color: rgba(228, 212, 255, 0.82);
+      margin: 0 0 18px;
+      line-height: 1.6;
+    }
+
+    .cta-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 18px 24px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-family: 'Noto Serif KR', serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+      box-shadow: 0 10px 32px rgba(124, 58, 237, 0.45);
+      transition: transform 130ms ease, filter 130ms ease;
+    }
+
+    .cta-btn:active {
+      transform: scale(0.97);
+      filter: brightness(0.92);
+    }
+
+    .skip-hint {
+      position: absolute;
+      top: 52px;
+      right: 16px;
+      z-index: 15;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(0, 0, 0, 0.35);
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 12px;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 300ms ease;
+    }
+
+    .skip-hint.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sound-tap-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      border: none;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .video-stage.is-playing:not(.is-choosing) .sound-tap-layer {
+      pointer-events: auto;
+    }
+
+    .video-stage.is-playing.is-sound-on:not(.is-choosing) .sound-tap-layer {
+      pointer-events: none;
+    }
+
+    .sound-hint {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 12;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.42);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 12px;
+      font-family: 'Noto Serif KR', serif;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 300ms ease;
+    }
+
+    .video-stage.is-playing:not(.is-sound-on):not(.is-choosing):not(.is-fallback) .sound-hint {
+      opacity: 1;
+    }
+
+    .story-skip-btn {
+      display: block;
+      width: 100%;
+      margin-top: 14px;
+      padding: 6px 0 0;
+      border: none;
+      background: none;
+      color: rgba(255, 255, 255, 0.32);
+      font-family: 'Noto Serif KR', serif;
+      font-size: 11px;
+      letter-spacing: -0.01em;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      transition: color 140ms ease;
+    }
+
+    .story-skip-btn:hover {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .intro-video,
+      .choice-panel,
+      .cta-panel,
+      .video-fallback {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="frame-wrap">
+    <div class="video-stage" id="stage">
+      <div class="video-frame" id="videoFrame">
+        <div class="video-loading" id="videoLoading" aria-hidden="true"></div>
+        <video class="intro-video" id="introVideo" playsinline muted preload="auto"></video>
+      </div>
+
+      <button type="button" class="sound-tap-layer" id="soundTapLayer" aria-label="소리 켜기"></button>
+      <p class="sound-hint" id="soundHint" aria-hidden="true">화면을 눌러 소리 켜기</p>
+
+      <div class="video-dim" id="videoDim" aria-hidden="true" hidden></div>
+
+      <div class="video-fallback" id="videoFallback" aria-hidden="true">
+        <p class="fallback-label">무녀 사주</p>
+        <p class="fallback-text" id="fallbackText"></p>
+      </div>
+
+      <div class="top-fade" aria-hidden="true"></div>
+      <div class="bottom-fade" aria-hidden="true"></div>
+
+      <div class="step-indicator" id="stepIndicator" aria-hidden="true"></div>
+
+      <button type="button" class="skip-hint" id="skipBtn">건너뛰기</button>
+
+      <div class="choice-panel" id="choicePanel">
+        <p class="choice-question" id="choiceQuestion"></p>
+        <div class="choice-list" id="choiceList"></div>
+        <button type="button" class="story-skip-btn" id="storySkipBtn" hidden>스토리 스킵하기</button>
+      </div>
+
+      <div class="cta-panel" id="ctaPanel">
+        <h2 class="cta-title">당신의 인연을 봐드릴게요</h2>
+        <p class="cta-sub">무녀가 사주로 그 사람의 마음과<br>다시 이어질 수 있는 길을 읽어드려요</p>
+        <a href="/saju/reunion/input" class="cta-btn">무녀 사주 시작하기</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const INTRO_STEPS = [
+      {
+        video: '/assets/videos/step1.mp4',
+        fallbackText: '깊은 밤, 어둠 속 성황당이\n당신을 부르고 있습니다.',
+        choiceDelay: 1000,
+        choices: [
+          { label: '성황당에 들어가기', variant: 'ornate' },
+          { label: '(무서워... ) 밖으로 나가기', variant: 'pill', action: 'exit' }
+        ]
+      },
+      {
+        video: '/assets/videos/step2.mp4',
+        fallbackText: '성황당 안, 무녀가\n당신을 바라보고 있습니다.',
+        choices: [
+          { label: '말걸기', variant: 'ornate' },
+          { label: '나가기', variant: 'pill', action: 'exit' }
+        ]
+      },
+      {
+        video: '/assets/videos/step3.mp4',
+        fallbackText: '이제 당신의 사주를 펼쳐\n인연의 길을 읽어드리겠습니다.',
+        isFinal: true
+      }
+    ];
+
+    const FALLBACK_DURATION_MS = 3500;
+
+    const videoEl = document.getElementById('introVideo');
+    const stageEl = document.getElementById('stage');
+    const fallbackEl = document.getElementById('videoFallback');
+    const fallbackTextEl = document.getElementById('fallbackText');
+    const choicePanel = document.getElementById('choicePanel');
+    const choiceQuestion = document.getElementById('choiceQuestion');
+    const choiceList = document.getElementById('choiceList');
+    const ctaPanel = document.getElementById('ctaPanel');
+    const stepIndicator = document.getElementById('stepIndicator');
+    const skipBtn = document.getElementById('skipBtn');
+    const soundTapLayer = document.getElementById('soundTapLayer');
+    const storySkipBtn = document.getElementById('storySkipBtn');
+
+    let currentStep = 0;
+    let fallbackTimer = null;
+    let choiceTimer = null;
+    let usingFallback = false;
+    let soundEnabled = false;
+    let choicesVisible = false;
+
+    function setVh() {
+      document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+    }
+
+    function enableSound() {
+      if (soundEnabled) return;
+      soundEnabled = true;
+      videoEl.muted = false;
+      stageEl.classList.add('is-sound-on');
+      const playPromise = videoEl.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {});
+      }
+    }
+
+    function applySoundState() {
+      videoEl.muted = !soundEnabled;
+      stageEl.classList.toggle('is-sound-on', soundEnabled);
+    }
+
+    function skipStory() {
+      window.location.href = '/saju/reunion/input';
+    }
+
+    function renderStepIndicator() {
+      stepIndicator.innerHTML = INTRO_STEPS.map((_, i) => {
+        let cls = 'step-dot';
+        if (i < currentStep) cls += ' is-done';
+        if (i === currentStep) cls += ' is-active';
+        return `<span class="${cls}"></span>`;
+      }).join('');
+    }
+
+    function hidePanels() {
+      choicePanel.classList.remove('is-visible');
+      ctaPanel.classList.remove('is-visible');
+      skipBtn.classList.remove('is-visible');
+      stageEl.classList.remove('is-choosing', 'is-playing', 'is-fallback');
+      choiceList.innerHTML = '';
+      choiceQuestion.style.display = 'none';
+      choiceQuestion.textContent = '';
+      storySkipBtn.hidden = true;
+      choicesVisible = false;
+    }
+
+    function showChoices(step) {
+      if (choicesVisible) return;
+      choicesVisible = true;
+      stageEl.classList.add('is-choosing');
+      skipBtn.classList.remove('is-visible');
+
+      if (step.question) {
+        choiceQuestion.textContent = step.question;
+        choiceQuestion.style.display = 'block';
+      }
+
+      const sortedChoices = [...step.choices].sort((a, b) => {
+        const order = { pill: 0, ornate: 1, primary: 1, ghost: 0 };
+        const va = typeof a === 'string' ? 'primary' : (a.variant || 'primary');
+        const vb = typeof b === 'string' ? 'primary' : (b.variant || 'primary');
+        return (order[va] ?? 1) - (order[vb] ?? 1);
+      });
+
+      sortedChoices.forEach((choice) => {
+        const label = typeof choice === 'string' ? choice : choice.label;
+        const variant = typeof choice === 'string' ? 'ornate' : (choice.variant || 'ornate');
+        const action = typeof choice === 'string' ? 'next' : (choice.action || 'next');
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'choice-btn is-' + variant;
+
+        if (variant === 'pill') {
+          const icon = document.createElement('span');
+          icon.className = 'pill-icon';
+          icon.textContent = '✦';
+          icon.setAttribute('aria-hidden', 'true');
+          btn.appendChild(icon);
+          btn.appendChild(document.createTextNode(label));
+        } else {
+          btn.textContent = label;
+        }
+
+        btn.addEventListener('click', () => {
+          if (action === 'exit') {
+            window.location.href = '/saju';
+            return;
+          }
+          goToStep(currentStep + 1);
+        });
+        choiceList.appendChild(btn);
+      });
+
+      storySkipBtn.hidden = false;
+      choicePanel.classList.add('is-visible');
+    }
+
+    function clearChoiceTimer() {
+      if (choiceTimer) {
+        clearTimeout(choiceTimer);
+        choiceTimer = null;
+      }
+    }
+
+    function scheduleChoices(step) {
+      clearChoiceTimer();
+      if (!step.choices || !step.choices.length) return;
+
+      if (step.choiceDelay != null) {
+        choiceTimer = setTimeout(() => showChoices(step), step.choiceDelay);
+        return;
+      }
+
+      // choiceDelay 없으면 영상 종료 시 표시
+    }
+
+    function clearFallbackTimer() {
+      if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = null;
+      }
+    }
+
+    function onStepComplete() {
+      const step = INTRO_STEPS[currentStep];
+      stageEl.classList.remove('is-playing');
+
+      if (step.isFinal) {
+        stageEl.classList.add('is-choosing');
+        skipBtn.classList.remove('is-visible');
+        ctaPanel.classList.add('is-visible');
+        return;
+      }
+
+      if (step.choiceDelay != null) return;
+      if (!step.choices || step.choices.length === 0) return;
+      showChoices(step);
+    }
+
+    function showFallback(step) {
+      usingFallback = true;
+      videoEl.classList.remove('is-active');
+      stageEl.classList.add('is-playing', 'is-fallback');
+      fallbackTextEl.textContent = step.fallbackText;
+      fallbackEl.classList.add('is-visible');
+      skipBtn.classList.add('is-visible');
+
+      if (step.choiceDelay != null) {
+        scheduleChoices(step);
+        return;
+      }
+
+      fallbackTimer = setTimeout(onStepComplete, FALLBACK_DURATION_MS);
+    }
+
+    function playCurrentStep() {
+      clearFallbackTimer();
+      clearChoiceTimer();
+      hidePanels();
+      usingFallback = false;
+
+      const step = INTRO_STEPS[currentStep];
+      renderStepIndicator();
+
+      fallbackEl.classList.remove('is-visible');
+      videoEl.classList.remove('is-active');
+      videoEl.pause();
+      videoEl.removeAttribute('src');
+      videoEl.removeAttribute('poster');
+      videoEl.load();
+
+      videoEl.src = step.video;
+      videoEl.currentTime = 0;
+      applySoundState();
+      stageEl.classList.add('is-playing');
+
+      const onPlaying = () => {
+        videoEl.classList.add('is-active');
+        scheduleChoices(step);
+      };
+      videoEl.addEventListener('playing', onPlaying, { once: true });
+
+      const playPromise = videoEl.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          videoEl.removeEventListener('playing', onPlaying);
+          showFallback(step);
+        });
+      }
+
+      if (!step.choiceDelay) {
+        skipBtn.classList.add('is-visible');
+      }
+    }
+
+    function goToStep(index) {
+      if (index >= INTRO_STEPS.length) return;
+      currentStep = index;
+      playCurrentStep();
+    }
+
+    videoEl.addEventListener('ended', () => {
+      const step = INTRO_STEPS[currentStep];
+      if (step.choiceDelay != null) return;
+      onStepComplete();
+    });
+
+    videoEl.addEventListener('error', () => {
+      showFallback(INTRO_STEPS[currentStep]);
+    });
+
+    skipBtn.addEventListener('click', () => {
+      clearFallbackTimer();
+      const step = INTRO_STEPS[currentStep];
+      if (usingFallback) {
+        if (step.choiceDelay != null) {
+          showChoices(step);
+        } else {
+          onStepComplete();
+        }
+        return;
+      }
+      if (step.choiceDelay != null) {
+        showChoices(step);
+        return;
+      }
+      videoEl.pause();
+      onStepComplete();
+    });
+
+    soundTapLayer.addEventListener('click', enableSound);
+    fallbackEl.addEventListener('click', enableSound);
+    storySkipBtn.addEventListener('click', skipStory);
+
+    window.addEventListener('resize', setVh);
+    setVh();
+    playCurrentStep();
+
+    $(document).ready(function () {
+      if (window.karrotPixel) window.karrotPixel.track('ViewContent');
+    });
+  </script>
+</body>
+</html>

@@ -2,8 +2,7 @@ import { Sequelize } from "sequelize";
 
 import config from "./config.js";
 
-// const env = process.env.NODE_ENV || "local";
-const env = "product";
+const env = process.env.NODE_ENV || "local";
 const dbConf = config[env];
 
 if (!dbConf || !dbConf.dialect) {
