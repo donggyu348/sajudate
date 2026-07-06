@@ -24,8 +24,8 @@ export const GoodsType = Object.freeze({
     code: "ROMANTIC",
     title: '연애사주',
     originalPrice: 53800,
-    discountPrice: 21900,
-    price: 31900,
+    discountPrice: 18900,
+    price: 34900,
     platform: Platform.TIGHT
   },
    CLASSIC_BUNDLE: {
