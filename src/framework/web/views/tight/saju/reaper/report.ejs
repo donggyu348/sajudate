@@ -153,6 +153,7 @@
   .rp-flow__legend .now { color: #7f8b9c; }
   .rp-flow__legend .then { color: var(--rp-blue); }
   .rp-flow__cap { text-align: center; font-size: 12px; color: #7f8b9c; margin: 13px 0 0; }
+  .rp-flow__cap--value b { color: var(--rp-blue); font-weight: 700; }
 
   /* ===== 미래 연인 얼굴 (블러 제거 · 공개) ===== */
   .rp-face-block { width: 88%; max-width: 320px; margin: 30px auto 0; }
@@ -238,14 +239,14 @@
   } catch (e) { manseCols = []; }
   const dayGanLabel = (saju && saju.dayGan) ? saju.dayGan : ((saju && saju.day && saju.day.gan) ? saju.day.gan : '');
 
-  // 미래 연인 얼굴 (홍연 이미지 풀 재사용) — 여성 사용자 → 남성 얼굴, 남성 사용자 → 여성 얼굴
+  // 미래 연인 얼굴 (홍연 이미지 풀 재사용) — 남성 사용자 → 여성 얼굴, 여성 사용자 → 남성 얼굴
+  // 폴더는 "보는 사용자 성별" 기준: man 폴더=여성 얼굴, woman 폴더=남성 얼굴
   let partnerFace = '';
   try {
     const _g = String((userInfo && userInfo.gender) || '').trim();
     const _gLower = _g.toLowerCase();
     const _isFemale = ['여','여자','여성','female','f','woman'].some(function (v) { return _g === v || _gLower === v.toLowerCase(); });
-    const _isMale = ['남','남자','남성','male','m','man'].some(function (v) { return _g === v || _gLower === v.toLowerCase(); });
-    const _faceGender = _isFemale ? 'man' : (_isMale ? 'woman' : 'woman');
+    const _faceGender = _isFemale ? 'woman' : 'man';
     const _manFiles   = ['Rectangle 157.png','Rectangle 159.png','Rectangle 160.png','Rectangle 161.png','Rectangle 162.png'];
     const _womanFiles = ['Rectangle 152.png','Rectangle 153.png','Rectangle 154.png','Rectangle 155.png','Rectangle 156.png'];
     const _faceFiles  = _faceGender === 'man' ? _manFiles : _womanFiles;

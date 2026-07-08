@@ -8,6 +8,7 @@ import {
   ROMANTIC_LOVE_REPORT_BATCHES,
   getPartnerPreviewTitle,
 } from "./prompts/romanticLoveReportPrompt.js";
+import { buildReaperCharts } from "./reaperChartService.js";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const GPT_CHAPTER_DELAY_MS = Number(process.env.GPT_CHAPTER_DELAY_MS) || 16000;
@@ -1794,6 +1795,13 @@ const REAPER_REPORT_PROMPT_PREFIX = `
 - 대운은 아래 고정 연도 구간만 사용한다: 2026~2035, 2036~2045, 2046~2055, 2056~2065, 2066~2075, 2076~2085 (필요 시 동일 패턴 연장).
 - SAJU_JSON.daewoon의 '기운(십성/오행)'만 각 구간에 순서대로 매칭해 해석하고, 배열이 모자라면 마지막 항목을 반복한다.
 - 예) "2036~2045년 대운엔 편재의 기운이 크게 들어온다. 이때가 네 파도다."
+
+[그래프·본문 일치 — CHART_SNAPSHOT 필수]
+- SAJU_JSON.CHART_SNAPSHOT은 화면 그래프에 표시되는 확정 수치다. 본문과 반드시 일치시킨다.
+- 제3장(인생이 뒤집히는 순간): daewoonPeakPeriod·daewoonPeakTenGod을 정확히 언급하고 그 시기를 상세히 풀어낸다.
+- 제5장(재물): wealthPeakPeriod·wealthPeakAmount·wealthPeakTenGod을 정확히 언급하고 금액·시기를 구체적으로 풀어낸다.
+- 제7장(결말): 위 대운 정점·재물 정점·금액을 요약에서 다시 한 번 동일하게 확인한다.
+- "본문에 적어두었다"처럼 빼먹지 말고, 그래프에 나온 연도·금액을 본문에서 반드시 풀어 쓴다.
 
 [절대 금지 — 내부 변수/기술 표현 노출 금지]
 - SAJU_JSON, tenGodTable, fiveElements, daewoon, sewun, elements, columns, headerRows, data, startAge, JSON, 키(key), 변수명, '데이터상' 등 기술적 표현은 본문에 단 한 글자도 쓰지 않는다.
@@ -3897,7 +3905,10 @@ let promtParts;
 
       // ADULT 궁합 리포트: 파트너 사주도 함께 계산
       let sajuJsonForGPT = mySajuJson;
-      if (reportCode === "ADULT") {
+      if (reportCode === "REAPER") {
+        const reaperCharts = buildReaperCharts(userInfo);
+        sajuJsonForGPT = { ...mySajuJson, CHART_SNAPSHOT: reaperCharts.snapshot };
+      } else if (reportCode === "ADULT") {
         const partnerInfo = {
           name: userInfo.partnerName || "상대방",
           gender: userInfo.partnerGender || "",

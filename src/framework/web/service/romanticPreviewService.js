@@ -117,7 +117,9 @@ export function buildRomanticPreview(userInfo, saju) {
     `${rawBirth}-${userInfo?.gender}-${saju?.day?.gan}${saju?.day?.ji}-${userInfo?.birthTime || ""}`
   );
 
-  const genderKey = isFemale ? "man" : "woman";
+  // 폴더는 "보는 사용자 성별" 기준: man 폴더=여성 얼굴, woman 폴더=남성 얼굴
+  // → 여성 사용자 → 남성 얼굴(woman 폴더), 남성 사용자 → 여성 얼굴(man 폴더)
+  const genderKey = isFemale ? "woman" : "man";
   const files = PARTNER_IMAGE_POOL[genderKey];
   const partnerFile = files[seed % files.length];
   const partnerImageSrc = `/assets/images/tight/romantic/result/${genderKey}/${encodeURIComponent(partnerFile)}`;

@@ -1,5 +1,6 @@
 import express from "express";
 import gptService, { buildRealTenGodTable, getReportStepInfo, getReportViewPath, resolveReportCode } from "../../service/GptService.js";
+import { buildReaperCharts } from "../../service/reaperChartService.js";
 import reportHistoryService from "../../service/ReportHistoryService.js";
 import { sendReportLink } from "../../service/SmsService.js";
 import PaymentService from "../../service/PaymentService.js";
@@ -272,6 +273,7 @@ router.post("/reaper/result", async (req, res) => {
       userInfo,
       sample: result,
       saju,
+      reaperCharts: buildReaperCharts(userInfo),
       todayDate: {
         year: today.getFullYear(),
         month: today.getMonth() + 1,
@@ -461,10 +463,14 @@ router.get("/report", async (req, res) => {
     console.log(`📌 [DEBUG] 최종 경로 결정: ${reportPath} (goodsType: ${gType}, reportCode: ${reportCode})`);
 
     const saju = getFourPillars(reportHistory.userInfo);
+    const reaperCharts = reportCode === "REAPER"
+      ? buildReaperCharts(reportHistory.userInfo)
+      : null;
 
     return res.render(reportPath, {
       reportInfo: reportHistory.reportInfo,
       userInfo: reportHistory.userInfo,
+      reaperCharts,
       todayDate: {
         year: new Date().getFullYear(),
         month: new Date().getMonth() + 1,

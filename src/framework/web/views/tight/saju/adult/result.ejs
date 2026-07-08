@@ -23,11 +23,12 @@
   };
   const _dayStemHanja = _data[1] ? (_data[1][1] || '') : '';
   const _stemKr = _stemKrMap[_dayStemHanja] || '갑목';
-  // 첫 입력자(userInfo) 성별 기준: 여자→남자 이미지, 남자→여자 이미지
-  const _faceGender = _isFemale ? 'man' : 'woman';
+  // 첫 입력자(userInfo) 성별 기준: 여자→남자 얼굴, 남자→여자 얼굴
+  // 폴더는 "보는 사용자 성별" 기준: man 폴더=여성 얼굴, woman 폴더=남성 얼굴
+  const _faceGender = _isFemale ? 'woman' : 'man';
   const _manFiles   = ['Rectangle 157.png','Rectangle 159.png','Rectangle 160.png','Rectangle 161.png','Rectangle 162.png'];
   const _womanFiles = ['Rectangle 152.png','Rectangle 153.png','Rectangle 154.png','Rectangle 155.png','Rectangle 156.png'];
-  const _faceFiles  = _isFemale ? _manFiles : _womanFiles;
+  const _faceFiles  = _isFemale ? _womanFiles : _manFiles;
   const _faceFile   = _faceFiles[Math.floor(Math.random() * _faceFiles.length)];
   const _faceImg    = `/assets/images/tight/romantic/result/${_faceGender}/${_faceFile}`;
 

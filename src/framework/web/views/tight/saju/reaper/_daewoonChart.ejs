@@ -1,22 +1,42 @@
-<!-- 대운 흐름 그래프 (SVG) · 자물쇠/블러 제거 → 정점 공개 -->
+<% const dc = (typeof reaperCharts !== 'undefined' && reaperCharts) ? reaperCharts.daewoon : null; %>
+<% const isChartOnly = (typeof chartOnly !== 'undefined' && chartOnly); %>
+<!-- 대운 흐름 그래프 (SVG) · 사주 기반 동적 값 -->
+<% if (!isChartOnly) { %>
 <p class="rr-eyebrow">大 運</p>
 <p class="rr-secline">네 대운 흐름 중,<br><span class="rp-b">인생이 통째로 뒤집히는 자리다.</span></p>
+<% } %>
 <div class="rp-flow">
   <p class="rp-flow__title">네 대운(大運) 흐름</p>
   <div class="rp-flow__chart">
+    <% if (dc) { %>
     <svg viewBox="0 0 320 200" style="width:100%; display:block;" role="img" aria-label="대운 흐름 그래프">
       <line x1="15" y1="170" x2="305" y2="170" stroke="#26364e" stroke-width="1" />
-      <path d="M15,140 L50,155 L85,132 L120,150 L160,144 L200,150 L235,70 L270,48 L305,60 L305,170 L15,170 Z" fill="rgba(90,169,240,0.12)" />
-      <path d="M15,140 L50,155 L85,132 L120,150 L160,144 L200,150 L235,70 L270,48 L305,60" fill="none" stroke="#5aa9f0" stroke-width="2.5" />
-      <line x1="235" y1="70" x2="235" y2="170" stroke="#7fb5ef" stroke-width="1" stroke-dasharray="3 3" opacity="0.7" />
-      <circle cx="235" cy="70" r="9" fill="#7fb5ef" opacity="0.28" />
-      <circle cx="235" cy="70" r="4.5" fill="#9cc9f5" />
+      <% if (reaperCharts.axisLabels) { reaperCharts.axisLabels.forEach(function(lbl, i) {
+        const x = dc.points[i] ? dc.points[i].x : 28;
+      %>
+      <text x="<%= x %>" y="188" text-anchor="middle" fill="#5f6b7a" font-size="8"><%= lbl %></text>
+      <% }); } %>
+      <path d="<%= dc.areaPath %>" fill="rgba(90,169,240,0.12)" />
+      <path d="<%= dc.linePath %>" fill="none" stroke="#5aa9f0" stroke-width="2.5" />
+      <line x1="<%= dc.peak.x %>" y1="<%= dc.peak.y %>" x2="<%= dc.peak.x %>" y2="170" stroke="#7fb5ef" stroke-width="1" stroke-dasharray="3 3" opacity="0.7" />
+      <circle cx="<%= dc.peak.x %>" cy="<%= dc.peak.y %>" r="9" fill="#7fb5ef" opacity="0.28" />
+      <circle cx="<%= dc.peak.x %>" cy="<%= dc.peak.y %>" r="4.5" fill="#9cc9f5" />
+      <% dc.points.forEach(function(pt) { %>
+      <circle cx="<%= pt.x %>" cy="<%= pt.y %>" r="2.5" fill="#5aa9f0" opacity="0.55" />
+      <% }); %>
     </svg>
-    <div class="rp-flow__peak" style="left:73%; top:17%;"><span class="star">★</span>인생 역전의 대운</div>
+    <div class="rp-flow__peak" style="left:<%= dc.peakXPercent %>%; top:<%= dc.peakYPercent %>%;">
+      <span class="star">★</span>인생 역전 · <%= dc.peak.label %> · <%= dc.peak.tenGod %>
+    </div>
+    <% } %>
   </div>
   <div class="rp-flow__legend">
     <div class="now">지금까지<br>파도 오기 전에 끝난 생</div>
-    <div class="then">여기부터<br>이 파도 넘고 폭발하는 흐름</div>
+    <div class="then"><%= dc ? dc.peak.label : '여기부터' %><br>이 파도 넘고 폭발하는 흐름</div>
   </div>
-  <p class="rp-flow__cap">이 파도가 정확히 언제 오는지는, 아래 명부 본문에 짚어두었다.</p>
+  <% if (dc) { %>
+  <p class="rp-flow__cap rp-flow__cap--value">
+    정점 <b><%= dc.peak.label %></b> · <b><%= dc.peak.tenGod %></b> 기운 — 아래 명부 본문에서 이 시기를 풀어 읽는다.
+  </p>
+  <% } %>
 </div>

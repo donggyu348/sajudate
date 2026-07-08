@@ -235,6 +235,7 @@
     .rp-flow__legend .now { color: #7f8b9c; }
     .rp-flow__legend .then { color: var(--rp-blue); }
     .rp-flow__cap { text-align: center; font-family: 'GyeonggiBatang', serif; font-size: 12px; color: #7f8b9c; margin: 13px 0 0; }
+    .rp-flow__cap--value b { color: var(--rp-blue); font-weight: 700; }
 
     /* ===== 미래 연인 얼굴 미리보기 ===== */
     .rp-face-block { width: 88%; max-width: 320px; margin: 28px auto 0; }
@@ -382,7 +383,8 @@
     const dayGanLabel = (saju && saju.dayGan) ? saju.dayGan : '';
 
     // 미래 연인 얼굴 (홍연/29금 이미지 풀 재사용) — 매 로드마다 랜덤
-    // 여성 사용자 → man 폴더(남성 얼굴), 남성 사용자 → woman 폴더(여성 얼굴)
+    // 폴더는 "보는 사용자 성별" 기준: man 폴더=여성 얼굴(남성이 봄), woman 폴더=남성 얼굴(여성이 봄)
+    // → 남성 사용자 → 여성 얼굴, 여성 사용자 → 남성 얼굴
     let partnerFace = '';
     try {
       const _g = String((userInfo && userInfo.gender) || '').trim();
@@ -390,10 +392,7 @@
       const _isFemale = ['여','여자','여성','female','f','woman'].some(function (v) {
         return _g === v || _gLower === v.toLowerCase();
       });
-      const _isMale = ['남','남자','남성','male','m','man'].some(function (v) {
-        return _g === v || _gLower === v.toLowerCase();
-      });
-      const _faceGender = _isFemale ? 'man' : (_isMale ? 'woman' : 'woman');
+      const _faceGender = _isFemale ? 'woman' : 'man';
       const _manFiles   = ['Rectangle 157.png','Rectangle 159.png','Rectangle 160.png','Rectangle 161.png','Rectangle 162.png'];
       const _womanFiles = ['Rectangle 152.png','Rectangle 153.png','Rectangle 154.png','Rectangle 155.png','Rectangle 156.png'];
       const _faceFiles  = _faceGender === 'man' ? _manFiles : _womanFiles;
@@ -491,26 +490,8 @@
       <p class="rp-line key">이것만 제대로 넘기면<br /><span class="rp-b">인생이 통째로 뒤집혀.</span></p>
       <p class="rp-line"><span class="rp-b">근데 그게 언제냐면.</span></p>
 
-      <!-- 대운 흐름 그래프 (SVG) : 뒤집히는 시점은 가림 -->
-      <div class="rp-flow">
-        <p class="rp-flow__title">네 대운(大運) 흐름</p>
-        <div class="rp-flow__chart">
-          <svg viewBox="0 0 320 200" style="width:100%; display:block;" role="img" aria-label="대운 흐름 그래프">
-            <line x1="15" y1="170" x2="305" y2="170" stroke="#26364e" stroke-width="1" />
-            <path d="M15,140 L50,155 L85,132 L120,150 L160,144 L200,150 L235,70 L270,48 L305,60 L305,170 L15,170 Z" fill="rgba(90,169,240,0.12)" />
-            <path d="M15,140 L50,155 L85,132 L120,150 L160,144 L200,150 L235,70 L270,48 L305,60" fill="none" stroke="#5aa9f0" stroke-width="2.5" />
-            <line x1="235" y1="70" x2="235" y2="170" stroke="#7fb5ef" stroke-width="1" stroke-dasharray="3 3" opacity="0.7" />
-            <circle cx="235" cy="70" r="9" fill="#7fb5ef" opacity="0.28" />
-            <circle cx="235" cy="70" r="4.5" fill="#9cc9f5" />
-          </svg>
-          <div class="rp-flow__gate"><span class="lock">🔒</span>20◯◯년 ○</div>
-        </div>
-        <div class="rp-flow__legend">
-          <div class="now">지금<br />파도 오기 전에 끝난 생</div>
-          <div class="then">돌아가면<br />이 파도 넘고 폭발</div>
-        </div>
-        <p class="rp-flow__cap">이 파도가 언제 오는지는, 명부에 적혀 있다.</p>
-      </div>
+      <!-- 대운 흐름 그래프 (SVG) : 사주 기반 동적 값 -->
+      <%- include('./_daewoonChart', { chartOnly: true }) %>
 
       <!-- 7 · 명줄 진단 (두루마리) : 그래프 이어받기 -->
       <p class="rp-line">봤지? 네 명줄이<br /><span class="rp-b">이렇게 꼬여만 있다가.</span></p>
@@ -530,40 +511,8 @@
       </div>
       <p class="rp-line"><span class="rp-b">평생 한 번, 크게 터질 자리가 있어.</span><br />넌 그것도 모르고 죽었지만.</p>
 
-      <!-- 재물 미리보기 그래프 (SVG) : 터질 자리 강조, 금액·시점 가림 -->
-      <div class="rp-flow">
-        <p class="rp-flow__title">네 재물(財) 그래프</p>
-        <div class="rp-flow__chart">
-          <svg viewBox="0 0 320 200" style="width:100%; display:block;" role="img" aria-label="재물 흐름 그래프">
-            <defs>
-              <linearGradient id="rpWealthGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#9cc9f5" />
-                <stop offset="100%" stop-color="#2e78c0" />
-              </linearGradient>
-            </defs>
-            <line x1="15" y1="170" x2="305" y2="170" stroke="#26364e" stroke-width="1" />
-            <!-- 평범한 재물 흐름 -->
-            <rect x="28"  y="150" width="20" height="20"  rx="2" fill="rgba(90,169,240,0.22)" />
-            <rect x="60"  y="138" width="20" height="32"  rx="2" fill="rgba(90,169,240,0.22)" />
-            <rect x="92"  y="152" width="20" height="18"  rx="2" fill="rgba(90,169,240,0.22)" />
-            <rect x="124" y="130" width="20" height="40"  rx="2" fill="rgba(90,169,240,0.22)" />
-            <!-- 평생 한 번 크게 터질 자리 -->
-            <rect x="178" y="44"  width="26" height="126" rx="2" fill="url(#rpWealthGrad)" />
-            <rect x="178" y="44"  width="26" height="126" rx="2" fill="none" stroke="#7fb5ef" stroke-width="1.5" />
-            <circle cx="191" cy="44" r="9"   fill="#7fb5ef" opacity="0.28" />
-            <circle cx="191" cy="44" r="4.5" fill="#9cc9f5" />
-            <!-- 이후 흐름 -->
-            <rect x="226" y="122" width="20" height="48"  rx="2" fill="rgba(90,169,240,0.22)" />
-            <rect x="258" y="142" width="20" height="28"  rx="2" fill="rgba(90,169,240,0.22)" />
-          </svg>
-          <div class="rp-flow__gate" style="left:60%; top:14%;"><span class="lock">🔒</span>₩ ◯◯,◯◯◯만</div>
-        </div>
-        <div class="rp-flow__legend">
-          <div class="now">평소<br />겨우 먹고 산 흐름</div>
-          <div class="then">이 자리<br />평생 한 번 터질 목돈</div>
-        </div>
-        <p class="rp-flow__cap">얼마가, 언제 터지는지는 명부에 적혀 있다.</p>
-      </div>
+      <!-- 재물 미리보기 그래프 (SVG) : 사주 기반 동적 값 -->
+      <%- include('./_wealthChart', { chartOnly: true }) %>
 
       <!-- 8.5 · 인연 : 다시 살면 올 사람 (기대감) -->
       <p class="rp-line">돈만 아까운 게 아니지.<br /><span class="rp-b">네 옆자리, 계속 비어 있었잖아.</span></p>
