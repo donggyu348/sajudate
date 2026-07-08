@@ -336,7 +336,7 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
           CLASSIC: { type: '1', name: '정통사주' },
           ROMANTIC: { type: '2', name: '로맨틱 연애사주' },
           ADULT: { type: '3', name: '29금 사주' },
-          REAPER: { type: '4', name: '저승사자 사주' },
+          REAPER: { type: '4', name: '사자록' },
         };
         const giveCode = (GoodsType[finalType] && GoodsType[finalType].giveTicket) || '';
         const gift = GIFT_MAP[giveCode] || { type: '1', name: '신년 운세사주' };
