@@ -1,104 +1,247 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../common/header') %>
-<body class="bg-white flex items-center justify-center h-screen">
-  <div class="text-center">
-    <div class="flex justify-center mb-6">
-      <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+<%
+  const gt = String(typeof goodsType !== 'undefined' ? goodsType : '').toUpperCase();
+  const isReaper = gt.includes('REAPER');
+  const accent   = isReaper ? '#5aa9f0' : '#d9b25a';
+  const accent2  = isReaper ? '#9cc9f5' : '#f0d79a';
+  const titleMain = isReaper ? '저승사자가 당신의 명부를 쓰는 중' : '당신의 사주 리포트를 짓는 중';
+  const titleSub  = isReaper ? '억울하게 끊긴 명줄, 다시 쓰는 데 잠시 걸립니다' : '한 장 한 장 정성껏 풀어내는 중입니다';
+  const stepList  = (typeof stepLabels !== 'undefined' && Array.isArray(stepLabels)) ? stepLabels : [];
+%>
+<style>
+  :root { --accent: <%= accent %>; --accent2: <%= accent2 %>; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body.ps-body {
+    min-height: 100vh;
+    background:
+      radial-gradient(120% 80% at 50% 0%, rgba(90,120,180,0.10) 0%, rgba(0,0,0,0) 55%),
+      linear-gradient(180deg, #0b0d12 0%, #05060a 100%);
+    color: #eef2f7;
+    font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px 18px;
+  }
+  .ps-card {
+    width: 100%; max-width: 420px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 22px;
+    padding: 30px 22px 26px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+  }
+  .ps-eyebrow {
+    text-align: center; font-size: 11px; letter-spacing: 0.28em; text-indent: 0.28em;
+    color: var(--accent); margin: 0 0 12px; text-transform: uppercase;
+  }
+  .ps-title { text-align: center; font-size: 20px; font-weight: 700; line-height: 1.4; margin: 0 0 6px; color: #f4f7fb; word-break: keep-all; }
+  .ps-sub   { text-align: center; font-size: 12.5px; color: rgba(255,255,255,0.5); margin: 0 0 22px; word-break: keep-all; }
+
+  /* 원형 진행 */
+  .ps-ring-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+  .ps-ring { position: relative; width: 148px; height: 148px; }
+  .ps-ring svg { transform: rotate(-90deg); width: 148px; height: 148px; }
+  .ps-ring__track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 10; }
+  .ps-ring__bar {
+    fill: none; stroke: url(#psGrad); stroke-width: 10; stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+  .ps-ring__center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ps-ring__pct { font-size: 34px; font-weight: 700; line-height: 1; color: #fff; }
+  .ps-ring__pct small { font-size: 15px; opacity: 0.7; }
+  .ps-ring__cnt { margin-top: 6px; font-size: 11px; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); }
+
+  /* 현재 작업 라벨 */
+  .ps-now {
+    display: flex; align-items: center; gap: 10px; justify-content: center;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 20px;
+  }
+  .ps-now__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent);
+    box-shadow: 0 0 0 0 var(--accent); animation: psPulse 1.4s infinite; flex-shrink: 0; }
+  @keyframes psPulse {
+    0% { box-shadow: 0 0 0 0 rgba(90,169,240,0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(90,169,240,0); }
+    100% { box-shadow: 0 0 0 0 rgba(90,169,240,0); }
+  }
+  .ps-now__txt { font-size: 14px; color: #eaf0f8; word-break: keep-all; }
+
+  /* 단계 체크리스트 */
+  .ps-steps { list-style: none; margin: 0 0 6px; padding: 0; }
+  .ps-step { display: flex; align-items: center; gap: 11px; padding: 9px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .ps-step:last-child { border-bottom: none; }
+  .ps-step__ic {
+    width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; border: 1.5px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.35);
+  }
+  .ps-step__label { font-size: 13.5px; color: rgba(255,255,255,0.45); word-break: keep-all; }
+  .ps-step.is-done .ps-step__ic { background: var(--accent); border-color: var(--accent); color: #0a0e14; }
+  .ps-step.is-done .ps-step__label { color: rgba(255,255,255,0.8); }
+  .ps-step.is-active .ps-step__ic {
+    border-color: var(--accent); color: var(--accent);
+    animation: psSpin 0.9s linear infinite;
+    border-top-color: transparent; border-right-color: transparent;
+  }
+  @keyframes psSpin { to { transform: rotate(360deg); } }
+  .ps-step.is-active .ps-step__label { color: #fff; font-weight: 600; }
+
+  .ps-foot { margin-top: 16px; text-align: center; font-size: 11.5px; color: rgba(255,255,255,0.38); line-height: 1.7; word-break: keep-all; }
+  .ps-foot b { color: var(--accent2); font-weight: 600; }
+</style>
+
+<body class="ps-body">
+  <div class="ps-card">
+    <p class="ps-eyebrow">Report Weaving</p>
+    <h1 class="ps-title"><%= titleMain %></h1>
+    <p class="ps-sub"><%= titleSub %></p>
+
+    <div class="ps-ring-wrap">
+      <div class="ps-ring">
+        <svg viewBox="0 0 148 148" aria-hidden="true">
+          <defs>
+            <linearGradient id="psGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="var(--accent2)" />
+              <stop offset="100%" stop-color="var(--accent)" />
+            </linearGradient>
+          </defs>
+          <circle class="ps-ring__track" cx="74" cy="74" r="64" />
+          <circle class="ps-ring__bar" id="psBar" cx="74" cy="74" r="64"
+                  stroke-dasharray="402" stroke-dashoffset="402" />
+        </svg>
+        <div class="ps-ring__center">
+          <div class="ps-ring__pct"><span id="psPct">3</span><small>%</small></div>
+          <div class="ps-ring__cnt" id="psCnt">준비 중</div>
+        </div>
+      </div>
     </div>
-    <p class="text-xl font-bold text-gray-800">보고서를 작성 중입니다...✨</p>
-    <p class="mt-2 text-sm text-gray-600">잠시만 기다려주세요.</p>
+
+    <div class="ps-now">
+      <span class="ps-now__dot"></span>
+      <span class="ps-now__txt" id="psNow">명부를 펼치는 중…</span>
+    </div>
+
+    <ul class="ps-steps" id="psSteps">
+      <% stepList.forEach(function(lbl, i){ %>
+        <li class="ps-step" data-idx="<%= i %>">
+          <span class="ps-step__ic"><%= i + 1 %></span>
+          <span class="ps-step__label"><%= lbl %></span>
+        </li>
+      <% }); %>
+    </ul>
+
+    <p class="ps-foot">
+      분량이 큰 리포트라 <b>수 분</b> 정도 걸릴 수 있어요.<br>
+      이 화면을 <b>닫지 말고</b> 잠시만 기다려 주세요. 완성되면 자동으로 열립니다.
+    </p>
   </div>
 
 <% if (shopOrderNo) { %>
 <script>
-$(document).ready(function() {
-
+$(document).ready(function () {
   const shopOrderNo = "<%= shopOrderNo %>";
   const price = Number("<%= goodsPrice %>") || 10000;
-  const goodsType = "<%= goodsType %>"; 
+  const goodsType = "<%= goodsType %>";
 
-  // 상품명 매핑
-  function getProductName(type) {
-    switch (type) {
-      case 'ROMANTIC': 
-        return '연애 사주 (로맨스)';
-      case 'CLASSIC': 
-        return '종합 사주 (클래식)';
-      default:
-        return '사주 리포트 (TIGHT)';
-    }
-  }
-  const productName = getProductName(goodsType);
-
-  //  구매 중복 방지 key (주문번호 기반)
+  /* ── 구매 픽셀 (최초 1회) ── */
   const purchaseKey = "purchase_done_" + shopOrderNo;
-
-  //  최초 1번만 트래킹
   if (!localStorage.getItem(purchaseKey)) {
-
-      // 중복 방지 기록 저장
-      localStorage.setItem(purchaseKey, "1");
-
-      // Facebook Pixel
+    localStorage.setItem(purchaseKey, "1");
+    try {
       fbq('track', 'Purchase', {
-        value: price,
-        currency: 'KRW',
+        value: price, currency: 'KRW',
         contents: [{ id: shopOrderNo, quantity: 1 }],
         content_type: 'product'
       }, { eventID: shopOrderNo });
+    } catch (e) {}
   }
 
-  // 폴링은 "/api/gpt/report 성공"과 무관하게 즉시 시작해야 자동 이동이 보장됨
-  let pollTicks = 0;
-  const pollMax = 560;
-  const pollMs = 3500;
-  let pollTimer = null;
+  /* ── 진행률 UI ── */
+  const RING_LEN = 402; // 2πr, r=64
+  const $bar = document.getElementById('psBar');
+  const $pct = document.getElementById('psPct');
+  const $cnt = document.getElementById('psCnt');
+  const $now = document.getElementById('psNow');
+  const $steps = document.getElementById('psSteps');
+  let shownPct = 3;
 
-  function pollReportDone() {
-    if (pollTicks >= pollMax) {
-      if (pollTimer) clearInterval(pollTimer);
-      console.warn("[payment_success] 폴링 상한 도달 — 수동 새로고침 안내 필요할 수 있음");
-      return;
-    }
-    pollTicks++;
+  function setRing(pct) {
+    // 표시 퍼센트는 뒤로 가지 않게 (단조 증가)
+    shownPct = Math.max(shownPct, Math.min(100, pct));
+    $bar.style.strokeDashoffset = String(RING_LEN * (1 - shownPct / 100));
+    $pct.textContent = String(Math.round(shownPct));
+  }
 
-    $.ajax({
-      url: "/saju/report/check",
-      method: "POST",
-      data: { shopOrderNo },
-      success: function (res) {
-        const status = res && (res.status || res.state);
-        if (status === "DONE" || status === "done" || status === true) {
-          if (pollTimer) clearInterval(pollTimer);
-          window.location.href = "/saju/report?shopOrderNo=" + encodeURIComponent(shopOrderNo);
-        }
-      },
-      error: function (err) {
-        console.error("Failed to check report status", err);
-      },
+  function setSteps(done, current, total, status) {
+    const items = $steps.querySelectorAll('.ps-step');
+    items.forEach(function (li, idx) {
+      li.classList.remove('is-done', 'is-active');
+      const ic = li.querySelector('.ps-step__ic');
+      const isDone = (status === 'DONE') || (idx < done);
+      const isActive = status !== 'DONE' && idx === done && idx < total;
+      if (isDone) { li.classList.add('is-done'); ic.textContent = '✓'; }
+      else if (isActive) { li.classList.add('is-active'); ic.textContent = ''; }
+      else { ic.textContent = String(idx + 1); }
     });
   }
 
+  function updateProgressUI(res) {
+    if (!res) return;
+    setRing(res.percent || 3);
+    if (res.total) $cnt.textContent = Math.min(res.total, res.done + (res.status === 'DONE' ? 0 : 0)) + ' / ' + res.total + ' 장';
+    else $cnt.textContent = '작성 중';
+    if (res.label) $now.textContent = (res.status === 'DONE') ? '명부가 완성됐어요' : (res.label + '…');
+    setSteps(res.done || 0, res.current || 0, res.total || 0, res.status);
+  }
+
+  function pollProgress() {
+    $.ajax({
+      url: "/saju/report/progress", method: "POST", data: { shopOrderNo },
+      success: updateProgressUI, error: function () {}
+    });
+  }
+  pollProgress();
+  const progressTimer = setInterval(pollProgress, 2000);
+
+  /* ── 완료 감지 → 리포트로 이동 ── */
+  let pollTicks = 0;
+  const pollMax = 560;
+  let doneTimer = null;
+
+  function pollReportDone() {
+    if (pollTicks >= pollMax) { if (doneTimer) clearInterval(doneTimer); return; }
+    pollTicks++;
+    $.ajax({
+      url: "/saju/report/check", method: "POST", data: { shopOrderNo },
+      success: function (res) {
+        const status = res && (res.status || res.state);
+        if (status === "DONE" || status === "done" || status === true) {
+          setRing(100); $now.textContent = '명부가 완성됐어요'; $cnt.textContent = '완성';
+          setSteps(0, 0, 0, 'DONE');
+          if (doneTimer) clearInterval(doneTimer);
+          if (progressTimer) clearInterval(progressTimer);
+          setTimeout(function () {
+            window.location.href = "/saju/report?shopOrderNo=" + encodeURIComponent(shopOrderNo);
+          }, 700);
+        }
+      },
+      error: function (err) { console.error("check error", err); }
+    });
+  }
   pollReportDone();
-  pollTimer = setInterval(pollReportDone, pollMs);
+  doneTimer = setInterval(pollReportDone, 3500);
 
-  // 리포트 생성 요청은 best-effort (실패해도 폴링/리다이렉트는 동작)
+  /* ── 생성 요청 kick-off (best-effort) ── */
   $.ajax({
-    url: "/api/gpt/report",
-    method: "POST",
-    contentType: "application/json",
+    url: "/api/gpt/report", method: "POST", contentType: "application/json",
     data: JSON.stringify({ shopOrderNo }),
-    success: function () {
-      console.log("Report generation started (best-effort)");
-    },
-    error: function (err) {
-      console.warn("Failed to start report generation (best-effort):", err);
-    }
+    success: function () {}, error: function () {}
   });
-
 });
 </script>
-<% } %> 
+<% } %>
 </body>
 </html>

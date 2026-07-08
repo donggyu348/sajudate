@@ -53,34 +53,26 @@
                                 <p class="font-bold text-gray-900"><%= goodsInfo.price.toLocaleString() %>원</p>
                             </div>
 
-                            <% if (typeof bundleInfo !== 'undefined' && bundleInfo) { 
-                                let targetTitle = '연애사주';
-                                let bundleBenefit = '연애사주 무료 티켓';
-                                if (goodsInfo.code === 'CLASSIC') { targetTitle = '연애사주'; bundleBenefit = '연애사주 무료 쿠폰'; }
-                                else if (goodsInfo.code === 'ROMANTIC') { targetTitle = '29금 사주'; bundleBenefit = '29금 사주 무료 티켓'; }
-                                else if (goodsInfo.code === 'ADULT') { targetTitle = '연애사주'; bundleBenefit = '연애사주 무료 티켓'; }
-                            %>
-                            
-          <div onclick="selectOption('bundle')" id="card-bundle" class="goods-card relative border-2 border-pink-400 bg-pink-50/30">
-<div class="best-badge">BEST</div>
+                            <% if (typeof bundles !== 'undefined' && bundles && bundles.length) { %>
+                            <% bundles.forEach(function(b, bi){ %>
+          <div onclick="selectOption('<%= b.code %>')" id="card-<%= b.code %>" class="goods-card bundle-card relative border-2 border-pink-400 bg-pink-50/30">
+            <% if (bi === 0) { %><div class="best-badge">BEST</div><% } %>
 
-    
     <div class="flex items-center gap-3">
         <div class="radio-dot border-pink-400"></div>
         <div>
  <p class="text-[11px] font-bold text-pink-600">
 👑 프리미엄 추천 구성      </p>
       <p class="font-bold text-gray-800">
-        <%= goodsInfo.title %> + <%= targetTitle %>
+        <%= goodsInfo.title %> + <%= b.partnerTitle %>
       </p>
-      <p class="text-[12px] text-gray-600 mt-0.5">
-        지금 가장 많이 선택되는 구성
-            <p class="text-[11px] text-pink-500 mt-0.5"><%= bundleBenefit %> 증정</p>
+      <p class="text-[11px] text-pink-500 mt-0.5"><%= b.benefit %> 증정</p>
         </div>
     </div>
-                                    <p class="font-bold text-gray-900"><%= bundleInfo.price.toLocaleString() %>원</p>
+                                    <p class="font-bold text-gray-900"><%= b.price.toLocaleString() %>원</p>
 
     </div>
+                            <% }); %>
 
    <div id="bundle-notice" class="hidden animate-fade-in mt-4">
   <div class="rounded-2xl border border-pink-200 bg-gradient-to-br from-pink-50 to-white p-5 shadow-sm">
@@ -242,6 +234,20 @@
 }
 #card-bundle {
   transform: none !important;
+}
+/* 다중 번들 카드 (동적 id: card-<BUNDLE_CODE>) */
+.bundle-card {
+  padding: 22px 20px !important;
+  margin: 6px 0;
+  border-width: 2px !important;
+  box-shadow: 0 10px 24px rgba(236,72,153,0.18);
+}
+.bundle-card.is-selected {
+  border-color: #ec4899 !important;
+  background-color: #fff1f2 !important;
+}
+.bundle-card .radio-dot {
+  transform: scale(1.2);
 }
 #card-single {
   padding: 14px 16px;
@@ -512,16 +518,15 @@
                 : digits.startsWith("0")
                     ? `82${digits.slice(1)}`
                     : `82${digits}`;
-            fbq("init", "1865484017449049", { ph, country: "kr" });
+            fbq("init", "4732994036924225", { ph, country: "kr" });
         }
 
-        function selectOption(type) {
-            const singleCard = document.getElementById('card-single');
-            const bundleCard = document.getElementById('card-bundle');
+        // sel = 'single' 또는 번들 상품 코드(예: ROMANTIC_REAPER_BUNDLE)
+        function selectOption(sel) {
             const notice = document.getElementById('bundle-notice');
             const finalPriceDisplay = document.getElementById('final-price-display');
- const bundleHighlight = document.getElementById('bundle-highlight');
-           
+            const bundleHighlight = document.getElementById('bundle-highlight');
+
             // 상세 내역 요소들
             const dTitle = document.getElementById('detail-title');
             const dOriginal = document.getElementById('detail-original-price');
@@ -529,27 +534,21 @@
             const dDiscountPrice = document.getElementById('detail-discount-price');
             const dDiscountRate = document.getElementById('detail-discount-rate');
 
-            singleCard.classList.remove('is-selected');
-if (bundleCard) bundleCard.classList.remove('is-selected');
-if (notice) notice.classList.add('hidden');
+            document.querySelectorAll('.goods-card').forEach(function (c) { c.classList.remove('is-selected'); });
+            if (notice) notice.classList.add('hidden');
 
-if (type === 'bundle' && notice) {
-    notice.classList.remove('hidden');
-}
-
-if (type === 'single') {
-    singleCard.classList.add('is-selected'); // 테두리 생기게 함
-    finalGoodsCode = "<%= goodsInfo.code %>"; // CLASSIC 또는 ROMANTIC
-} else if (type === 'bundle') {
-    bundleCard.classList.add('is-selected'); // 테두리 생기게 함
-    // 현재 페이지 상품이 CLASSIC이면 CLASSIC_BUNDLE, ROMANTIC이면 ROMANTIC_BUNDLE이 됨
-    finalGoodsCode = "<%= goodsInfo.code %>" + "_BUNDLE"; 
-}
-if (type === 'bundle') {
-  if (bundleHighlight) bundleHighlight.style.display = "block";
-} else {
-  if (bundleHighlight) bundleHighlight.style.display = "none";
-}
+            if (sel === 'single') {
+                const singleCard = document.getElementById('card-single');
+                if (singleCard) singleCard.classList.add('is-selected');
+                finalGoodsCode = "<%= goodsInfo.code %>";
+                if (bundleHighlight) bundleHighlight.style.display = "none";
+            } else {
+                const bundleCard = document.getElementById('card-' + sel);
+                if (bundleCard) bundleCard.classList.add('is-selected');
+                finalGoodsCode = sel; // 번들 상품 코드 그대로 사용
+                if (notice) notice.classList.remove('hidden');
+                if (bundleHighlight) bundleHighlight.style.display = "block";
+            }
 
             const data = GOODS_MAP[finalGoodsCode];
             if (data) {
@@ -601,7 +600,7 @@ console.log(" [FRONT] 전송 데이터 확인:", {
                     orderName: GOODS_MAP[finalGoodsCode].title,
         successUrl: window.location.origin + "/api/payments/callback-toss" + 
                         `?tel=${fullTel}&pw=${pw}&historyId=${reportHistoryId}&goodsType=${finalGoodsCode}`,
-                    failUrl: window.location.origin + "/saju/payment?error=fail",
+                    failUrl: window.location.origin + "/saju/payment?historyId=" + reportHistoryId,
                     customerMobilePhone: fullTel,
                     card: { flowMode: "DEFAULT", useCardPoint: false }
                 });
@@ -611,10 +610,11 @@ console.log(" [FRONT] 전송 데이터 확인:", {
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-  const bundleCard = document.getElementById("card-bundle");
-  if (bundleCard) {
-    selectOption("bundle");
+  const firstBundle = document.querySelector(".bundle-card");
+  if (firstBundle) {
+    selectOption(firstBundle.id.replace("card-", ""));
   } else {
+    selectOption("single");
     updateExitBenefitText();
   }
   setupExitGuard();

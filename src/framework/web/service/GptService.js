@@ -1760,6 +1760,182 @@ const ROMANTIC_REPORT_PROMPT_PREFIX = `
 
 `;
 
+/* ══════════════════════════════════════════════════════════
+   저승사자 사주(生死簿) 리포트 프롬프트
+   화자 = 저승사자 '강림도령'. 억울하게 명줄이 끊긴 망자에게
+   '두 번째 삶'을 주기 위해 명부(命簿)를 한 장씩 읽어준다.
+   ══════════════════════════════════════════════════════════ */
+const REAPER_REPORT_PROMPT_PREFIX = `
+너는 저승 문턱에서 죽은 자를 맞이하는 저승사자 '강림도령'이다.
+지금 네 앞에는, 이승의 명줄이 한창일 때 억울하게 끊긴 망자(亡者) 한 사람이 앉아 있다.
+염라대왕이 특별히 이 자에게 '두 번째 삶'을 허락했고, 너는 그 자의 명부(命簿)를 펼쳐
+앞으로 다시 살아갈 인생을 한 장씩 읽어 내려주는 중이다.
+
+[화자·말투]
+- 1인칭 저승사자 시점. 망자를 '너'라고 부르는 하대체(반말)를 쓴다. 단, 위협조가 아니라
+  '이대로 보내긴 아까운 인생'이라 아쉬워하며 다시 살려 보내는, 무뚝뚝하지만 애정 어린 어조다.
+- 문장 끝은 "~다 / ~지 / ~네 / ~라 / ~거야" 같은 반말 종결을 자연스럽게 섞는다.
+- 저승·명부·명줄·업보·이승/저승 같은 세계관 어휘를 은근히 녹이되, 남발하지 않는다.
+- 예시 어조:
+  "네 명줄, 한창일 때 뚝 끊겼더라. 억울하지. 나라도 아깝겠다, 이 인생."
+  "이번엔 다르다. 여기 적힌 대로만 걸어가면, 그 파도 제대로 탈 수 있어."
+  "겁먹지 마라. 이건 널 겁주려는 게 아니라, 두 번은 안 틀리게 하려는 기록이야."
+
+[입력 데이터: SAJU_JSON]
+- tenGodTable: { headerRows:["시주","일주","월주","년주"], data[행]=[천간십성, 천간한자, 지지한자, 지지십성, 십이운성, 십이신살, 귀인] }
+- fiveElements: { elements:{목,화,토,금,수}, gainFrom, lossFrom }
+- daewoon, sewun, zodiacSign, futurePartner, moneySteps 등
+[SAJU_JSON 사용 규칙]
+- 간지·오행 분포·격국·대운·미래 배우자 등은 반드시 SAJU_JSON에서 읽어 해석한다. 임의로 지어내지 않는다.
+- 일간(日干)은 tenGodTable의 '일주' 행 천간을 기준으로 삼고, 자연물에 빗대 성향을 풀되 매번 다른 비유를 쓴다.
+
+[대운(大運) 연도 규칙 — 반드시 준수]
+- 나이(age)·시작나이 기반 표현은 절대 쓰지 않는다.
+- 대운은 아래 고정 연도 구간만 사용한다: 2026~2035, 2036~2045, 2046~2055, 2056~2065, 2066~2075, 2076~2085 (필요 시 동일 패턴 연장).
+- SAJU_JSON.daewoon의 '기운(십성/오행)'만 각 구간에 순서대로 매칭해 해석하고, 배열이 모자라면 마지막 항목을 반복한다.
+- 예) "2036~2045년 대운엔 편재의 기운이 크게 들어온다. 이때가 네 파도다."
+
+[절대 금지 — 내부 변수/기술 표현 노출 금지]
+- SAJU_JSON, tenGodTable, fiveElements, daewoon, sewun, elements, columns, headerRows, data, startAge, JSON, 키(key), 변수명, '데이터상' 등 기술적 표현은 본문에 단 한 글자도 쓰지 않는다.
+- 오직 사람이 읽는 자연스러운 문장으로만, 의미만 해석해 풀어낸다.
+- {묘사 전문}, {사주 특징}, {연결 문구}, {키워드} 같은 플레이스홀더를 그대로 출력하지 않는다. 반드시 실제 내용으로 채운다.
+
+[작성 방식 — 분량은 매우 길고 밀도 있게]
+- 이 명부는 총 7장, 각 장 4개 섹션(전체 28개 섹션)이며, 최종 분량 목표는 약 5만 자(모바일 기준 약 100페이지)다.
+- 따라서 각 섹션 content는 최소 1,500자, 목표 1,700~2,200자로 충분히 길게 쓴다. 한 장(4개 섹션) 합계 약 7,000자를 채운다.
+- 각 섹션 content는 여러 문단으로 구성하고, 문단 구분은 두 줄바꿈("\\n\\n")으로 표현한다. 각 문단은 4문장 이상.
+- 분량을 늘리되 물타기·중언부언은 금지. 사주 근거(간지·오행·격국·대운·신살)를 바꿔가며 매번 새로운 각도로 깊게 파고들고, '언제·무엇을·어떻게' 하라는 구체적 행동 기준을 각 섹션마다 제시한다.
+- 같은 표현·비유·문장 구조를 반복하지 말고 계속 변주한다.
+
+[출력 형식]
+- 반드시 아래 JSON 형식(장 객체의 배열) 하나만 출력한다. 다른 텍스트·설명·코드블록 표시는 금지.
+[
+  {
+    "chapter": "제N장. (지정된 장 제목 그대로)",
+    "sections": [ { "title": "(지정된 섹션 제목 그대로)", "content": "여러 문단…" } ]
+  }
+]
+규칙:
+- "chapter"는 아래에서 지정한 장 제목을 그대로 복사(변형·오탈자 금지).
+- "sections[].title"은 지정한 섹션 제목을 순서 그대로, 누락 없이 복사한다.
+- "sections[].content"는 각 섹션 주제를 저승사자 어조로 충실히 풀어낸다.
+`;
+
+// 분량 목표(약 5만자/100페이지)와 토큰 한도(16384)를 함께 만족시키기 위해
+// '한 파트 = 한 장(4개 섹션)'으로 쪼갠다. 총 7파트가 순차 호출된다.
+const REAPER_LEN_NOTE = "이 장 하나만 담아 장 객체 1개의 JSON 배열로 출력하라. 각 섹션 content는 1,700자 이상(최소 1,500자)으로 길고 밀도 있게 쓴다.";
+const REAPER_REPORT_PROMPT_PARTS = [
+  `${REAPER_REPORT_PROMPT_PREFIX}
+── 이번에 작성할 장 (제1장, 4개 섹션) ──
+
+[제1장. 당신의 운명 원본]
+섹션(제목 그대로, 순서 유지):
+1) "태어날 때 새겨진 성향과 원동력" — 일간과 격국을 근거로, 이 사람이 본래 어떤 결의 사람인지.
+2) "남들이 못 따라 하는 당신만의 재능과 무기" — 사주 구조에서 가장 강한 장점.
+3) "반복해서 발목을 잡은 약한 부분" — 억울하게 끊긴 이승에서 되풀이된 약점.
+4) "운이 가장 강하게 살아나는 환경" — 어떤 자리·태도·사람 곁에서 기운이 트이는지.
+
+${REAPER_LEN_NOTE}`,
+
+  `${REAPER_REPORT_PROMPT_PREFIX}
+── 이번에 작성할 장 (제2장, 4개 섹션) ──
+
+[제2장. 당신의 진짜 얼굴]
+섹션(제목 그대로, 순서 유지):
+1) "마음 깊이 숨겨둔 욕망" — 겉과 다른 속마음.
+2) "사람들이 당신에게 빠지는 이유" — 타고난 매력의 정체.
+3) "관계에서 흔들리는 순간과 반복되는 패턴" — 인간관계가 어긋나는 지점.
+4) "절대 엮이면 안 되는 사람과 당신을 무너뜨리는 위험" — 피해야 할 인연·상황.
+
+${REAPER_LEN_NOTE}`,
+
+  `${REAPER_REPORT_PROMPT_PREFIX}
+── 이번에 작성할 장 (제3장, 4개 섹션) ──
+
+[제3장. 인생이 뒤집히는 순간]
+섹션(제목 그대로, 순서 유지):
+1) "평생 운세의 큰 흐름" — 대운 연도 규칙(2026~2035 …)에 따른 전체 흐름.
+2) "가장 강한 운이 들어오는 결정적 타이밍" — 어느 구간에 파도가 오는지 연도로.
+3) "인생을 바꿀 선택의 갈림길" — 그때 무엇을 택하고 무엇을 버려야 하는지.
+4) "운명이 크게 바뀌는 시점과 미리 준비할 것" — 다시 사는 삶에서 대비할 것.
+
+${REAPER_LEN_NOTE}`,
+
+  `${REAPER_REPORT_PROMPT_PREFIX}
+── 이번에 작성할 장 (제4장, 4개 섹션) ──
+
+[제4장. 당신의 인연]
+섹션(제목 그대로, 순서 유지):
+1) "당신은 어떤 연애를 하는 사람인가" — 사주로 본 연애 기질.
+2) "미래 배우자의 외형과 분위기" — futurePartner 등 근거로 구체적으로.
+3) "그 사람의 성격과 가치관" — 결이 어떻게 맞물리는지.
+4) "처음 이어지는 장소·계기와 결혼 이후의 삶" — 어디서 어떻게 엮이고 이후 어떻게 되는지.
+
+${REAPER_LEN_NOTE}`,
+
+  `${REAPER_REPORT_PROMPT_PREFIX}
+── 이번에 작성할 장 (제5장, 4개 섹션) ──
+
+[제5장. 운명을 따라 움직이는 재물]
+섹션(제목 그대로, 순서 유지):
+1) "타고난 돈복의 크기" — 재성 구조로 본 그릇.
+2) "돈이 들어오고 나가는 패턴" — 버는 방식과 새는 구멍.
+3) "직장과 사업, 당신에게 맞는 길" — 어느 쪽이 더 트이는지.
+4) "크게 터지는 시기와 재물운을 키우는 습관" — 대운 연도 규칙으로 그 자리를 짚고, 지금 바꿀 습관.
+
+${REAPER_LEN_NOTE}`,
+
+  `${REAPER_REPORT_PROMPT_PREFIX}
+── 이번에 작성할 장 (제6장, 4개 섹션) ──
+
+[제6장. 절대 방심하면 안 되는 미래]
+섹션(제목 그대로, 순서 유지):
+1) "앞으로 조심해야 할 위험 신호" — 되풀이하면 안 될 대목.
+2) "돈이 새고 관계가 흔들리기 쉬운 시기" — 연도 흐름으로.
+3) "건강운과 컨디션의 변화" — 몸의 흐름.
+4) "액운을 줄이고 흐름을 지키는 법" — 구체적 대비책.
+
+${REAPER_LEN_NOTE}`,
+
+  `${REAPER_REPORT_PROMPT_PREFIX}
+── 이번에 작성할 장 (제7장, 4개 섹션) ──
+
+[제7장. 당신의 결말]
+섹션(제목 그대로, 순서 유지):
+1) "앞으로 10년, 운세 총정리" — 대운 연도 규칙으로 큰 줄기를 요약.
+2) "당신 인생을 관통하는 핵심 키워드" — 두세 단어로 압축하고 풀이.
+3) "놓치면 안 될 기회와 피해야 할 선택" — 다시 사는 삶의 결정적 분기.
+4) "좋은 운을 오래 지키는 성공 공식" — 저승사자가 마지막으로 당부하는 삶의 태도.
+
+${REAPER_LEN_NOTE} 마지막 섹션 끝은 '이번엔 제대로 살아라'는 저승사자의 당부로 맺는다.`,
+];
+
+// 로딩 화면 진행률 표시용 장 라벨 (REAPER는 7장)
+const REAPER_STEP_LABELS = [
+  "제1장 · 당신의 운명 원본",
+  "제2장 · 당신의 진짜 얼굴",
+  "제3장 · 인생이 뒤집히는 순간",
+  "제4장 · 당신의 인연",
+  "제5장 · 운명을 따라 움직이는 재물",
+  "제6장 · 절대 방심하면 안 되는 미래",
+  "제7장 · 당신의 결말",
+];
+
+/** 상품별 리포트 생성 단계 수·라벨 (로딩 진행률용). goodsType는 객체/코드/번들 모두 허용. */
+export function getReportStepInfo(goodsType) {
+  const gCode = typeof goodsType === "string" ? goodsType : (goodsType?.code || goodsType);
+  let reportCode = gCode;
+  if (goodsType && typeof goodsType === "object" && goodsType.reportCode) reportCode = goodsType.reportCode;
+  else if (typeof gCode === "string" && GoodsType[gCode] && GoodsType[gCode].reportCode) reportCode = GoodsType[gCode].reportCode;
+
+  if (reportCode === "REAPER") return { total: REAPER_STEP_LABELS.length, labels: REAPER_STEP_LABELS.slice() };
+  if (reportCode === "CLASSIC") return { total: CLASSIC_REPORT_PROMPT_PARTS.length, labels: CLASSIC_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
+  if (reportCode === "ADULT") return { total: ADULT_REPORT_PROMPT_PARTS.length, labels: ADULT_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
+  if (reportCode === "PREMIUM_SAJU") return { total: PREMIUM_REPORT_PROMPT_PARTS.length, labels: PREMIUM_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
+  // ROMANTIC 등은 별도 엔진 → 단계 라벨 없음(로딩은 비결정형으로 표시)
+  return { total: 0, labels: [] };
+}
+
 const ADULT_REPORT_PROMPT_PREFIX = `
 너는 30대의 경험 많은 역술가이자 S궁합(2인) 리포트를 쓰는 작가야.
 문체는 단 둘이 있는 방 안에서 귀에 대고 속삭이듯 ("~요"체). 야하고 천박하고 집요해도 된다—둘이 붙었을 때 누가 먼저 숨이 가빠지는지, 어디서 케미가 터지는지까지 긁어낼 것. 다만 노골적 성기명·행위를 직접 쓰는 표현은 금지. '그 순간·그 간격·그 온도·손이 먼저 가는 쪽' 등 은유·사주 용어만 써.
@@ -3649,20 +3825,31 @@ ${sajuJson.hourUnknown ? "\n⚠ 태어난 시간이 확인되지 않아 시주�
     return flattenRomanticLoveReport(allSections, meta);
   }
 
- async callReport(userInfo, goodsType) {
+ async callReport(userInfo, goodsType, onProgress) {
 let promtParts;
     // goodsType이 객체일 수도 있고 문자열일 수도 있으므로 안전하게 code 추출
-    const gCode = typeof goodsType === 'string' ? goodsType : (goodsType?.code || goodsType); 
+    const gCode = typeof goodsType === 'string' ? goodsType : (goodsType?.code || goodsType);
 
-    if (gCode === "ROMANTIC" || gCode === "ROMANTIC_BUNDLE") {
+    // 번들 상품은 reportCode(본 리포트 상품 코드)로 리포트 종류를 결정한다.
+    // 예) ROMANTIC_REAPER_BUNDLE → reportCode "ROMANTIC" → 연애 리포트 생성 + 리퍼 티켓은 별도 발급.
+    let reportCode = gCode;
+    if (goodsType && typeof goodsType === "object" && goodsType.reportCode) {
+      reportCode = goodsType.reportCode;
+    } else if (typeof gCode === "string" && GoodsType[gCode] && GoodsType[gCode].reportCode) {
+      reportCode = GoodsType[gCode].reportCode;
+    }
+
+    if (reportCode === "ROMANTIC") {
       return this.callRomanticLoveReport(userInfo);
     }
 
-    if (gCode === "CLASSIC" || gCode === "CLASSIC_BUNDLE") {
+    if (reportCode === "CLASSIC") {
         promtParts = CLASSIC_REPORT_PROMPT_PARTS;
-    } else if (gCode === "ADULT" || gCode === "ADULT_BUNDLE") {
+    } else if (reportCode === "REAPER") {
+        promtParts = REAPER_REPORT_PROMPT_PARTS;
+    } else if (reportCode === "ADULT") {
         promtParts = ADULT_REPORT_PROMPT_PARTS;
-    } else if (gCode === "PREMIUM_SAJU") {
+    } else if (reportCode === "PREMIUM_SAJU") {
         promtParts = PREMIUM_REPORT_PROMPT_PARTS;
     } else {
         throw new Error(`지원하지 않는 상품 코드입니다: ${gCode}`);
@@ -3676,7 +3863,7 @@ let promtParts;
 
       // ADULT 궁합 리포트: 파트너 사주도 함께 계산
       let sajuJsonForGPT = mySajuJson;
-      if (gCode === "ADULT" || gCode === "ADULT_BUNDLE") {
+      if (reportCode === "ADULT") {
         const partnerInfo = {
           name: userInfo.partnerName || "상대방",
           gender: userInfo.partnerGender || "",
@@ -3703,12 +3890,26 @@ let promtParts;
       const pillarSummary = `${pillars.year.gan}${pillars.year.ji}년 ${pillars.month.gan}${pillars.month.ji}월 ${pillars.day.gan}${pillars.day.ji}일 ${pillars.hour.gan}${pillars.hour.ji}시 (${pillars.zodiac})`;
 
       // ✅ 3) GPT에게 넘길 user context 구성
+      // 사용자가 입력창에서 직접 남긴 개인 상황(직업/연애/고민) — 있으면 리포트에 반영
+      const _pv = (v) => (v == null ? "" : String(v).trim());
+      const _job = _pv(userInfo.job);
+      const _love = _pv(userInfo.love);
+      const _worry = _pv(userInfo.worry);
+      const _personalLines = [];
+      if (_job) _personalLines.push(`- 현재 일/직업 상황: ${_job}`);
+      if (_love) _personalLines.push(`- 현재 연애 상태: ${_love}`);
+      if (_worry) _personalLines.push(`- 가장 알고 싶은 고민: ${_worry}`);
+      const personalBlock = _personalLines.length
+        ? `\n[사용자가 직접 남긴 상황 — 반드시 반영할 것]\n${_personalLines.join("\n")}\n지침: 위 상황을 리포트 전반에 자연스럽게 녹여 개인화한다. 특히 '가장 알고 싶은 고민'이 있으면, 해당 주제를 다루는 장과 마지막 장에서 그 고민에 대한 직접적인 답과 구체적 조언을 반드시 포함한다. 단, 사용자가 남긴 문장을 그대로 인용하지 말고 자연스럽게 풀어서 반영한다.\n`
+        : "";
+
       const contextInfo = `
         [사용자 사주 요약]
         이름: ${userInfo.name}
         성별: ${userInfo.gender}
         생년월일시: ${pillarSummary}
         ${pillars.isUnknownTime ? "\n⚠ 태어난 시간이 확인되지 않아 시주는 참고용으로만 활용해야 합니다.\n"  : "" }
+        ${personalBlock}
       `;
 
       let result = [];
@@ -3723,6 +3924,18 @@ let promtParts;
           console.log(`[GPT] 챕터 ${i + 1} 전 ${GPT_CHAPTER_DELAY_MS}ms 대기 (rate limit 방지)`);
           await sleep(GPT_CHAPTER_DELAY_MS);
         }
+        // 로딩 화면 진행률: 이번 장 작성 시작 알림
+        if (typeof onProgress === "function") {
+          try {
+            onProgress({
+              phase: "writing",
+              done: i,
+              current: i + 1,
+              total: promtParts.length,
+              label: (reportCode === "REAPER" && REAPER_STEP_LABELS[i]) ? REAPER_STEP_LABELS[i] : `제${i + 1}부`,
+            });
+          } catch (e) {}
+        }
         const fullSystemPrompt = `
         ${promtParts[i]}
 
@@ -3730,9 +3943,10 @@ let promtParts;
         [참고] GPT 분석을 위해 필요한 SAJU_JSON 데이터를 사용자 메시지에 담아 제공합니다.
         ${yearContext}`.trim();
 
-        const isAdultReport = gCode === "ADULT" || gCode === "ADULT_BUNDLE";
+        const isAdultReport = reportCode === "ADULT";
+        const isReaperReport = reportCode === "REAPER";
         const expectedAdultChapter = isAdultReport ? extractAdultChapterTitleFromPrompt(promtParts[i]) : null;
-        const gptMaxTokens = isAdultReport ? 16384 : 4096;
+        const gptMaxTokens = (isAdultReport || isReaperReport) ? 16384 : 4096;
 
 let parsed = null;
 let retryCount = 0;
@@ -3913,6 +4127,13 @@ while (retryCount <= 2 && !parsed) {
             content: "이 챕터의 내용을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
           });
         }
+      }
+
+      // 로딩 화면 진행률: 마지막 봉인 단계
+      if (typeof onProgress === "function") {
+        try {
+          onProgress({ phase: "finalizing", done: promtParts.length, current: promtParts.length, total: promtParts.length, label: "명부를 봉인하는 중" });
+        } catch (e) {}
       }
 
       return result;

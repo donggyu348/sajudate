@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<style>
+  :root { --rp-blue: #5aa9f0; --rp-blue-deep: #2e78c0; }
+
+  * { box-sizing: border-box; }
+  body { background: #000; }
+
+  .reaper-report {
+    background: #000;
+    color: #f2f5f8;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 64px;
+    overflow-x: hidden;
+    font-family: 'GyeonggiBatang', serif;
+  }
+
+  /* ===== 표지 ===== */
+  .rr-cover {
+    position: relative;
+    padding: 56px 26px 40px;
+    text-align: center;
+    background:
+      radial-gradient(120% 70% at 50% 0%, rgba(90,169,240,0.10) 0%, rgba(0,0,0,0) 60%),
+      #000;
+    border-bottom: 1px solid #14202f;
+  }
+  .rr-cover__seal {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 60px; height: 60px; margin: 0 auto 18px;
+    border: 2px solid #c0332f; border-radius: 6px;
+    color: #d63a30; font-size: 15px; font-weight: 700; line-height: 1.1;
+    transform: rotate(-8deg);
+    box-shadow: inset 0 0 10px rgba(180,40,36,0.35);
+    text-shadow: 0 0 6px rgba(214,58,48,0.5);
+  }
+  .rr-cover__title {
+    font-size: clamp(32px, 9vw, 42px); font-weight: 700;
+    letter-spacing: 0.34em; text-indent: 0.34em; margin: 0 0 8px;
+    color: #eaf2fb;
+    text-shadow: 0 0 14px rgba(90,169,240,0.55), 0 0 34px rgba(46,120,192,0.35);
+  }
+  .rr-cover__sub {
+    font-size: clamp(13px, 3.6vw, 15px); letter-spacing: 0.22em; text-indent: 0.22em;
+    color: #7f8b9c; margin: 0 0 26px;
+  }
+  .rr-cover__namecard {
+    width: 78%; margin: 0 auto;
+    background: rgba(6, 10, 18, 0.9); border: 1px solid #22334d; border-radius: 10px;
+    padding: 18px 14px; text-align: center;
+  }
+  .rr-cover__namecard .lbl { font-size: 12px; color: #7f93aa; letter-spacing: 3px; }
+  .rr-cover__namecard .nm  { font-size: clamp(22px, 5.8vw, 26px); color: var(--rp-blue); margin-top: 6px; }
+  .rr-cover__namecard .bd  { font-size: clamp(13px, 3.6vw, 15px); color: #cdd7e2; margin-top: 10px; line-height: 1.6; }
+  .rr-cover__lead {
+    margin: 26px auto 0; max-width: 320px;
+    font-size: clamp(15px, 4vw, 17px); line-height: 1.85; color: #d8e0ea; word-break: keep-all;
+  }
+  .rr-cover__lead .rp-b { color: var(--rp-blue); }
+
+  /* ===== 섹션 공통 ===== */
+  .rr-section { padding: 6px 0 0; }
+  .rr-eyebrow {
+    text-align: center; font-size: 12px; letter-spacing: 0.28em; text-indent: 0.28em;
+    color: rgba(127,181,239,0.75); margin: 40px 0 4px;
+  }
+  .rr-secline {
+    text-align: center; color: #f2f5f8; line-height: 1.75; word-break: keep-all;
+    padding: 8px 26px 0; margin: 0; font-size: clamp(17px, 4.6vw, 20px);
+  }
+  .rr-secline .rp-b { color: var(--rp-blue); }
+  .rr-secline .rp-mut { color: #7f8b9c; }
+
+  /* ===== 사주 원국(명식) ===== */
+  .rp-manse { width: 88%; margin: 22px auto 0; padding: 16px 10px 14px; border-radius: 12px; background: rgba(90, 169, 240, 0.04); border: 1px solid #1e2e46; }
+  .rp-manse__title { font-size: 14px; letter-spacing: 0.06em; color: #d8e0ea; text-align: center; margin: 0 0 3px; }
+  .rp-manse__sub { font-size: 12px; color: #7f8b9c; text-align: center; margin: 0 0 16px; }
+  .rp-manse__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .rp-manse__col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .rp-manse__plabel { font-size: 10px; color: #5f6b7a; }
+  .rp-manse__col--day .rp-manse__plabel { color: var(--rp-blue); }
+  .rp-manse__god { font-size: 10px; color: #8b97a6; min-height: 13px; text-align: center; line-height: 1.2; }
+  .rp-manse__col--day .rp-manse__god--top { color: #7fb5ef; font-weight: bold; }
+  .rp-manse__box {
+    width: 100%; aspect-ratio: 1; max-width: 62px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'GyeonggiBatang', Georgia, serif;
+    font-size: clamp(20px, 6.5vw, 28px); font-weight: 700; line-height: 1;
+    border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+  .rp-manse__box--wood  { background: radial-gradient(ellipse at 50% 30%, #c8e8d0 0%, #8ab898 55%, #5a8870 100%); color: #1a2820; }
+  .rp-manse__box--fire  { background: radial-gradient(ellipse at 50% 30%, #ffc8cc 0%, #e88890 55%, #c05058 100%); color: #2a1018; }
+  .rp-manse__box--earth { background: radial-gradient(ellipse at 50% 30%, #f0e4c0 0%, #d4b880 55%, #a88850 100%); color: #2a2010; }
+  .rp-manse__box--metal { background: radial-gradient(ellipse at 50% 30%, #e8ecf0 0%, #b8c0c8 55%, #889098 100%); color: #1a2028; }
+  .rp-manse__box--water { background: radial-gradient(ellipse at 50% 30%, #b8d4f0 0%, #78a8d0 55%, #4878a8 100%); color: #0a1828; }
+  .rp-manse__box--unknown { background: rgba(255, 255, 255, 0.04); color: rgba(255, 255, 255, 0.25); box-shadow: none; }
+  .rp-manse__meta { font-size: 9px; color: #6b7686; text-align: center; line-height: 1.3; min-height: 11px; }
+  .rp-manse__meta--sha { font-size: 8px; color: #5f6b7a; word-break: keep-all; }
+
+  /* ===== 팔자 분석 (블러 제거 · 전부 공개) ===== */
+  .rp-analysis { width: 84%; margin: 24px auto 0; }
+  .rp-analysis .head { text-align: center; font-size: clamp(18px, 4.8vw, 21px); color: #f2f5f8; margin: 0 0 16px; }
+  .rp-analysis .row { display: flex; gap: 12px; padding: 13px 2px; border-bottom: 1px solid #1e2e46; align-items: baseline; }
+  .rp-analysis .row:last-child { border-bottom: none; }
+  .rp-analysis .row .k { flex: 0 0 84px; color: var(--rp-blue); font-size: clamp(13px, 3.6vw, 15px); }
+  .rp-analysis .row .v { color: #d8e0ea; font-size: clamp(13px, 3.6vw, 15px); line-height: 1.55; }
+  .rp-analysis .row .v b { color: #7fb5ef; }
+
+  /* ===== 명부 챕터 본문 ===== */
+  .rr-chapter { margin: 46px auto 0; width: 100%; }
+  .rr-chapter__head { text-align: center; padding: 0 26px; margin-bottom: 8px; }
+  .rr-chapter__no {
+    font-size: clamp(30px, 9vw, 42px); font-weight: 700; letter-spacing: 0.04em; line-height: 1.1;
+    color: #9cc9f5; margin: 0 0 10px;
+    text-shadow: 0 0 10px rgba(90,169,240,0.9), 0 0 28px rgba(90,169,240,0.5), 0 0 48px rgba(46,120,192,0.32);
+  }
+  .rr-chapter__title {
+    font-size: clamp(19px, 5.4vw, 24px); font-weight: 700; line-height: 1.4; letter-spacing: 0.02em;
+    color: #cfe6fb; margin: 0;
+    text-shadow: 0 0 8px rgba(90,169,240,0.6), 0 0 22px rgba(90,169,240,0.35);
+  }
+  .rr-chapter__rule {
+    width: 72%; max-width: 260px; height: 1px; margin: 18px auto 0;
+    background: linear-gradient(90deg, transparent, rgba(127,181,239,0.55), transparent);
+  }
+  .rr-block { width: 86%; margin: 30px auto 0; }
+  .rr-block__title {
+    font-size: clamp(16px, 4.4vw, 19px); font-weight: 700; color: #dcecfb;
+    padding-left: 12px; border-left: 3px solid var(--rp-blue-deep);
+    margin: 0 0 16px; line-height: 1.45; word-break: keep-all;
+  }
+  .rr-block__body {
+    font-size: clamp(15px, 4vw, 17px); line-height: 1.95; color: #d3dbe4;
+    white-space: pre-line; word-break: keep-all; letter-spacing: 0.01em;
+  }
+
+  /* ===== 대운 / 재물 그래프 (자물쇠 제거 · 공개) ===== */
+  .rp-flow { position: relative; width: 88%; margin: 30px auto 0; padding: 16px 12px 14px; border-radius: 12px; background: rgba(90, 169, 240, 0.04); border: 1px solid #1e2e46; }
+  .rp-flow__title { font-size: 14px; color: #d8e0ea; text-align: center; margin: 0 0 12px; letter-spacing: 0.06em; }
+  .rp-flow__chart { position: relative; }
+  .rp-flow__peak {
+    position: absolute; transform: translate(-50%, -50%);
+    background: rgba(14, 24, 40, 0.92); border: 1px solid #3a5578; border-radius: 20px;
+    padding: 5px 13px; font-size: 12px; color: #cfe0f2; white-space: nowrap;
+  }
+  .rp-flow__peak .star { color: var(--rp-blue); margin-right: 4px; }
+  .rp-flow__legend { display: flex; gap: 8px; margin-top: 14px; }
+  .rp-flow__legend div { flex: 1; text-align: center; font-size: 11.5px; line-height: 1.45; }
+  .rp-flow__legend .now { color: #7f8b9c; }
+  .rp-flow__legend .then { color: var(--rp-blue); }
+  .rp-flow__cap { text-align: center; font-size: 12px; color: #7f8b9c; margin: 13px 0 0; }
+
+  /* ===== 미래 연인 얼굴 (블러 제거 · 공개) ===== */
+  .rp-face-block { width: 88%; max-width: 320px; margin: 30px auto 0; }
+  .rp-face { width: 100%; margin: 0; }
+  .rp-face__ornate {
+    position: relative; padding: 10px;
+    background: linear-gradient(145deg, #101a2a 0%, #070c14 100%);
+    border: 1.5px solid #6fa8d0;
+    box-shadow: 0 0 0 1px rgba(111,168,208,0.25), 0 4px 20px rgba(0,0,0,0.5);
+    overflow: visible;
+  }
+  .rp-face__ornate::before, .rp-face__ornate::after,
+  .rp-face__frame::before, .rp-face__frame::after {
+    content: "◆"; position: absolute; font-size: 7px; color: #6fa8d0; line-height: 1; opacity: 0.85; z-index: 4;
+  }
+  .rp-face__ornate::before { top: 3px; left: 3px; }
+  .rp-face__ornate::after  { top: 3px; right: 3px; }
+  .rp-face__frame::before { bottom: 3px; left: 3px; }
+  .rp-face__frame::after  { bottom: 3px; right: 3px; }
+  .rp-face__frame { position: relative; overflow: hidden; aspect-ratio: 3 / 4; background: #0a1220; }
+  .rp-face__frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rp-face__cap { text-align: center; font-size: 12px; color: #7f8b9c; margin: 12px 0 0; }
+
+  /* ===== 맺음말 ===== */
+  .rr-closing {
+    width: 84%; margin: 52px auto 0; padding-top: 34px;
+    border-top: 1px solid #14202f; text-align: center;
+  }
+  .rr-closing p { font-size: clamp(16px, 4.2vw, 19px); line-height: 1.9; color: #f2f5f8; word-break: keep-all; margin: 0 0 10px; }
+  .rr-closing .rp-b { color: var(--rp-blue); }
+  .rr-closing .rp-mut { color: #7f8b9c; }
+</style>
+
+<%
+  /* ── result.ejs 와 동일한 데이터 준비 (검증된 로직 재사용) ── */
+  const uName = (userInfo && userInfo.name) ? userInfo.name : '';
+
+  let birthLine = '';
+  try {
+    const y = saju.year.gan + saju.year.ji + '년';
+    const m = saju.month.gan + saju.month.ji + '월';
+    const d = saju.day.gan + saju.day.ji + '일';
+    const h = (saju.hour && saju.hour.gan) ? (saju.hour.gan + saju.hour.ji + '시') : '';
+    birthLine = [y, m, d, h].filter(Boolean).join(' ');
+  } catch (e) { birthLine = ''; }
+
+  let birthKor = '';
+  try {
+    const gg = String((userInfo && (userInfo.birthDate || userInfo.birthdate)) || '').replace(/\D/g, '');
+    if (gg.length >= 8) birthKor = `${gg.slice(0, 4)}년 ${Number(gg.slice(4, 6))}월 ${Number(gg.slice(6, 8))}일`;
+  } catch (e) { birthKor = ''; }
+
+  // 사주 원국(명식) — sample.tenGodTable.data 재활용
+  const CGAN = { "갑":"甲","을":"乙","병":"丙","정":"丁","무":"戊","기":"己","경":"庚","신":"辛","임":"壬","계":"癸" };
+  const CJIJ = { "자":"子","축":"丑","인":"寅","묘":"卯","진":"辰","사":"巳","오":"午","미":"未","신":"申","유":"酉","술":"戌","해":"亥" };
+  const STEM_ELEM = { "甲":"wood","乙":"wood","丙":"fire","丁":"fire","戊":"earth","己":"earth","庚":"metal","辛":"metal","壬":"water","癸":"water","갑":"wood","을":"wood","병":"fire","정":"fire","무":"earth","기":"earth","경":"metal","신":"metal","임":"water","계":"water" };
+  const BRANCH_ELEM = { "子":"water","丑":"earth","寅":"wood","卯":"wood","辰":"earth","巳":"fire","午":"fire","未":"earth","申":"metal","酉":"metal","戌":"earth","亥":"water","자":"water","축":"earth","인":"wood","묘":"wood","진":"earth","사":"fire","오":"fire","미":"earth","신":"metal","유":"metal","술":"earth","해":"water" };
+  const _hstem = (s) => (s ? (CGAN[s] || s) : "");
+  const _hbranch = (s) => (s ? (CJIJ[s] || s) : "");
+  let manseCols = [];
+  try {
+    const tbl = (sample && sample.tenGodTable) ? sample.tenGodTable : null;
+    const data = (tbl && tbl.data) ? tbl.data : [];
+    manseCols = ["시주", "일주", "월주", "년주"].map(function (label, i) {
+      const row = data[i] || [];
+      const stemRaw = row[1] || "";
+      const branchRaw = row[2] || "";
+      const unknown = i === 0 && !stemRaw && !branchRaw;
+      return {
+        label: label,
+        isDay: i === 1,
+        stemGod: i === 1 ? "일간(나)" : (row[0] || ""),
+        branchGod: row[3] || "",
+        stem: unknown ? "─" : _hstem(stemRaw),
+        branch: unknown ? "─" : _hbranch(branchRaw),
+        stemElem: unknown ? "unknown" : (STEM_ELEM[stemRaw] || STEM_ELEM[_hstem(stemRaw)] || "earth"),
+        branchElem: unknown ? "unknown" : (BRANCH_ELEM[branchRaw] || BRANCH_ELEM[_hbranch(branchRaw)] || "earth"),
+        diShi: row[4] || "",
+        shenSha: row[5] || "",
+        unknown: unknown,
+      };
+    });
+  } catch (e) { manseCols = []; }
+  const dayGanLabel = (saju && saju.dayGan) ? saju.dayGan : ((saju && saju.day && saju.day.gan) ? saju.day.gan : '');
+
+  // 미래 연인 얼굴 (홍연 이미지 풀 재사용) — 여성 사용자 → 남성 얼굴, 남성 사용자 → 여성 얼굴
+  let partnerFace = '';
+  try {
+    const _g = String((userInfo && userInfo.gender) || '').trim();
+    const _gLower = _g.toLowerCase();
+    const _isFemale = ['여','여자','여성','female','f','woman'].some(function (v) { return _g === v || _gLower === v.toLowerCase(); });
+    const _isMale = ['남','남자','남성','male','m','man'].some(function (v) { return _g === v || _gLower === v.toLowerCase(); });
+    const _faceGender = _isFemale ? 'man' : (_isMale ? 'woman' : 'woman');
+    const _manFiles   = ['Rectangle 157.png','Rectangle 159.png','Rectangle 160.png','Rectangle 161.png','Rectangle 162.png'];
+    const _womanFiles = ['Rectangle 152.png','Rectangle 153.png','Rectangle 154.png','Rectangle 155.png','Rectangle 156.png'];
+    const _faceFiles  = _faceGender === 'man' ? _manFiles : _womanFiles;
+    const _faceFile   = _faceFiles[Math.floor(Math.random() * _faceFiles.length)];
+    partnerFace = `/assets/images/tight/romantic/result/${_faceGender}/${encodeURIComponent(_faceFile)}`;
+  } catch (e) { partnerFace = ''; }
+
+  /* ── 리포트 본문: reportInfo([{chapter,title,content}]) 를 장(章)별로 그룹핑 ── */
+  const chapterMap = {};
+  const chapterOrder = [];
+  (reportInfo || []).forEach(function (item) {
+    if (!item) return;
+    const key = item.chapter || '명부';
+    if (!chapterMap[key]) { chapterMap[key] = []; chapterOrder.push(key); }
+    chapterMap[key].push(item);
+  });
+
+  // 장 번호 라벨(제N장). reportInfo 챕터명에 이미 "제N장"이 있으면 그대로, 없으면 붙임.
+  const chapterNoLabel = function (name, idx) {
+    if (/제\s*\d+\s*장/.test(name || '')) {
+      const m = (name || '').match(/제\s*\d+\s*장/);
+      return m ? m[0].replace(/\s+/g, '') : ('제' + (idx + 1) + '장');
+    }
+    return '제' + (idx + 1) + '장';
+  };
+  const chapterTitleText = function (name) {
+    return String(name || '명부').replace(/제\s*\d+\s*장\s*[:.·-]?\s*/, '').trim() || '명부';
+  };
+
+  // 중간중간 끼워 넣을 시각 요소 순서 (블러/자물쇠 제거 버전)
+  // 0: 대운 흐름 그래프 · 1: 재물 그래프 · 2: 미래 연인 얼굴
+  const VISUAL_ORDER = ['daewoon', 'wealth', 'face'];
+%>
+
+<body>
+  <div class="reaper-report">
+    <%- include('./../../common/common') %>
+
+    <!-- ══════════ 표지 ══════════ -->
+    <div class="rr-cover">
+      <span class="rr-cover__seal">閻羅<br>之印</span>
+      <h1 class="rr-cover__title">生死簿</h1>
+      <p class="rr-cover__sub">亡者 業報 精算 名簿</p>
+      <div class="rr-cover__namecard">
+        <div class="lbl">명 부 열 람</div>
+        <div class="nm"><%= uName %></div>
+        <% if (birthLine) { %><div class="bd"><%= birthLine %><% if (birthKor) { %><br><%= birthKor %><% } %></div><% } %>
+      </div>
+      <p class="rr-cover__lead">
+        네 두 번째 삶을 위해,<br>
+        <span class="rp-b"><%= uName %></span> 너 하나를 되살릴 명부를<br>
+        지금부터 한 장씩 펼친다.
+      </p>
+    </div>
+
+    <!-- ══════════ 사주 원국(명식) ══════════ -->
+    <p class="rr-eyebrow">命 式</p>
+    <p class="rr-secline">왜 이렇게 됐는지,<br><span class="rp-b">네 팔자, 여기 다 있다.</span></p>
+    <div class="rp-manse">
+      <p class="rp-manse__title"><%= uName %> 님의 사주</p>
+      <% if (birthKor) { %><p class="rp-manse__sub"><%= birthKor %></p><% } %>
+      <div class="rp-manse__grid">
+        <% manseCols.forEach(function(col){ %>
+        <div class="rp-manse__col<%= col.isDay ? ' rp-manse__col--day' : '' %>">
+          <span class="rp-manse__plabel"><%= col.label %></span>
+          <span class="rp-manse__god rp-manse__god--top"><%= col.stemGod || ' ' %></span>
+          <div class="rp-manse__box rp-manse__box--<%= col.stemElem %>"><%= col.stem %></div>
+          <div class="rp-manse__box rp-manse__box--<%= col.branchElem %>"><%= col.branch %></div>
+          <span class="rp-manse__god rp-manse__god--bottom"><%= col.branchGod || ' ' %></span>
+          <% if (col.diShi) { %><span class="rp-manse__meta"><%= col.diShi %></span><% } %>
+          <% if (col.shenSha) { %><span class="rp-manse__meta rp-manse__meta--sha"><%= col.shenSha %></span><% } %>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- ══════════ 팔자 분석 (블러 제거 · 전부 공개) ══════════ -->
+    <div class="rp-analysis">
+      <p class="head">네 팔자, 이렇게 생겨먹었다</p>
+      <div class="row"><span class="k">타고난 기질</span><span class="v"><b><%= dayGanLabel %></b>의 명, 겉은 단단하고 속은 여려.</span></div>
+      <div class="row"><span class="k">재물 그릇</span><span class="v">한 번 크게 담을 그릇이 분명하다. 그 자리가 아래 명부에 적혀 있다.</span></div>
+      <div class="row"><span class="k">발목 잡은 것</span><span class="v">스스로 세운 기준에 자꾸 걸려 넘어졌던 대목까지 전부 짚어둔다.</span></div>
+      <div class="row"><span class="k">타고난 인연</span><span class="v">네 옆에 들어올 사람의 결이 이미 명부에 그려져 있다.</span></div>
+    </div>
+
+    <!-- ══════════ 명부 본문 (목차 순서대로) + 중간중간 시각 요소 ══════════ -->
+    <%
+      let shown = { daewoon: false, wealth: false, face: false };
+    %>
+    <% chapterOrder.forEach(function(chapterName, ci){ %>
+      <section class="rr-chapter">
+        <div class="rr-chapter__head">
+          <p class="rr-chapter__no"><%= chapterNoLabel(chapterName, ci) %></p>
+          <h2 class="rr-chapter__title"><%= chapterTitleText(chapterName) %></h2>
+          <div class="rr-chapter__rule"></div>
+        </div>
+        <% chapterMap[chapterName].forEach(function(sec){ %>
+          <div class="rr-block">
+            <% if (sec.title) { %><h3 class="rr-block__title"><%= sec.title %></h3><% } %>
+            <div class="rr-block__body"><%= sec.content || '' %></div>
+          </div>
+        <% }); %>
+      </section>
+
+      <%
+        /* 각 장 사이에 시각 요소 하나씩 삽입 (마지막 장 뒤에는 넣지 않음) */
+        const nextVisual = (ci < chapterOrder.length - 1) ? VISUAL_ORDER[ci] : null;
+        if (nextVisual) shown[nextVisual] = true;
+      %>
+
+      <% if (nextVisual === 'daewoon') { %>
+        <%- include('./_daewoonChart') %>
+      <% } else if (nextVisual === 'wealth') { %>
+        <%- include('./_wealthChart') %>
+      <% } else if (nextVisual === 'face') { %>
+        <%- include('./_faceBlock', { uName: uName, partnerFace: partnerFace }) %>
+      <% } %>
+    <% }); %>
+
+    <!-- 장 수가 적어 못 끼운 시각 요소는 본문 뒤에 이어서 노출 -->
+    <% if (!shown.daewoon) { %><%- include('./_daewoonChart') %><% } %>
+    <% if (!shown.wealth) { %><%- include('./_wealthChart') %><% } %>
+    <% if (!shown.face) { %><%- include('./_faceBlock', { uName: uName, partnerFace: partnerFace }) %><% } %>
+
+    <!-- ══════════ 맺음말 ══════════ -->
+    <div class="rr-closing">
+      <p>여기까지가 네 명부다.</p>
+      <p>오직 <span class="rp-b"><%= uName %></span>,<br>너 하나 다시 살리자고 연 기록.</p>
+      <p class="rp-mut">이번엔, 후회 없이 살아라.<br>두 번째는 없으니까.</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.karrotPixel) { try { window.karrotPixel.track('CompleteRegistration'); } catch (e) {} }
+    });
+  </script>
+</body>
+</html>

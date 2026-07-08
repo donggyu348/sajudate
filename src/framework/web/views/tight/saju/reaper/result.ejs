@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <style>
+    :root { --rp-blue: #5aa9f0; --rp-blue-deep: #2e78c0; }
+
+    body { background: #000; }
+
+    .reaper-wrap {
+      background: #000;
+      color: #f2f5f8;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 130px;
+      overflow-x: hidden;
+    }
+
+    /* ===== 이미지: 상하단 페이드로 배경(검정)에 이어붙임 ===== */
+    .rp-sec { position: relative; line-height: 0; }
+    .rp-sec img {
+      width: 100%;
+      height: auto;
+      display: block;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 92%, transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0%, #000 8%, #000 92%, transparent 100%);
+    }
+    .rp-sec + .rp-sec { margin-top: -8%; }
+
+    /* ===== 텍스트: 크기 2종(본문/강조) ===== */
+    .rp-line {
+      font-family: 'GyeonggiBatang', serif;
+      text-align: center;
+      color: #f2f5f8;
+      line-height: 1.8;
+      letter-spacing: 0.02em;
+      word-break: keep-all;
+      padding: 52px 26px;
+      margin: 0;
+    }
+    .rp-line { font-size: clamp(17px, 4.6vw, 20px); }
+    .rp-line.key { font-size: clamp(22px, 6.2vw, 27px); }
+    .rp-mut { color: #7f8b9c; }
+    .rp-b { color: var(--rp-blue); }
+
+    /* ===== 말풍선 ===== */
+    .rp-bub {
+      position: absolute;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: rgba(205, 210, 214, 0.86);
+      color: #2b2b2b;
+      font-family: 'GyeonggiBatang', serif;
+      font-size: clamp(14px, 3.8vw, 16px);
+      line-height: 1.45;
+      border-radius: 50%;
+      padding: 26px 24px;
+      min-width: 92px;
+      box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+    }
+    .rp-bub b { color: var(--rp-blue-deep); font-weight: bold; }
+
+    /* ===== 이름 명부 카드 ===== */
+    .rp-name-card {
+      position: relative;
+      z-index: 3;
+      width: 80%;
+      margin: -30px auto 0;
+      background: rgba(6, 10, 18, 0.9);
+      border: 1px solid #22334d;
+      border-radius: 10px;
+      padding: 18px 14px;
+      text-align: center;
+      font-family: 'GyeonggiBatang', serif;
+    }
+    .rp-name-card .lbl { font-size: 12px; color: #7f93aa; letter-spacing: 3px; }
+    .rp-name-card .nm  { font-size: clamp(21px, 5.6vw, 25px); color: var(--rp-blue); margin-top: 6px; }
+    .rp-name-card .bd  { font-size: clamp(13px, 3.6vw, 15px); color: #cdd7e2; margin-top: 10px; line-height: 1.6; }
+
+    /* ===== 문양 카드(4) 중앙 장문 ===== */
+    .rp-frame-text {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 68%;
+      text-align: center;
+      font-family: 'GyeonggiBatang', serif;
+      color: #1c1712;
+      z-index: 3;
+      background: rgba(240, 234, 222, 0.85);
+      border: 1px solid rgba(120, 90, 60, 0.35);
+      border-radius: 6px;
+      padding: 16px 16px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+    .rp-frame-text .h { font-size: clamp(14px, 4vw, 17px); color: #6e1717; font-weight: bold; margin-bottom: 10px; }
+    .rp-frame-text .p { font-size: clamp(12px, 3.4vw, 14px); font-weight: 600; line-height: 1.72; color: #1c1712; }
+
+    /* ===== 목차 (캘리그래피 + 블루 글로우) ===== */
+    .rp-index { width: 92%; margin: 28px auto 0; text-align: center; }
+    .rp-index .head {
+      font-family: 'GyeonggiBatang', serif;
+      font-size: clamp(22px, 6vw, 26px); color: #e8edf2; margin: 0 0 8px;
+    }
+    .rp-index .sub {
+      font-family: 'GyeonggiBatang', serif;
+      font-size: clamp(14px, 3.8vw, 16px); color: #7f8b9c; margin: 0 0 36px;
+    }
+    .rp-chapters { display: flex; flex-direction: column; gap: 52px; }
+    .rp-ch { font-family: 'GyeonggiBatang', serif; text-align: center; }
+    .rp-ch .no {
+      margin: 0 0 14px;
+      font-size: clamp(38px, 11vw, 54px);
+      font-weight: 700; letter-spacing: 0.04em; line-height: 1.1;
+      color: #9cc9f5;
+      text-shadow:
+        0 0 10px rgba(90, 169, 240, 0.9),
+        0 0 28px rgba(90, 169, 240, 0.55),
+        0 0 48px rgba(46, 120, 192, 0.35);
+    }
+    .rp-ch .ch-sub {
+      margin: 0 0 6px;
+      font-size: clamp(16px, 4.6vw, 20px);
+      font-weight: 600; line-height: 1.55; letter-spacing: 0.02em;
+      color: #b8d9f5;
+      text-shadow:
+        0 0 8px rgba(90, 169, 240, 0.65),
+        0 0 20px rgba(90, 169, 240, 0.35);
+    }
+    .rp-ch .title {
+      margin: 0 0 18px;
+      font-size: clamp(18px, 5.2vw, 23px);
+      font-weight: 700; line-height: 1.45; letter-spacing: 0.02em;
+      color: #cfe6fb;
+      text-shadow:
+        0 0 8px rgba(90, 169, 240, 0.7),
+        0 0 22px rgba(90, 169, 240, 0.4);
+    }
+    .rp-ch__rule {
+      width: 72%; max-width: 260px; height: 1px; margin: 0 auto 20px;
+      background: linear-gradient(90deg, transparent, rgba(127, 181, 239, 0.55), transparent);
+    }
+    .rp-ch__items {
+      margin: 0 auto; padding: 0; list-style: none;
+      max-width: 300px;
+    }
+    .rp-ch__items li {
+      position: relative;
+      font-size: clamp(14px, 4vw, 17px);
+      color: #f2f5f8; line-height: 1.85;
+      padding: 5px 0 5px 14px; text-align: left;
+      letter-spacing: 0.01em;
+    }
+    .rp-ch__items li::before {
+      content: "·"; position: absolute; left: 0; top: 0;
+      color: #dcecfb; font-size: 1.1em; line-height: 1.85;
+    }
+
+    /* ===== 구성 / 노잣돈(가격) ===== */
+    .rp-price { width: 84%; margin: 44px auto 0; }
+    .rp-price .cap { text-align: center; font-family: 'GyeonggiBatang', serif; font-size: clamp(15px, 4vw, 18px); color: #d8e0ea; line-height: 1.75; margin: 0; }
+    .rp-price .cap b { color: var(--rp-blue); }
+    .rp-price-box { margin-top: 18px; background: rgba(6, 10, 18, 0.9); border: 1px solid #22334d; border-radius: 10px; padding: 16px 18px; font-family: 'GyeonggiBatang', serif; }
+    .rp-price-box .row { display: flex; justify-content: space-between; align-items: center; font-size: clamp(14px, 3.8vw, 16px); color: #aeb9c6; padding: 7px 0; }
+    .rp-price-box .row .strike { text-decoration: line-through; color: #6b7788; }
+    .rp-price-box .row .disc { color: #8fb7e0; }
+    .rp-price-box .row.total { border-top: 1px solid #22334d; margin-top: 8px; padding-top: 13px; color: #f2f5f8; font-size: clamp(16px, 4.4vw, 19px); }
+    .rp-price-box .row.total .amt { color: var(--rp-blue); font-weight: bold; font-size: clamp(21px, 5.6vw, 25px); }
+
+    /* ===== 판결 카드(4) 중앙 = 짧은 낙인 + 본문은 검정 위 ===== */
+    .rp-frame-text .stamp { font-size: clamp(30px, 9vw, 44px); color: #7a1f1f; font-weight: bold; line-height: 1; }
+    .rp-frame-text .h2 { font-size: clamp(13px, 3.6vw, 15px); color: #241d18; font-weight: bold; margin-top: 8px; letter-spacing: 0.12em; }
+    .rp-mono {
+      font-family: 'GyeonggiBatang', serif;
+      text-align: center;
+      color: #e8edf2;
+      font-size: clamp(15px, 4.2vw, 18px);
+      line-height: 1.95;
+      letter-spacing: 0.01em;
+      word-break: keep-all;
+      padding: 12px 26px 0;
+      margin: 0;
+    }
+
+    /* ===== 사주 원국(명식) ===== */
+    .rp-manse { width: 88%; margin: 28px auto 0; padding: 16px 10px 14px; border-radius: 12px; background: rgba(90, 169, 240, 0.04); border: 1px solid #1e2e46; }
+    .rp-manse__title { font-family: 'GyeonggiBatang', serif; font-size: 14px; letter-spacing: 0.06em; color: #d8e0ea; text-align: center; margin: 0 0 3px; }
+    .rp-manse__sub { font-family: 'GyeonggiBatang', serif; font-size: 12px; color: #7f8b9c; text-align: center; margin: 0 0 16px; }
+    .rp-manse__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .rp-manse__col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .rp-manse__plabel { font-family: 'GyeonggiBatang', serif; font-size: 10px; color: #5f6b7a; }
+    .rp-manse__col--day .rp-manse__plabel { color: var(--rp-blue); }
+    .rp-manse__god { font-family: 'GyeonggiBatang', serif; font-size: 10px; color: #8b97a6; min-height: 13px; text-align: center; line-height: 1.2; }
+    .rp-manse__col--day .rp-manse__god--top { color: #7fb5ef; font-weight: bold; }
+    .rp-manse__box {
+      width: 100%; aspect-ratio: 1; max-width: 62px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'GyeonggiBatang', Georgia, serif;
+      font-size: clamp(20px, 6.5vw, 28px); font-weight: 700; line-height: 1;
+      border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 6px rgba(0, 0, 0, 0.4);
+    }
+    .rp-manse__box--wood  { background: radial-gradient(ellipse at 50% 30%, #c8e8d0 0%, #8ab898 55%, #5a8870 100%); color: #1a2820; }
+    .rp-manse__box--fire  { background: radial-gradient(ellipse at 50% 30%, #ffc8cc 0%, #e88890 55%, #c05058 100%); color: #2a1018; }
+    .rp-manse__box--earth { background: radial-gradient(ellipse at 50% 30%, #f0e4c0 0%, #d4b880 55%, #a88850 100%); color: #2a2010; }
+    .rp-manse__box--metal { background: radial-gradient(ellipse at 50% 30%, #e8ecf0 0%, #b8c0c8 55%, #889098 100%); color: #1a2028; }
+    .rp-manse__box--water { background: radial-gradient(ellipse at 50% 30%, #b8d4f0 0%, #78a8d0 55%, #4878a8 100%); color: #0a1828; }
+    .rp-manse__box--unknown { background: rgba(255, 255, 255, 0.04); color: rgba(255, 255, 255, 0.25); box-shadow: none; }
+    .rp-manse__meta { font-family: 'GyeonggiBatang', serif; font-size: 9px; color: #6b7686; text-align: center; line-height: 1.3; min-height: 11px; }
+    .rp-manse__meta--sha { font-size: 8px; color: #5f6b7a; word-break: keep-all; }
+
+    /* ===== 팔자 분석 ===== */
+    .rp-analysis { width: 84%; margin: 24px auto 0; }
+    .rp-analysis .head { text-align: center; font-family: 'GyeonggiBatang', serif; font-size: clamp(18px, 4.8vw, 21px); color: #f2f5f8; margin: 0 0 16px; }
+    .rp-analysis .row { display: flex; gap: 12px; padding: 13px 2px; border-bottom: 1px solid #1e2e46; font-family: 'GyeonggiBatang', serif; align-items: baseline; }
+    .rp-analysis .row .k { flex: 0 0 76px; color: var(--rp-blue); font-size: clamp(13px, 3.6vw, 15px); }
+    .rp-analysis .row .v { color: #d8e0ea; font-size: clamp(13px, 3.6vw, 15px); line-height: 1.5; }
+    .rp-analysis .row .v b { color: #7fb5ef; }
+    .rp-analysis .row .v.blur { filter: blur(4.5px); opacity: 0.5; user-select: none; }
+    .rp-analysis .more { text-align: center; color: #7f8b9c; font-family: 'GyeonggiBatang', serif; font-size: 13px; margin: 16px 0 0; }
+
+    /* ===== 대운 흐름 그래프 ===== */
+    .rp-flow { position: relative; width: 88%; margin: 28px auto 0; padding: 16px 12px 14px; border-radius: 12px; background: rgba(90, 169, 240, 0.04); border: 1px solid #1e2e46; }
+    .rp-flow__title { font-family: 'GyeonggiBatang', serif; font-size: 14px; color: #d8e0ea; text-align: center; margin: 0 0 12px; letter-spacing: 0.06em; }
+    .rp-flow__chart { position: relative; }
+    .rp-flow__gate {
+      position: absolute; left: 73%; top: 17%; transform: translate(-50%, -50%);
+      background: rgba(14, 24, 40, 0.92); border: 1px solid #3a5578; border-radius: 20px;
+      padding: 5px 13px; font-family: 'GyeonggiBatang', serif; font-size: 12px; color: #cfe0f2; white-space: nowrap;
+    }
+    .rp-flow__gate .lock { color: var(--rp-blue); margin-right: 4px; }
+    .rp-flow__legend { display: flex; gap: 8px; margin-top: 14px; }
+    .rp-flow__legend div { flex: 1; text-align: center; font-family: 'GyeonggiBatang', serif; font-size: 11.5px; line-height: 1.45; }
+    .rp-flow__legend .now { color: #7f8b9c; }
+    .rp-flow__legend .then { color: var(--rp-blue); }
+    .rp-flow__cap { text-align: center; font-family: 'GyeonggiBatang', serif; font-size: 12px; color: #7f8b9c; margin: 13px 0 0; }
+
+    /* ===== 미래 연인 얼굴 미리보기 ===== */
+    .rp-face-block { width: 88%; max-width: 320px; margin: 28px auto 0; }
+    .rp-face { width: 100%; margin: 0; }
+    .rp-face__ornate {
+      position: relative; padding: 10px;
+      background: linear-gradient(145deg, #1a1408 0%, #0d0a04 100%);
+      border: 1.5px solid #c9a84c;
+      box-shadow: 0 0 0 1px rgba(201,168,76,0.25), 0 4px 20px rgba(0,0,0,0.5);
+      overflow: visible;
+    }
+    .rp-face__ornate::before, .rp-face__ornate::after,
+    .rp-face__frame::before, .rp-face__frame::after {
+      content: "◆"; position: absolute; font-size: 7px; color: #c9a84c; line-height: 1; opacity: 0.85; z-index: 4;
+    }
+    .rp-face__ornate::before { top: 3px; left: 3px; }
+    .rp-face__ornate::after  { top: 3px; right: 3px; }
+    .rp-face__frame::before { bottom: 3px; left: 3px; }
+    .rp-face__frame::after  { bottom: 3px; right: 3px; }
+    .rp-face__frame {
+      position: relative; overflow: hidden;
+      aspect-ratio: 3 / 4; background: #0a1220;
+    }
+    .rp-face__frame img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      filter: blur(7px) brightness(0.88); transform: scale(1.06);
+    }
+    .rp-face__cap { text-align: center; font-family: 'GyeonggiBatang', serif; font-size: 12px; color: #7f8b9c; margin: 12px 0 0; }
+
+    /* 흰색 원형 말풍선 (얼굴 위 오버레이) */
+    .rp-wbub {
+      position: absolute; z-index: 6;
+      display: flex; align-items: center; justify-content: center;
+      background: #ffffff;
+      color: #1c1c1c;
+      font-family: 'GyeonggiBatang', serif;
+      font-size: clamp(11px, 3.1vw, 13px);
+      line-height: 1.5;
+      text-align: center;
+      border-radius: 50%;
+      padding: 16px 14px;
+      min-width: 80px;
+      max-width: 46%;
+      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.28);
+      word-break: keep-all;
+    }
+    .rp-wbub b { color: var(--rp-blue-deep); font-weight: bold; }
+    .rp-wbub--tl { top: -6%; left: -5%; }
+    .rp-wbub--br { bottom: -5%; right: -6%; }
+
+    /* 하단 경고 멘트 (다마스크 패턴) */
+    .rp-face__warn {
+      margin-top: 18px; padding: 22px 16px; text-align: center;
+      background:
+        linear-gradient(rgba(6, 8, 12, 0.88), rgba(6, 8, 12, 0.88)),
+        repeating-linear-gradient(45deg, rgba(201,168,76,0.1) 0 2px, transparent 2px 11px),
+        repeating-linear-gradient(-45deg, rgba(201,168,76,0.07) 0 2px, transparent 2px 9px);
+      border: 1px solid rgba(201,168,76,0.28);
+      border-radius: 4px;
+    }
+    .rp-face__warn p {
+      font-family: 'GyeonggiBatang', serif;
+      font-size: clamp(15px, 4.2vw, 18px);
+      color: #f2f5f8; line-height: 1.8; margin: 0;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
+    }
+    .rp-face__warn p b { color: var(--rp-blue); font-weight: bold; }
+
+    /* ===== 플로팅 CTA ===== */
+    .saju-floating-btn {
+      position: fixed;
+      bottom: 16px; left: 50%;
+      transform: translateX(-50%);
+      width: 90%; max-width: 440px;
+      z-index: 1000;
+      background: linear-gradient(135deg, #12253d, #0b1830);
+      border: 1.5px solid #6fa8d0;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      padding: 15px 0;
+    }
+    .saju-floating-btn .btn-text {
+      font-family: 'GyeonggiBatang', serif;
+      font-size: 18px; font-weight: bold;
+      color: #dcecfb;
+      background: none; border: none; cursor: pointer;
+    }
+    .saju-floating-btn::after { content: ""; display: block; height: env(safe-area-inset-bottom); }
+  </style>
+
+  <%- include('./../../common/header') %>
+
+  <%
+    const uName = (userInfo && userInfo.name) ? userInfo.name : '';
+    let birthLine = '';
+    try {
+      const y = saju.year.gan + saju.year.ji + '년';
+      const m = saju.month.gan + saju.month.ji + '월';
+      const d = saju.day.gan + saju.day.ji + '일';
+      const h = (saju.hour && saju.hour.gan) ? (saju.hour.gan + saju.hour.ji + '시') : '';
+      birthLine = [y, m, d, h].filter(Boolean).join(' ');
+    } catch (e) { birthLine = ''; }
+    const IMG = '/assets/images/tight/reaper/result';
+
+    // 생년월일 (2003년 3월 5일 형식)
+    let birthKor = '';
+    try {
+      const g = String((userInfo && (userInfo.birthDate || userInfo.birthdate)) || '').replace(/\D/g, '');
+      if (g.length >= 8) birthKor = `${g.slice(0, 4)}년 ${Number(g.slice(4, 6))}월 ${Number(g.slice(6, 8))}일`;
+    } catch (e) { birthKor = ''; }
+
+    // 사주 원국(명식) — sample.tenGodTable.data 재활용
+    const CGAN = { "갑":"甲","을":"乙","병":"丙","정":"丁","무":"戊","기":"己","경":"庚","신":"辛","임":"壬","계":"癸" };
+    const CJIJ = { "자":"子","축":"丑","인":"寅","묘":"卯","진":"辰","사":"巳","오":"午","미":"未","신":"申","유":"酉","술":"戌","해":"亥" };
+    const STEM_ELEM = { "甲":"wood","乙":"wood","丙":"fire","丁":"fire","戊":"earth","己":"earth","庚":"metal","辛":"metal","壬":"water","癸":"water","갑":"wood","을":"wood","병":"fire","정":"fire","무":"earth","기":"earth","경":"metal","신":"metal","임":"water","계":"water" };
+    const BRANCH_ELEM = { "子":"water","丑":"earth","寅":"wood","卯":"wood","辰":"earth","巳":"fire","午":"fire","未":"earth","申":"metal","酉":"metal","戌":"earth","亥":"water","자":"water","축":"earth","인":"wood","묘":"wood","진":"earth","사":"fire","오":"fire","미":"earth","신":"metal","유":"metal","술":"earth","해":"water" };
+    const _hstem = (s) => (s ? (CGAN[s] || s) : "");
+    const _hbranch = (s) => (s ? (CJIJ[s] || s) : "");
+    let manseCols = [];
+    try {
+      const tbl = (sample && sample.tenGodTable) ? sample.tenGodTable : null;
+      const data = (tbl && tbl.data) ? tbl.data : [];
+      manseCols = ["시주", "일주", "월주", "년주"].map(function (label, i) {
+        const row = data[i] || [];
+        const stemRaw = row[1] || "";
+        const branchRaw = row[2] || "";
+        const unknown = i === 0 && !stemRaw && !branchRaw;
+        return {
+          label: label,
+          isDay: i === 1,
+          stemGod: i === 1 ? "일간(나)" : (row[0] || ""),
+          branchGod: row[3] || "",
+          stem: unknown ? "─" : _hstem(stemRaw),
+          branch: unknown ? "─" : _hbranch(branchRaw),
+          stemElem: unknown ? "unknown" : (STEM_ELEM[stemRaw] || STEM_ELEM[_hstem(stemRaw)] || "earth"),
+          branchElem: unknown ? "unknown" : (BRANCH_ELEM[branchRaw] || BRANCH_ELEM[_hbranch(branchRaw)] || "earth"),
+          diShi: row[4] || "",
+          shenSha: row[5] || "",
+          unknown: unknown,
+        };
+      });
+    } catch (e) { manseCols = []; }
+    const dayGanLabel = (saju && saju.dayGan) ? saju.dayGan : '';
+
+    // 미래 연인 얼굴 (홍연/29금 이미지 풀 재사용) — 매 로드마다 랜덤
+    // 여성 사용자 → man 폴더(남성 얼굴), 남성 사용자 → woman 폴더(여성 얼굴)
+    let partnerFace = '';
+    try {
+      const _g = String((userInfo && userInfo.gender) || '').trim();
+      const _gLower = _g.toLowerCase();
+      const _isFemale = ['여','여자','여성','female','f','woman'].some(function (v) {
+        return _g === v || _gLower === v.toLowerCase();
+      });
+      const _isMale = ['남','남자','남성','male','m','man'].some(function (v) {
+        return _g === v || _gLower === v.toLowerCase();
+      });
+      const _faceGender = _isFemale ? 'man' : (_isMale ? 'woman' : 'woman');
+      const _manFiles   = ['Rectangle 157.png','Rectangle 159.png','Rectangle 160.png','Rectangle 161.png','Rectangle 162.png'];
+      const _womanFiles = ['Rectangle 152.png','Rectangle 153.png','Rectangle 154.png','Rectangle 155.png','Rectangle 156.png'];
+      const _faceFiles  = _faceGender === 'man' ? _manFiles : _womanFiles;
+      const _faceFile   = _faceFiles[Math.floor(Math.random() * _faceFiles.length)];
+      partnerFace = `/assets/images/tight/romantic/result/${_faceGender}/${encodeURIComponent(_faceFile)}`;
+    } catch (e) { partnerFace = ''; }
+  %>
+
+  <body>
+    <div class="reaper-wrap">
+      <%- include('./../../common/common') %>
+
+      <!-- 1 · 등장 : 자기소개 -->
+      <p class="rp-line rp-mut">겁먹을 것 없다. 이 등불만 따라와.</p>
+      <div class="rp-sec"><img src="<%= IMG %>/1.png" alt="" /></div>
+      <p class="rp-line key">저승 문턱에서 죽은 자를 맞는<br /><span class="rp-b">강림 도령이다.</span></p>
+
+      <!-- 2 · 명부 조회 : 네 사주 안타깝네 -->
+      <div class="rp-sec">
+        <img src="<%= IMG %>/2.png" alt="" />
+        <div class="rp-bub" style="top:7%; right:6%;">어디, 네 사주<br />좀 보자…</div>
+      </div>
+      <div class="rp-name-card">
+        <div class="lbl">명 부 조 회</div>
+        <div class="nm"><%= uName %></div>
+        <% if (birthLine) { %><div class="bd"><%= birthLine %></div><% } %>
+      </div>
+      <p class="rp-line">음…<span class="rp-b"> 네 사주,</span><br />되게 안타깝네.</p>
+
+      <!-- 3 · 명부 종이 : 손가락이 짚은 글자 = 명줄이 끊긴 지점 -->
+      <div class="rp-sec"><img src="<%= IMG %>/3.png" alt="" /></div>
+      <p class="rp-line key">여기, 이 글자 보이나.<br />네 명줄이<br /><span class="rp-b">한창일 때 뚝 끊겼다.</span></p>
+
+      <!-- 4 · 속마음 저격 : 카드 안 줄글 (한지 배경판으로 가독성 확보) -->
+      <div class="rp-sec">
+        <img src="<%= IMG %>/4.png" alt="" />
+        <div class="rp-frame-text">
+          <div class="h">너, 뻔히 이렇게 살았지.</div>
+          <div class="p">
+            겉으론 의젓한 척, 속은 겁먹은 채로.<br />
+            남들 앞에선 쿨한 척, 혼자선 밤새 끙끙.<br />
+            인정은 받고 싶은데 눈치나 보다 끝났어.<br />
+            하고 싶은 것 하나 제대로 못 지르고<br />
+            그러다, 여기 온 거야.
+          </div>
+        </div>
+      </div>
+      <p class="rp-line">억울하지.<br /><span class="rp-b">나라도 아깝겠다, 이 인생.</span></p>
+
+      <!-- 사주 원국(명식) -->
+      <p class="rp-line">왜 이렇게 됐는지,<br /><span class="rp-b">네 팔자, 여기 다 있다.</span></p>
+      <div class="rp-manse">
+        <p class="rp-manse__title"><%= uName %> 님의 사주</p>
+        <% if (birthKor) { %><p class="rp-manse__sub"><%= birthKor %></p><% } %>
+        <div class="rp-manse__grid">
+          <% manseCols.forEach(function(col){ %>
+          <div class="rp-manse__col<%= col.isDay ? ' rp-manse__col--day' : '' %>">
+            <span class="rp-manse__plabel"><%= col.label %></span>
+            <span class="rp-manse__god rp-manse__god--top"><%= col.stemGod || ' ' %></span>
+            <div class="rp-manse__box rp-manse__box--<%= col.stemElem %>"><%= col.stem %></div>
+            <div class="rp-manse__box rp-manse__box--<%= col.branchElem %>"><%= col.branch %></div>
+            <span class="rp-manse__god rp-manse__god--bottom"><%= col.branchGod || ' ' %></span>
+            <% if (col.diShi) { %><span class="rp-manse__meta"><%= col.diShi %></span><% } %>
+            <% if (col.shenSha) { %><span class="rp-manse__meta rp-manse__meta--sha"><%= col.shenSha %></span><% } %>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+
+      <!-- 팔자 분석 -->
+      <div class="rp-analysis">
+        <p class="head">네 팔자, 이렇게 생겨먹었다</p>
+          <div class="row"><span class="k">타고난 기질</span><span class="v"><b><%= dayGanLabel %></b>의 명, 겉은 단단하고 속은 여려.</span></div>
+        <div class="row"><span class="k">재물 그릇</span><span class="v blur">한 번 크게 담을 그릇인데, 그 시기가 하필.</span></div>
+        <div class="row"><span class="k">발목 잡은 것</span><span class="v blur">스스로 세운 기준에 자꾸 걸려서, 결국.</span></div>
+        <div class="row"><span class="k">타고난 인연</span><span class="v blur">네 옆에 들어올 사람의 결이 이미.</span></div>
+        <p class="more">나머지는, 명부를 열어야 보인다.</p>
+      </div>
+
+      <!-- 5 · 응시 : 그래서 기회를 준다 → 이거 보고 제대로 살아 (핵심 전환) -->
+      <p class="rp-line">그래서 말이다.<br />원래 이런 건 안 해주는데.</p>
+      <div class="rp-sec">
+        <img src="<%= IMG %>/5.png" alt="" />
+        <div class="rp-bub" style="bottom:10%; left:7%;">이대로 보내긴<br />너무 아깝잖아.</div>
+      </div>
+      <p class="rp-line key">딱 한 번,<br /><span class="rp-b">다시 살 기회를 주마.</span></p>
+      <p class="rp-line">네 명부, 똑똑히 봐 둬.<br /><span class="rp-mut">이번엔 진짜, 제대로 살라고.</span></p>
+
+      <!-- 6 · 대운 : 큰 파도 — 역전 기회 (시점 가림) -->
+      <p class="rp-line">다시 살면 네 대운 흐름,<br />잠깐, 여기 좀 보자.</p>
+      <div class="rp-sec">
+        <img src="<%= IMG %>/6.png" alt="" />
+        <div class="rp-bub" style="bottom:9%; right:7%;">어?<br />큰 파도가 오네.</div>
+      </div>
+      <p class="rp-line key">이것만 제대로 넘기면<br /><span class="rp-b">인생이 통째로 뒤집혀.</span></p>
+      <p class="rp-line"><span class="rp-b">근데 그게 언제냐면.</span></p>
+
+      <!-- 대운 흐름 그래프 (SVG) : 뒤집히는 시점은 가림 -->
+      <div class="rp-flow">
+        <p class="rp-flow__title">네 대운(大運) 흐름</p>
+        <div class="rp-flow__chart">
+          <svg viewBox="0 0 320 200" style="width:100%; display:block;" role="img" aria-label="대운 흐름 그래프">
+            <line x1="15" y1="170" x2="305" y2="170" stroke="#26364e" stroke-width="1" />
+            <path d="M15,140 L50,155 L85,132 L120,150 L160,144 L200,150 L235,70 L270,48 L305,60 L305,170 L15,170 Z" fill="rgba(90,169,240,0.12)" />
+            <path d="M15,140 L50,155 L85,132 L120,150 L160,144 L200,150 L235,70 L270,48 L305,60" fill="none" stroke="#5aa9f0" stroke-width="2.5" />
+            <line x1="235" y1="70" x2="235" y2="170" stroke="#7fb5ef" stroke-width="1" stroke-dasharray="3 3" opacity="0.7" />
+            <circle cx="235" cy="70" r="9" fill="#7fb5ef" opacity="0.28" />
+            <circle cx="235" cy="70" r="4.5" fill="#9cc9f5" />
+          </svg>
+          <div class="rp-flow__gate"><span class="lock">🔒</span>20◯◯년 ○</div>
+        </div>
+        <div class="rp-flow__legend">
+          <div class="now">지금<br />파도 오기 전에 끝난 생</div>
+          <div class="then">돌아가면<br />이 파도 넘고 폭발</div>
+        </div>
+        <p class="rp-flow__cap">이 파도가 언제 오는지는, 명부에 적혀 있다.</p>
+      </div>
+
+      <!-- 7 · 명줄 진단 (두루마리) : 그래프 이어받기 -->
+      <p class="rp-line">봤지? 네 명줄이<br /><span class="rp-b">이렇게 꼬여만 있다가.</span></p>
+      <div class="rp-sec"><img src="<%= IMG %>/7.png" alt="" /></div>
+      <p class="rp-line">
+        원래 크게 될 그릇이었어.<br />
+        머리도, 배짱도 있었고.<br />
+        근데 그걸 한 번 못 써보고 죽었지.
+      </p>
+      <p class="rp-line"><span class="rp-b">어디서 그 매듭이 풀리는지,<br />이 두루마리에 다 적어놨다.</span></p>
+
+      <!-- 8 · 재물 : 크게 터질 자리 있음 (금액·시점 가림) -->
+      <p class="rp-line">특히 돈.<br /><span class="rp-b">죽고 나서야 아까운 게 그거지?</span></p>
+      <div class="rp-sec">
+        <img src="<%= IMG %>/8.png" alt="" />
+        <div class="rp-bub" style="top:15%; left:6%;">네 명부엔.</div>
+      </div>
+      <p class="rp-line"><span class="rp-b">평생 한 번, 크게 터질 자리가 있어.</span><br />넌 그것도 모르고 죽었지만.</p>
+
+      <!-- 재물 미리보기 그래프 (SVG) : 터질 자리 강조, 금액·시점 가림 -->
+      <div class="rp-flow">
+        <p class="rp-flow__title">네 재물(財) 그래프</p>
+        <div class="rp-flow__chart">
+          <svg viewBox="0 0 320 200" style="width:100%; display:block;" role="img" aria-label="재물 흐름 그래프">
+            <defs>
+              <linearGradient id="rpWealthGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#9cc9f5" />
+                <stop offset="100%" stop-color="#2e78c0" />
+              </linearGradient>
+            </defs>
+            <line x1="15" y1="170" x2="305" y2="170" stroke="#26364e" stroke-width="1" />
+            <!-- 평범한 재물 흐름 -->
+            <rect x="28"  y="150" width="20" height="20"  rx="2" fill="rgba(90,169,240,0.22)" />
+            <rect x="60"  y="138" width="20" height="32"  rx="2" fill="rgba(90,169,240,0.22)" />
+            <rect x="92"  y="152" width="20" height="18"  rx="2" fill="rgba(90,169,240,0.22)" />
+            <rect x="124" y="130" width="20" height="40"  rx="2" fill="rgba(90,169,240,0.22)" />
+            <!-- 평생 한 번 크게 터질 자리 -->
+            <rect x="178" y="44"  width="26" height="126" rx="2" fill="url(#rpWealthGrad)" />
+            <rect x="178" y="44"  width="26" height="126" rx="2" fill="none" stroke="#7fb5ef" stroke-width="1.5" />
+            <circle cx="191" cy="44" r="9"   fill="#7fb5ef" opacity="0.28" />
+            <circle cx="191" cy="44" r="4.5" fill="#9cc9f5" />
+            <!-- 이후 흐름 -->
+            <rect x="226" y="122" width="20" height="48"  rx="2" fill="rgba(90,169,240,0.22)" />
+            <rect x="258" y="142" width="20" height="28"  rx="2" fill="rgba(90,169,240,0.22)" />
+          </svg>
+          <div class="rp-flow__gate" style="left:60%; top:14%;"><span class="lock">🔒</span>₩ ◯◯,◯◯◯만</div>
+        </div>
+        <div class="rp-flow__legend">
+          <div class="now">평소<br />겨우 먹고 산 흐름</div>
+          <div class="then">이 자리<br />평생 한 번 터질 목돈</div>
+        </div>
+        <p class="rp-flow__cap">얼마가, 언제 터지는지는 명부에 적혀 있다.</p>
+      </div>
+
+      <!-- 8.5 · 인연 : 다시 살면 올 사람 (기대감) -->
+      <p class="rp-line">돈만 아까운 게 아니지.<br /><span class="rp-b">네 옆자리, 계속 비어 있었잖아.</span></p>
+      <div class="rp-sec">
+        <img src="/assets/images/tight/reaper/scenes/talk4.png" alt="" />
+        <div class="rp-bub" style="top:10%; left:6%;">근데 말이야.</div>
+        <div class="rp-bub" style="bottom:11%; right:6%;">네 명부에<br />엮일 사람이 있어.</div>
+      </div>
+      <p class="rp-line key">다시 살면,<br /><span class="rp-b">네 결에 딱 맞는 인연이 온다.</span></p>
+
+      <!-- 8.6 · 미래 연인 얼굴 미리보기 (랜덤, 블러) -->
+      <p class="rp-line">흠… 이런 것까지 말해줘야 하나 싶다만,<br />내 명부에 그 얼굴도 떠 있거든.</p>
+      <div class="rp-sec">
+        <img src="/assets/images/tight/reaper/scenes/talk3.png" alt="" />
+        <div class="rp-bub" style="bottom:12%; right:6%;">호오…<br />이거 봐라?</div>
+      </div>
+      <p class="rp-line key">네 미래 애인,<br /><span class="rp-b">되게 괜찮네.</span></p>
+      <p class="rp-line">얼굴이든 성격이든,<br /><span class="rp-b">너, 운 좋은 줄 알아라.</span></p>
+      <div class="rp-face-block">
+        <% if (partnerFace) { %>
+        <div class="rp-face">
+          <div class="rp-face__ornate">
+            <div class="rp-wbub rp-wbub--tl"><span>이 사람이랑<br /><b>◯◯년 ◯월</b>,<br /><b>◯◯</b>에서<br />엮이는데.</span></div>
+            <div class="rp-face__frame">
+              <img src="<%= partnerFace %>" alt="" />
+            </div>
+            <div class="rp-wbub rp-wbub--br"><span>근데 조심할 거,<br />딱 <b>두 가지</b><br />있어.</span></div>
+          </div>
+          <p class="rp-face__cap"><%= uName %> 님의 다음 인연</p>
+        </div>
+        <div class="rp-face__warn">
+          <p>이거 <b>하나만</b> 틀려도<br />평생 엇갈릴 수도 있겠네요.</p>
+        </div>
+        <% } %>
+      </div>
+      <p class="rp-line"><span class="rp-mut">누군지, 언제 어디서 엮이는지<br />명부를 열어야 다 보인다.</span></p>
+
+      <!-- 8.7 · 마무리 : 다른 망자들이 기다린다 -->
+      <p class="rp-line">너 말고도.<br /><span class="rp-b">억울하게 죽은 사람, 줄 서 있거든.</span></p>
+      <div class="rp-sec">
+        <img src="/assets/images/tight/reaper/scenes/closing.png" alt="" />
+        <div class="rp-bub" style="top:10%; left:6%;">나도 이제.</div>
+        <div class="rp-bub" style="top:12%; right:6%;">가봐야겠다.</div>
+      </div>
+      <p class="rp-line key">명부 열고.<br /><span class="rp-b">이번엔, 제대로 살아.</span></p>
+
+      <!-- 9 · 노잣돈 : 두 번째 삶의 값 (설득) -->
+      <p class="rp-line">그래서 말인데.<br />노잣돈은 챙겨왔나?</p>
+      <p class="rp-line key">공짜는 없어.<br /><span class="rp-b">이건 네 두 번째 삶 값이다.</span></p>
+
+      <!-- 목차 · 네가 받게 될 명부 -->
+      <div class="rp-index">
+        <p class="head">네가 받게 될 명부</p>
+        <p class="sub"><%= uName %>, 너 하나를 되살릴 일곱 장</p>
+        <div class="rp-chapters">
+          <div class="rp-ch">
+            <p class="no">제 1장</p>
+            <p class="ch-sub">저승사자가 가장 먼저 펼쳐본</p>
+            <p class="title">당신의 운명 원본</p>
+            <div class="rp-ch__rule"></div>
+            <ul class="rp-ch__items">
+              <li>태어날 때부터 정해진 당신의 성향</li>
+              <li>어떤 상황에서도 당신을 움직이는 힘</li>
+              <li>쉽게 따라 할 수 없는 당신만의 재능</li>
+              <li>평생 가장 큰 무기가 되어줄 장점</li>
+              <li>반복해서 발목을 잡는 약한 부분</li>
+              <li>운이 가장 강하게 살아나는 환경</li>
+            </ul>
+          </div>
+          <div class="rp-ch">
+            <p class="no">제 2장</p>
+            <p class="ch-sub">아무도 몰랐던</p>
+            <p class="title">당신의 진짜 얼굴</p>
+            <div class="rp-ch__rule"></div>
+            <ul class="rp-ch__items">
+              <li>마음속 깊이 숨겨진 욕망</li>
+              <li>사람들이 당신에게 빠지는 이유</li>
+              <li>반복되는 행동의 진짜 원인</li>
+              <li>인간관계에서 흔들리는 순간</li>
+              <li>인연을 맺으면 안 되는 사람의 특징</li>
+              <li>당신을 무너뜨릴 위험 요소</li>
+            </ul>
+          </div>
+          <div class="rp-ch">
+            <p class="no">제 3장</p>
+            <p class="ch-sub">저승사자가 표시해둔</p>
+            <p class="title">인생이 뒤집히는 순간</p>
+            <div class="rp-ch__rule"></div>
+            <ul class="rp-ch__items">
+              <li>평생 운세의 흐름 한눈에 보기</li>
+              <li>가장 강한 운이 찾아오는 타이밍</li>
+              <li>인생을 바꿀 기회의 순간</li>
+              <li>중요한 선택을 하게 될 시기</li>
+              <li>미리 준비하면 달라질 미래</li>
+              <li>운명이 크게 바뀌는 시점</li>
+            </ul>
+          </div>
+          <div class="rp-ch">
+            <p class="no">제 4장</p>
+            <p class="ch-sub">죽기 전에 반드시 만나는</p>
+            <p class="title">당신의 인연</p>
+            <div class="rp-ch__rule"></div>
+            <ul class="rp-ch__items">
+              <li>당신은 어떤 연애를 하는 사람인가</li>
+              <li>미래 배우자의 외형과 분위기</li>
+              <li>그 사람이 가진 성격과 가치관</li>
+              <li>두 사람이 처음 이어지는 장소와 계기</li>
+              <li>결혼 이후 달라질 삶의 모습</li>
+              <li>가장 깊은 인연이 되는 사람</li>
+            </ul>
+          </div>
+          <div class="rp-ch">
+            <p class="no">제 5장</p>
+            <p class="ch-sub">돈도 결국</p>
+            <p class="title">운명을 따라 움직인다</p>
+            <div class="rp-ch__rule"></div>
+            <ul class="rp-ch__items">
+              <li>당신에게 타고난 돈복의 크기</li>
+              <li>돈이 들어오고 빠져나가는 패턴</li>
+              <li>직장과 사업 중 더 잘 맞는 길</li>
+              <li>수입이 크게 늘어나는 시기</li>
+              <li>재물운을 높이는 습관과 선택</li>
+              <li>평생 자산 흐름 총정리</li>
+            </ul>
+          </div>
+          <div class="rp-ch">
+            <p class="no">제 6장</p>
+            <p class="ch-sub">저승사자가 경고한</p>
+            <p class="title">절대 방심하면 안 되는 미래</p>
+            <div class="rp-ch__rule"></div>
+            <ul class="rp-ch__items">
+              <li>앞으로 조심해야 할 위험 신호</li>
+              <li>돈이 빠져나가기 쉬운 시기</li>
+              <li>관계에서 갈등이 생기기 쉬운 때</li>
+              <li>건강운과 컨디션 변화</li>
+              <li>운세가 약해지는 흐름</li>
+              <li>액운을 줄이는 방법</li>
+            </ul>
+          </div>
+          <div class="rp-ch">
+            <p class="no">제 7장</p>
+            <p class="ch-sub">마지막 페이지에는</p>
+            <p class="title">당신의 결말이 적혀 있다</p>
+            <div class="rp-ch__rule"></div>
+            <ul class="rp-ch__items">
+              <li>앞으로 10년 운세 한눈에 정리</li>
+              <li>당신 인생을 관통하는 핵심 키워드</li>
+              <li>절대 놓치면 안 되는 기회</li>
+              <li>후회하지 않기 위해 피해야 할 선택</li>
+              <li>당신에게 가장 잘 맞는 성공 공식</li>
+              <li>좋은 운을 오래 유지하는 방법</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 구성 / 노잣돈 -->
+      <div class="rp-price">
+        <p class="cap">가감 없이 풀어낸<br /><b>5만 자</b>의 명부, <b>100페이지</b> 분량.</p>
+        <div class="rp-price-box">
+          <div class="row"><span>정가 노잣돈</span><span class="strike">63,000원</span></div>
+          <div class="row"><span>망자 특별 할인</span><span class="disc">−25,500원</span></div>
+          <div class="row total"><span>지금 내는 노잣돈</span><span class="amt">37,500원</span></div>
+        </div>
+      </div>
+
+      <!-- 클로징 : 감정 + 마지막 기회 강조 -->
+      <p class="rp-line key" style="margin-top:20px;">오직 <%= uName %>,<br /><span class="rp-b">너 하나 다시 살리자고<br />여는 명부다.</span></p>
+      <p class="rp-line">이 일곱 장, 눈 크게 뜨고 봐.<br /><span class="rp-b">그리고 이번엔, 후회 없이 살아.</span><br /><span class="rp-mut">두 번째는 없으니까.</span></p>
+    </div>
+
+    <div class="saju-floating-btn">
+      <form method="POST" action="/saju/payment">
+        <input type="hidden" name="userInfo" value='<%= JSON.stringify(userInfo) %>' />
+        <input type="hidden" name="sample" value='<%= JSON.stringify(sample) %>' />
+        <input type="hidden" name="goodsType" value="REAPER" />
+        <button type="submit" class="btn-text">다시 살아날 명(命) 받기</button>
+      </form>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        if (window.karrotPixel) window.karrotPixel.track('Lead');
+      });
+    </script>
+  </body>
+</html>

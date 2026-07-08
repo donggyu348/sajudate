@@ -1,0 +1,18 @@
+<!-- 미래 연인 얼굴 미리보기 · 블러 제거 → 선명하게 공개 -->
+<% if (typeof partnerFace !== 'undefined' && partnerFace) { %>
+<p class="rr-eyebrow">因 緣</p>
+<p class="rr-secline">다시 살면,<br><span class="rp-b">네 결에 딱 맞는 인연이 온다.</span></p>
+<div class="rp-face-block">
+  <div class="rp-face">
+    <div class="rp-face__ornate">
+      <div class="rp-face__frame">
+        <img src="<%= partnerFace %>" alt="" />
+      </div>
+    </div>
+    <p class="rp-face__cap"><%= (typeof uName !== 'undefined' ? uName : '') %> 님의 다음 인연</p>
+  </div>
+</div>
+<p class="rr-secline" style="font-size:clamp(15px,4vw,17px); color:#d8e0ea;">
+  이 사람과 언제 어디서 엮이는지,<br><span class="rp-mut">그 결과 무엇을 조심해야 하는지는 아래 명부에 다 적어두었다.</span>
+</p>
+<% } %>

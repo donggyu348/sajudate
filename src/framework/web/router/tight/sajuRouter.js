@@ -1,5 +1,5 @@
 import express from "express";
-import gptService, { buildRealTenGodTable } from "../../service/GptService.js";
+import gptService, { buildRealTenGodTable, getReportStepInfo } from "../../service/GptService.js";
 import reportHistoryService from "../../service/ReportHistoryService.js";
 import { sendReportLink } from "../../service/SmsService.js";
 import PaymentService from "../../service/PaymentService.js";
@@ -14,7 +14,6 @@ import { buildAdultResultPreview, buildAdultCompatibilityPreview } from "../../s
 import reportGenerationService from "../../service/reportGenerationService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
-import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
 import { buildMetaAdvancedMatching } from "../../utils/metaAdvancedMatching.js";
 import Coupons from "../../orm/models/coupons.js";
 import PaymentTransactionRepository from "../../repository/PaymentTransactionRepository.js";
@@ -213,6 +212,78 @@ if (ticketCode) {
   });
 });
 
+/* 저승사자 사주(생사부) 인트로 = 입력까지 한 화면 */
+router.get("/reaper/intro", (req, res) => {
+  res.render("tight/saju/reaper/intro");
+});
+
+/* 저승사자 사주 결과 (엔진은 임시로 정통사주 파이프라인 재사용) */
+router.post("/reaper/result", async (req, res) => {
+  const userInfo = req.body;
+  const ticketCode = req.query.ticket || req.body.ticketCode || req.body.ticket;
+
+  // 번들 티켓으로 진입한 경우: 결제 없이 리포트 생성 후 대기 페이지로
+  if (ticketCode) {
+    const ticket = await CouponsModel.findOne({ where: { code: ticketCode, isUsed: false } });
+    if (ticket) {
+      await ticket.update({ isUsed: true });
+      const shopOrderNo = `TICKET-${ticketCode}-${Date.now()}`;
+      await ensurePrepaidPayment(shopOrderNo, GoodsType.REAPER, userInfo);
+      const created = await reportHistoryService.registerReportHistory({
+        userInfo,
+        sampleInfo: {},
+        shopOrderNo,
+        goodsType: GoodsType.REAPER,
+      });
+      gptService.callReport(userInfo, GoodsType.REAPER.code)
+        .then(async (reportInfo) => {
+          await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+        })
+        .catch((err) => console.error("GPT 백그라운드 생성 에러:", err));
+      return res.redirect(`/saju/waiting?shopOrderNo=${shopOrderNo}`);
+    }
+  }
+
+  // 치트키: 결제 없이 즉시 리포트 생성
+  if (userInfo.name === "테스트" || userInfo.name === "관리자") {
+    try {
+      const shopOrderNo = `FREE-REAPER-${Date.now()}`;
+      await ensurePrepaidPayment(shopOrderNo, GoodsType.REAPER, userInfo);
+      const created = await reportHistoryService.registerReportHistory({
+        userInfo,
+        sampleInfo: await gptService.callSample(userInfo),
+        shopOrderNo,
+        goodsType: GoodsType.REAPER,
+      });
+      const reportInfo = await gptService.callReport(userInfo, GoodsType.REAPER.code);
+      await reportHistoryService.updateById({ id: created.result.id, reportInfo });
+      return res.redirect(`/saju/report?shopOrderNo=${shopOrderNo}`);
+    } catch (error) {
+      console.error("저승사자 테스트/관리자 모드 오류:", error);
+    }
+  }
+
+  // 일반 흐름: 저승사자 전용 result 뷰 렌더
+  try {
+    const result = await gptService.callSample(userInfo);
+    const saju = getFourPillars(userInfo);
+    const today = new Date();
+    return res.render("tight/saju/reaper/result", {
+      userInfo,
+      sample: result,
+      saju,
+      todayDate: {
+        year: today.getFullYear(),
+        month: today.getMonth() + 1,
+        day: today.getDate(),
+      },
+    });
+  } catch (e) {
+    console.error("저승사자 result 오류:", e);
+    return res.redirect("/saju/reaper/intro");
+  }
+});
+
 /* 연애 사주 인트로 */
 router.get("/romantic/intro", (req, res) => {
   res.render("tight/saju/romantic/intro");
@@ -390,6 +461,8 @@ router.get("/report", async (req, res) => {
       reportPath = "tight/saju/adult/report";
     } else if (gType.includes("ROMANTIC") || gType === "2") {
       reportPath = "tight/saju/romantic/report";
+    } else if (gType.includes("REAPER")) {
+      reportPath = "tight/saju/reaper/report";
     } else {
       reportPath = "tight/saju/classic/report";
     }
@@ -497,7 +570,6 @@ router.post("/payment", async (req, res) => {
 
     const baseGoodsCode = req.body.goodsType;
     const goodsInfo = GoodsType[baseGoodsCode];
-    const bundleInfo = GoodsType[`${baseGoodsCode}_BUNDLE`];
 
     if (!goodsInfo) {
       console.error("❌ 잘못된 goodsType:", baseGoodsCode);
@@ -511,15 +583,47 @@ router.post("/payment", async (req, res) => {
       platform: goodsInfo.platform
     });
 
-    res.render("tight/saju/payment", {
-      reportHistoryId: result.result.id,
-      goodsInfo,
-      bundleInfo,
-      goodsTypeMap: GoodsType
-    });
+    // PRG(Post/Redirect/Get): 새로고침해도 결제창에 그대로 머무르도록 GET으로 리다이렉트한다.
+    return res.redirect(`/saju/payment?historyId=${result.result.id}`);
   } catch (err) {
     console.error("❌ /payment 처리 실패:", err);
     res.status(500).send("결제 페이지로 이동할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+  }
+});
+
+/* 결제창 GET — 새로고침/뒤로가기/직접진입 대응 (reportHistoryId 기반 재렌더) */
+function buildBundlesForBase(baseGoodsCode) {
+  return Object.values(GoodsType)
+    .filter((g) => g && typeof g.code === "string" && g.code.endsWith("_BUNDLE") && g.reportCode === baseGoodsCode)
+    .map((g) => {
+      const gift = GoodsType[g.giveTicket] || {};
+      return { ...g, partnerTitle: gift.title || "무료 사주", benefit: `${gift.title || "무료 사주"} 무료 티켓` };
+    });
+}
+
+router.get("/payment", async (req, res) => {
+  try {
+    const historyId = req.query.historyId;
+    if (!historyId) return res.redirect("/saju");
+
+    const reportHistory = await ReportHistoryService.getReportHistoryById(historyId);
+    if (!reportHistory) return res.redirect("/saju");
+
+    // 저장된 goodsType이 번들 코드면 reportCode(본 상품)로 환원해 기본 상품/번들 목록을 재구성한다.
+    const rawCode = String(reportHistory.goodsType || "");
+    const baseGoodsCode = (GoodsType[rawCode] && GoodsType[rawCode].reportCode) ? GoodsType[rawCode].reportCode : rawCode;
+    const goodsInfo = GoodsType[baseGoodsCode];
+    if (!goodsInfo) return res.redirect("/saju");
+
+    return res.render("tight/saju/payment", {
+      reportHistoryId: reportHistory.id,
+      goodsInfo,
+      bundles: buildBundlesForBase(baseGoodsCode),
+      goodsTypeMap: GoodsType
+    });
+  } catch (err) {
+    console.error("❌ /payment GET 처리 실패:", err);
+    return res.redirect("/saju");
   }
 });
 
@@ -603,23 +707,22 @@ let fileDir = 'tight';
     
     console.log(`🚀 [DEBUG] 최종 렌더링 경로: ${renderPath}`);
 
-    const finalPaymentForCapi = await PaymentService.getPaymentTransaction(shopOrderNo);
-    if (finalPaymentForCapi?.paymentStatus === PaymentStatus.APPROVED) {
-      sendPurchaseEvent({
-        req,
-        fileDir,
-        shopOrderNo,
-        value: goodsConfig?.price ?? 0,
-      });
-    }
+    // [전환 추적] tight는 브라우저 픽셀(payment_success.ejs의 fbq Purchase)만 사용한다.
+    // 서버 CAPI는 브라우저 픽셀과 서로 다른 픽셀 ID로 발사돼 전환이 분산/누락되므로 제거함.
+    const finalPayment = await PaymentService.getPaymentTransaction(shopOrderNo);
+
+    // 로딩 화면 진행 단계(장) 라벨
+    const stepInfo = getReportStepInfo(goodsConfig);
 
     // 4. 렌더링 실행
     return res.render(renderPath, {
       shopOrderNo: String(shopOrderNo || ""),
       goodsPrice: goodsConfig ? goodsConfig.price : 0,
       goodsType: String(targetGoodsType || ""),
+      stepLabels: stepInfo.labels,
+      stepTotal: stepInfo.total,
       metaAdvancedMatching: buildMetaAdvancedMatching({
-        userTelNo: finalPaymentForCapi?.userTelNo,
+        userTelNo: finalPayment?.userTelNo,
       }),
     });
 
@@ -636,6 +739,35 @@ router.get("/payment_fail", (req, res) => {
         shopOrderNo: shopOrderNo || 'N/A',
         errorMessage: message || '알 수 없는 오류'
     });
+});
+
+/* 리포트 생성 실시간 진행률 (로딩 화면 폴링용) */
+router.post("/report/progress", async (req, res) => {
+  const shopOrderNo = req.body.shopOrderNo;
+  try {
+    const reportHistory = await ReportHistoryService.getReportHistoryByShopOrderNo(shopOrderNo);
+    if (reportHistory && reportHistory.reportInfo) {
+      return res.json({ status: "DONE", done: 1, total: 1, current: 1, percent: 100, label: "완성", labels: [] });
+    }
+    const p = reportGenerationService.getReportProgress(shopOrderNo);
+    if (!p) {
+      return res.json({ status: "PENDING", done: 0, total: 0, current: 0, percent: 3, label: "명부를 펼치는 중", labels: [] });
+    }
+    const total = p.total || 0;
+    const done = p.done || 0;
+    // 진행 중인 장은 절반쯤 반영해 바가 자연스럽게 차오르게 한다.
+    const eff = p.status === "done" ? total : Math.min(total, done + 0.5);
+    const percent = total ? Math.max(3, Math.min(99, Math.round((eff / total) * 100))) : 5;
+    return res.json({
+      status: p.status === "done" ? "DONE" : (p.status === "error" ? "ERROR" : "PENDING"),
+      done, total, current: p.current || 0,
+      percent: p.status === "done" ? 100 : percent,
+      label: p.label || "작성 중",
+      labels: Array.isArray(p.labels) ? p.labels : [],
+    });
+  } catch (e) {
+    return res.json({ status: "PENDING", done: 0, total: 0, current: 0, percent: 3, label: "준비 중", labels: [] });
+  }
 });
 
 router.post("/report/check", (req, res) => {
@@ -746,7 +878,7 @@ const ticket = await Coupons.findOne({ where: { code: code, isUsed: false } });
     }
 
     // PaymentService에서 설정한 giftType 대조
-    // '1' = 정통(Classic), '2' = 연애(Romantic), '3' = 29금(Adult)
+    // '1' = 정통(Classic), '2' = 연애(Romantic), '3' = 29금(Adult), '4' = 저승사자(Reaper)
     let targetPath = "";
     if (ticket.goodsType === '1') {
       targetPath = "/saju/classic/input";
@@ -754,6 +886,8 @@ const ticket = await Coupons.findOne({ where: { code: code, isUsed: false } });
       targetPath = "/saju/romantic/input";
     } else if (ticket.goodsType === '3' || String(ticket.goodsType).toUpperCase() === 'ADULT') {
       targetPath = "/saju/adult/input";
+    } else if (ticket.goodsType === '4' || String(ticket.goodsType).toUpperCase() === 'REAPER') {
+      targetPath = "/saju/reaper/intro";
     } else {
       targetPath = "/saju/classic/input"; // 기본값
     }

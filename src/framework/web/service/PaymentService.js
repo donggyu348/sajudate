@@ -330,11 +330,18 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
     let ticketAddMsg = "";
     if (finalType && finalType.includes('_BUNDLE')) {
         const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-        let giftType = '1';
-        let giftName = '신년 운세사주';
-        if (finalType === 'CLASSIC_BUNDLE') { giftType = '2'; giftName = '로맨틱 연애사주'; }
-        else if (finalType === 'ROMANTIC_BUNDLE') { giftType = '3'; giftName = '29금 사주'; }
-        else if (finalType === 'ADULT_BUNDLE') { giftType = '2'; giftName = '로맨틱 연애사주'; }
+        // 번들이 증정하는 티켓 종류(giveTicket)에 따라 giftType/giftName을 자동 결정.
+        // ticket/verify 라우터의 매핑과 동일: '1'=정통, '2'=연애, '3'=29금, '4'=저승사자
+        const GIFT_MAP = {
+          CLASSIC: { type: '1', name: '정통사주' },
+          ROMANTIC: { type: '2', name: '로맨틱 연애사주' },
+          ADULT: { type: '3', name: '29금 사주' },
+          REAPER: { type: '4', name: '저승사자 사주' },
+        };
+        const giveCode = (GoodsType[finalType] && GoodsType[finalType].giveTicket) || '';
+        const gift = GIFT_MAP[giveCode] || { type: '1', name: '신년 운세사주' };
+        let giftType = gift.type;
+        let giftName = gift.name;
 
         try {
             // 🔥 [수정] 모델 파일을 직접 import 하여 경로 및 대소문자 문제를 방지합니다.
