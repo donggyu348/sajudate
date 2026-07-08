@@ -1,5 +1,5 @@
 import express from "express";
-import gptService, { buildRealTenGodTable, getReportStepInfo } from "../../service/GptService.js";
+import gptService, { buildRealTenGodTable, getReportStepInfo, getReportViewPath, resolveReportCode } from "../../service/GptService.js";
 import reportHistoryService from "../../service/ReportHistoryService.js";
 import { sendReportLink } from "../../service/SmsService.js";
 import PaymentService from "../../service/PaymentService.js";
@@ -453,21 +453,12 @@ router.get("/report", async (req, res) => {
 
     if (!reportHistory) return res.status(404).send("리포트를 찾을 수 없습니다.");
 
-    // [수정 핵심] CLASSIC / ROMANTIC / ADULT 에 따라 리포트 뷰 경로 결정
+    // 번들 상품은 reportCode(본 리포트) 기준으로 뷰 결정 — substring includes 사용 금지
     const gType = String(reportHistory.goodsType || "").toUpperCase();
-    let reportPath;
+    const reportCode = resolveReportCode(gType);
+    const reportPath = getReportViewPath(gType);
 
-    if (gType.includes("ADULT") || gType === "3") {
-      reportPath = "tight/saju/adult/report";
-    } else if (gType.includes("ROMANTIC") || gType === "2") {
-      reportPath = "tight/saju/romantic/report";
-    } else if (gType.includes("REAPER")) {
-      reportPath = "tight/saju/reaper/report";
-    } else {
-      reportPath = "tight/saju/classic/report";
-    }
-
-    console.log(`📌 [DEBUG] 최종 경로 결정: ${reportPath} (입력값: ${gType})`);
+    console.log(`📌 [DEBUG] 최종 경로 결정: ${reportPath} (goodsType: ${gType}, reportCode: ${reportCode})`);
 
     const saju = getFourPillars(reportHistory.userInfo);
 

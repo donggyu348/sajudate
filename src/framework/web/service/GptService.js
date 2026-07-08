@@ -1921,12 +1921,46 @@ const REAPER_STEP_LABELS = [
   "제7장 · 당신의 결말",
 ];
 
+/** goodsType(코드·객체·번들·레거시 티켓) → 실제 리포트 엔진/뷰 코드 */
+export function resolveReportCode(goodsType) {
+  const gCode = typeof goodsType === "string"
+    ? goodsType.trim().toUpperCase()
+    : String(goodsType?.code || goodsType || "").trim().toUpperCase();
+
+  if (gCode === "1") return "CLASSIC";
+  if (gCode === "2") return "ROMANTIC";
+  if (gCode === "3") return "ADULT";
+  if (gCode === "4") return "REAPER";
+
+  if (goodsType && typeof goodsType === "object" && goodsType.reportCode) {
+    return goodsType.reportCode;
+  }
+  if (GoodsType[gCode]?.reportCode) {
+    return GoodsType[gCode].reportCode;
+  }
+  if (GoodsType[gCode]?.code) {
+    return GoodsType[gCode].code;
+  }
+  return gCode || "CLASSIC";
+}
+
+const REPORT_VIEW_PATHS = Object.freeze({
+  ADULT: "tight/saju/adult/report",
+  ROMANTIC: "tight/saju/romantic/report",
+  REAPER: "tight/saju/reaper/report",
+  CLASSIC: "tight/saju/classic/report",
+  PREMIUM_SAJU: "tight/saju/classic/report",
+});
+
+/** 결제 상품 코드 → EJS 보고서 뷰 경로 (번들은 reportCode 기준) */
+export function getReportViewPath(goodsType) {
+  const reportCode = resolveReportCode(goodsType);
+  return REPORT_VIEW_PATHS[reportCode] || REPORT_VIEW_PATHS.CLASSIC;
+}
+
 /** 상품별 리포트 생성 단계 수·라벨 (로딩 진행률용). goodsType는 객체/코드/번들 모두 허용. */
 export function getReportStepInfo(goodsType) {
-  const gCode = typeof goodsType === "string" ? goodsType : (goodsType?.code || goodsType);
-  let reportCode = gCode;
-  if (goodsType && typeof goodsType === "object" && goodsType.reportCode) reportCode = goodsType.reportCode;
-  else if (typeof gCode === "string" && GoodsType[gCode] && GoodsType[gCode].reportCode) reportCode = GoodsType[gCode].reportCode;
+  const reportCode = resolveReportCode(goodsType);
 
   if (reportCode === "REAPER") return { total: REAPER_STEP_LABELS.length, labels: REAPER_STEP_LABELS.slice() };
   if (reportCode === "CLASSIC") return { total: CLASSIC_REPORT_PROMPT_PARTS.length, labels: CLASSIC_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
