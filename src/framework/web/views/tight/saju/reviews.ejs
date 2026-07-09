@@ -19,207 +19,79 @@
       <h1 class="text-xl font-semibold text-white mb-2" style="font-family: 'Noto Serif KR', serif;">이용 후기</h1>
       <p class="text-zinc-500 text-sm mb-8">기운소 사주를 이용해 주신 분들의 후기입니다.</p>
 
-      <div class="space-y-4">
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.22</span>
+      <%
+        const REVIEWS = [
+          { date: '2026.06.22', stars: '★★★★★', text: '썸남 때문에 너무 답답해서 홧김에 신청했는데 생각보다 훨씬 디테일해서 놀랐어요... 연락 텀이 긴 이유도 설명해주고 제가 왜 계속 불안해하는지도 나와 있어서 읽으면서 계속 \"헐 맞아...\" 이러면서 봤어요ㅋㅋ 친구들한테도 바로 추천했어요!!', tag: '연애운', nick: 'y***' },
+          { date: '2026.06.21', stars: '★★★★★', text: '미래 애인 얼굴 보려고 들어간 건데 눈매가 진하고 키 큰 편, 웃을 때 인상 부드럽다는 설명이 제가 맨날 이상형이라고 말하는 스타일이랑 거의 비슷해서 친구한테 바로 캡처 보냈어요ㅋㅋ', tag: '사자록', nick: 'h***' },
+          { date: '2026.06.21', stars: '★★★★★', text: '남친이랑 같이 봤는데 진짜 둘 다 보면서 계속 웃었어요ㅋㅋㅋ \"이거 누가 우리 보고 쓴 거 아냐?\" 이 말만 몇 번 했는지 모르겠어요🤣 서로 표현하는 방식이 왜 달랐는지도 이해하게 됐어요', tag: '29금속궁합', nick: 'h***' },
+          { date: '2026.06.20', stars: '★★★★★', text: '저 원래 사주 엄청 좋아해서 여기저기 많이 봤는데 여기가 제일 현실적이었어요!! 특히 제가 연애하면 상대한테 올인하는 성향이라고 나온 부분이 진짜 너무 맞아서 놀랐어요ㅋㅋㅋ', tag: '연애운', nick: 's***' },
+          { date: '2026.06.20', stars: '★★★★★', text: '반신반의하면서 결제했는데… 재물운에서 올해는 큰 투자보다 돈 모으는 시기라고 적혀 있더라구요. 최근에 주식 손실 좀 보고 있어서 괜히 뜨끔. 좋은 말만 안 해주는 게 오히려 더 믿음 갔어요.', tag: '사자록', nick: 'j***' },
+          { date: '2026.06.19', stars: '★★★★★', text: '진짜 소름 돋았던 게 제가 먼저 표현 못하는 스타일이라고 나왔는데 남친이 옆에서 \"이거 완전 너잖아ㅋㅋ\" 이러더라고요🤣 결과 읽다가 둘 다 빵 터졌어요', tag: '29금속궁합', nick: 'm***' },
+          { date: '2026.06.18', stars: '★★★★★', text: '새벽 감성에 질러봤는데 후회 안 해요ㅋㅋㅋ 오히려 왜 진작 안 했나 싶었어요... 읽으면서 계속 캡처해서 친구한테 보내고 있었네요🤣', tag: '연애운', nick: 'j***' },
+          { date: '2026.06.17', stars: '★★★★★', text: '연애 초반이라 아직 서로 모르는 게 많았는데 이거 보고 대화를 엄청 많이 하게 됐어요!! 덕분에 서로를 더 이해하게 된 느낌이에요🥹', tag: '29금속궁합', nick: 'e***' },
+          { date: '2026.06.16', stars: '★★★★★', text: '진짜 별 기대 없이 신청했는데 결과 받고 한 시간 넘게 정독했어요ㅋㅋㅋ 제가 연애할 때 항상 상대 눈치 보다가 혼자 지치고 서운해하는 스타일인데 그 부분이 너무 똑같이 나와서 소름... 왜 항상 비슷한 연애를 반복했는지도 알게 됐어요😭 다음 연애에서는 어떤 사람을 만나야 하는지도 자세하게 적혀 있어서 도움 많이 됐어요!!', tag: '연애운', nick: 'k***' },
+          { date: '2026.06.15', stars: '★★★★★', text: '남친이랑 결과 비교하면서 읽었는데 진짜 시간 순삭이에요ㅋㅋㅋㅋ 서로 몰랐던 성향도 알게 돼서 더 재밌었어요', tag: '29금속궁합', nick: 'd***' },
+          { date: '2026.06.14', stars: '★★★★★', text: '친구가 강추해서 해봤는데 진짜 왜 추천했는지 알겠어요ㅋㅋㅋ 그냥 재미로 시작했는데 결과 읽다 보니까 시간 가는 줄 몰랐어요!! 특히 제 연애 패턴 부분은 진짜 소름이었어요', tag: '연애운', nick: 'l***' },
+          { date: '2026.06.13', stars: '★★★★★', text: '친구 커플이 추천해서 해봤는데 진짜 재밌어요ㅋㅋㅋ 결과 보면서 서로 \"헐 이건 인정\" 하면서 읽었어요!! 괜히 커플들 사이에서 유명한 게 아닌 듯', tag: '29금속궁합', nick: 'p***' },
+          { date: '2026.06.12', stars: '★★★★★', text: '요즘 연애가 계속 안 풀려서 신청했는데 결과 읽고 마음이 좀 편해졌어요🥹 괜히 조급해하고 있었던 것 같더라고요... 앞으로 들어오는 인연 스타일도 알려줘서 괜히 기대 중이에요ㅋㅋ', tag: '연애운', nick: 'w***' },
+          { date: '2026.06.11', stars: '★★★★★', text: '남자친구가 이런 거 절대 안 믿는 사람인데 결과 읽고 나서는 오히려 자기가 더 열심히 읽고 있었어요ㅋㅋㅋㅋ 특히 서로 원하는 연애 방식 부분은 진짜 소름...', tag: '29금속궁합', nick: 'r***' },
+          { date: '2026.06.10', stars: '★★★★★', text: '결과 보고 진짜 소름 돋았어요... 제가 좋아하는 사람 유형이랑 실제로 만났던 사람들 특징이 거의 비슷하게 나왔어요ㅋㅋㅋ 연애 고민 있는 분들은 한 번쯤 해보는 거 추천해요!!', tag: '연애운', nick: 'n***' },
+          { date: '2026.06.09', stars: '★★★★★', text: '결과 읽고 나서 왜 우리가 자주 싸우는지 알겠더라고요ㅠㅠ 서로 성향 차이를 이해하게 돼서 요즘은 싸움도 많이 줄었어요', tag: '29금속궁합', nick: 'b***' },
+          { date: '2026.06.08', stars: '★★★★★', text: '광고 보고 충동적으로 결제한 건데 생각보다 너무 만족스러웠어요!! 그냥 좋은 말만 해주는 줄 알았는데 조심해야 할 부분도 솔직하게 말해줘서 더 믿음이 갔어요ㅎㅎ PDF도 엄청 길어서 읽는데 꽤 오래 걸렸어요', tag: '연애운', nick: 'c***' },
+          { date: '2026.06.07', stars: '★★★★★', text: '결과 받고 남친이랑 밤새 얘기했어요ㅋㅋ 평소에는 말 안 했던 부분도 자연스럽게 이야기하게 되더라고요!! 오히려 관계가 더 가까워진 느낌이에요', tag: '29금속궁합', nick: 't***' },
+          { date: '2026.06.06', stars: '★★★★★', text: '전남친이랑 헤어진 지 꽤 됐는데 아직도 마음이 남아서 신청했어요... 읽다 보니까 왜 그렇게 힘들었는지 이해가 되더라고요ㅠㅠ 혼자 계속 자책하고 있었는데 결과 보고 마음 정리하는 데 도움 많이 됐어요', tag: '연애운', nick: 'g***' },
+          { date: '2026.06.05', stars: '★★★★★', text: '심심해서 신청했다가 완전 만족했어요ㅋㅋ 가격도 안 아깝고 내용도 엄청 길어서 읽는 재미가 있었어요!! 다음에 친구 커플한테도 추천하려고요', tag: '29금속궁합', nick: 'a***' },
+          { date: '2026.06.04', stars: '★★★★★', text: '솔직히 처음에는 광고라서 반신반의했는데 결과 받고 생각 바뀌었어요ㅋㅋ 평소에 연애하면서 항상 비슷한 문제로 싸웠는데 이유를 알 것 같더라고요!! 다음 연애는 좀 다르게 할 수 있을 것 같아요', tag: '연애운', nick: 'f***' },
+          { date: '2026.06.03', stars: '★★★★★', text: '결과 받아보고 생각보다 너무 자세해서 놀랐어요... 진짜 몇 년 동안 만나면서 느꼈던 부분들이 그대로 적혀 있어서 소름이었어요😳', tag: '29금속궁합', nick: 'v***' },
+          { date: '2026.06.02', stars: '★★★★★', text: '처음엔 그냥 재미로 신청했는데 생각보다 엄청 자세해서 놀랐어요!! 단순히 잘 맞는다 안 맞는다가 아니라 서로 어떤 스타일인지, 어떤 부분에서 잘 맞고 부딪히는지까지 다 적혀 있어서 너무 재밌었어요ㅎㅎ', tag: '29금속궁합', nick: 'o***' },
+          { date: '2026.06.01', stars: '★★★★★', text: '커플 3년 차인데도 새롭게 알게 된 부분이 많아서 신기했어요ㅋㅋ 오래 만났다고 다 아는 건 아니더라고요!! 생각보다 관계에 도움 되는 내용이 많았어요', tag: '29금속궁합', nick: 'i***' },
+          { date: '2026.05.30', stars: '★★★★★', text: '커플이면 진짜 한 번쯤 해보는 거 추천해요!! 재미도 있는데 생각보다 얻어가는 게 많아요ㅎㅎ 특히 서로 이해하는 데 도움이 많이 됐어요 😊', tag: '29금속궁합', nick: 'u***' },
+          { date: '2026.05.28', stars: '★★★★★', text: '광고에서는 좀 과장된 느낌이라 기대 안 했는데 생각보다 훨씬 현실적이었어요!! 좋은 말만 적혀 있는 게 아니라 조심해야 할 부분도 있어서 좋았어요', tag: '29금속궁합', nick: 'z***' },
+          { date: '2026.05.26', stars: '★★★★★', text: '솔직히 이런 거 다 비슷비슷할 줄 알았는데 여기는 내용이 엄청 길고 구체적이라 좋았어요!! 읽을수록 빠져들더라고요ㅋㅋ', tag: '29금속궁합', nick: 'q***' }
+        ];
+
+        function productMetaByTag(tag) {
+          if (tag === '사자록') {
+            return { href: '/saju/reaper/intro', img: '/assets/images/tight/reaper/sum.png', alt: '사자록', face: '💀' };
+          }
+          if (tag === '29금속궁합') {
+            return { href: '/saju/adult/intro', img: '/assets/images/tight/products/product_adult.png', alt: '29금 궁합사주', face: '🐨' };
+          }
+          return { href: '/saju/romantic/intro', img: '/assets/images/tight/products/product_romantic.png', alt: '홍연 연애사주', face: '🦊' };
+        }
+      %>
+
+      <style>
+        .review-feed { display: flex; flex-direction: column; gap: 12px; }
+        .review-card { display: flex; gap: 14px; padding: 12px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+        .review-card__poster { position: relative; flex-shrink: 0; width: 72px; align-self: stretch; min-height: 108px; border-radius: 10px; overflow: hidden; text-decoration: none; background: #1a1a1a; }
+        .review-card__poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+        .review-card__main { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; padding: 2px 0; }
+        .review-card__text { font-size: 13.5px; line-height: 1.65; color: rgba(255,255,255,0.88); margin: 0; letter-spacing: -0.15px; word-break: keep-all; }
+        .review-card__byline { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 6px; }
+        .review-card__face { width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; flex-shrink: 0; }
+        .review-card__nick { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.38); letter-spacing: 0.2px; font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace; }
+        .review-card__stars { font-size: 9px; letter-spacing: 0.5px; color: #FF2D55; line-height: 1; }
+        .review-card__when { font-size: 10px; color: rgba(255,255,255,0.25); margin-left: auto; }
+      </style>
+
+      <div class="review-feed">
+        <% REVIEWS.forEach(function (r) { const pm = productMetaByTag(r.tag); %>
+        <article class="review-card">
+          <a href="<%= pm.href %>" class="review-card__poster">
+            <img src="<%= pm.img %>" alt="<%= pm.alt %>">
+          </a>
+          <div class="review-card__main">
+            <p class="review-card__text"><%= r.text %></p>
+            <div class="review-card__byline">
+              <span class="review-card__face"><%= pm.face %></span>
+              <span class="review-card__nick"><%= r.nick %></span>
+              <span class="review-card__stars" aria-label="5점"><%= r.stars %></span>
+              <span class="review-card__when"><%= r.date %></span>
+            </div>
           </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">썸남 때문에 너무 답답해서 홧김에 신청했는데 생각보다 훨씬 디테일해서 놀랐어요... 연락 텀이 긴 이유도 설명해주고 제가 왜 계속 불안해하는지도 나와 있어서 읽으면서 계속 "헐 맞아..." 이러면서 봤어요ㅋㅋ 친구들한테도 바로 추천했어요!!</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · y***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.21</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">남친이랑 같이 봤는데 진짜 둘 다 보면서 계속 웃었어요ㅋㅋㅋ "이거 누가 우리 보고 쓴 거 아냐?" 이 말만 몇 번 했는지 모르겠어요🤣 서로 표현하는 방식이 왜 달랐는지도 이해하게 됐어요</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · h***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.20</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">저 원래 사주 엄청 좋아해서 여기저기 많이 봤는데 여기가 제일 현실적이었어요!! 특히 제가 연애하면 상대한테 올인하는 성향이라고 나온 부분이 진짜 너무 맞아서 놀랐어요ㅋㅋㅋ</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · s***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.19</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">진짜 소름 돋았던 게 제가 먼저 표현 못하는 스타일이라고 나왔는데 남친이 옆에서 "이거 완전 너잖아ㅋㅋ" 이러더라고요🤣 결과 읽다가 둘 다 빵 터졌어요</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · m***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.18</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">새벽 감성에 질러봤는데 후회 안 해요ㅋㅋㅋ 오히려 왜 진작 안 했나 싶었어요... 읽으면서 계속 캡처해서 친구한테 보내고 있었네요🤣</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · j***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.17</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">연애 초반이라 아직 서로 모르는 게 많았는데 이거 보고 대화를 엄청 많이 하게 됐어요!! 덕분에 서로를 더 이해하게 된 느낌이에요🥹</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · e***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.16</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">진짜 별 기대 없이 신청했는데 결과 받고 한 시간 넘게 정독했어요ㅋㅋㅋ 제가 연애할 때 항상 상대 눈치 보다가 혼자 지치고 서운해하는 스타일인데 그 부분이 너무 똑같이 나와서 소름... 왜 항상 비슷한 연애를 반복했는지도 알게 됐어요😭 다음 연애에서는 어떤 사람을 만나야 하는지도 자세하게 적혀 있어서 도움 많이 됐어요!!</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · k***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.15</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">남친이랑 결과 비교하면서 읽었는데 진짜 시간 순삭이에요ㅋㅋㅋㅋ 서로 몰랐던 성향도 알게 돼서 더 재밌었어요</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · d***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.14</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">친구가 강추해서 해봤는데 진짜 왜 추천했는지 알겠어요ㅋㅋㅋ 그냥 재미로 시작했는데 결과 읽다 보니까 시간 가는 줄 몰랐어요!! 특히 제 연애 패턴 부분은 진짜 소름이었어요</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · l***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.13</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">친구 커플이 추천해서 해봤는데 진짜 재밌어요ㅋㅋㅋ 결과 보면서 서로 "헐 이건 인정" 하면서 읽었어요!! 괜히 커플들 사이에서 유명한 게 아닌 듯</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · p***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.12</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">요즘 연애가 계속 안 풀려서 신청했는데 결과 읽고 마음이 좀 편해졌어요🥹 괜히 조급해하고 있었던 것 같더라고요... 앞으로 들어오는 인연 스타일도 알려줘서 괜히 기대 중이에요ㅋㅋ</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · w***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.11</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">남자친구가 이런 거 절대 안 믿는 사람인데 결과 읽고 나서는 오히려 자기가 더 열심히 읽고 있었어요ㅋㅋㅋㅋ 특히 서로 원하는 연애 방식 부분은 진짜 소름...</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · r***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.10</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">결과 보고 진짜 소름 돋았어요... 제가 좋아하는 사람 유형이랑 실제로 만났던 사람들 특징이 거의 비슷하게 나왔어요ㅋㅋㅋ 연애 고민 있는 분들은 한 번쯤 해보는 거 추천해요!!</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · n***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.09</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">결과 읽고 나서 왜 우리가 자주 싸우는지 알겠더라고요ㅠㅠ 서로 성향 차이를 이해하게 돼서 요즘은 싸움도 많이 줄었어요</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · b***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.08</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">광고 보고 충동적으로 결제한 건데 생각보다 너무 만족스러웠어요!! 그냥 좋은 말만 해주는 줄 알았는데 조심해야 할 부분도 솔직하게 말해줘서 더 믿음이 갔어요ㅎㅎ PDF도 엄청 길어서 읽는데 꽤 오래 걸렸어요</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · c***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.07</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">결과 받고 남친이랑 밤새 얘기했어요ㅋㅋ 평소에는 말 안 했던 부분도 자연스럽게 이야기하게 되더라고요!! 오히려 관계가 더 가까워진 느낌이에요</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · t***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.06</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">전남친이랑 헤어진 지 꽤 됐는데 아직도 마음이 남아서 신청했어요... 읽다 보니까 왜 그렇게 힘들었는지 이해가 되더라고요ㅠㅠ 혼자 계속 자책하고 있었는데 결과 보고 마음 정리하는 데 도움 많이 됐어요</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · g***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.05</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">심심해서 신청했다가 완전 만족했어요ㅋㅋ 가격도 안 아깝고 내용도 엄청 길어서 읽는 재미가 있었어요!! 다음에 친구 커플한테도 추천하려고요</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · a***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.04</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">솔직히 처음에는 광고라서 반신반의했는데 결과 받고 생각 바뀌었어요ㅋㅋ 평소에 연애하면서 항상 비슷한 문제로 싸웠는데 이유를 알 것 같더라고요!! 다음 연애는 좀 다르게 할 수 있을 것 같아요</p>
-          <p class="text-zinc-500 text-xs mt-2">연애운 · f***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.03</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">결과 받아보고 생각보다 너무 자세해서 놀랐어요... 진짜 몇 년 동안 만나면서 느꼈던 부분들이 그대로 적혀 있어서 소름이었어요😳</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · v***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.02</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">처음엔 그냥 재미로 신청했는데 생각보다 엄청 자세해서 놀랐어요!! 단순히 잘 맞는다 안 맞는다가 아니라 서로 어떤 스타일인지, 어떤 부분에서 잘 맞고 부딪히는지까지 다 적혀 있어서 너무 재밌었어요ㅎㅎ</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · o***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.06.01</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">커플 3년 차인데도 새롭게 알게 된 부분이 많아서 신기했어요ㅋㅋ 오래 만났다고 다 아는 건 아니더라고요!! 생각보다 관계에 도움 되는 내용이 많았어요</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · i***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.05.30</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">커플이면 진짜 한 번쯤 해보는 거 추천해요!! 재미도 있는데 생각보다 얻어가는 게 많아요ㅎㅎ 특히 서로 이해하는 데 도움이 많이 됐어요 😊</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · u***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.05.28</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">광고에서는 좀 과장된 느낌이라 기대 안 했는데 생각보다 훨씬 현실적이었어요!! 좋은 말만 적혀 있는 게 아니라 조심해야 할 부분도 있어서 좋았어요</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · z***</p>
-        </div>
-        <div class="rounded-2xl bg-zinc-900/80 border border-white/5 p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3">
-            <span class="flex items-center gap-1.5 text-amber-400 text-sm">★★★★★</span>
-            <span class="text-zinc-500 text-xs">2026.05.26</span>
-          </div>
-          <p class="text-zinc-300 text-sm leading-relaxed">솔직히 이런 거 다 비슷비슷할 줄 알았는데 여기는 내용이 엄청 길고 구체적이라 좋았어요!! 읽을수록 빠져들더라고요ㅋㅋ</p>
-          <p class="text-zinc-500 text-xs mt-2">29금속궁합 · q***</p>
-        </div>
+        </article>
+        <% }); %>
       </div>
 
       <div class="mt-10 pt-6 border-t border-white/5">

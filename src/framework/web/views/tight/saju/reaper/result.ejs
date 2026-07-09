@@ -702,6 +702,36 @@
       $(document).ready(function () {
         if (window.karrotPixel) window.karrotPixel.track('Lead');
       });
+
+      // iOS Safari에서 fixed CTA가 첫 탭에 반응하지 않는 케이스 방지:
+      // touchend/pointerup에서 즉시 submit하고, 중복 제출은 막는다.
+      (function () {
+        var wrap = document.querySelector('.saju-floating-btn');
+        if (!wrap) return;
+        var form = wrap.querySelector('form');
+        var btn = wrap.querySelector('button');
+        if (!form || !btn) return;
+
+        var submitted = false;
+        function go(e) {
+          if (submitted) return;
+          submitted = true;
+          try { btn.disabled = true; } catch (err) {}
+          try { btn.style.opacity = '0.7'; } catch (err) {}
+          if (e && typeof e.preventDefault === 'function') e.preventDefault();
+          if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+          try {
+            if (typeof form.requestSubmit === 'function') form.requestSubmit();
+            else form.submit();
+          } catch (err) {
+            try { form.submit(); } catch (e2) {}
+          }
+        }
+
+        btn.addEventListener('pointerup', go);
+        btn.addEventListener('touchend', go, { passive: false });
+        btn.addEventListener('click', go);
+      })();
     </script>
   </body>
 </html>
