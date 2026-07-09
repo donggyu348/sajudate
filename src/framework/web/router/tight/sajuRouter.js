@@ -232,6 +232,19 @@ router.post("/reaper/input", async (req, res) => {
   }
 });
 
+// input(질문) → loading(저승사자 스타일) → result
+router.post("/reaper/loading", async (req, res) => {
+  try {
+    return res.render("tight/saju/reaper/loading", {
+      userInfo: req.body,
+      queryTicket: req.query.ticket || "",
+    });
+  } catch (e) {
+    console.error("reaper loading render error:", e);
+    return res.redirect("/saju/reaper/intro");
+  }
+});
+
 /* 저승사자 사주 결과 (엔진은 임시로 정통사주 파이프라인 재사용) */
 router.post("/reaper/result", async (req, res) => {
   const userInfo = req.body;

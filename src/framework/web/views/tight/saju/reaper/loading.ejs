@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<%
+  const u = userInfo || {};
+  const ticket = (typeof queryTicket !== 'undefined' && queryTicket) ? queryTicket : '';
+  const postAction = ticket ? (`/saju/reaper/result?ticket=${encodeURIComponent(ticket)}`) : '/saju/reaper/result';
+  const safeName = (u.name || '너');
+%>
+<head>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #000; color: #eef2f7; font-family: 'Noto Serif KR', serif; }
+
+    .wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 18px;
+      background:
+        radial-gradient(120% 80% at 50% 0%, rgba(90,169,240,0.10) 0%, rgba(0,0,0,0) 55%),
+        radial-gradient(90% 60% at 20% 90%, rgba(214,58,48,0.10) 0%, rgba(0,0,0,0) 55%),
+        linear-gradient(180deg, #07070a 0%, #000 100%);
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      border-radius: 22px;
+      padding: 28px 22px 24px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 26px 70px rgba(0,0,0,0.6);
+      backdrop-filter: blur(6px);
+      text-align: center;
+    }
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-indent: 0.28em;
+      color: rgba(127,181,239,0.75);
+      margin: 0 0 14px;
+      text-transform: uppercase;
+    }
+    .title {
+      margin: 0 0 8px;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.4;
+      color: #f4f7fb;
+      word-break: keep-all;
+    }
+    .sub {
+      margin: 0 0 18px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.6;
+      word-break: keep-all;
+    }
+
+    /* 인장 + 스캐닝 느낌 */
+    .seal {
+      width: 62px; height: 62px;
+      border: 2px solid #c0332f;
+      border-radius: 8px;
+      margin: 0 auto 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d63a30;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: 1px;
+      transform: rotate(-8deg);
+      box-shadow: inset 0 0 10px rgba(180,40,36,0.35);
+      text-shadow: 0 0 6px rgba(214,58,48,0.55);
+      position: relative;
+      overflow: hidden;
+    }
+    .seal::after {
+      content: '';
+      position: absolute;
+      inset: -30% -40%;
+      background: linear-gradient(120deg, transparent 0%, rgba(90,169,240,0.18) 40%, transparent 75%);
+      transform: translateX(-40%);
+      animation: sweep 1.6s ease-in-out infinite;
+    }
+    @keyframes sweep {
+      0% { transform: translateX(-55%) translateY(10%); opacity: 0.1; }
+      45% { opacity: 0.35; }
+      100% { transform: translateX(55%) translateY(-10%); opacity: 0.08; }
+    }
+
+    .progress {
+      margin-top: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      position: relative;
+    }
+    .bar {
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, rgba(90,169,240,0.25), rgba(127,181,239,0.85), rgba(214,58,48,0.25));
+      border-radius: 999px;
+      animation: load 1.25s ease-in-out infinite;
+    }
+    @keyframes load {
+      0% { transform: translateX(-40%); width: 25%; opacity: 0.5; }
+      50% { width: 55%; opacity: 1; }
+      100% { transform: translateX(180%); width: 25%; opacity: 0.55; }
+    }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.42);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <form id="goResult" method="POST" action="<%= postAction %>">
+    <input type="hidden" name="name" value="<%= (u.name || '') %>">
+    <input type="hidden" name="birthType" value="<%= (u.birthType || '양력') %>">
+    <input type="hidden" name="birthdate" value="<%= (u.birthdate || u.birthDate || '') %>">
+    <input type="hidden" name="birthTime" value="<%= (u.birthTime || 'unknown') %>">
+    <input type="hidden" name="gender" value="<%= (u.gender || '') %>">
+    <input type="hidden" name="goodsType" value="REAPER">
+    <input type="hidden" name="job" value="<%= (u.job || '') %>">
+    <input type="hidden" name="love" value="<%= (u.love || '') %>">
+    <input type="hidden" name="worry" value="<%= (u.worry || '') %>">
+  </form>
+
+  <div class="wrap">
+    <div class="card">
+      <p class="eyebrow">閻 羅 · 命 簿</p>
+      <div class="seal">閻羅<br>之印</div>
+      <h1 class="title"><%= safeName %>의 명부를 펼치는 중</h1>
+      <p class="sub">명줄을 다시 잇는 데는 잠깐의 시간이 든다.<br>눈 크게 뜨고, 잠시만 기다려라.</p>
+      <div class="progress" aria-label="로딩">
+        <div class="bar"></div>
+      </div>
+      <div class="hint">※ 이 화면은 잠시 후 자동으로 넘어갑니다.</div>
+    </div>
+  </div>
+
+  <script>
+    // 살짝 텀을 주고 결과로 넘긴다 (UX)
+    setTimeout(function () {
+      var f = document.getElementById('goResult');
+      if (f) f.submit();
+    }, 1200);
+  </script>
+</body>
+</html>
+

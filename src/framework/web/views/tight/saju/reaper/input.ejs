@@ -4,7 +4,7 @@
 <%
   const u = userInfo || {};
   const ticket = (typeof queryTicket !== 'undefined' && queryTicket) ? queryTicket : '';
-  const postAction = ticket ? (`/saju/reaper/result?ticket=${encodeURIComponent(ticket)}`) : '/saju/reaper/result';
+  const postAction = ticket ? (`/saju/reaper/loading?ticket=${encodeURIComponent(ticket)}`) : '/saju/reaper/loading';
 %>
 <head>
   <style>
@@ -206,6 +206,7 @@
         inputEl.value = '';
         nextBtn.disabled = true;
         nextBtn.textContent = '다음으로';
+        skipEl.style.display = '';
       }
 
       function buildChoice(sc) {
@@ -259,12 +260,21 @@
           nextBtn.disabled = false;
           nextBtn.textContent = '명부 열기';
           nextBtn.onclick = function () { form.submit(); };
+          // 마지막 화면에는 건너뛰기 불필요
+          skipEl.style.display = 'none';
+        }
+        // '고민' 입력(input) 단계에는 건너뛰기 제거 (대신 버튼이 "아니 없어 (스킵)"로 동작)
+        if (sc.type === 'input') {
+          skipEl.style.display = 'none';
         }
       }
 
       skipEl.onclick = function () {
-        // 스킵: 남은 값은 빈값으로 두고 바로 제출
-        form.submit();
+        // 건너뛰기: 바로 제출하지 말고 다음 질문으로 이동
+        var sc = SCENES[idx];
+        if (sc && sc.field) saveField(sc.field, '');
+        idx++;
+        render();
       };
 
       render();

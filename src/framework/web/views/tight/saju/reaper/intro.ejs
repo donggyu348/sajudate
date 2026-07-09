@@ -911,6 +911,19 @@
       var enterBtn  = document.getElementById('enterBtn');
       // 정책: 대사 파트에선 "키보드(타건) 소리"만 사용한다. (안내 UI 없음)
 
+      // 안전장치: 모든 영상/미디어 소리는 항상 OFF (타건 소리만)
+      function forceMuteMedia() {
+        try {
+          [video, heroVideo, document.getElementById('eyesVideo'), document.getElementById('sceneVideo')].forEach(function (v) {
+            if (!v) return;
+            v.muted = true;
+            try { v.volume = 0; } catch (e) {}
+          });
+        } catch (e) {}
+      }
+      forceMuteMedia();
+      setInterval(forceMuteMedia, 1000);
+
       // "입장하기" → 안으로 입장 (히어로엔 소리 없음)
       enterBtn.addEventListener('click', function () {
         if (heroVideo) { try { heroVideo.pause(); } catch (e) {} } // 히어로 영상 정지
@@ -968,7 +981,9 @@
 
         // 퍼널 분석용: 스토리는 intro에서 그대로 진행하고,
         // job/love/worry 질문부터는 /reaper/input 단계에서 진행
-        playDeathSequence(name, submittedAt, function () {
+        playDeathSequence(name, submittedAt, function (meta) {
+          // intro에서 스토리 스킵을 누르면 바로 input 단계로 이동
+          if (meta && meta.skipped) return form.submit();
           startScenes(name, function () { form.submit(); });
         });
       });
@@ -1076,6 +1091,7 @@
         var eyes = document.getElementById('eyesVideo');
         var advanced = false;
         var doneOnce = false;
+        var skipRequested = false;
 
         // 대사 장면으로 넘어가기(완료 또는 스킵) — 한 번만 실행
         function finishDeath() {
@@ -1084,13 +1100,17 @@
           advanced = true;
           deathCancelled = true;                 // 타이핑/소리 중단
           try { if (eyes) eyes.pause(); } catch (e) {}
-          if (done) done();                      // → startScenes (대사)
+          if (done) done({ skipped: skipRequested }); // → startScenes 또는 바로 input
         }
 
         // 스토리 스킵 → 대사 장면으로 바로 점프
         var skipBtn = document.getElementById('deathSkip');
         if (skipBtn) {
-          skipBtn.onclick = function (e) { e.stopPropagation(); finishDeath(); };
+          skipBtn.onclick = function (e) {
+            e.stopPropagation();
+            skipRequested = true;
+            finishDeath();
+          };
         }
 
         // 영상이 끝나면(또는 폴백 시) → 바로 대사 장면으로 넘어간다
@@ -1110,7 +1130,7 @@
         if (eyes) {
           eyes.addEventListener('ended', toBlackThenType);
           eyes.addEventListener('error', fallbackClose);
-          seq.addEventListener('click', toBlackThenType); // 탭하면 스킵
+          // 터치로는 넘기지 않는다. (영상이 끝나면 자동 진행, 스킵 버튼으로만 이동)
           try {
             eyes.currentTime = 0;
             eyes.muted = true;       // 눈감김 영상 소리는 항상 OFF
@@ -1287,7 +1307,8 @@
         }
 
         stage.addEventListener('click', advance);
-        skipEl.addEventListener('click', function (e) { e.stopPropagation(); finish(); }); // 스토리 스킵
+        // 스토리 스킵 → 바로 input으로 (화면 전환 기다리지 않음)
+        skipEl.addEventListener('click', function (e) { e.stopPropagation(); if (onDone) onDone(); });
         render();
       }
     })();
