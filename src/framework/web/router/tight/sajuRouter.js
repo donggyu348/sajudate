@@ -218,6 +218,20 @@ router.get("/reaper/intro", (req, res) => {
   res.render("tight/saju/reaper/intro");
 });
 
+// intro(기본 신원 입력) → input(퍼널 분석용 질문 단계) → result
+router.post("/reaper/input", async (req, res) => {
+  try {
+    // intro에서 넘어온 기본 입력값을 그대로 넘긴다.
+    return res.render("tight/saju/reaper/input", {
+      userInfo: req.body,
+      queryTicket: req.query.ticket || "",
+    });
+  } catch (e) {
+    console.error("reaper input render error:", e);
+    return res.redirect("/saju/reaper/intro");
+  }
+});
+
 /* 저승사자 사주 결과 (엔진은 임시로 정통사주 파이프라인 재사용) */
 router.post("/reaper/result", async (req, res) => {
   const userInfo = req.body;

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<%
+  const u = userInfo || {};
+  const ticket = (typeof queryTicket !== 'undefined' && queryTicket) ? queryTicket : '';
+  const postAction = ticket ? (`/saju/reaper/result?ticket=${encodeURIComponent(ticket)}`) : '/saju/reaper/result';
+%>
+<head>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #050405; color: #e9e2df; font-family: 'Noto Serif KR', serif; }
+
+    /* 질문 스테이지 */
+    .scene-stage {
+      position: fixed; inset: 0; z-index: 30;
+      display: block;
+      background: #050405;
+    }
+    .scene-stage__media {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 1;
+    }
+    .scene-stage__scrim {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(5,6,10,0.15) 0%, rgba(5,6,10,0.55) 55%, rgba(3,4,8,0.96) 100%);
+    }
+    .scene-dialogue {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      width: 100%; max-width: 480px;
+      margin: 0 auto;
+      padding: 22px 24px calc(26px + env(safe-area-inset-bottom, 0px));
+    }
+    .scene-lead {
+      font-size: 14px;
+      color: rgba(230,235,240,0.62);
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    }
+    .scene-speaker {
+      font-size: 14px; font-weight: 700;
+      color: #5fd0e0;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+      text-shadow: 0 0 12px rgba(56,208,224,0.55);
+    }
+    .scene-line {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.55;
+      font-weight: 700;
+      color: #f0f3f5;
+      white-space: pre-wrap;
+      word-break: keep-all;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.92);
+      min-height: 3em;
+    }
+    .scene-options { margin-top: 16px; display: flex; flex-direction: column; }
+    .scene-option {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 2px;
+      cursor: pointer;
+      color: rgba(235,240,245,0.82);
+      font-size: 16px;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.85);
+    }
+    .scene-option__radio {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid rgba(185,195,205,0.55);
+      flex-shrink: 0;
+      position: relative;
+      transition: border-color 0.15s;
+    }
+    .scene-option.selected { color: #fff; }
+    .scene-option.selected .scene-option__radio { border-color: #fff; }
+    .scene-option.selected .scene-option__radio::after {
+      content: ""; position: absolute; inset: 3px;
+      border-radius: 50%; background: #fff;
+    }
+
+    .scene-inputwrap { margin-top: 16px; }
+    .scene-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(0,0,0,0.4);
+      color: #fff;
+      font-family: inherit;
+      font-size: 15px;
+      outline: none;
+    }
+    .scene-input::placeholder { color: rgba(255,255,255,0.4); }
+    .scene-input:focus { border-color: rgba(255,255,255,0.6); }
+
+    .scene-nextbtn {
+      margin-top: 18px; width: 100%;
+      padding: 16px 0;
+      border: none; border-radius: 999px;
+      background: #fff; color: #141414;
+      font-family: inherit; font-size: 16px; font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .scene-nextbtn:disabled { opacity: 0.4; cursor: default; }
+    .scene-skip {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      cursor: pointer;
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 질문 단계: intro에서 넘어온 기본 정보 + job/love/worry 수집 -->
+  <form id="reaperInputForm" method="POST" action="<%= postAction %>">
+    <input type="hidden" name="name" value="<%= (u.name || '') %>">
+    <input type="hidden" name="birthType" value="<%= (u.birthType || '양력') %>">
+    <input type="hidden" name="birthdate" value="<%= (u.birthdate || u.birthDate || '') %>">
+    <input type="hidden" name="birthTime" value="<%= (u.birthTime || 'unknown') %>">
+    <input type="hidden" name="gender" value="<%= (u.gender || '') %>">
+    <input type="hidden" name="goodsType" value="REAPER">
+    <input type="hidden" name="job" id="jobInput">
+    <input type="hidden" name="love" id="loveInput">
+    <input type="hidden" name="worry" id="worryInput">
+  </form>
+
+  <div class="scene-stage" id="sceneStage" aria-hidden="false">
+    <video class="scene-stage__media" id="sceneVideo" playsinline muted loop autoplay preload="auto"></video>
+    <img class="scene-stage__media" id="sceneImg" alt="" style="display:none">
+    <div class="scene-stage__scrim"></div>
+    <div class="scene-dialogue">
+      <div class="scene-lead" id="sceneLead"></div>
+      <div class="scene-speaker" id="sceneSpeaker">저승사자</div>
+      <p class="scene-line" id="sceneLine"></p>
+      <div class="scene-options" id="sceneOptions"></div>
+      <div class="scene-inputwrap" id="sceneInputWrap" style="display:none">
+        <input type="text" class="scene-input" id="sceneInput" placeholder="고민 입력하기">
+      </div>
+      <button type="button" class="scene-nextbtn" id="sceneNextBtn" disabled>다음으로</button>
+      <div class="scene-skip" id="sceneSkip">건너뛰기 &gt;</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var form = document.getElementById('reaperInputForm');
+      var vid = document.getElementById('sceneVideo');
+      var img = document.getElementById('sceneImg');
+      var leadEl = document.getElementById('sceneLead');
+      var lineEl = document.getElementById('sceneLine');
+      var optionsEl = document.getElementById('sceneOptions');
+      var inputWrap = document.getElementById('sceneInputWrap');
+      var inputEl = document.getElementById('sceneInput');
+      var nextBtn = document.getElementById('sceneNextBtn');
+      var skipEl = document.getElementById('sceneSkip');
+
+      function setMedia(path) {
+        var isVid = /\.(mp4|webm|mov)$/i.test(path || '');
+        if (isVid) {
+          img.style.display = 'none';
+          vid.style.display = '';
+          if (vid.getAttribute('src') !== path) {
+            vid.src = path;
+            try { vid.currentTime = 0; } catch (e) {}
+          }
+          vid.play().catch(function () {});
+        } else {
+          try { vid.pause(); } catch (e) {}
+          vid.style.display = 'none';
+          img.style.display = '';
+          img.src = path;
+        }
+      }
+
+      function saveField(field, value) {
+        var f = document.getElementById(field + 'Input');
+        if (f) f.value = value || '';
+      }
+
+      var SCENES = [
+        { type: 'choice', media: '/assets/images/tight/reaper/scenes/ledger.mp4',
+          lead: '아아,', line: '일은 잘 다녀?', field: 'job',
+          options: ['학생이에요', '일 구하고 있어요', '직장 다녀요', '사업해요', '프리랜서예요', '무직이에요'] },
+        { type: 'choice', media: '/assets/images/tight/reaper/scenes/ledger.mp4',
+          lead: '그렇군,', line: '애인은 있고?', field: 'love',
+          options: ['솔로에요', '고민되는 사람 있어요', '애인 있어요', '헤어진지 얼마 안됐어요', '결혼도 했어요'] },
+        { type: 'input', media: '/assets/images/tight/reaper/scenes/ledger.mp4',
+          lead: '', line: '따로 물어보고 싶은 고민 있어?', field: 'worry',
+          placeholder: '고민 입력하기' },
+        { type: 'done', media: '/assets/images/tight/reaper/scenes/ledger.mp4',
+          lead: '', line: '좋다. 명부를 펼쳐주마. 똑바로 봐라.' }
+      ];
+
+      var idx = 0;
+
+      function resetUI() {
+        optionsEl.innerHTML = '';
+        inputWrap.style.display = 'none';
+        inputEl.value = '';
+        nextBtn.disabled = true;
+        nextBtn.textContent = '다음으로';
+      }
+
+      function buildChoice(sc) {
+        var selected = null;
+        sc.options.forEach(function (label) {
+          var row = document.createElement('div');
+          row.className = 'scene-option';
+          row.innerHTML = '<span class="scene-option__radio"></span><span>' + label + '</span>';
+          row.addEventListener('click', function () {
+            optionsEl.querySelectorAll('.scene-option').forEach(function (r) { r.classList.remove('selected'); });
+            row.classList.add('selected');
+            selected = label;
+            nextBtn.disabled = false;
+          });
+          optionsEl.appendChild(row);
+        });
+
+        nextBtn.onclick = function () {
+          if (!selected) return;
+          saveField(sc.field, selected);
+          idx++; render();
+        };
+      }
+
+      function buildInput(sc) {
+        inputWrap.style.display = '';
+        inputEl.placeholder = sc.placeholder || '입력하기';
+        nextBtn.disabled = false;
+        function refresh() {
+          nextBtn.textContent = inputEl.value.trim() ? '다음으로' : '아니 없어 (스킵)';
+        }
+        refresh();
+        inputEl.oninput = refresh;
+        nextBtn.onclick = function () {
+          saveField(sc.field, inputEl.value.trim());
+          idx++; render();
+        };
+      }
+
+      function render() {
+        resetUI();
+        var sc = SCENES[idx];
+        if (!sc) { form.submit(); return; }
+        setMedia(sc.media);
+        leadEl.textContent = sc.lead || '';
+        lineEl.textContent = sc.line || '';
+
+        if (sc.type === 'choice') buildChoice(sc);
+        else if (sc.type === 'input') buildInput(sc);
+        else if (sc.type === 'done') {
+          nextBtn.disabled = false;
+          nextBtn.textContent = '명부 열기';
+          nextBtn.onclick = function () { form.submit(); };
+        }
+      }
+
+      skipEl.onclick = function () {
+        // 스킵: 남은 값은 빈값으로 두고 바로 제출
+        form.submit();
+      };
+
+      render();
+    })();
+  </script>
+</body>
+</html>
+

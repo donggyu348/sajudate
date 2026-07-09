@@ -5,7 +5,7 @@
 <p class="rr-eyebrow">財 物</p>
 <p class="rr-secline">평생 한 번,<br><span class="rp-b">크게 터질 자리가 여기 있다.</span></p>
 <% } %>
-<div class="rp-flow">
+<div class="rp-flow<%= isChartOnly ? ' rp-flow--locked' : '' %>">
   <p class="rp-flow__title">네 재물(財) 그래프</p>
   <div class="rp-flow__chart">
     <% if (wc) { %>
@@ -21,7 +21,7 @@
         const bar = wc.bars[i];
         const x = bar ? bar.x + bar.width / 2 : 28;
       %>
-      <text x="<%= x %>" y="188" text-anchor="middle" fill="#5f6b7a" font-size="8"><%= lbl %></text>
+      <text x="<%= x %>" y="188" text-anchor="middle" fill="#5f6b7a" font-size="8"><%= isChartOnly ? '20◯◯' : lbl %></text>
       <% }); } %>
       <% wc.bars.forEach(function(bar) { %>
       <rect x="<%= bar.x %>" y="<%= bar.y %>" width="<%= bar.width %>" height="<%= bar.height %>" rx="2"
@@ -34,18 +34,26 @@
       <% } %>
       <% }); %>
     </svg>
-    <div class="rp-flow__peak" style="left:<%= wc.peakXPercent %>%; top:<%= wc.peakYPercent %>%;">
-      <span class="star">★</span>평생 한 번 · <%= wc.amountText %>
+    <div class="rp-flow__peak" style="left:60%; top:14%;">
+      <% if (isChartOnly) { %>
+        <span class="star">★</span><span class="lock">🔒</span> 평생 한 번의 목돈
+      <% } else { %>
+        <span class="star">★</span>평생 한 번 · <%= wc.amountText %>
+      <% } %>
     </div>
     <% } %>
   </div>
   <div class="rp-flow__legend">
     <div class="now">평소<br>겨우 먹고 산 흐름</div>
-    <div class="then"><%= wc ? wc.peak.label : '이 자리' %><br>평생 한 번 터질 목돈</div>
+    <div class="then"><%= isChartOnly ? '🔒' : (wc ? wc.peak.label : '이 자리') %><br>평생 한 번 터질 목돈</div>
   </div>
   <% if (wc) { %>
-  <p class="rp-flow__cap rp-flow__cap--value">
-    <b><%= wc.peak.label %></b> · <b><%= wc.amountText %></b> · <b><%= wc.peak.tenGod %></b> 기운 — 아래 명부 본문 수치와 동일하다.
-  </p>
+  <% if (isChartOnly) { %>
+    <p class="rp-flow__cap">정확한 금액과 시점은 명부를 열어야 보인다.</p>
+  <% } else { %>
+    <p class="rp-flow__cap rp-flow__cap--value">
+      <b><%= wc.peak.label %></b> · <b><%= wc.amountText %></b> · <b><%= wc.peak.tenGod %></b> 기운 — 아래 명부 본문 수치와 동일하다.
+    </p>
+  <% } %>
   <% } %>
 </div>
