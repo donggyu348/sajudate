@@ -120,6 +120,34 @@
     text-decoration: underline;
     text-underline-offset: 4px;
   }
+
+  /* 다음 연인 얼굴 미리보기 (블러 없음) */
+  .partner-face-frame {
+    position: relative;
+    width: 78%;
+    max-width: 280px;
+    margin: 4px auto 22px;
+    padding: 8px;
+    background: linear-gradient(145deg, rgba(255, 77, 141, 0.12) 0%, rgba(10, 10, 12, 0.9) 100%);
+    border: 1.5px solid rgba(243, 230, 200, 0.45);
+    border-radius: 14px;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  }
+  .partner-face-frame__img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    display: block;
+    border-radius: 8px;
+  }
+  .partner-face-frame__cap {
+    text-align: center;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 10px 0 2px;
+    letter-spacing: 0.02em;
+  }
   
 </style>
 
@@ -326,6 +354,16 @@
         const chapters = [...new Set(reportInfo.map(r => r.chapter))];
         const totalChapters = chapters.length;
         let currentChapter = '';
+
+        // 다음 연인 얼굴 미리보기: 사용자 성별 기준
+        // 남성 → 여자친구(선명 여성 얼굴 · man1), 여성 → 남자친구(선명 남성 얼굴 · woman1)
+        const _rg = String((userInfo && userInfo.gender) || '').trim();
+        const _rgLower = _rg.toLowerCase();
+        const _isFemaleUser = ['여','여자','여성','female','f','woman'].some(function (v) { return _rg === v || _rgLower === v.toLowerCase(); });
+        const _partnerLabel = _isFemaleUser ? '다음 남자친구 얼굴 미리보기' : '다음 여자친구 얼굴 미리보기';
+        const _faceFolder = _isFemaleUser ? 'woman1' : 'man1';
+        const _faceFiles = ['1.png','2.png','3.png','4.png','5.png'];
+        const _partnerFace = `/assets/images/tight/romantic/result/${_faceFolder}/${encodeURIComponent(_faceFiles[Math.floor(Math.random() * _faceFiles.length)])}`;
       %>
 
       <% reportInfo.forEach((item, index) => { %>
@@ -349,10 +387,17 @@
 
        <div class="content-card">
 
+  <% const _isPartnerPreview = !!(item.title && item.title.indexOf('얼굴 미리보기') !== -1); %>
   <% if (item.title && item.title !== item.chapter) { %>
     <h3 class="report-title">
-      <%= item.title %>
+      <%= _isPartnerPreview ? _partnerLabel : item.title %>
     </h3>
+  <% } %>
+  <% if (_isPartnerPreview) { %>
+    <div class="partner-face-frame">
+      <img class="partner-face-frame__img" src="<%= _partnerFace %>" alt="<%= _partnerLabel %>" />
+    </div>
+    <p class="partner-face-frame__cap"><%= _partnerLabel %></p>
   <% } %>
 <%
   let formattedContent = item.content;

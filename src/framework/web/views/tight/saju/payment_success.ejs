@@ -4,10 +4,13 @@
 <%
   const gt = String(typeof goodsType !== 'undefined' ? goodsType : '').toUpperCase();
   const isReaper = gt.includes('REAPER');
+  const isRomantic = !isReaper && gt.includes('ROMANTIC');
   const accent   = isReaper ? '#5aa9f0' : '#d9b25a';
   const accent2  = isReaper ? '#9cc9f5' : '#f0d79a';
-  const titleMain = isReaper ? '당신의 사자록을 쓰는 중' : '당신의 사주 리포트를 짓는 중';
+  const titleMain = isReaper ? '당신의 사자록을 쓰는 중' : '당신의 사주 리포트를 제작 중';
   const titleSub  = isReaper ? '억울하게 끊긴 명줄, 다시 쓰는 데 잠시 걸립니다' : '한 장 한 장 정성껏 풀어내는 중입니다';
+  // 진행 라벨(서버 기본값 "명부를 펼치는 중")을 제품별 문구로 치환
+  const nowInit  = isReaper ? '명부를 펼치는 중' : (isRomantic ? '홍연을 찾는 중' : '리포트를 준비하는 중');
   const stepList  = (typeof stepLabels !== 'undefined' && Array.isArray(stepLabels)) ? stepLabels : [];
 %>
 <style>
@@ -121,7 +124,7 @@
 
     <div class="ps-now">
       <span class="ps-now__dot"></span>
-      <span class="ps-now__txt" id="psNow">명부를 펼치는 중…</span>
+      <span class="ps-now__txt" id="psNow"><%= nowInit %>…</span>
     </div>
 
     <ul class="ps-steps" id="psSteps">
@@ -145,6 +148,7 @@ $(document).ready(function () {
   const shopOrderNo = "<%= shopOrderNo %>";
   const price = Number("<%= goodsPrice %>") || 10000;
   const goodsType = "<%= goodsType %>";
+  const nowInit = "<%= nowInit %>";
 
   /* ── 구매 픽셀 (최초 1회) ── */
   const purchaseKey = "purchase_done_" + shopOrderNo;
@@ -193,7 +197,11 @@ $(document).ready(function () {
     setRing(res.percent || 3);
     if (res.total) $cnt.textContent = Math.min(res.total, res.done + (res.status === 'DONE' ? 0 : 0)) + ' / ' + res.total + ' 장';
     else $cnt.textContent = '작성 중';
-    if (res.label) $now.textContent = (res.status === 'DONE') ? '명부가 완성됐어요' : (res.label + '…');
+    if (res.label) {
+      // 서버 기본 라벨("명부를 펼치는 중")은 제품별 문구로 치환
+      const lbl = (res.label === '명부를 펼치는 중') ? nowInit : res.label;
+      $now.textContent = (res.status === 'DONE') ? '명부가 완성됐어요' : (lbl + '…');
+    }
     setSteps(res.done || 0, res.current || 0, res.total || 0, res.status);
   }
 
