@@ -239,17 +239,15 @@
   } catch (e) { manseCols = []; }
   const dayGanLabel = (saju && saju.dayGan) ? saju.dayGan : ((saju && saju.day && saju.day.gan) ? saju.day.gan : '');
 
-  // 미래 연인 얼굴 (홍연 이미지 풀 재사용) — 남성 사용자 → 여성 얼굴, 여성 사용자 → 남성 얼굴
-  // 폴더는 "보는 사용자 성별" 기준: man 폴더=여성 얼굴, woman 폴더=남성 얼굴
+  // 미래 연인 얼굴 (홍연 result 이미지 풀 재사용) — 남성 사용자 → 여성 얼굴, 여성 사용자 → 남성 얼굴
+  // 폴더는 "보는 사용자 성별" 기준: man1 폴더=여성 얼굴, woman1 폴더=남성 얼굴 (선명본 · 블러 없음)
   let partnerFace = '';
   try {
     const _g = String((userInfo && userInfo.gender) || '').trim();
     const _gLower = _g.toLowerCase();
     const _isFemale = ['여','여자','여성','female','f','woman'].some(function (v) { return _g === v || _gLower === v.toLowerCase(); });
-    const _faceGender = _isFemale ? 'woman' : 'man';
-    const _manFiles   = ['Rectangle 157.png','Rectangle 159.png','Rectangle 160.png','Rectangle 161.png','Rectangle 162.png'];
-    const _womanFiles = ['Rectangle 152.png','Rectangle 153.png','Rectangle 154.png','Rectangle 155.png','Rectangle 156.png'];
-    const _faceFiles  = _faceGender === 'man' ? _manFiles : _womanFiles;
+    const _faceGender = _isFemale ? 'woman1' : 'man1';
+    const _faceFiles  = ['1.png','2.png','3.png','4.png','5.png'];
     const _faceFile   = _faceFiles[Math.floor(Math.random() * _faceFiles.length)];
     partnerFace = `/assets/images/tight/romantic/result/${_faceGender}/${encodeURIComponent(_faceFile)}`;
   } catch (e) { partnerFace = ''; }
