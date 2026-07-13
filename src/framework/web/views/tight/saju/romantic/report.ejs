@@ -370,6 +370,7 @@
         <% if (item.chapter !== currentChapter) { %>
           <% currentChapter = item.chapter; %>
           <% const chapterIndex = chapters.indexOf(item.chapter); %>
+          <% const _isPartnerChapter = !!(item.chapter && item.chapter.indexOf('얼굴 미리보기') !== -1); %>
 
           <div class="chapter-progress-wrap px-8">
             <div class="chapter-dots">
@@ -378,26 +379,28 @@
               <% } %>
             </div>
             <span class="chapter-badge">Chapter 0<%= chapterIndex + 1 %></span>
-            <h2 class="chapter-title"><%= item.chapter %></h2>
+            <h2 class="chapter-title"><%= _isPartnerChapter ? _partnerLabel : item.chapter %></h2>
             <div class="chapter-line"></div>
           </div>
+
+          <% if (_isPartnerChapter) { %>
+            <div class="px-6">
+              <div class="partner-face-frame">
+                <img class="partner-face-frame__img" src="<%= _partnerFace %>" alt="<%= _partnerLabel %>" />
+              </div>
+              <p class="partner-face-frame__cap"><%= _partnerLabel %></p>
+            </div>
+          <% } %>
 
           <div class="px-6 space-y-10">
         <% } %>
 
        <div class="content-card">
 
-  <% const _isPartnerPreview = !!(item.title && item.title.indexOf('얼굴 미리보기') !== -1); %>
   <% if (item.title && item.title !== item.chapter) { %>
     <h3 class="report-title">
-      <%= _isPartnerPreview ? _partnerLabel : item.title %>
+      <%= item.title %>
     </h3>
-  <% } %>
-  <% if (_isPartnerPreview) { %>
-    <div class="partner-face-frame">
-      <img class="partner-face-frame__img" src="<%= _partnerFace %>" alt="<%= _partnerLabel %>" />
-    </div>
-    <p class="partner-face-frame__cap"><%= _partnerLabel %></p>
   <% } %>
 <%
   let formattedContent = item.content;
