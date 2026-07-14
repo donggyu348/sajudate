@@ -56,8 +56,8 @@ export const GoodsType = Object.freeze({
     code: "ADULT",
     title: "S궁합사주",
     originalPrice: 56800,
-    discountPrice: 21900,
-    price: 34900,
+    discountPrice: 17900,
+    price: 38900,
     platform: Platform.TIGHT
   },
 
@@ -73,13 +73,13 @@ export const GoodsType = Object.freeze({
     giveTicket: "ROMANTIC"
   },
 
-  /** 사자록 — 가격은 result 노잣돈 카드(63,000 → 37,500)와 일치 */
+  /** 사자록 — 가격은 result 노잣돈 카드(63,000 → 39,800)와 일치 */
   REAPER: {
     code: "REAPER",
     title: "사자록(정통사주)",
     originalPrice: 63000,
-    discountPrice: 25500,
-    price: 37500,
+    discountPrice: 23200,
+    price: 39800,
     platform: Platform.TIGHT
   },
 
