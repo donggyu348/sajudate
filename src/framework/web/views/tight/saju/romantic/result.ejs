@@ -4,6 +4,9 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 </head>
 
@@ -27,7 +30,7 @@
     --gold:#c8a14e; --wine:#c8244c;
     --line:rgba(170,215,200,.13); --line-2:rgba(170,215,200,.07);
     --sans:'Pretendard',system-ui,-apple-system,sans-serif;
-    --serif:'Nanum Myeongjo','Apple Myungjo','Batang',serif;
+    --serif:'Nanum Myeongjo','Apple Myungjo',serif;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
@@ -61,11 +64,11 @@
   .whisper::after{content:"」";opacity:.6;margin-left:1px;}
 
   /* 대형 후크 — 세리프, 좌정렬 */
-  .hook{font-family:var(--serif);font-weight:400;font-size:clamp(29px,8.4vw,40px);line-height:1.26;
+  .hook{font-family:var(--serif);font-weight:700;font-size:clamp(29px,8.4vw,40px);line-height:1.26;
     letter-spacing:-.01em;margin:0;text-align:left;text-shadow:0 4px 30px rgba(0,0,0,.85);}
   .hook.sm{font-size:clamp(24px,6.6vw,31px);}
   .j{color:var(--jade);} .au{color:var(--gold);} .w{color:var(--wine);}
-  .hook b{font-weight:700;}
+  .hook b{font-weight:800;}
 
   /* ── 검은 콘텐츠 비트 ── */
   .beat{padding:46px 24px;}
@@ -75,7 +78,7 @@
     text-transform:uppercase;color:var(--gold);font-weight:600;}
   .kick::before{content:"";width:16px;height:1px;background:var(--gold);}
   .kick .han{font-family:var(--serif);font-size:16px;letter-spacing:0;color:var(--jade);text-transform:none;}
-  .beat h2{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.32;letter-spacing:-.01em;
+  .beat h2{font-family:var(--serif);font-weight:700;font-size:26px;line-height:1.32;letter-spacing:-.01em;
     margin:0 0 16px;text-align:left;}
   .beat h2 b{font-weight:700;}
   .beat h2 .han{color:var(--jade);}
@@ -87,6 +90,14 @@
   .lives i{width:9px;height:9px;transform:rotate(45deg);border:1px solid var(--faint);border-radius:2px;}
   .lives i.on{background:var(--jade);border-color:var(--jade);box-shadow:0 0 9px rgba(67,224,173,.6);}
   .lives b{font-family:var(--serif);font-size:15px;color:var(--gold);margin-left:8px;letter-spacing:.05em;font-weight:400;}
+
+  /* 目次(목차) — 命 넘버 인덱스 */
+  .toc{list-style:none;padding:0;margin:8px 0 0;border-top:1px solid var(--line);}
+  .toc li{display:flex;align-items:center;gap:15px;padding:17px 2px;border-bottom:1px solid var(--line);}
+  .toc .tno{font-family:var(--serif);font-size:17px;color:var(--jade);flex:0 0 auto;width:52px;letter-spacing:.04em;}
+  .toc .tt{flex:1;font-size:14.5px;color:var(--ink);line-height:1.42;}
+  .toc .tt small{display:block;color:var(--dim);font-size:12.5px;margin-top:2px;}
+  .toc .tlock{flex:0 0 auto;color:var(--gold);font-size:13px;opacity:.85;}
 
   /* 구분선 — 헤어라인 + 제이드 마름모 */
   .rule{display:flex;align-items:center;gap:14px;padding:0 24px;color:var(--line);}
@@ -244,6 +255,17 @@
     <div class="cap">
       <p class="hook sm">네 안에 잠든 <span class="j">흑묘</span>를<br>깨우는 <span class="au">비기</span>를?</p>
     </div>
+  </div>
+
+  <!-- ▸ 검정: 目次(목차) -->
+  <div class="beat">
+    <div class="kick"><span class="han">目次</span> 이 사주가 밝힐 것</div>
+    <ul class="toc">
+      <li><span class="tno">第一命</span><span class="tt">나는 어떤 흑묘인가<small>타고난 유형과 색기의 정체</small></span></li>
+      <li><span class="tno">第二命</span><span class="tt">아홉 개의 목숨<small>숨겨둔 치명적 무기 — 도화·홍염</small></span><span class="tlock">封</span></li>
+      <li><span class="tno">第三命</span><span class="tt">숨만 쉬어도 플러팅<small>수동적 지배 스킬</small></span><span class="tlock">封</span></li>
+      <li><span class="tno">第四命</span><span class="tt">포식할 사냥감<small>상대의 심연까지 벗겨보는 법</small></span><span class="tlock">封</span></li>
+    </ul>
   </div>
 
   <!-- ▸ 검정: Chapter 1 유형 리빌 -->
