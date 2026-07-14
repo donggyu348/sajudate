@@ -6,6 +6,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Jua&family=Poor+Story&display=swap" rel="stylesheet">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
       /* 텍스트 위치(배경 보고 여기만 미세조정하면 됨) */
@@ -41,13 +42,16 @@
       overflow: hidden;
     }
 
-    /* 3. 배경(연애사주 썸네일) 꽉 채우기 */
+    /* 3. 배경(흑묘 사주 인트로) — 9:19.5(576x1248) 세로 이미지라 cover로 꽉 채움
+       - cover: 화면을 꽉 채우며 버튼 위치까지 이미지가 내려옴(여백 없음)
+       - 비율이 폰과 거의 일치해 타이틀 좌우가 잘리지 않음
+       - center top: 상단(타이틀/얼굴) 고정, 필요 시 하단만 미세 크롭 */
     .bg-stage {
       position: absolute;
       inset: 0;
-      background-image: url('/assets/images/tight/main/romantic intro.png');
-      background-size: 100% 100%;
-      background-position: center;
+      background-image: url('/assets/images/tight/romantic/intro/intro.jpg');
+      background-size: cover;
+      background-position: center top;
       background-repeat: no-repeat;
     }
 
@@ -458,8 +462,69 @@
       to   { opacity: 1; transform: translateX(-50%) translateY(0); }
     }
 
+    /* ===== 생동감 FX: A 떠다니는 캡슐 · C 고양이 눈 발광 · D 타이틀/버튼 ===== */
+    .fx { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+
+    /* D-1) 네온 타이틀 뒤 초록 글로우가 숨쉬듯 맥동 */
+    .title-glow {
+      position: absolute; left: 50%; top: 11%;
+      transform: translate(-50%, -50%);
+      width: 76%; height: 120px; border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(96,255,176,0.30) 0%, rgba(96,255,176,0) 70%);
+      filter: blur(6px); mix-blend-mode: screen;
+      animation: titleBreath 3.6s ease-in-out infinite;
+    }
+    @keyframes titleBreath {
+      0%,100% { opacity: .40; transform: translate(-50%,-50%) scale(.97); }
+      50%     { opacity: .90; transform: translate(-50%,-50%) scale(1.05); }
+    }
+
+    /* C) 어둠 속 검은 고양이들 눈이 초록으로 깜빡·발광 (서로 다른 리듬) */
+    .eye-glow {
+      position: absolute; width: 26px; height: 26px;
+      transform: translate(-50%, -50%); border-radius: 50%;
+      background: radial-gradient(circle, rgba(150,255,190,0.95) 0%, rgba(90,240,150,0.5) 38%, rgba(70,220,130,0) 72%);
+      mix-blend-mode: screen;
+      animation: eyePulse 2.8s ease-in-out infinite;
+    }
+    .eye-glow.e-l  { left: 17%; top: 48%; }
+    .eye-glow.e-r1 { left: 88%; top: 44%; animation-duration: 3.5s; animation-delay: .6s; }
+    .eye-glow.e-r2 { left: 88%; top: 50%; animation-duration: 2.2s; animation-delay: 1.1s; }
+    @keyframes eyePulse {
+      0%,100% { opacity: .30; transform: translate(-50%,-50%) scale(.80); }
+      45%     { opacity: 1;   transform: translate(-50%,-50%) scale(1.15); }
+    }
+
+    /* A) 떠다니는 캡슐(후크 카피)이 둥실둥실 부유 */
+    .floaties { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+    .cap {
+      position: absolute; display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 14px; border-radius: 999px; white-space: nowrap;
+      font-family: 'Pretendard', system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 13px; font-weight: 600; letter-spacing: -0.02em; color: #eafff2;
+      background: rgba(10, 20, 16, 0.55);
+      border: 1px solid rgba(120, 255, 180, 0.40);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45), 0 0 16px rgba(80,240,150,0.18);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      animation: capIn .7s ease both, capFloat 5s ease-in-out infinite;
+    }
+    .cap.c1 { left: 6%;  top: 29%; animation-delay: .3s, .9s; }
+    .cap.c2 { right: 6%; top: 39%; animation-delay: .6s, 1.4s; }
+    .cap.c3 { left: 9%;  top: 57%; animation-delay: .9s, .5s; }
+    @keyframes capIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes capFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+    /* D-2) CTA 버튼이 은은하게 숨쉬며 시선 유도 */
+    .cta-btn { animation: ctaBreath 2.4s ease-in-out infinite; }
+    @keyframes ctaBreath {
+      0%,100% { box-shadow: 0 8px 28px rgba(232,54,110,.45), 0 2px 8px rgba(0,0,0,.3); }
+      50%     { box-shadow: 0 10px 40px rgba(232,54,110,.80), 0 0 22px rgba(232,54,110,.5); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      .cta-wrap { animation: none !important; }
+      .cta-wrap, .cta-btn, .cap, .eye-glow, .title-glow { animation: none !important; }
+      .cap { opacity: 1 !important; }
     }
   </style>
 </head>
@@ -468,7 +533,23 @@
   <div class="frame-wrap">
     <div class="video-stage">
       <div class="bg-stage" aria-hidden="true"></div>
+
+      <!-- C) 고양이 눈 발광 + D) 타이틀 글로우 -->
+      <div class="fx" aria-hidden="true">
+        <span class="title-glow"></span>
+        <span class="eye-glow e-l"></span>
+        <span class="eye-glow e-r1"></span>
+        <span class="eye-glow e-r2"></span>
+      </div>
+
       <div class="bottom-fade" aria-hidden="true"></div>
+
+      <!-- A) 떠다니는 캡슐(후크 카피) -->
+      <div class="floaties" aria-hidden="true">
+        <span class="cap c1">🖤 나를 거부 못하는 이성</span>
+        <span class="cap c2">😼 치명적 매력 지수</span>
+        <span class="cap c3">🥀 무릎 꿇을 상대</span>
+      </div>
 
       <div class="cta-wrap">
         <a href="/saju/romantic/input" class="cta-btn">

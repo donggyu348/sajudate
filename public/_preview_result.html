@@ -1,24 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
-<%- include('./../../common/header') %>
+
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 </head>
 
-<%
-  const uname = (typeof userInfo !== 'undefined' && userInfo && userInfo.name) ? userInfo.name : '그대';
-  const IMG = '/assets/images/tight/romantic/result';
-  // 九命(아홉 목숨) 카운터: n개 점등
-  function lives(n){
-    let s='<div class="lives">';
-    for(let i=1;i<=9;i++) s += '<i class="'+(i<=n?'on':'')+'"></i>';
-    const han=['','第一命','第二命','第三命','第四命','第五命','第六命','第七命','第八命','第九命'][n]||'';
-    s += '<b>'+han+'</b></div>';
-    return s;
-  }
-%>
+
 
 <style>
   :root{
@@ -181,11 +170,11 @@
 
   <!-- ①  IMG1 도발① -->
   <div class="hero">
-    <img src="<%= IMG %>/1.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/1.jpg" alt="">
     <div class="veil"></div>
     <div class="cap">
       <div class="whisper">그르릉…</div>
-      <p class="hook"><%= uname %>,<br>넌 타고난 <span class="j">고양이</span>면서<br>왜 <span class="au">순한 집냥이</span> 흉내를?</p>
+      <p class="hook">민지,<br>넌 타고난 <span class="j">고양이</span>면서<br>왜 <span class="au">순한 집냥이</span> 흉내를?</p>
     </div>
   </div>
 
@@ -197,14 +186,14 @@
       <div class="trow"><div class="lab"><span class="han">妖</span><span class="ko">요망력</span></div><div class="val">?? 점</div></div>
       <div class="trow"><div class="lab"><span class="han">色</span><span class="ko">색기력</span></div><div class="val">?? 점</div></div>
     </div>
-    <p style="margin-top:18px">사주에 새겨진 <b><%= uname %></b>의 홀림을, 흑묘가 낱낱이 읽어줄게.</p>
+    <p style="margin-top:18px">사주에 새겨진 <b>민지</b>의 홀림을, 흑묘가 낱낱이 읽어줄게.</p>
   </div>
 
   <div class="rule"><i></i></div>
 
   <!-- ②  IMG2 도발② -->
   <div class="hero">
-    <img src="<%= IMG %>/2.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/2.jpg" alt="">
     <div class="veil"></div>
     <div class="cap">
       <div class="whisper">냐하…</div>
@@ -224,7 +213,7 @@
 
   <!-- ③  IMG3 유혹 -->
   <div class="hero">
-    <img src="<%= IMG %>/3.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/3.jpg" alt="">
     <div class="veil"></div>
     <div class="cap">
       <p class="hook">너는 <span class="au">‘이것’ 하나</span>만<br>바꾸면 미친 듯이<br>사랑받는다는 걸,<br><span class="j">이미 알잖아.</span></p>
@@ -239,7 +228,7 @@
 
   <!-- ④  IMG4 여왕 -->
   <div class="hero">
-    <img src="<%= IMG %>/4.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/4.jpg" alt="">
     <div class="veil"></div>
     <div class="cap">
       <p class="hook sm">네 안에 잠든 <span class="j">흑묘</span>를<br>깨우는 <span class="au">비기</span>를?</p>
@@ -248,10 +237,10 @@
 
   <!-- ▸ 검정: Chapter 1 유형 리빌 -->
   <div class="beat">
-    <%- lives(1) %>
+    <div class="lives"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><b>第一命</b></div>
     <h2>나는 <b>어떤 흑묘</b>일까?</h2>
     <div class="talk">
-      <div class="l"><b><%= uname %></b>, 넌 보아하니…</div>
+      <div class="l"><b>민지</b>, 넌 보아하니…</div>
       <div class="l big">흑요묘(黑曜猫)구나.</div>
       <div class="l">무심한 듯 곁을 내주다, 어느새 상대를 <b>네게 길들이는</b> 묵직한 지배력이 있다더군.</div>
     </div>
@@ -259,7 +248,7 @@
 
   <!-- ⑤  IMG5 유형 -->
   <div class="hero">
-    <img src="<%= IMG %>/5.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/5.jpg" alt="">
     <div class="veil"></div>
     <div class="cap">
       <div class="thead">
@@ -282,7 +271,7 @@
     <div class="tags"><span>김태희</span><span>제니</span><span>한소희</span><span>정국</span><span>차은우</span><span>수지</span></div>
 
     <div class="kick" style="margin-top:32px"><span class="han">緣</span> 다가올 인연</div>
-    <h2 style="font-size:21px">3개월 내로 <b><%= uname %></b>에게<br>스며들 녀석들은?</h2>
+    <h2 style="font-size:21px">3개월 내로 <b>민지</b>에게<br>스며들 녀석들은?</h2>
     <div class="tbl">
       <table>
         <thead><tr><th>시기</th><th>성향·외모</th><th>공략법</th></tr></thead>
@@ -297,7 +286,7 @@
 
   <!-- ⑥  IMG6 스탯 배경 -->
   <div class="hero">
-    <img src="<%= IMG %>/6.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/6.jpg" alt="">
     <div class="veil"></div>
     <div class="topcap"><p class="hook sm">나의 <span class="j">묘력</span>과<br>요망력은?</p></div>
     <div class="cap">
@@ -318,7 +307,7 @@
 
   <!-- ⑦  IMG7 귀인 -->
   <div class="hero">
-    <img src="<%= IMG %>/7.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/7.jpg" alt="">
     <div class="veil"></div>
     <div class="cap">
       <p class="hook sm">충성을 끌어내는<br><span class="au">귀인(貴人)의 발톱</span></p>
@@ -339,10 +328,10 @@
 
   <!-- ⑧  IMG8 색기 클로즈업 -->
   <div class="hero">
-    <img src="<%= IMG %>/8.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/8.jpg" alt="">
     <div class="veil"></div>
     <div class="topcap">
-      <%- lives(2) %>
+      <div class="lives"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><b>第二命</b></div>
       <p class="hook sm">아홉 개의 목숨 <span class="j">九命</span><br>숨겨둔 <span class="au">치명적 무기</span></p>
     </div>
     <div class="cap"><div class="whisper">어디 보자… 네 색기를 모르겠다고?</div></div>
@@ -363,7 +352,7 @@
 
   <!-- ⑨  IMG9 홍염 -->
   <div class="hero">
-    <img src="<%= IMG %>/9.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/9.jpg" alt="">
     <div class="veil"></div>
     <div class="topcap"><p class="hook sm">홍염 <span class="w">紅艶</span><br><span style="font-family:var(--sans);font-size:14px;color:#cfd6d2;font-weight:600">거부할 수 없는 맹목적 끌림 💅</span></p></div>
     <div class="cap"><div class="whisper">네 자리는… 여기가 어울려.</div></div>
@@ -388,10 +377,10 @@
 
   <!-- ⑩  IMG10 니어키스 배너 -->
   <div class="hero">
-    <img src="<%= IMG %>/10.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/10.jpg" alt="">
     <div class="veil"></div>
     <div class="cap">
-      <%- lives(3) %>
+      <div class="lives"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><b>第三命</b></div>
       <p class="hook sm">굳이 애쓰지 않아도 —<br>숨만 쉬어도 <span class="j">플러팅</span></p>
     </div>
   </div>
@@ -410,10 +399,10 @@
 
   <!-- ⑪  IMG11 포식자 (BONUS) -->
   <div class="hero">
-    <img src="<%= IMG %>/11.jpg" alt="">
+    <img src="/assets/images/tight/romantic/result/11.jpg" alt="">
     <div class="veil"></div>
     <div class="topcap">
-      <%- lives(4) %>
+      <div class="lives"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><b>第四命</b></div>
       <p class="hook sm">천 년 묵은 흑묘가<br>포식할 <span class="w">사냥감</span></p>
     </div>
     <div class="cap"><div class="whisper">정복해버려, 그냥. 냐하ㅋ</div></div>
@@ -421,7 +410,7 @@
 
   <!-- ▸ 검정: 마무리 -->
   <div class="beat">
-    <h2 style="font-size:21px">잔잔해 보이는 그 사람의<br>심연까지 벗겨보고 싶은<br><b><%= uname %></b>에게 —</h2>
+    <h2 style="font-size:21px">잔잔해 보이는 그 사람의<br>심연까지 벗겨보고 싶은<br><b>민지</b>에게 —</h2>
     <p>알아서 감겨드는 사냥감들의 정체, 흑묘 사주 풀버전에서 전부 공개된다.</p>
   </div>
 

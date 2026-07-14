@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
-<%- include('./../../common/header') %>
+
 
 <head>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
   <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <style>
@@ -476,8 +477,7 @@ nextBtn.onclick = () => {
 
     if (nameValue === "관리자" || nameValue === "테스트") {
       form.action = "/saju/skip-payment";
-      form.submit();
-      return;
+      alert('(미리보기) 관리자 스킵'); return;
     }
 
     if (ticketCode) {
@@ -487,7 +487,7 @@ nextBtn.onclick = () => {
     }
 
     document.getElementById('loadingOverlay').style.display = 'flex';
-    setTimeout(() => form.submit(), 3000);
+    setTimeout(() => { alert('(미리보기) 제출! 실제 앱에선 결과로 이동'); document.getElementById('loadingOverlay').style.display='none'; }, 3000);
   }
 };
 
@@ -499,6 +499,7 @@ backBtn.onclick = () => {
 };
 
 renderStep();
+if(location.hash==='#loader'){document.getElementById('loadingOverlay').style.display='flex';}
 </script>
 
 </body>
