@@ -39,39 +39,39 @@ export const GoodsType = Object.freeze({
     giveTicket: "ROMANTIC" // 이 상품을 사면 ROMANTIC 티켓을 줌
   },
 
-  // 연애사주 + 29금 사주 번들 (연애사주 구매 시 29금 사주 티켓 증정)
-  ROMANTIC_BUNDLE: {
-    code: "ROMANTIC_BUNDLE",
-    title: '홍연사주(연애사주) + S궁합사주',
-    originalPrice: 71700,
-    discountPrice: 21900,
-    price: 49800,
-    platform: Platform.TIGHT,
-    reportCode: "ROMANTIC",  // 본 리포트 = 연애사주
-    giveTicket: "ADULT" // 이 상품을 사면 ADULT(29금) 티켓을 줌
-  },
+  // 29금 사주 판매 중단으로 주석 처리 (연애사주 + 29금 사주 번들, 연애사주 구매 시 29금 사주 티켓 증정)
+  // ROMANTIC_BUNDLE: {
+  //   code: "ROMANTIC_BUNDLE",
+  //   title: '홍연사주(연애사주) + S궁합사주',
+  //   originalPrice: 71700,
+  //   discountPrice: 21900,
+  //   price: 49800,
+  //   platform: Platform.TIGHT,
+  //   reportCode: "ROMANTIC",  // 본 리포트 = 연애사주
+  //   giveTicket: "ADULT" // 이 상품을 사면 ADULT(29금) 티켓을 줌
+  // },
 
-  /** 29금 사주 (성인용 연애·관계 운세) */
-  ADULT: {
-    code: "ADULT",
-    title: "S궁합사주",
-    originalPrice: 56800,
-    discountPrice: 19000,
-    price: 37800,
-    platform: Platform.TIGHT
-  },
+  // 29금 사주 판매 중단으로 주석 처리 (성인용 연애·관계 운세)
+  // ADULT: {
+  //   code: "ADULT",
+  //   title: "S궁합사주",
+  //   originalPrice: 56800,
+  //   discountPrice: 19000,
+  //   price: 37800,
+  //   platform: Platform.TIGHT
+  // },
 
-  /** 29금 사주 + 연애사주 번들 */
-  ADULT_BUNDLE: {
-    code: "ADULT_BUNDLE",
-    title: "S궁합사주 + 홍연사주(연애사주)",
-    originalPrice: 71700,
-    discountPrice: 21900,
-    price: 49800,
-    platform: Platform.TIGHT,
-    reportCode: "ADULT",     // 본 리포트 = 29금(S궁합) 사주
-    giveTicket: "ROMANTIC"
-  },
+  // 29금 사주 판매 중단으로 주석 처리 (29금 사주 + 연애사주 번들)
+  // ADULT_BUNDLE: {
+  //   code: "ADULT_BUNDLE",
+  //   title: "S궁합사주 + 홍연사주(연애사주)",
+  //   originalPrice: 71700,
+  //   discountPrice: 21900,
+  //   price: 49800,
+  //   platform: Platform.TIGHT,
+  //   reportCode: "ADULT",     // 본 리포트 = 29금(S궁합) 사주
+  //   giveTicket: "ROMANTIC"
+  // },
 
   /** 사자록 — 가격은 result 노잣돈 카드(63,000 → 37,800)와 일치 */
   REAPER: {
@@ -98,17 +98,17 @@ export const GoodsType = Object.freeze({
     giveTicket: "REAPER"
   },
 
-  // 29금(S궁합) + 저승사자 사주 (29금 구매 시 리퍼 티켓 증정)
-  ADULT_REAPER_BUNDLE: {
-    code: "ADULT_REAPER_BUNDLE",
-    title: "S궁합사주 + 사자록(정통사주)",
-    originalPrice: 72400,
-    discountPrice: 20800,
-    price: 51600,
-    platform: Platform.TIGHT,
-    reportCode: "ADULT",
-    giveTicket: "REAPER"
-  },
+  // 29금 사주 판매 중단으로 주석 처리 (29금(S궁합) + 저승사자 사주, 29금 구매 시 리퍼 티켓 증정)
+  // ADULT_REAPER_BUNDLE: {
+  //   code: "ADULT_REAPER_BUNDLE",
+  //   title: "S궁합사주 + 사자록(정통사주)",
+  //   originalPrice: 72400,
+  //   discountPrice: 20800,
+  //   price: 51600,
+  //   platform: Platform.TIGHT,
+  //   reportCode: "ADULT",
+  //   giveTicket: "REAPER"
+  // },
 
   // 저승사자 사주 + 연애사주 (리퍼 구매 시 연애 티켓 증정)
   REAPER_ROMANTIC_BUNDLE: {
@@ -122,15 +122,15 @@ export const GoodsType = Object.freeze({
     giveTicket: "ROMANTIC"
   },
 
-  // 저승사자 사주 + 29금(S궁합) 사주 (리퍼 구매 시 29금 티켓 증정)
-  REAPER_ADULT_BUNDLE: {
-    code: "REAPER_ADULT_BUNDLE",
-    title: "사자록(정통사주) + S궁합사주",
-    originalPrice: 72400,
-    discountPrice: 20800,
-    price: 51600,
-    platform: Platform.TIGHT,
-    reportCode: "REAPER",
-    giveTicket: "ADULT"
-  }
+  // 29금 사주 판매 중단으로 주석 처리 (저승사자 사주 + 29금(S궁합) 사주, 리퍼 구매 시 29금 티켓 증정)
+  // REAPER_ADULT_BUNDLE: {
+  //   code: "REAPER_ADULT_BUNDLE",
+  //   title: "사자록(정통사주) + S궁합사주",
+  //   originalPrice: 72400,
+  //   discountPrice: 20800,
+  //   price: 51600,
+  //   platform: Platform.TIGHT,
+  //   reportCode: "REAPER",
+  //   giveTicket: "ADULT"
+  // }
 });

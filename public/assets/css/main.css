@@ -10560,10 +10560,6 @@ button,
   gap: 0.25rem
 }
 
-.gap-1\.5 {
-  gap: 0.375rem
-}
-
 .gap-2 {
   gap: 0.5rem
 }
@@ -11334,10 +11330,6 @@ button,
 .bg-zinc-900 {
   --tw-bg-opacity: 1;
   background-color: rgb(24 24 27 / var(--tw-bg-opacity))
-}
-
-.bg-zinc-900\/80 {
-  background-color: rgb(24 24 27 / 0.8)
 }
 
 .bg-gradient-to-b {

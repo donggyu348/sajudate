@@ -313,20 +313,39 @@ router.post("/reaper/result", async (req, res) => {
   }
 });
 
+/* 구미호 사주(홍연부) 인트로 — 씬 시퀀스 + 정보 입력까지 한 화면 */
+router.get("/gumiho/intro", (req, res) => {
+  res.render("tight/saju/gumiho/intro");
+});
+
+// TODO: input/loading/result 단계는 reaper 패턴을 참고해 별도로 구현 필요
+// (gumihoChartService, GoodsType.GUMIHO, GPT 리포트 프롬프트 등 백엔드 연동 포함)
+router.post("/gumiho/input", async (req, res) => {
+  try {
+    return res.render("tight/saju/gumiho/intro", {
+      userInfo: req.body,
+      submitted: true,
+    });
+  } catch (e) {
+    console.error("gumiho input render error:", e);
+    return res.redirect("/saju/gumiho/intro");
+  }
+});
+
 /* 연애 사주 인트로 */
 router.get("/romantic/intro", (req, res) => {
   res.render("tight/saju/romantic/intro");
 });
 
-/* 29금사주 인트로 */
+/* 29금사주 판매 중단으로 주석 처리
 router.get("/adult/intro", (req, res) => {
   res.render("tight/saju/adult/intro");
 });
 
-/* 29금사주 입력 */
 router.get("/adult/input", (req, res) => {
   res.render("tight/saju/adult/input");
 });
+*/
 
 /* 연애 사주 입력 */
 router.get("/romantic/input", (req, res) => {
@@ -416,7 +435,7 @@ router.get("/romantic/result", async (req, res) => {
     return processGetResult(req, res, GoodsType.ROMANTIC);
 });
 
-/* ---------- 29금 사주 결과 ---------- */
+/* ---------- 29금 사주 결과 (판매 중단으로 주석 처리) ----------
 router.post("/adult/result", async (req, res) => {
   const userInfo = req.body;
   const ticketCode = req.query.ticket || req.body.ticketCode || req.body.ticket;
@@ -472,6 +491,7 @@ router.post("/adult/result", async (req, res) => {
 router.get("/adult/result", async (req, res) => {
   return processGetResult(req, res, GoodsType.ADULT);
 });
+*/
 
 
 
@@ -909,7 +929,8 @@ const ticket = await Coupons.findOne({ where: { code: code, isUsed: false } });
     } else if (ticket.goodsType === '2') {
       targetPath = "/saju/romantic/input";
     } else if (ticket.goodsType === '3' || String(ticket.goodsType).toUpperCase() === 'ADULT') {
-      targetPath = "/saju/adult/input";
+      // 29금 사주 판매 중단으로 해당 티켓은 더 이상 사용할 수 없음
+      return res.send("<script>alert('해당 상품은 판매가 종료되어 더 이상 이용하실 수 없습니다.'); location.href='/saju';</script>");
     } else if (ticket.goodsType === '4' || String(ticket.goodsType).toUpperCase() === 'REAPER') {
       targetPath = "/saju/reaper/intro";
     } else {
