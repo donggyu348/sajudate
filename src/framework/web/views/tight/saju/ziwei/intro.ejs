@@ -10,34 +10,24 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     /* ══════════════════════════════════════════════════════════
-       자미두수 소개 랜딩 v3
-       · 골드/샤이니 제거 → 아이보리 + 주묵(인장 붉은색) + 달빛 은색
-       · 섹션 연결은 '떨어지는 별' 대신 별자리 성단(constellation) 모티프
-       · 카드/체크리스트 UI 제거 → 섹션별 GIF 자리(사용자가 직접 제작)
-       · 전통 서체(Nanum Myeongjo · Gugi) 유지 / 하단 고정 CTA
+       자미두수 소개 랜딩 v4
+       레퍼런스(용용사주)의 '설득 구조·연출'만 이식 — 카피/이미지/숫자는 오리지널.
+       디자인: 딥네이비 연속 배경 · 전통서체(명조·궁서) · 주묵 강조 ·
+               별자리 성단 디바이더 · 카드 없이 배경 위 텍스트 · 하단 고정 CTA
        ══════════════════════════════════════════════════════════ */
     :root {
-      --ink:    #E8DEC8;   /* 오래된 종이빛 본문 */
-      --ink-d:  #97917F;   /* 흐린 본문 */
-      --paper:  #FBF6EA;   /* 강조 밝은 글자 */
-      --star:   #CBD6F2;   /* 달빛 은색(별) */
-      --seal:   #B0402E;   /* 인장·주묵 붉은색 (강조·도장) */
-      --bar-h:  86px;
+      --ink:#E8DEC8; --ink-d:#97917F; --paper:#FBF6EA; --star:#CBD6F2; --seal:#B0402E; --bar-h:86px;
     }
-
     .ziwei-lp * { box-sizing: border-box; }
     body.ziwei-body { margin: 0; background: #05070E; }
 
     .ziwei-lp {
-      position: relative; margin: 0;
-      color: var(--ink);
-      font-family: 'Nanum Myeongjo', serif;
-      -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
-      overflow-x: hidden; line-height: 1.6;
-      /* 배경이 끊기지 않고 이어지는 하나의 밤하늘 */
+      position: relative; margin: 0; color: var(--ink);
+      font-family: 'Nanum Myeongjo', serif; -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent; overflow-x: hidden; line-height: 1.6;
       background: linear-gradient(180deg,
-        #0A1024 0%, #0C1330 16%, #070C1E 34%, #05070E 50%,
-        #0A1230 66%, #070B1C 82%, #05070E 100%);
+        #0A1024 0%, #0C1330 15%, #070C1E 30%, #05070E 44%,
+        #0A1230 58%, #070B1C 72%, #0A1024 86%, #05070E 100%);
       padding-bottom: calc(var(--bar-h) + env(safe-area-inset-bottom, 0px) + 20px);
     }
     .ziwei-lp::before {
@@ -55,154 +45,104 @@
     .ziwei-lp > * { position: relative; z-index: 1; }
 
     .ziwei-lp .wrap { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 26px; }
-    .ziwei-lp .section { padding: 40px 0; text-align: center; }
+    .ziwei-lp .section { padding: 38px 0; text-align: center; }
 
     .ziwei-lp .eyebrow {
-      display: inline-block; font-family: 'Gugi', 'Nanum Myeongjo', serif;
-      font-size: 15px; letter-spacing: 0.5em; text-indent: 0.5em;
-      color: rgba(232,222,200,0.72); margin-bottom: 22px;
+      display: inline-block; font-family: 'Gugi','Nanum Myeongjo',serif;
+      font-size: 15px; letter-spacing: 0.5em; text-indent: 0.5em; color: rgba(232,222,200,0.72); margin-bottom: 20px;
     }
     .ziwei-lp .title {
       font-family: 'Nanum Myeongjo', serif; font-weight: 800;
-      font-size: clamp(30px, 8vw, 52px); line-height: 1.28; letter-spacing: -0.01em;
+      font-size: clamp(30px, 8vw, 50px); line-height: 1.3; letter-spacing: -0.01em;
       color: var(--paper); margin: 0; word-break: keep-all; text-shadow: 0 2px 24px rgba(0,0,0,0.6);
     }
-    /* 키워드 강조: 골드 대신 주묵(붉은) 밑줄 — 전통 방점 느낌 */
     .ziwei-lp .title .em { position: relative; color: var(--paper); white-space: nowrap; }
     .ziwei-lp .title .em::after {
       content: ""; position: absolute; left: 0; right: 0; bottom: 0.02em; height: 3px;
       background: rgba(176,64,46,0.7); border-radius: 2px;
     }
-    .ziwei-lp .title .brush { font-family: 'Gugi', 'Nanum Myeongjo', serif; font-weight: 400; color: var(--paper); }
-    .ziwei-lp .subtitle {
-      margin-top: 20px; font-size: clamp(16px, 4.4vw, 20px); font-weight: 400; line-height: 1.7;
-      color: var(--ink); word-break: keep-all;
-    }
-    .ziwei-lp .body {
-      margin-top: 20px; font-size: clamp(15px, 4vw, 18px); font-weight: 400; line-height: 1.85;
-      color: var(--ink-d); word-break: keep-all;
-    }
+    .ziwei-lp .title .brush { font-family: 'Gugi','Nanum Myeongjo',serif; font-weight: 400; color: var(--paper); }
+    .ziwei-lp .subtitle { margin-top: 18px; font-size: clamp(16px,4.4vw,20px); line-height: 1.7; color: var(--ink); word-break: keep-all; }
+    .ziwei-lp .body { margin-top: 18px; font-size: clamp(15px,4vw,18px); line-height: 1.85; color: var(--ink-d); word-break: keep-all; }
 
-    /* 사회적 증거 — 카드 없이 배경 위 순수 텍스트 */
-    .ziwei-lp .proof {
-      display: inline-flex; align-items: center; gap: 7px; margin-top: 22px;
-      font-size: 13.5px; letter-spacing: 0.02em; color: var(--ink-d);
-    }
+    /* 사회적 증거 — 카드 없이 배경 위 텍스트 */
+    .ziwei-lp .proof { display: inline-flex; align-items: center; gap: 7px; margin-top: 20px; font-size: 13.5px; letter-spacing: 0.02em; color: var(--ink-d); }
     .ziwei-lp .proof b { color: var(--paper); font-weight: 800; }
     .ziwei-lp .proof .seal { color: var(--seal); font-family: 'Nanum Myeongjo', serif; font-weight: 700; }
 
-    /* ── 섹션 연결: 별자리 성단(떨어지는 별 대신) ── */
-    .ziwei-lp .constel { position: relative; height: 74px; margin: 0 auto; }
-    .ziwei-lp .constel::before { /* 중심의 조금 더 밝은 별 */
-      content: ""; position: absolute; left: 50%; top: 50%;
-      width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%;
-      background: #EAF0FF; box-shadow: 0 0 9px 2px rgba(203,214,242,0.5);
-      animation: zw-tw 3.6s ease-in-out infinite;
-    }
-    .ziwei-lp .constel::after { /* 주변 별들 — box-shadow로 흩뿌림 */
-      content: ""; position: absolute; left: 50%; top: 50%;
-      width: 2.5px; height: 2.5px; margin: -1px 0 0 -1px; border-radius: 50%;
-      background: var(--star);
-      box-shadow:
-        -48px 5px 0 -0.5px rgba(203,214,242,0.6),
-        -24px -9px 0 -0.5px rgba(203,214,242,0.42),
-         2px  9px 0 -0.5px rgba(203,214,242,0.8),
-         26px -6px 0 -0.5px rgba(203,214,242,0.5),
-         50px 7px 0 -0.5px rgba(203,214,242,0.55);
+    /* 강점 ✓ — 박스/테두리 없이 배경 위 텍스트 */
+    .ziwei-lp .benefits { margin: 24px auto 0; max-width: 470px; padding: 0; list-style: none; text-align: left; }
+    .ziwei-lp .benefits li { display: flex; gap: 12px; padding: 13px 2px; font-size: clamp(15px,4.1vw,17px); line-height: 1.6; color: var(--ink); word-break: keep-all; }
+    .ziwei-lp .benefits .bt { flex: 0 0 auto; color: var(--seal); font-weight: 800; }
+
+    /* 정량 비교 — 두 값을 배경 위 텍스트로(카드 아님) */
+    .ziwei-lp .versus { margin: 30px auto 0; max-width: 520px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+    .ziwei-lp .versus .side { text-align: center; }
+    .ziwei-lp .versus .side .k { font-family: 'Gugi', serif; font-size: 13px; letter-spacing: 0.14em; color: var(--ink-d); }
+    .ziwei-lp .versus .side .v { margin-top: 8px; font-size: clamp(19px,5.4vw,26px); font-weight: 800; color: var(--paper); line-height: 1.3; word-break: keep-all; }
+    .ziwei-lp .versus .side.zi .v { color: #F3E7C9; }
+    .ziwei-lp .versus .mid { font-size: 15px; color: var(--seal); font-family: 'Gugi', serif; }
+
+    /* 별자리 성단 디바이더 */
+    .ziwei-lp .constel { position: relative; height: 72px; margin: 0 auto; }
+    .ziwei-lp .constel::before { content:""; position:absolute; left:50%; top:50%; width:4px; height:4px; margin:-2px 0 0 -2px; border-radius:50%; background:#EAF0FF; box-shadow:0 0 9px 2px rgba(203,214,242,0.5); animation: zw-tw 3.6s ease-in-out infinite; }
+    .ziwei-lp .constel::after {
+      content:""; position:absolute; left:50%; top:50%; width:2.5px; height:2.5px; margin:-1px 0 0 -1px; border-radius:50%; background:var(--star);
+      box-shadow: -48px 5px 0 -0.5px rgba(203,214,242,0.6), -24px -9px 0 -0.5px rgba(203,214,242,0.42), 2px 9px 0 -0.5px rgba(203,214,242,0.8), 26px -6px 0 -0.5px rgba(203,214,242,0.5), 50px 7px 0 -0.5px rgba(203,214,242,0.55);
       animation: zw-tw 3.6s ease-in-out infinite reverse;
     }
-    @keyframes zw-tw { 0%,100% { opacity: 0.45; } 50% { opacity: 1; } }
-    @media (prefers-reduced-motion: reduce) { .ziwei-lp .constel::before, .ziwei-lp .constel::after { animation: none; opacity: 0.8; } }
+    @keyframes zw-tw { 0%,100%{opacity:.45} 50%{opacity:1} }
+    @media (prefers-reduced-motion: reduce){ .ziwei-lp .constel::before,.ziwei-lp .constel::after{animation:none;opacity:.8} }
 
-    /* ── GIF 미디어: 테두리 없이 배경으로 스며듦(위/아래 페이드 마스크) ── */
+    /* GIF 미디어 — 테두리 없이 배경으로 스며듦 */
     .ziwei-lp .media {
-      position: relative; width: 100%; margin: 34px auto 0; aspect-ratio: 16 / 11; overflow: hidden;
-      -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
-              mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
+      position: relative; width: 100%; margin: 30px auto 0; aspect-ratio: 16/11; overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg,transparent 0%,#000 16%,#000 84%,transparent 100%);
+              mask-image: linear-gradient(180deg,transparent 0%,#000 16%,#000 84%,transparent 100%);
     }
-    .ziwei-lp .media--tall { aspect-ratio: 3 / 4; }
-    .ziwei-lp .media--wide { aspect-ratio: 4 / 3; }
-    .ziwei-lp .media--square { aspect-ratio: 1 / 1; }
-    .ziwei-lp .media > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; z-index: 1; }
+    .ziwei-lp .media--tall{aspect-ratio:3/4}.ziwei-lp .media--wide{aspect-ratio:4/3}.ziwei-lp .media--square{aspect-ratio:1/1}
+    .ziwei-lp .media > img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; z-index:1; }
     .ziwei-lp .media::before {
-      content: attr(data-label); position: absolute; inset: 0; z-index: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Gugi', serif; font-size: 13px; letter-spacing: 0.3em; text-indent: 0.3em;
-      color: rgba(203,214,242,0.4);
-      background:
-        radial-gradient(70% 60% at 50% 42%, rgba(58,74,140,0.32), transparent 70%),
-        radial-gradient(40% 40% at 62% 60%, rgba(176,64,46,0.08), transparent 70%);
+      content: attr(data-label); position:absolute; inset:0; z-index:0; display:flex; align-items:center; justify-content:center;
+      font-family:'Gugi',serif; font-size:13px; letter-spacing:0.3em; text-indent:0.3em; color:rgba(203,214,242,0.4);
+      background: radial-gradient(70% 60% at 50% 42%, rgba(58,74,140,0.32), transparent 70%), radial-gradient(40% 40% at 62% 60%, rgba(176,64,46,0.08), transparent 70%);
     }
 
-    /* ── 페이드 업(텍스트만) ── */
-    .ziwei-lp .fade-up { opacity: 0; transform: translateY(26px); transition: opacity 0.75s ease, transform 0.75s ease; }
-    .ziwei-lp .fade-up.in { opacity: 1; transform: none; }
-    @media (prefers-reduced-motion: reduce) { .ziwei-lp .fade-up { opacity: 1; transform: none; transition: none; } }
+    .ziwei-lp .fade-up { opacity:0; transform:translateY(26px); transition:opacity .75s ease, transform .75s ease; }
+    .ziwei-lp .fade-up.in { opacity:1; transform:none; }
+    @media (prefers-reduced-motion: reduce){ .ziwei-lp .fade-up{opacity:1;transform:none;transition:none} }
 
-    /* ══════ HERO ══════ */
-    .ziwei-lp .hero {
-      position: relative; min-height: 100svh;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      text-align: center; padding: 92px 26px 40px; overflow: hidden;
-    }
-    .ziwei-lp .hero__media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
-    .ziwei-lp .hero::after {
-      content: ""; position: absolute; inset: 0; z-index: 1;
-      background: linear-gradient(180deg, rgba(5,7,14,0.55) 0%, rgba(5,7,14,0.15) 40%, rgba(5,7,14,0.75) 82%, #05070E 100%);
-    }
-    .ziwei-lp .hero__inner { position: relative; z-index: 2; max-width: 720px; }
-    .ziwei-lp .hero .eyebrow { font-size: 17px; }
-    .ziwei-lp .hero .title { font-size: clamp(32px, 8.6vw, 56px); line-height: 1.3; }
-    .ziwei-lp .hero__cue {
-      position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 2;
-      width: 20px; height: 20px; border-right: 1.5px solid rgba(232,222,200,0.7); border-bottom: 1.5px solid rgba(232,222,200,0.7);
-      transform: translateX(-50%) rotate(45deg); animation: zw-cue 2.2s ease-in-out infinite;
-    }
-    @keyframes zw-cue { 0%,100% { opacity: 0.3; } 50% { opacity: 0.85; } }
+    /* HERO */
+    .ziwei-lp .hero { position:relative; min-height:100svh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:92px 26px 40px; overflow:hidden; }
+    .ziwei-lp .hero__media { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+    .ziwei-lp .hero::after { content:""; position:absolute; inset:0; z-index:1; background: linear-gradient(180deg, rgba(5,7,14,0.55) 0%, rgba(5,7,14,0.15) 40%, rgba(5,7,14,0.75) 82%, #05070E 100%); }
+    .ziwei-lp .hero__inner { position:relative; z-index:2; max-width:720px; }
+    .ziwei-lp .hero .eyebrow { font-size:17px; }
+    .ziwei-lp .hero .title { font-size:clamp(32px,8.6vw,54px); }
+    .ziwei-lp .hero__cue { position:absolute; left:50%; bottom:26px; width:20px; height:20px; border-right:1.5px solid rgba(232,222,200,0.7); border-bottom:1.5px solid rgba(232,222,200,0.7); transform:translateX(-50%) rotate(45deg); animation:zw-cue 2.2s ease-in-out infinite; }
+    @keyframes zw-cue { 0%,100%{opacity:.3} 50%{opacity:.85} }
 
-    .ziwei-lp .topbar { position: absolute; top: 0; left: 0; right: 0; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 16px 20px; }
-    .ziwei-lp .topbar__back { font-size: 22px; line-height: 1; color: #efe6d6; text-decoration: none; text-shadow: 0 1px 8px rgba(0,0,0,0.7); }
-    .ziwei-lp .topbar__brand { font-family: 'Gugi', serif; font-size: 16px; letter-spacing: 0.4em; text-indent: 0.4em; color: rgba(232,222,200,0.78); text-shadow: 0 1px 8px rgba(0,0,0,0.7); }
+    .ziwei-lp .topbar { position:absolute; top:0; left:0; right:0; z-index:3; display:flex; align-items:center; gap:12px; padding:16px 20px; }
+    .ziwei-lp .topbar__back { font-size:22px; line-height:1; color:#efe6d6; text-decoration:none; text-shadow:0 1px 8px rgba(0,0,0,0.7); }
+    .ziwei-lp .topbar__brand { font-family:'Gugi',serif; font-size:16px; letter-spacing:0.4em; text-indent:0.4em; color:rgba(232,222,200,0.78); text-shadow:0 1px 8px rgba(0,0,0,0.7); }
 
-    /* ── 2단 레이아웃(필요 시) ── */
-    .ziwei-lp .split { margin-top: 36px; display: grid; grid-template-columns: 1fr; gap: 26px; align-items: center; }
-    .ziwei-lp .split .media { margin-top: 0; }
+    .ziwei-lp .closing { padding:54px 0 34px; text-align:center; }
+    .ziwei-lp .closing .title { font-size:clamp(30px,8.4vw,52px); }
 
-    /* ══════ 마지막 클로징(폼 없음) ══════ */
-    .ziwei-lp .closing { padding: 56px 0 36px; text-align: center; }
-    .ziwei-lp .closing .title { font-size: clamp(30px, 8.4vw, 54px); }
-
-    /* ══════ 하단 고정 CTA 바 (골드 대신 주칠 붉은색) ══════ */
-    .zw-bar {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-      background: linear-gradient(180deg, rgba(6,9,18,0.4) 0%, rgba(6,9,18,0.92) 42%, #060912 100%);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      border-top: 1px solid rgba(232,222,200,0.14);
-    }
-    .zw-bar__proof { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-d); font-family: 'Nanum Myeongjo', serif; }
-    .zw-bar__proof .heart { color: var(--seal); }
-    .zw-bar__proof b { color: var(--ink); font-weight: 800; }
-    .zw-bar__btn {
-      display: block; width: 100%; max-width: 480px; padding: 16px 0; border: 1px solid rgba(240,225,200,0.16);
-      border-radius: 12px; background: #9E3222; color: #F5EBD8; text-decoration: none; text-align: center;
-      font-family: 'Nanum Myeongjo', serif; font-size: 18px; font-weight: 800; letter-spacing: 0.06em;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.45); transition: transform 0.12s, background 0.12s;
-    }
-    .zw-bar__btn:active { transform: scale(0.99); background: #892A1C; }
-
-    @media (min-width: 768px) {
-      .ziwei-lp .split { grid-template-columns: 1fr 1fr; gap: 40px; }
-      .ziwei-lp .split--rev .split__media { order: 2; }
-    }
+    /* 하단 고정 CTA (주칠 붉은색) */
+    .zw-bar { position:fixed; left:0; right:0; bottom:0; z-index:90; display:flex; flex-direction:column; align-items:center; gap:8px; padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px)); background: linear-gradient(180deg, rgba(6,9,18,0.4) 0%, rgba(6,9,18,0.92) 42%, #060912 100%); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top:1px solid rgba(232,222,200,0.14); }
+    .zw-bar__proof { display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-d); font-family:'Nanum Myeongjo',serif; }
+    .zw-bar__proof .heart { color:var(--seal); }
+    .zw-bar__proof b { color:var(--ink); font-weight:800; }
+    .zw-bar__btn { display:block; width:100%; max-width:480px; padding:16px 0; border:1px solid rgba(240,225,200,0.16); border-radius:12px; background:#9E3222; color:#F5EBD8; text-decoration:none; text-align:center; font-family:'Nanum Myeongjo',serif; font-size:18px; font-weight:800; letter-spacing:0.06em; box-shadow:0 8px 22px rgba(0,0,0,0.45); transition:transform .12s, background .12s; }
+    .zw-bar__btn:active { transform:scale(0.99); background:#892A1C; }
   </style>
 </head>
 
 <body class="ziwei-body">
 <div class="ziwei-lp">
 
-  <!-- ══════ HERO ══════ -->
+  <!-- ══════ HERO — 호기심 훅 ══════ -->
   <header class="hero">
     <div class="topbar">
       <a href="/saju" class="topbar__back" aria-label="뒤로">&#8592;</a>
@@ -213,94 +153,110 @@
     </div>
     <div class="hero__inner">
       <span class="eyebrow fade-up">紫微斗數 · 자미두수</span>
-      <h1 class="title fade-up">당신이 태어난 순간<br>하늘의 별은<br><span class="em">이미 자리를 정했습니다</span></h1>
-      <p class="subtitle fade-up">그 별의 자리가 곧,<br>당신 삶의 지도입니다.</p>
+      <h1 class="title fade-up">머지않아,<br>당신 앞에<br><span class="em">큰 인연이 들어옵니다</span></h1>
+      <p class="subtitle fade-up">그 시기와 모습까지—<br>당신의 명반에 이미 적혀 있습니다.</p>
     </div>
     <span class="hero__cue" aria-hidden="true"></span>
   </header>
 
-  <!-- ══════ SECTION 2 · 왜 ══════ -->
+  <!-- ══════ 1. 왜 (호기심) ══════ -->
   <div class="constel" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <h2 class="title fade-up">도대체 왜<br><span class="brush">자미두수</span>에<br><span class="em">열광할까요?</span></h2>
-      <div class="media media--wide" data-label="장면 · GIF"><img src="/gif/section2.gif" alt="" onerror="this.remove()"></div>
-      <p class="body fade-up">사주가 삶의 큰 결을 본다면,<br>자미두수는 연애·재물·직업까지<br>삶의 영역을 하나하나 짚어 보여줍니다.</p>
+      <h2 class="title fade-up">도대체 왜,<br>사람들은<br><span class="brush">자미두수</span>에<br><span class="em">빠질까요?</span></h2>
+      <div class="media media--wide" data-label="장면 · GIF"><img src="/gif/why.gif" alt="" onerror="this.remove()"></div>
+    </div>
+  </section>
+
+  <!-- ══════ 2. 사회적 증거 (숫자) ══════ -->
+  <div class="constel" aria-hidden="true"></div>
+  <section class="section">
+    <div class="wrap">
+      <h2 class="title fade-up">이미 수많은 사람이<br>자기 명반을<br><span class="em">확인했습니다</span></h2>
+      <p class="body fade-up">막연한 운세가 아니라,<br>내 삶을 열두 궁으로 나눠 읽는<br>구체적인 지도이기 때문입니다.</p>
       <span class="proof fade-up"><span class="seal">印</span> 지금까지 <b>18,482</b>명이 명반을 확인했습니다</span>
     </div>
   </section>
 
-  <!-- ══════ SECTION 3 · 무엇을 (여섯 영역 → GIF) ══════ -->
+  <!-- ══════ 3. 전통·권위 ══════ -->
   <div class="constel" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <h2 class="title fade-up">자미두수는<br>당신의 무엇을<br><span class="em">비추는가</span></h2>
-      <p class="body fade-up">성향 · 연애 · 직업 · 재물 · 인간관계 · 운의 흐름<br>삶의 여섯 영역을 하나의 명반 위에서 읽습니다.</p>
-      <div class="media media--square" data-label="여섯 영역 · GIF"><img src="/gif/section3.gif" alt="" onerror="this.remove()"></div>
+      <h2 class="title fade-up">송나라 궁중에서<br>비밀리에 보던<br><span class="em">별의 지도</span></h2>
+      <div class="media media--wide" data-label="고서 · GIF"><img src="/gif/tradition.gif" alt="" onerror="this.remove()"></div>
+      <p class="body fade-up">천 년 가까이 황실에서만<br>은밀히 전해지던 자미두수를,<br>지금 당신의 손끝에서 펼쳐봅니다.</p>
     </div>
   </section>
 
-  <!-- ══════ SECTION 4 · 같은 생일 ══════ -->
+  <!-- ══════ 4. 도발 (아직도 사주만?) ══════ -->
   <div class="constel" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <h2 class="title fade-up">같은 날 태어나도<br>삶이 다른<br><span class="em">이유</span></h2>
-      <div class="media media--wide" data-label="장면 · GIF"><img src="/gif/section4.gif" alt="" onerror="this.remove()"></div>
-      <p class="body fade-up">태어난 '시각'과 별의 위치가 다르면<br>명반은 완전히 달라집니다.<br>같은 생일도, 전혀 다른 지도가 됩니다.</p>
+      <h2 class="title fade-up">아직도<br>여덟 글자로만<br><span class="em">보고 계신가요?</span></h2>
+      <p class="body fade-up">한 번 명반을 펼쳐 본 사람은<br>다시 그 전으로<br>쉽게 돌아가지 못합니다.</p>
+      <div class="media media--wide" data-label="장면 · GIF"><img src="/gif/provoke.gif" alt="" onerror="this.remove()"></div>
     </div>
   </section>
 
-  <!-- ══════ SECTION 5 · 결과 (결과지 → GIF) ══════ -->
+  <!-- ══════ 5. 정량·구조 비교 ══════ -->
+  <div class="constel" aria-hidden="true"></div>
+  <section class="section">
+    <div class="wrap">
+      <h2 class="title fade-up">사주와 자미두수는<br><span class="em">얼마나 다를까</span></h2>
+      <div class="versus fade-up">
+        <div class="side"><div class="k">四柱 · 사주</div><div class="v">여덟 글자<br>큰 흐름</div></div>
+        <div class="mid">▶</div>
+        <div class="side zi"><div class="k">紫微斗數 · 자미두수</div><div class="v">열두 궁 · 열네 주성<br>삶의 지도</div></div>
+      </div>
+      <p class="body fade-up">사주가 큰 결을 짚는다면,<br>자미두수는 별의 조합으로<br>삶을 훨씬 촘촘하게 그려냅니다.</p>
+      <div class="media media--wide" data-label="사주 vs 자미두수 · GIF"><img src="/gif/compare.gif" alt="" onerror="this.remove()"></div>
+    </div>
+  </section>
+
+  <!-- ══════ 6. 강점 ✓ (배경 위 텍스트) ══════ -->
+  <div class="constel" aria-hidden="true"></div>
+  <section class="section">
+    <div class="wrap">
+      <h2 class="title fade-up">자미두수가<br>더 정교한<br><span class="em">이유</span></h2>
+      <ul class="benefits fade-up">
+        <li><span class="bt">✓</span> 삶을 열두 궁으로 나눠, 재물·애정·직업까지 영역별로 읽습니다.</li>
+        <li><span class="bt">✓</span> 자미성을 비롯한 별의 조합으로 훨씬 촘촘하게 해석합니다.</li>
+        <li><span class="bt">✓</span> 대운(10년)부터 유년(1년)까지, 시간의 흐름을 겹쳐 봅니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ══════ 7. 결과 ══════ -->
   <div class="constel" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
       <h2 class="title fade-up">당신의 명반은<br>이렇게<br><span class="em">펼쳐집니다</span></h2>
       <p class="body fade-up">성향부터 연애·직업·재물·운의 흐름,<br>그리고 변화의 시기까지 한 장에 담깁니다.</p>
-      <div class="media media--tall" data-label="결과지 · GIF"><img src="/gif/section5.gif" alt="" onerror="this.remove()"></div>
+      <div class="media media--tall" data-label="결과지 · GIF"><img src="/gif/result.gif" alt="" onerror="this.remove()"></div>
     </div>
   </section>
 
-  <!-- ══════ SECTION 6 · 후기 (후기 → GIF) ══════ -->
+  <!-- ══════ 8. 후기 ══════ -->
   <div class="constel" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <h2 class="title fade-up">먼저 명반을 펼친<br>사람들의<br><span class="em">이야기</span></h2>
+      <h2 class="title fade-up">먼저 펼쳐본<br>사람들의<br><span class="em">이야기</span></h2>
       <span class="proof fade-up"><span class="seal">評</span> 평점 <b>4.9</b> · 누적 후기 <b>12,900</b>+</span>
-      <div class="media media--tall" data-label="후기 · GIF"><img src="/gif/section6.gif" alt="" onerror="this.remove()"></div>
+      <div class="media media--tall" data-label="후기 · GIF"><img src="/gif/review.gif" alt="" onerror="this.remove()"></div>
     </div>
   </section>
 
-  <!-- ══════ SECTION 7 · 전통 ══════ -->
-  <div class="constel" aria-hidden="true"></div>
-  <section class="section">
-    <div class="wrap">
-      <h2 class="title fade-up">송나라 궁중에서<br>비밀리에 보던<br><span class="em">별자리 운세</span></h2>
-      <div class="media media--wide" data-label="고서 · GIF"><img src="/gif/section7.gif" alt="" onerror="this.remove()"></div>
-      <p class="body fade-up">천 년 가까이 황실에서만<br>은밀히 전해지던 자미두수를,<br>지금 당신의 손끝에서 펼쳐봅니다.</p>
-    </div>
-  </section>
-
-  <!-- ══════ SECTION 8 · 비교 (사주 vs 자미두수 → GIF) ══════ -->
-  <div class="constel" aria-hidden="true"></div>
-  <section class="section">
-    <div class="wrap">
-      <h2 class="title fade-up">사주와 자미두수,<br><span class="em">무엇이 다를까</span></h2>
-      <p class="body fade-up">사주는 여덟 글자로 큰 결을 보고,<br>자미두수는 열두 궁으로 삶의 영역을<br>지도처럼 구체적으로 펼쳐 봅니다.</p>
-      <div class="media media--wide" data-label="사주 vs 자미두수 · GIF"><img src="/gif/section8.gif" alt="" onerror="this.remove()"></div>
-    </div>
-  </section>
-
-  <!-- ══════ SECTION 9 · 과정 (분석 흐름 → GIF) ══════ -->
+  <!-- ══════ 9. 과정 ══════ -->
   <div class="constel" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
       <h2 class="title fade-up">당신의 정보가<br>명반이<br><span class="em">되기까지</span></h2>
       <p class="body fade-up">생년월일과 태어난 시각을 넣으면,<br>명반이 만들어지고 해석되어<br>당신만의 결과로 도착합니다.</p>
-      <div class="media media--wide" data-label="분석 과정 · GIF"><img src="/gif/section9.gif" alt="" onerror="this.remove()"></div>
+      <div class="media media--wide" data-label="분석 과정 · GIF"><img src="/gif/process.gif" alt="" onerror="this.remove()"></div>
     </div>
   </section>
 
-  <!-- ══════ 클로징 (폼 없음 — 행동은 하단 고정 CTA로) ══════ -->
+  <!-- ══════ 클로징 ══════ -->
   <div class="constel" aria-hidden="true"></div>
   <section class="closing">
     <div class="wrap">
@@ -312,7 +268,7 @@
 
 </div><!-- /.ziwei-lp -->
 
-<!-- ══════ 하단 고정 CTA 바 ══════ -->
+<!-- 하단 고정 CTA -->
 <div class="zw-bar">
   <div class="zw-bar__proof"><span class="heart">♥</span> <b id="zwCount">18,482</b>명이 확인했어요</div>
   <a href="/saju/ziwei/input" class="zw-bar__btn" id="zwStartBtn">자미두수 시작하기</a>
@@ -323,24 +279,13 @@
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
       }, { threshold: 0.14, rootMargin: '0px 0px -6% 0px' });
-      document.querySelectorAll('.ziwei-lp .fade-up').forEach(function (el, i) {
-        el.style.transitionDelay = (Math.min(i % 4, 3) * 0.06) + 's';
-        io.observe(el);
-      });
+      document.querySelectorAll('.ziwei-lp .fade-up').forEach(function (el, i) { el.style.transitionDelay = (Math.min(i % 4, 3) * 0.06) + 's'; io.observe(el); });
 
       var cntEl = document.getElementById('zwCount');
-      if (cntEl) {
-        var target = 18482, cur = 18300, t = setInterval(function () {
-          cur += 7; if (cur >= target) { cur = target; clearInterval(t); }
-          cntEl.textContent = cur.toLocaleString();
-        }, 30);
-      }
+      if (cntEl) { var target = 18482, cur = 18300, t = setInterval(function () { cur += 7; if (cur >= target) { cur = target; clearInterval(t); } cntEl.textContent = cur.toLocaleString(); }, 30); }
 
       var startBtn = document.getElementById('zwStartBtn');
-      if (startBtn) {
-        var ticket = new URLSearchParams(window.location.search).get('ticket');
-        if (ticket) startBtn.href = '/saju/ziwei/input?ticket=' + encodeURIComponent(ticket);
-      }
+      if (startBtn) { var ticket = new URLSearchParams(window.location.search).get('ticket'); if (ticket) startBtn.href = '/saju/ziwei/input?ticket=' + encodeURIComponent(ticket); }
     })();
   </script>
 </body>
