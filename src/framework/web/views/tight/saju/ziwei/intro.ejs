@@ -83,19 +83,13 @@
       color: var(--ink-d); word-break: keep-all;
     }
 
-    /* 사회적 증거 배지(인장 느낌) */
+    /* 사회적 증거 — 카드 없이 배경 위 순수 텍스트 */
     .ziwei-lp .proof {
-      display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
-      padding: 9px 16px; border-radius: 999px;
-      background: rgba(176,64,46,0.08); border: 1px solid rgba(176,64,46,0.4);
-      font-size: 13px; color: var(--ink);
+      display: inline-flex; align-items: center; gap: 7px; margin-top: 22px;
+      font-size: 13.5px; letter-spacing: 0.02em; color: var(--ink-d);
     }
     .ziwei-lp .proof b { color: var(--paper); font-weight: 800; }
-    .ziwei-lp .proof .seal {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 18px; height: 18px; border-radius: 4px;
-      background: var(--seal); color: #fff; font-size: 10px; font-weight: 700; font-family: 'Nanum Myeongjo', serif;
-    }
+    .ziwei-lp .proof .seal { color: var(--seal); font-family: 'Nanum Myeongjo', serif; font-weight: 700; }
 
     /* ── 섹션 연결: 별자리 성단(떨어지는 별 대신) ── */
     .ziwei-lp .constel { position: relative; height: 74px; margin: 0 auto; }
