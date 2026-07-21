@@ -313,12 +313,17 @@ router.post("/reaper/result", async (req, res) => {
   }
 });
 
-/* 자미두수(紫微斗數) 인트로 — 롱스크롤 소개 랜딩 + 정보 입력 */
+/* 자미두수(紫微斗數) 인트로 — 롱스크롤 소개 랜딩 (하단 고정 CTA → 입력 페이지) */
 router.get("/ziwei/intro", (req, res) => {
   res.render("tight/saju/ziwei/intro");
 });
 
-// TODO: input/loading/result 단계는 reaper 패턴을 참고해 별도로 구현 필요
+/* 자미두수 정보 입력 페이지 (랜딩의 '자미두수 시작하기' 진입점) */
+router.get("/ziwei/input", (req, res) => {
+  res.render("tight/saju/ziwei/input");
+});
+
+// TODO: loading/result 단계는 reaper 패턴을 참고해 별도로 구현 필요
 // (ziweiCalService.getZiweiChart, GoodsType.ZIWEI, GPT 리포트 프롬프트 등 백엔드 연동 포함)
 router.post("/ziwei/input", async (req, res) => {
   try {

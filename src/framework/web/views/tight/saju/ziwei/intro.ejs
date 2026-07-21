@@ -4,400 +4,356 @@
 
 <head>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" as="style" crossorigin
-        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <!-- 전통 서체(명조·궁서 느낌) + UI용 Pretendard -->
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gugi&family=Nanum+Brush+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     /* ══════════════════════════════════════════════════════════
-       자미두수 소개 랜딩 — Premium · Dark · Gold · Oriental · Modern
-       모바일 퍼스트(1080px 기준) / 롱스크롤 전환 구조
-       모든 스타일은 .ziwei-lp 하위로 스코프해 전역 CSS와 충돌 방지
+       자미두수 소개 랜딩 v2
+       · 배경이 하나로 이어지는 연속형(딥네이비 우주 + 빛의 실)
+       · 전통 서체(Nanum Myeongjo / Gugi)로 "오래 이어져 온" 감성
+       · 호기심 훅 + 사회적 증거 중심 카피
+       · 하단 고정 CTA 바(입력 폼은 별도 페이지로 분리)
        ══════════════════════════════════════════════════════════ */
     :root {
-      --zw-bg:      #090B12;
-      --zw-card:    #121721;
-      --zw-gold:    #D8B16D;
-      --zw-text:    #FFFFFF;
-      --zw-sub:     #C2C8D1;
-      --zw-body:    #99A2AF;
-      --zw-border:  rgba(255,255,255,.08);
+      --zw-ink:    #ECE3D0;   /* 오래된 종이빛 본문 */
+      --zw-ink-d:  #A7A28F;   /* 흐린 본문 */
+      --zw-gold:   #C9A24B;   /* 은은한 금 */
+      --zw-gold-l: #E6C77E;
+      --zw-seal:   #B23A2E;   /* 인장(낙관) 붉은색 — 아주 소량 */
+      --zw-glow:   #FFD79A;   /* 실의 빛 */
+      --zw-bar-h:  86px;
     }
 
     .ziwei-lp * { box-sizing: border-box; }
+
+    body.ziwei-body { margin: 0; background: #05070E; }
+
     .ziwei-lp {
+      position: relative;
       margin: 0;
-      background: var(--zw-bg);
-      color: var(--zw-text);
-      font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
-                   'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      color: var(--zw-ink);
+      font-family: 'Nanum Myeongjo', serif;
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
       overflow-x: hidden;
       line-height: 1.6;
+      /* 배경이 끊기지 않도록: 페이지 전체를 하나의 긴 그라데이션이 관통 */
+      background:
+        linear-gradient(180deg,
+          #0A1024 0%,
+          #0C1330 16%,
+          #070C1E 34%,
+          #05070E 50%,
+          #0A1230 66%,
+          #070B1C 82%,
+          #05070E 100%);
+      padding-bottom: calc(var(--zw-bar-h) + env(safe-area-inset-bottom, 0px) + 20px);
     }
-    /* 페이지 전역 배경까지 어둡게 (헤더/보디의 밝은 기본값 덮기) */
-    body.ziwei-body { background: var(--zw-bg); margin: 0; }
+    /* 고정 별빛 레이어 — 스크롤해도 계속 깔려서 '한 세계' 느낌 */
+    .ziwei-lp::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(1.4px 1.4px at 12% 18%, rgba(255,255,255,0.55), transparent 60%),
+        radial-gradient(1.2px 1.2px at 78% 12%, rgba(255,255,255,0.45), transparent 60%),
+        radial-gradient(1px 1px at 34% 42%, rgba(255,255,255,0.4), transparent 60%),
+        radial-gradient(1.6px 1.6px at 64% 66%, rgba(255,240,200,0.5), transparent 60%),
+        radial-gradient(1px 1px at 22% 78%, rgba(255,255,255,0.35), transparent 60%),
+        radial-gradient(1.3px 1.3px at 88% 84%, rgba(255,255,255,0.4), transparent 60%),
+        radial-gradient(1.1px 1.1px at 48% 92%, rgba(255,255,255,0.35), transparent 60%);
+      opacity: 0.9;
+    }
+    .ziwei-lp > * { position: relative; z-index: 1; }
 
     .ziwei-lp .wrap {
       width: 100%;
       max-width: 720px;
       margin: 0 auto;
-      padding-left: 24px;
-      padding-right: 24px;
+      padding: 0 26px;
     }
 
-    /* ── 섹션 공통 ── */
+    /* ── 섹션: 카드/보더 없이 배경 위로 흐름 ── */
     .ziwei-lp .section {
-      padding-top: 140px;
-      padding-bottom: 140px;
+      padding: 46px 0 46px;
       text-align: center;
     }
-    .ziwei-lp .section--tight { padding-top: 110px; padding-bottom: 110px; }
 
     .ziwei-lp .eyebrow {
       display: inline-block;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.34em;
-      text-indent: 0.34em;
+      font-family: 'Gugi', 'Nanum Myeongjo', serif;
+      font-size: 15px;
+      letter-spacing: 0.5em;
+      text-indent: 0.5em;
       color: var(--zw-gold);
-      margin-bottom: 26px;
-      opacity: 0.9;
+      margin-bottom: 22px;
+      opacity: 0.92;
     }
     .ziwei-lp .title {
+      font-family: 'Nanum Myeongjo', serif;
       font-weight: 800;
-      /* 스펙 58~64px — 실제 모바일 폭에서 넘치지 않도록 clamp로 스케일 */
-      font-size: clamp(32px, 8.4vw, 60px);
-      line-height: 1.14;
-      letter-spacing: -0.03em;
-      color: var(--zw-text);
+      font-size: clamp(30px, 8vw, 52px);
+      line-height: 1.28;
+      letter-spacing: -0.01em;
+      color: #FBF6EA;
       margin: 0;
       word-break: keep-all;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.6);
     }
-    .ziwei-lp .title .gold { color: var(--zw-gold); }
+    /* 키워드 강조: 형광펜 대신 '먹/금 획' 스며든 하이라이트 + 전통 서체 유지 */
+    .ziwei-lp .title .em {
+      position: relative;
+      color: var(--zw-gold-l);
+      white-space: nowrap;
+    }
+    .ziwei-lp .title .em::after {
+      content: "";
+      position: absolute;
+      left: -2px; right: -2px; bottom: 0.06em;
+      height: 0.34em;
+      z-index: -1;
+      background: linear-gradient(180deg, transparent 0%, rgba(201,162,75,0.28) 0%, rgba(201,162,75,0.30) 100%);
+      border-radius: 2px;
+    }
+    .ziwei-lp .title .brush {
+      font-family: 'Gugi', 'Nanum Myeongjo', serif;
+      color: var(--zw-gold-l);
+      font-weight: 400;
+    }
     .ziwei-lp .subtitle {
-      margin-top: 24px;
-      font-size: clamp(17px, 4.6vw, 22px);
-      font-weight: 500;
-      line-height: 1.6;
-      color: var(--zw-sub);
+      margin-top: 20px;
+      font-size: clamp(16px, 4.4vw, 20px);
+      font-weight: 400;
+      line-height: 1.7;
+      color: var(--zw-ink);
       word-break: keep-all;
     }
     .ziwei-lp .body {
-      margin-top: 26px;
-      font-size: clamp(15px, 4.2vw, 18px);
+      margin-top: 20px;
+      font-size: clamp(15px, 4vw, 18px);
       font-weight: 400;
-      line-height: 1.8;
-      color: var(--zw-body);
+      line-height: 1.85;
+      color: var(--zw-ink-d);
       word-break: keep-all;
     }
 
-    /* ── GIF 미디어 슬롯 (이미지 없으면 골드 테두리 플레이스홀더 노출) ── */
+    /* 사회적 증거 배지(인장 느낌) */
+    .ziwei-lp .proof {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 26px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      background: rgba(178,58,46,0.10);
+      border: 1px solid rgba(201,162,75,0.35);
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      color: var(--zw-gold-l);
+    }
+    .ziwei-lp .proof b { color: #F2E4C0; font-weight: 800; }
+    .ziwei-lp .proof .seal {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 4px;
+      background: var(--zw-seal); color: #fff; font-size: 10px; font-weight: 700;
+      font-family: 'Nanum Myeongjo', serif;
+    }
+
+    /* ── 빛의 실: 섹션과 섹션을 잇는 연결선 ── */
+    .ziwei-lp .thread {
+      position: relative;
+      width: 100%;
+      height: 92px;
+      margin: 0 auto;
+    }
+    .ziwei-lp .thread::before {
+      content: "";
+      position: absolute; left: 50%; top: 0; bottom: 0;
+      width: 1.5px; transform: translateX(-50%);
+      background: linear-gradient(180deg,
+        rgba(255,215,154,0) 0%, rgba(201,162,75,0.55) 26%,
+        rgba(201,162,75,0.55) 74%, rgba(255,215,154,0) 100%);
+    }
+    .ziwei-lp .thread::after {
+      content: "";
+      position: absolute; left: 50%; top: 0;
+      width: 6px; height: 6px; border-radius: 50%;
+      transform: translateX(-50%);
+      background: var(--zw-glow);
+      box-shadow: 0 0 12px 3px rgba(255,210,120,0.75);
+      animation: thread-drop 2.8s ease-in-out infinite;
+    }
+    @keyframes thread-drop {
+      0%   { top: 4%;  opacity: 0; }
+      18%  { opacity: 1; }
+      82%  { opacity: 1; }
+      100% { top: 90%; opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ziwei-lp .thread::after { animation: none; opacity: 0.8; top: 46%; }
+    }
+
+    /* ── GIF 미디어: 테두리 없이 배경으로 스며듦(위/아래 페이드 마스크) ── */
     .ziwei-lp .media {
       position: relative;
       width: 100%;
-      margin: 40px auto 0;
-      border-radius: 20px;
-      overflow: hidden;
-      background: var(--zw-card);
-      border: 1px solid var(--zw-border);
+      margin: 34px auto 0;
       aspect-ratio: 16 / 11;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
+              mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
     }
     .ziwei-lp .media--tall { aspect-ratio: 3 / 4; }
     .ziwei-lp .media--wide { aspect-ratio: 4 / 3; }
     .ziwei-lp .media > img {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
-      object-fit: cover;
-      display: block;
+      object-fit: cover; display: block;
     }
-    /* 플레이스홀더: img가 실패(remove)하면 이 배경이 드러남 */
-    .ziwei-lp .media::before {
+    .ziwei-lp .media::before { /* 이미지 없을 때 은은한 성운 플레이스홀더 */
       content: attr(data-label);
-      position: absolute; inset: 0;
+      position: absolute; inset: 0; z-index: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 600; letter-spacing: 0.28em; text-indent: 0.28em;
-      color: rgba(216,177,109,0.55);
+      font-family: 'Gugi', serif;
+      font-size: 13px; letter-spacing: 0.3em; text-indent: 0.3em;
+      color: rgba(201,162,75,0.4);
       background:
-        radial-gradient(90% 70% at 50% 30%, rgba(216,177,109,0.06), transparent 70%),
-        repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0 12px, transparent 12px 24px);
-      border: 1px dashed rgba(216,177,109,0.28);
-      border-radius: 20px;
-      z-index: 0;
+        radial-gradient(70% 60% at 50% 42%, rgba(58,74,140,0.35), transparent 70%),
+        radial-gradient(40% 40% at 62% 60%, rgba(178,58,46,0.10), transparent 70%);
     }
     .ziwei-lp .media > img { z-index: 1; }
 
-    /* ── 페이드 업 (텍스트 전용, GIF는 fade 없이 자연 등장) ── */
-    .ziwei-lp .fade-up {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-    }
+    /* ── 페이드 업(텍스트만) ── */
+    .ziwei-lp .fade-up { opacity: 0; transform: translateY(26px); transition: opacity 0.75s ease, transform 0.75s ease; }
     .ziwei-lp .fade-up.in { opacity: 1; transform: none; }
-    @media (prefers-reduced-motion: reduce) {
-      .ziwei-lp .fade-up { opacity: 1; transform: none; transition: none; }
-    }
+    @media (prefers-reduced-motion: reduce) { .ziwei-lp .fade-up { opacity: 1; transform: none; transition: none; } }
 
     /* ══════ HERO ══════ */
     .ziwei-lp .hero {
       position: relative;
       min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
       text-align: center;
-      padding: 88px 24px 96px;
+      padding: 92px 26px 40px;
       overflow: hidden;
     }
-    .ziwei-lp .hero__media {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      z-index: 0;
-    }
-    .ziwei-lp .hero::after { /* 어두운 배경 폴백 + GIF 위 오버레이 40% */
-      content: "";
-      position: absolute; inset: 0; z-index: 1;
+    .ziwei-lp .hero__media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+    .ziwei-lp .hero::after {
+      content: ""; position: absolute; inset: 0; z-index: 1;
       background:
-        linear-gradient(180deg, rgba(9,11,18,0.55) 0%, rgba(9,11,18,0.25) 42%, rgba(9,11,18,0.92) 100%),
-        rgba(9,11,18,0.40);
+        linear-gradient(180deg, rgba(5,7,14,0.55) 0%, rgba(5,7,14,0.15) 40%, rgba(5,7,14,0.75) 82%, #05070E 100%);
     }
     .ziwei-lp .hero__inner { position: relative; z-index: 2; max-width: 720px; }
-    .ziwei-lp .hero .title { font-size: clamp(34px, 9vw, 62px); }
-    .ziwei-lp .hero__scrollcue {
-      position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
-      z-index: 2;
-      width: 1px; height: 46px;
-      background: linear-gradient(180deg, transparent, rgba(216,177,109,0.8));
-      animation: zw-cue 2.2s ease-in-out infinite;
+    .ziwei-lp .hero .eyebrow { font-size: 17px; }
+    .ziwei-lp .hero .title { font-size: clamp(32px, 8.6vw, 56px); line-height: 1.3; }
+    .ziwei-lp .hero__cue {
+      position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 2;
+      width: 1.5px; height: 52px;
+      background: linear-gradient(180deg, transparent, rgba(201,162,75,0.9));
     }
-    @keyframes zw-cue { 0%,100% { opacity:.25; height:36px; } 50% { opacity:.9; height:46px; } }
+    .ziwei-lp .hero__cue::after {
+      content: ""; position: absolute; left: 50%; top: 0; width: 6px; height: 6px; border-radius: 50%;
+      transform: translateX(-50%); background: var(--zw-glow);
+      box-shadow: 0 0 12px 3px rgba(255,210,120,0.75);
+      animation: thread-drop 2.8s ease-in-out infinite;
+    }
 
-    /* 오행 상단 브랜드 바 */
+    /* 상단 브랜드 바 */
     .ziwei-lp .topbar {
       position: absolute; top: 0; left: 0; right: 0; z-index: 3;
-      display: flex; align-items: center; gap: 12px;
-      padding: 16px 20px;
+      display: flex; align-items: center; gap: 12px; padding: 16px 20px;
     }
-    .ziwei-lp .topbar__back {
-      font-size: 22px; line-height: 1; color: #efe6d6; text-decoration: none;
-      text-shadow: 0 1px 8px rgba(0,0,0,0.7);
-    }
-    .ziwei-lp .topbar__brand {
-      font-size: 12px; font-weight: 700; letter-spacing: 0.36em; text-indent: 0.36em;
-      color: var(--zw-gold); text-shadow: 0 1px 8px rgba(0,0,0,0.7);
-    }
+    .ziwei-lp .topbar__back { font-size: 22px; line-height: 1; color: #efe6d6; text-decoration: none; text-shadow: 0 1px 8px rgba(0,0,0,0.7); }
+    .ziwei-lp .topbar__brand { font-family: 'Gugi', serif; font-size: 16px; letter-spacing: 0.4em; text-indent: 0.4em; color: var(--zw-gold); text-shadow: 0 1px 8px rgba(0,0,0,0.7); }
 
-    /* ── 6개 정보 카드 (Section 3) ── */
-    .ziwei-lp .cardgrid {
-      margin-top: 44px;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-    }
+    /* ── 6개 정보 (Section 3): 박스 대신 먹판 느낌, 배경과 이어지게 ── */
+    .ziwei-lp .cardgrid { margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .ziwei-lp .infocard {
-      padding: 26px 18px;
-      border-radius: 20px;
-      background: rgba(18,23,33,0.7);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      border: 1px solid var(--zw-border);
+      padding: 24px 14px; border-radius: 14px;
+      background: linear-gradient(180deg, rgba(20,26,48,0.55), rgba(10,14,30,0.35));
+      border: 1px solid rgba(201,162,75,0.16);
       text-align: center;
     }
-    .ziwei-lp .infocard__ico {
-      font-size: 22px; line-height: 1;
-      color: var(--zw-gold);
-      display: block; margin-bottom: 12px;
-    }
-    .ziwei-lp .infocard__name {
-      font-size: 17px; font-weight: 700; color: var(--zw-text); letter-spacing: 0.01em;
-    }
-    .ziwei-lp .infocard__desc {
-      margin-top: 7px; font-size: 12.5px; line-height: 1.6; color: var(--zw-body); word-break: keep-all;
-    }
+    .ziwei-lp .infocard__ico { font-size: 22px; line-height: 1; color: var(--zw-gold); display: block; margin-bottom: 10px; }
+    .ziwei-lp .infocard__name { font-family: 'Nanum Myeongjo', serif; font-size: 18px; font-weight: 800; color: #F6EFDE; }
+    .ziwei-lp .infocard__desc { margin-top: 6px; font-size: 12.5px; line-height: 1.6; color: var(--zw-ink-d); word-break: keep-all; }
 
-    /* ── 2단 레이아웃 (Section 5 · Section 8) ── */
-    .ziwei-lp .split {
-      margin-top: 48px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 28px;
-      text-align: left;
-      align-items: center;
-    }
+    /* ── 2단 (Section 5 · 8) ── */
+    .ziwei-lp .split { margin-top: 40px; display: grid; grid-template-columns: 1fr; gap: 26px; text-align: left; align-items: center; }
     .ziwei-lp .split .media { margin-top: 0; }
-    .ziwei-lp .split__text .subtitle,
-    .ziwei-lp .split__text .body { text-align: left; }
+    .ziwei-lp .split__text .title { text-align: left; }
 
     .ziwei-lp .checklist { margin: 22px 0 0; padding: 0; list-style: none; }
     .ziwei-lp .checklist li {
-      display: flex; align-items: center; gap: 12px;
-      padding: 13px 0;
-      font-size: 16px; font-weight: 500; color: var(--zw-sub);
-      border-bottom: 1px solid var(--zw-border);
+      display: flex; align-items: center; gap: 12px; padding: 13px 0;
+      font-size: 17px; color: var(--zw-ink);
+      border-bottom: 1px solid rgba(201,162,75,0.14);
     }
     .ziwei-lp .checklist li:last-child { border-bottom: none; }
     .ziwei-lp .checklist .tick {
-      flex: 0 0 22px; width: 22px; height: 22px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 50%;
-      border: 1px solid rgba(216,177,109,0.5);
-      color: var(--zw-gold); font-size: 12px;
+      flex: 0 0 24px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; border: 1px solid rgba(201,162,75,0.5); color: var(--zw-gold-l); font-size: 12px;
     }
 
-    /* ── 비교 카드 (Section 8) ── */
-    .ziwei-lp .compare {
-      margin-top: 44px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      text-align: left;
-    }
-    .ziwei-lp .cmpcard {
-      padding: 30px 24px;
-      border-radius: 20px;
-      background: var(--zw-card);
-      border: 1px solid var(--zw-border);
-    }
-    .ziwei-lp .cmpcard--gold { border-color: rgba(216,177,109,0.4); }
-    .ziwei-lp .cmpcard__tag {
-      font-size: 12px; font-weight: 700; letter-spacing: 0.2em;
-      color: var(--zw-body); margin-bottom: 12px;
-    }
-    .ziwei-lp .cmpcard--gold .cmpcard__tag { color: var(--zw-gold); }
-    .ziwei-lp .cmpcard__title {
-      font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--zw-text); margin-bottom: 14px;
-    }
-    .ziwei-lp .cmpcard__desc { font-size: 15px; line-height: 1.8; color: var(--zw-body); word-break: keep-all; }
+    /* ── 비교 (Section 8) ── */
+    .ziwei-lp .compare { margin-top: 40px; display: grid; grid-template-columns: 1fr; gap: 14px; text-align: left; }
+    .ziwei-lp .cmpcard { padding: 28px 22px; border-radius: 16px; background: rgba(12,17,36,0.5); border: 1px solid rgba(201,162,75,0.16); }
+    .ziwei-lp .cmpcard--gold { border-color: rgba(201,162,75,0.45); background: linear-gradient(180deg, rgba(30,24,12,0.5), rgba(12,17,36,0.5)); }
+    .ziwei-lp .cmpcard__tag { font-family: 'Gugi', serif; font-size: 14px; letter-spacing: 0.2em; color: var(--zw-ink-d); margin-bottom: 12px; }
+    .ziwei-lp .cmpcard--gold .cmpcard__tag { color: var(--zw-gold-l); }
+    .ziwei-lp .cmpcard__title { font-family: 'Nanum Myeongjo', serif; font-size: 21px; font-weight: 800; color: #F6EFDE; margin-bottom: 12px; line-height: 1.4; }
+    .ziwei-lp .cmpcard__desc { font-size: 15px; line-height: 1.8; color: var(--zw-ink-d); word-break: keep-all; }
 
-    /* ── 후기 슬라이더 (Section 6) ── */
-    .ziwei-lp .reviews { margin-top: 44px; }
-    .ziwei-lp .review {
-      height: auto;
-      padding: 28px 24px;
-      border-radius: 20px;
-      background: var(--zw-card);
-      border: 1px solid var(--zw-border);
-      text-align: left;
-    }
-    .ziwei-lp .review__stars { color: var(--zw-gold); font-size: 14px; letter-spacing: 2px; margin-bottom: 14px; }
-    .ziwei-lp .review__text {
-      font-size: 15.5px; line-height: 1.75; color: var(--zw-sub); word-break: keep-all; min-height: 84px;
-    }
-    .ziwei-lp .review__who { margin-top: 16px; font-size: 13px; color: var(--zw-body); }
+    /* ── 후기 (Section 6) ── */
+    .ziwei-lp .reviews { margin-top: 34px; }
+    .ziwei-lp .review { height: auto; padding: 26px 22px; border-radius: 16px; background: rgba(12,17,36,0.55); border: 1px solid rgba(201,162,75,0.16); text-align: left; }
+    .ziwei-lp .review__stars { color: var(--zw-gold-l); font-size: 14px; letter-spacing: 2px; margin-bottom: 12px; }
+    .ziwei-lp .review__text { font-family: 'Nanum Myeongjo', serif; font-size: 15.5px; line-height: 1.8; color: var(--zw-ink); word-break: keep-all; min-height: 90px; }
+    .ziwei-lp .review__who { margin-top: 14px; font-size: 13px; color: var(--zw-ink-d); }
     .ziwei-lp .swiper { padding-bottom: 4px; }
     .ziwei-lp .swiper-slide { height: auto; }
 
     /* ── 흐름 (Section 9) ── */
-    .ziwei-lp .flow { margin: 44px auto 0; max-width: 340px; }
-    .ziwei-lp .flow__step {
-      padding: 16px 18px;
-      border-radius: 14px;
-      background: var(--zw-card);
-      border: 1px solid var(--zw-border);
-      font-size: 16px; font-weight: 600; color: var(--zw-sub);
-    }
-    .ziwei-lp .flow__step.is-last {
-      border-color: rgba(216,177,109,0.45);
-      color: var(--zw-gold);
-      background: linear-gradient(180deg, rgba(216,177,109,0.08), rgba(18,23,33,0.9));
-    }
-    .ziwei-lp .flow__arrow {
-      height: 26px;
-      display: flex; align-items: center; justify-content: center;
-      color: rgba(216,177,109,0.55); font-size: 14px;
-    }
+    .ziwei-lp .flow { margin: 40px auto 0; max-width: 330px; }
+    .ziwei-lp .flow__step { padding: 15px 18px; border-radius: 12px; background: rgba(12,17,36,0.5); border: 1px solid rgba(201,162,75,0.16); font-size: 17px; font-family: 'Nanum Myeongjo', serif; color: var(--zw-ink); }
+    .ziwei-lp .flow__step.is-last { border-color: rgba(201,162,75,0.5); color: var(--zw-gold-l); background: linear-gradient(180deg, rgba(30,24,12,0.6), rgba(12,17,36,0.5)); }
+    .ziwei-lp .flow__arrow { height: 24px; display: flex; align-items: center; justify-content: center; color: rgba(201,162,75,0.55); font-size: 13px; }
 
-    /* ══════ FINAL CTA (버튼은 여기에만) ══════ */
-    .ziwei-lp .final {
-      padding-top: 140px;
-      padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
-      border-top: 1px solid var(--zw-border);
-      background: radial-gradient(120% 60% at 50% 0%, rgba(216,177,109,0.06), transparent 60%);
-      text-align: center;
-    }
-    .ziwei-lp .form {
-      margin: 40px auto 0;
-      max-width: 460px;
-      padding: 26px 22px 28px;
-      border-radius: 22px;
-      background: var(--zw-card);
-      border: 1px solid var(--zw-border);
-      text-align: left;
-    }
-    .ziwei-lp .field { margin-bottom: 18px; }
-    .ziwei-lp .field:last-of-type { margin-bottom: 0; }
-    .ziwei-lp .field__label {
-      display: block; margin-bottom: 9px;
-      font-size: 12.5px; font-weight: 600; letter-spacing: 0.14em; color: var(--zw-body);
-    }
-    .ziwei-lp .field input,
-    .ziwei-lp .field select {
-      width: 100%;
-      padding: 15px 16px;
-      border-radius: 12px;
-      background: rgba(9,11,18,0.6);
-      border: 1px solid var(--zw-border);
-      color: var(--zw-text);
-      font-family: inherit;
-      font-size: 16px;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    .ziwei-lp .field input::placeholder { color: rgba(153,162,175,0.5); }
-    .ziwei-lp .field input:focus,
-    .ziwei-lp .field select:focus {
-      border-color: rgba(216,177,109,0.6);
-      box-shadow: 0 0 0 3px rgba(216,177,109,0.1);
-    }
-    .ziwei-lp .field select {
-      appearance: none; -webkit-appearance: none; cursor: pointer;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23D8B16D' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;
-    }
-    .ziwei-lp .field select option { background: #14181f; color: #f0f0f0; }
-    .ziwei-lp .genderbtns { display: flex; gap: 10px; }
-    .ziwei-lp .genderbtns button {
-      flex: 1;
-      padding: 14px 0;
-      border-radius: 12px;
-      background: rgba(9,11,18,0.6);
-      border: 1px solid var(--zw-border);
-      color: var(--zw-sub);
-      font-family: inherit; font-size: 15px; font-weight: 600;
-      cursor: pointer; transition: all 0.15s;
-    }
-    .ziwei-lp .genderbtns button .hz { color: var(--zw-body); margin-right: 5px; font-weight: 700; }
-    .ziwei-lp .genderbtns button.active {
-      border-color: var(--zw-gold);
-      color: var(--zw-text);
-      background: linear-gradient(180deg, rgba(216,177,109,0.16), rgba(18,23,33,0.9));
-    }
-    .ziwei-lp .genderbtns button.active .hz { color: var(--zw-gold); }
+    /* ── 마지막 클로징(폼 없음) ── */
+    .ziwei-lp .closing { padding: 60px 0 40px; text-align: center; }
+    .ziwei-lp .closing .title { font-size: clamp(30px, 8.4vw, 54px); }
 
-    .ziwei-lp .cta {
-      display: block; width: 100%;
-      margin-top: 24px;
-      padding: 18px 0;
-      border: none;
-      border-radius: 14px;
-      background: linear-gradient(180deg, #E6C588 0%, #D8B16D 55%, #C69A4F 100%);
-      color: #1a1305;
-      font-family: inherit;
-      font-size: 18px; font-weight: 800; letter-spacing: -0.01em;
-      cursor: pointer;
-      box-shadow: 0 14px 34px rgba(216,177,109,0.22);
-      transition: transform 0.12s, box-shadow 0.12s;
+    /* ══════ 하단 고정 CTA 바 ══════ */
+    .zw-bar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px;
+      padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(180deg, rgba(6,9,18,0.4) 0%, rgba(6,9,18,0.92) 40%, #060912 100%);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(201,162,75,0.22);
     }
-    .ziwei-lp .cta:active { transform: scale(0.985); box-shadow: 0 8px 20px rgba(216,177,109,0.2); }
-    .ziwei-lp .final__note {
-      margin-top: 18px; font-size: 12.5px; line-height: 1.7; color: rgba(153,162,175,0.7); word-break: keep-all;
+    .zw-bar__proof { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--zw-ink-d); font-family: 'Nanum Myeongjo', serif; }
+    .zw-bar__proof .heart { color: var(--zw-seal); }
+    .zw-bar__proof b { color: var(--zw-gold-l); font-weight: 800; }
+    .zw-bar__btn {
+      display: block; width: 100%; max-width: 480px;
+      padding: 16px 0; border: none; border-radius: 13px;
+      background: linear-gradient(180deg, #E6C77E 0%, #C9A24B 55%, #A9832F 100%);
+      color: #23180A; text-decoration: none; text-align: center;
+      font-family: 'Nanum Myeongjo', serif; font-size: 18px; font-weight: 800; letter-spacing: 0.02em;
+      box-shadow: 0 -2px 24px rgba(201,162,75,0.18), 0 10px 26px rgba(0,0,0,0.4);
+      transition: transform 0.12s;
     }
+    .zw-bar__btn:active { transform: scale(0.99); }
 
-    /* ── 데스크톱/큰 화면 ── */
     @media (min-width: 768px) {
-      .ziwei-lp .cardgrid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .ziwei-lp .cardgrid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
       .ziwei-lp .split { grid-template-columns: 1fr 1fr; gap: 40px; }
       .ziwei-lp .split--rev .split__media { order: 2; }
       .ziwei-lp .compare { grid-template-columns: 1fr 1fr; }
@@ -414,90 +370,84 @@
       <a href="/saju" class="topbar__back" aria-label="뒤로">&#8592;</a>
       <span class="topbar__brand">紫微斗數</span>
     </div>
-    <!-- 배경 GIF: /public/gif/ 에서 교체 -->
-    <div class="hero__media media" data-label="HERO · GIF" style="border:none;border-radius:0;margin:0;aspect-ratio:auto;">
+    <div class="hero__media media" data-label="" style="mask:none;-webkit-mask:none;aspect-ratio:auto;margin:0;">
       <img src="/gif/hero.gif" alt="" onerror="this.remove()">
     </div>
     <div class="hero__inner">
-      <h1 class="title fade-up">태어나는 순간,<br>당신의 명반은<br><span class="gold">이미 완성</span>되어 있었습니다.</h1>
-      <p class="subtitle fade-up">출생 정보 속에는<br>당신만의 삶의 구조가<br>담겨 있습니다.</p>
+      <span class="eyebrow fade-up">紫微斗數 · 자미두수</span>
+      <h1 class="title fade-up">당신이 태어난 순간<br>하늘의 별은<br><span class="em">이미 자리를 정했습니다</span></h1>
+      <p class="subtitle fade-up">그 별의 자리가 곧,<br>당신 삶의 지도입니다.</p>
     </div>
-    <span class="hero__scrollcue" aria-hidden="true"></span>
+    <span class="hero__cue" aria-hidden="true"></span>
   </header>
 
-  <!-- ══════ SECTION 2 ══════ -->
+  <!-- ══════ SECTION 2 · 왜 ══════ -->
+  <div class="thread" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <span class="eyebrow fade-up">WHY ZIWEI</span>
-      <h2 class="title fade-up">왜 많은 사람들이<br><span class="gold">자미두수</span>를<br>선택할까요?</h2>
-      <div class="media media--wide" data-label="SECTION 2 · GIF">
-        <img src="/gif/section2.gif" alt="" onerror="this.remove()">
-      </div>
-      <p class="body fade-up">태어난 시간과<br>별의 위치에 따라<br>명반은 모두 다르게 만들어집니다.</p>
+      <h2 class="title fade-up">도대체 왜<br><span class="brush">자미두수</span>에<br><span class="em">열광할까요?</span></h2>
+      <div class="media media--wide" data-label="장면 · GIF"><img src="/gif/section2.gif" alt="" onerror="this.remove()"></div>
+      <p class="body fade-up">사주가 삶의 큰 결을 본다면,<br>자미두수는 연애·재물·직업까지<br>삶의 영역을 하나하나 짚어 보여줍니다.</p>
+      <span class="proof fade-up"><span class="seal">印</span> 지금까지 <b>18,482</b>명이 명반을 확인했습니다</span>
     </div>
   </section>
 
-  <!-- ══════ SECTION 3 ══════ -->
+  <!-- ══════ SECTION 3 · 무엇을 ══════ -->
+  <div class="thread" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <span class="eyebrow fade-up">WHAT IT READS</span>
-      <h2 class="title fade-up">자미두수는<br>무엇을<br><span class="gold">알려줄까요?</span></h2>
-      <div class="media" data-label="SECTION 3 · GIF">
-        <img src="/gif/section3.gif" alt="" onerror="this.remove()">
-      </div>
+      <h2 class="title fade-up">자미두수는<br>당신의 무엇을<br><span class="em">비추는가</span></h2>
+      <div class="media" data-label="명반 · GIF"><img src="/gif/section3.gif" alt="" onerror="this.remove()"></div>
       <div class="cardgrid">
         <div class="infocard fade-up"><span class="infocard__ico">◇</span><span class="infocard__name">성향</span><p class="infocard__desc">타고난 기질과 마음의 결</p></div>
-        <div class="infocard fade-up"><span class="infocard__ico">❤</span><span class="infocard__name">연애</span><p class="infocard__desc">인연의 흐름과 관계의 온도</p></div>
-        <div class="infocard fade-up"><span class="infocard__ico">◈</span><span class="infocard__name">직업</span><p class="infocard__desc">잘 맞는 길과 일의 방향</p></div>
-        <div class="infocard fade-up"><span class="infocard__ico">◆</span><span class="infocard__name">재물</span><p class="infocard__desc">돈이 들고 나는 구조</p></div>
-        <div class="infocard fade-up"><span class="infocard__ico">◎</span><span class="infocard__name">인간관계</span><p class="infocard__desc">주변과 얽히는 방식</p></div>
-        <div class="infocard fade-up"><span class="infocard__ico">◐</span><span class="infocard__name">운의 흐름</span><p class="infocard__desc">때에 따라 바뀌는 큰 흐름</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">緣</span><span class="infocard__name">연애</span><p class="infocard__desc">인연의 흐름과 관계의 온도</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">職</span><span class="infocard__name">직업</span><p class="infocard__desc">잘 맞는 길과 일의 방향</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">財</span><span class="infocard__name">재물</span><p class="infocard__desc">돈이 들고 나는 구조</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">緣</span><span class="infocard__name">인간관계</span><p class="infocard__desc">주변과 얽히는 방식</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">運</span><span class="infocard__name">운의 흐름</span><p class="infocard__desc">때에 따라 바뀌는 큰 흐름</p></div>
       </div>
     </div>
   </section>
 
-  <!-- ══════ SECTION 4 ══════ -->
+  <!-- ══════ SECTION 4 · 같은 생일 ══════ -->
+  <div class="thread" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <span class="eyebrow fade-up">SAME DAY, DIFFERENT LIFE</span>
-      <h2 class="title fade-up">같은 생일인데<br>왜 삶은<br><span class="gold">다를까요?</span></h2>
-      <div class="media media--wide" data-label="SECTION 4 · GIF">
-        <img src="/gif/section4.gif" alt="" onerror="this.remove()">
-      </div>
-      <p class="body fade-up">같은 생일이라도<br>출생시간과 별의 위치에 따라<br>명반은 모두 달라집니다.</p>
+      <h2 class="title fade-up">같은 날 태어나도<br>삶이 다른<br><span class="em">이유</span></h2>
+      <div class="media media--wide" data-label="장면 · GIF"><img src="/gif/section4.gif" alt="" onerror="this.remove()"></div>
+      <p class="body fade-up">태어난 '시각'과 별의 위치가 다르면<br>명반은 완전히 달라집니다.<br>같은 생일도, 전혀 다른 지도가 됩니다.</p>
     </div>
   </section>
 
-  <!-- ══════ SECTION 5 (좌 GIF · 우 텍스트) ══════ -->
+  <!-- ══════ SECTION 5 · 결과 ══════ -->
+  <div class="thread" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
       <div class="split split--rev">
         <div class="split__media">
-          <div class="media media--tall" data-label="SECTION 5 · PDF/GIF">
-            <img src="/gif/section5.gif" alt="" onerror="this.remove()">
-          </div>
+          <div class="media media--tall" data-label="결과지 · GIF"><img src="/gif/section5.gif" alt="" onerror="this.remove()"></div>
         </div>
         <div class="split__text">
-          <span class="eyebrow fade-up">YOUR RESULT</span>
-          <h2 class="title fade-up" style="text-align:left;">결과는<br>이렇게<br><span class="gold">제공됩니다.</span></h2>
+          <h2 class="title fade-up">당신의 명반은<br>이렇게<br><span class="em">펼쳐집니다</span></h2>
           <ul class="checklist fade-up">
-            <li><span class="tick">✓</span> 성향</li>
-            <li><span class="tick">✓</span> 연애</li>
-            <li><span class="tick">✓</span> 직업</li>
-            <li><span class="tick">✓</span> 재물</li>
+            <li><span class="tick">✓</span> 타고난 성향</li>
+            <li><span class="tick">✓</span> 연애와 인연</li>
+            <li><span class="tick">✓</span> 직업과 적성</li>
+            <li><span class="tick">✓</span> 재물의 구조</li>
             <li><span class="tick">✓</span> 운의 흐름</li>
-            <li><span class="tick">✓</span> 변화 시기</li>
+            <li><span class="tick">✓</span> 변화의 시기</li>
           </ul>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ══════ SECTION 6 (후기 슬라이더) ══════ -->
+  <!-- ══════ SECTION 6 · 후기 ══════ -->
+  <div class="thread" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <span class="eyebrow fade-up">REVIEWS</span>
-      <h2 class="title fade-up">명반을 확인한 사람들이<br><span class="gold">이렇게 말했습니다.</span></h2>
+      <h2 class="title fade-up">먼저 명반을 펼친<br>사람들의<br><span class="em">이야기</span></h2>
+      <span class="proof fade-up" style="margin-top:20px;"><span class="seal">評</span> 평점 <b>4.9</b> · 누적 후기 <b>12,900</b>+</span>
     </div>
     <div class="reviews fade-up">
       <div class="swiper" id="reviewSwiper">
@@ -512,179 +462,111 @@
     </div>
   </section>
 
-  <!-- ══════ SECTION 7 (전통성) ══════ -->
+  <!-- ══════ SECTION 7 · 전통 ══════ -->
+  <div class="thread" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <span class="eyebrow fade-up">TRADITION</span>
-      <h2 class="title fade-up">수백 년 동안<br>이어져 온<br><span class="gold">명반 해석</span></h2>
-      <div class="media media--wide" data-label="SECTION 7 · GIF">
-        <img src="/gif/section7.gif" alt="" onerror="this.remove()">
-      </div>
-      <p class="body fade-up">오랜 시간 이어져 온<br>자미두수 해석 체계를<br>현대적으로 재구성했습니다.</p>
+      <h2 class="title fade-up">송나라 궁중에서<br>비밀리에 보던<br><span class="em">별자리 운세</span></h2>
+      <div class="media media--wide" data-label="고서 · GIF"><img src="/gif/section7.gif" alt="" onerror="this.remove()"></div>
+      <p class="body fade-up">천 년 가까이 황실에서만<br>은밀히 전해지던 자미두수를,<br>지금 당신의 손끝에서 펼쳐봅니다.</p>
     </div>
   </section>
 
-  <!-- ══════ SECTION 8 (사주 vs 자미두수 비교) ══════ -->
+  <!-- ══════ SECTION 8 · 비교 ══════ -->
+  <div class="thread" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <span class="eyebrow fade-up">DIFFERENCE</span>
-      <h2 class="title fade-up">사주와<br>자미두수는<br><span class="gold">무엇이 다를까요?</span></h2>
+      <h2 class="title fade-up">사주와 자미두수,<br><span class="em">무엇이 다를까</span></h2>
       <div class="compare">
         <div class="cmpcard fade-up">
           <div class="cmpcard__tag">四柱 · 사주</div>
           <div class="cmpcard__title">여덟 글자로 보는<br>큰 기질과 균형</div>
-          <p class="cmpcard__desc">태어난 연·월·일·시를 천간·지지 여덟 글자로 뽑아, 오행의 균형과 일간을 중심으로 타고난 기질과 삶의 큰 결을 읽습니다.</p>
+          <p class="cmpcard__desc">태어난 연·월·일·시를 여덟 글자로 뽑아, 오행의 균형과 일간으로 타고난 기질과 삶의 큰 결을 읽습니다.</p>
         </div>
         <div class="cmpcard cmpcard--gold fade-up">
           <div class="cmpcard__tag">紫微斗數 · 자미두수</div>
           <div class="cmpcard__title">열두 궁으로 그리는<br>삶의 지도</div>
-          <p class="cmpcard__desc">12개의 궁에 자미성을 비롯한 별을 배치해, 연애·재물·직업 등 삶의 영역별로 구체적인 구조와 흐름을 지도처럼 펼쳐 봅니다.</p>
+          <p class="cmpcard__desc">12개의 궁에 자미성을 비롯한 별을 배치해, 연애·재물·직업 등 삶의 영역을 지도처럼 구체적으로 펼쳐 봅니다.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ══════ SECTION 9 (분석 과정) ══════ -->
+  <!-- ══════ SECTION 9 · 과정 ══════ -->
+  <div class="thread" aria-hidden="true"></div>
   <section class="section">
     <div class="wrap">
-      <span class="eyebrow fade-up">HOW IT WORKS</span>
-      <h2 class="title fade-up">당신의 정보는<br>어떻게<br><span class="gold">명반이 될까요?</span></h2>
-      <div class="media media--wide" data-label="SECTION 9 · GIF">
-        <img src="/gif/section9.gif" alt="" onerror="this.remove()">
-      </div>
+      <h2 class="title fade-up">당신의 정보가<br>명반이<br><span class="em">되기까지</span></h2>
+      <div class="media media--wide" data-label="과정 · GIF"><img src="/gif/section9.gif" alt="" onerror="this.remove()"></div>
       <div class="flow fade-up">
         <div class="flow__step">생년월일</div>
         <div class="flow__arrow">▼</div>
-        <div class="flow__step">출생시간</div>
+        <div class="flow__step">태어난 시각</div>
         <div class="flow__arrow">▼</div>
         <div class="flow__step">명반 생성</div>
         <div class="flow__arrow">▼</div>
-        <div class="flow__step">분석</div>
+        <div class="flow__step">해석</div>
         <div class="flow__arrow">▼</div>
-        <div class="flow__step is-last">결과</div>
+        <div class="flow__step is-last">당신의 결과</div>
       </div>
     </div>
   </section>
 
-  <!-- ══════ FINAL CTA ══════ -->
-  <section class="final">
+  <!-- ══════ 클로징 (폼 없음 — 행동은 하단 고정 CTA로) ══════ -->
+  <div class="thread" aria-hidden="true"></div>
+  <section class="closing">
     <div class="wrap">
-      <span class="eyebrow fade-up">OPEN YOUR CHART</span>
-      <h2 class="title fade-up">당신의 명반에는<br>어떤 삶의 흐름이<br><span class="gold">기록되어 있을까요?</span></h2>
-
-      <div class="media media--wide fade-up" data-label="FINAL · GIF" style="max-width:460px;">
-        <img src="/gif/final.gif" alt="" onerror="this.remove()">
-      </div>
-
-      <form id="ziweiForm" method="POST" action="/saju/ziwei/input" class="form fade-up">
-        <input type="hidden" name="gender" id="genderInput">
-        <input type="hidden" name="birthType" value="양력">
-        <input type="hidden" name="birthdate" id="birthdateInput">
-        <input type="hidden" name="goodsType" value="ZIWEI">
-
-        <div class="field">
-          <label class="field__label" for="birthdateDisplay">생년월일</label>
-          <input type="text" id="birthdateDisplay" inputmode="numeric" maxlength="8"
-                 placeholder="8자리 (예: 19980415)">
-        </div>
-
-        <div class="field">
-          <label class="field__label" for="birthTimeSelect">출생시간</label>
-          <select name="birthTime" id="birthTimeSelect">
-            <option value="unknown">시(時) 모름</option>
-            <option value="00">자시 子 (23:30~01:29)</option>
-            <option value="02">축시 丑 (01:30~03:29)</option>
-            <option value="04">인시 寅 (03:30~05:29)</option>
-            <option value="06">묘시 卯 (05:30~07:29)</option>
-            <option value="08">진시 辰 (07:30~09:29)</option>
-            <option value="10">사시 巳 (09:30~11:29)</option>
-            <option value="12">오시 午 (11:30~13:29)</option>
-            <option value="14">미시 未 (13:30~15:29)</option>
-            <option value="16">신시 申 (15:30~17:29)</option>
-            <option value="18">유시 酉 (17:30~19:29)</option>
-            <option value="20">술시 戌 (19:30~21:29)</option>
-            <option value="22">해시 亥 (21:30~23:29)</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label class="field__label">성별</label>
-          <div class="genderbtns">
-            <button type="button" class="gender-cell" data-value="남성"><span class="hz">乾</span>남성</button>
-            <button type="button" class="gender-cell" data-value="여성"><span class="hz">坤</span>여성</button>
-          </div>
-        </div>
-
-        <button type="button" class="cta" id="openBtn">내 자미명반 열어보기</button>
-      </form>
-      <p class="final__note">입력한 정보는 당신의 명반을 계산하는 데에만 사용됩니다.</p>
+      <span class="eyebrow fade-up">開 命 盤</span>
+      <h2 class="title fade-up">이제,<br>당신의 명반을<br><span class="em">펼쳐볼 차례입니다</span></h2>
+      <p class="subtitle fade-up">생년월일과 태어난 시각이면 충분합니다.</p>
     </div>
   </section>
 
 </div><!-- /.ziwei-lp -->
 
+<!-- ══════ 하단 고정 CTA 바 ══════ -->
+<div class="zw-bar">
+  <div class="zw-bar__proof"><span class="heart">♥</span> <b id="zwCount">18,482</b>명이 확인했어요</div>
+  <a href="/saju/ziwei/input" class="zw-bar__btn" id="zwStartBtn">자미두수 시작하기</a>
+</div>
+
   <script>
     (function () {
-      /* ── 페이드 업: Intersection Observer ── */
+      /* 페이드 업 */
       var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) {
-          if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-        });
-      }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { threshold: 0.14, rootMargin: '0px 0px -6% 0px' });
       document.querySelectorAll('.ziwei-lp .fade-up').forEach(function (el, i) {
-        // 같은 섹션 내 순차 등장 느낌을 위해 약간의 지연
-        el.style.transitionDelay = (Math.min(i % 6, 5) * 0.06) + 's';
+        el.style.transitionDelay = (Math.min(i % 5, 4) * 0.06) + 's';
         io.observe(el);
       });
 
-      /* ── 후기 자동 슬라이더 (Swiper) ── */
+      /* 후기 슬라이더 */
       if (window.Swiper) {
         new Swiper('#reviewSwiper', {
-          slidesPerView: 1.1,
-          spaceBetween: 14,
-          centeredSlides: false,
-          loop: true,
-          autoplay: { delay: 3200, disableOnInteraction: false },
-          speed: 700,
+          slidesPerView: 1.1, spaceBetween: 14, loop: true,
+          autoplay: { delay: 3200, disableOnInteraction: false }, speed: 700,
           breakpoints: { 768: { slidesPerView: 2.2, spaceBetween: 16 } }
         });
       }
 
-      /* ── 성별 선택 ── */
-      document.querySelectorAll('.genderbtns .gender-cell').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          document.querySelectorAll('.genderbtns .gender-cell').forEach(function (b) { b.classList.remove('active'); });
-          btn.classList.add('active');
-          document.getElementById('genderInput').value = btn.dataset.value;
-        });
-      });
+      /* 확인 인원 살짝 카운트업 (한 번) */
+      var cntEl = document.getElementById('zwCount');
+      if (cntEl) {
+        var target = 18482, cur = 18300, t;
+        t = setInterval(function () {
+          cur += 7;
+          if (cur >= target) { cur = target; clearInterval(t); }
+          cntEl.textContent = cur.toLocaleString();
+        }, 30);
+      }
 
-      /* ── 생년월일 숫자만 ── */
-      var bdDisplay = document.getElementById('birthdateDisplay');
-      bdDisplay.addEventListener('input', function () {
-        this.value = this.value.replace(/\D/g, '').slice(0, 8);
-      });
-
-      /* ── 제출 ── */
-      var form = document.getElementById('ziweiForm');
-      document.getElementById('openBtn').addEventListener('click', function () {
-        var bd     = bdDisplay.value.replace(/\D/g, '');
-        var gender = document.getElementById('genderInput').value;
-
-        if (!/^\d{8}$/.test(bd)) { alert('생년월일을 8자리로 정확히 적어주세요. (예: 19980415)'); return; }
-        if (!gender) { alert('성별을 선택해주세요.'); return; }
-
-        document.getElementById('birthdateInput').value = bd;
-
+      /* 시작하기: ticket 파라미터 유지 */
+      var startBtn = document.getElementById('zwStartBtn');
+      if (startBtn) {
         var ticket = new URLSearchParams(window.location.search).get('ticket');
-        if (ticket) {
-          var t = document.createElement('input');
-          t.type = 'hidden'; t.name = 'ticket'; t.value = ticket;
-          form.appendChild(t);
-          form.action = '/saju/ziwei/input?ticket=' + ticket;
-        }
-        form.submit();
-      });
+        if (ticket) startBtn.href = '/saju/ziwei/input?ticket=' + encodeURIComponent(ticket);
+      }
     })();
   </script>
 </body>

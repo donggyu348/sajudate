@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gugi&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    :root {
+      --zw-ink: #ECE3D0; --zw-ink-d: #A7A28F; --zw-gold: #C9A24B; --zw-gold-l: #E6C77E; --zw-seal: #B23A2E;
+    }
+    .zwi * { box-sizing: border-box; }
+    body.ziwei-body { margin: 0; background: #05070E; }
+    .zwi {
+      min-height: 100svh; margin: 0; color: var(--zw-ink);
+      font-family: 'Nanum Myeongjo', serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
+      background:
+        radial-gradient(120% 60% at 50% 0%, rgba(58,74,140,0.28), transparent 60%),
+        linear-gradient(180deg, #0A1024 0%, #070C1E 45%, #05070E 100%);
+      display: flex; flex-direction: column;
+    }
+    .zwi::before {
+      content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        radial-gradient(1.4px 1.4px at 16% 20%, rgba(255,255,255,0.5), transparent 60%),
+        radial-gradient(1.2px 1.2px at 74% 16%, rgba(255,255,255,0.4), transparent 60%),
+        radial-gradient(1.5px 1.5px at 60% 62%, rgba(255,240,200,0.5), transparent 60%),
+        radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.35), transparent 60%);
+    }
+    .zwi > * { position: relative; z-index: 1; }
+
+    .zwi-top { display: flex; align-items: center; gap: 12px; padding: 16px 20px; }
+    .zwi-top__back { font-size: 22px; line-height: 1; color: #efe6d6; text-decoration: none; }
+    .zwi-top__brand { font-family: 'Gugi', serif; font-size: 15px; letter-spacing: 0.4em; text-indent: 0.4em; color: var(--zw-gold); }
+
+    .zwi-main { flex: 1; width: 100%; max-width: 480px; margin: 0 auto; padding: 24px 24px 40px; }
+    .zwi-head { text-align: center; margin-bottom: 30px; }
+    .zwi-head__eyebrow { font-family: 'Gugi', serif; font-size: 14px; letter-spacing: 0.4em; text-indent: 0.4em; color: var(--zw-gold); }
+    .zwi-head__title { margin: 16px 0 0; font-size: clamp(26px, 7.4vw, 34px); font-weight: 800; line-height: 1.4; color: #FBF6EA; word-break: keep-all; }
+    .zwi-head__sub { margin-top: 12px; font-size: 14.5px; line-height: 1.7; color: var(--zw-ink-d); word-break: keep-all; }
+
+    .zwi-form { padding: 26px 22px 28px; border-radius: 20px; background: rgba(12,17,36,0.6); border: 1px solid rgba(201,162,75,0.22); }
+    .field { margin-bottom: 18px; }
+    .field:last-of-type { margin-bottom: 0; }
+    .field__label { display: block; margin-bottom: 9px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--zw-gold-l); }
+    .field input, .field select {
+      width: 100%; padding: 15px 16px; border-radius: 12px;
+      background: rgba(5,7,14,0.6); border: 1px solid rgba(201,162,75,0.22);
+      color: var(--zw-ink); font-family: 'Nanum Myeongjo', serif; font-size: 16px; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field input::placeholder { color: rgba(167,162,143,0.55); }
+    .field input:focus, .field select:focus { border-color: var(--zw-gold); box-shadow: 0 0 0 3px rgba(201,162,75,0.12); }
+    .field select {
+      appearance: none; -webkit-appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23C9A24B' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;
+    }
+    .field select option { background: #0C1124; color: #ECE3D0; }
+    .genderbtns { display: flex; gap: 10px; }
+    .genderbtns button {
+      flex: 1; padding: 14px 0; border-radius: 12px; background: rgba(5,7,14,0.6);
+      border: 1px solid rgba(201,162,75,0.22); color: var(--zw-ink-d);
+      font-family: 'Nanum Myeongjo', serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+    }
+    .genderbtns button .hz { color: var(--zw-ink-d); margin-right: 6px; }
+    .genderbtns button.active {
+      border-color: var(--zw-gold); color: #FBF6EA;
+      background: linear-gradient(180deg, rgba(201,162,75,0.18), rgba(12,17,36,0.8));
+    }
+    .genderbtns button.active .hz { color: var(--zw-gold-l); }
+
+    .zwi-submit {
+      display: block; width: 100%; margin-top: 26px; padding: 17px 0; border: none; border-radius: 14px;
+      background: linear-gradient(180deg, #E6C77E 0%, #C9A24B 55%, #A9832F 100%);
+      color: #23180A; font-family: 'Nanum Myeongjo', serif; font-size: 18px; font-weight: 800; letter-spacing: 0.02em;
+      cursor: pointer; box-shadow: 0 12px 30px rgba(201,162,75,0.2);
+      transition: transform 0.12s;
+    }
+    .zwi-submit:active { transform: scale(0.99); }
+    .zwi-note { margin-top: 16px; text-align: center; font-size: 12.5px; line-height: 1.7; color: rgba(167,162,143,0.7); word-break: keep-all; }
+  </style>
+</head>
+
+<body class="ziwei-body">
+<div class="zwi">
+  <div class="zwi-top">
+    <a href="/saju/ziwei/intro" class="zwi-top__back" aria-label="뒤로">&#8592;</a>
+    <span class="zwi-top__brand">紫微斗數</span>
+  </div>
+
+  <main class="zwi-main">
+    <div class="zwi-head">
+      <span class="zwi-head__eyebrow">開 命 盤</span>
+      <h1 class="zwi-head__title">당신의 명반을<br>펼치기 위해</h1>
+      <p class="zwi-head__sub">태어난 순간의 정보를 알려주세요.<br>이 정보는 명반을 계산하는 데에만 사용됩니다.</p>
+    </div>
+
+    <form id="ziweiForm" method="POST" action="/saju/ziwei/input" class="zwi-form">
+      <input type="hidden" name="gender" id="genderInput">
+      <input type="hidden" name="birthType" value="양력">
+      <input type="hidden" name="birthdate" id="birthdateInput">
+      <input type="hidden" name="goodsType" value="ZIWEI">
+
+      <div class="field">
+        <label class="field__label" for="nameInput">이름 <span style="color:var(--zw-ink-d);font-weight:400;">(선택)</span></label>
+        <input type="text" name="name" id="nameInput" placeholder="이름을 적어주세요">
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="birthdateDisplay">생년월일</label>
+        <input type="text" id="birthdateDisplay" inputmode="numeric" maxlength="8" placeholder="8자리 (예: 19980415)">
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="birthTimeSelect">태어난 시각</label>
+        <select name="birthTime" id="birthTimeSelect">
+          <option value="unknown">시(時) 모름</option>
+          <option value="00">자시 子 (23:30~01:29)</option>
+          <option value="02">축시 丑 (01:30~03:29)</option>
+          <option value="04">인시 寅 (03:30~05:29)</option>
+          <option value="06">묘시 卯 (05:30~07:29)</option>
+          <option value="08">진시 辰 (07:30~09:29)</option>
+          <option value="10">사시 巳 (09:30~11:29)</option>
+          <option value="12">오시 午 (11:30~13:29)</option>
+          <option value="14">미시 未 (13:30~15:29)</option>
+          <option value="16">신시 申 (15:30~17:29)</option>
+          <option value="18">유시 酉 (17:30~19:29)</option>
+          <option value="20">술시 戌 (19:30~21:29)</option>
+          <option value="22">해시 亥 (21:30~23:29)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field__label">성별</label>
+        <div class="genderbtns">
+          <button type="button" class="gender-cell" data-value="남성"><span class="hz">乾</span>남성</button>
+          <button type="button" class="gender-cell" data-value="여성"><span class="hz">坤</span>여성</button>
+        </div>
+      </div>
+
+      <button type="button" class="zwi-submit" id="openBtn">내 명반 펼쳐보기</button>
+    </form>
+    <p class="zwi-note">넘긴 정보는 당신의 명반을 읽는 데에만 사용됩니다.</p>
+  </main>
+</div>
+
+  <script>
+    (function () {
+      document.querySelectorAll('.genderbtns .gender-cell').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.genderbtns .gender-cell').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          document.getElementById('genderInput').value = btn.dataset.value;
+        });
+      });
+
+      var bdDisplay = document.getElementById('birthdateDisplay');
+      bdDisplay.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 8); });
+
+      var form = document.getElementById('ziweiForm');
+      document.getElementById('openBtn').addEventListener('click', function () {
+        var bd = bdDisplay.value.replace(/\D/g, '');
+        var gender = document.getElementById('genderInput').value;
+        if (!/^\d{8}$/.test(bd)) { alert('생년월일을 8자리로 정확히 적어주세요. (예: 19980415)'); return; }
+        if (!gender) { alert('성별을 선택해주세요.'); return; }
+        document.getElementById('birthdateInput').value = bd;
+
+        var ticket = new URLSearchParams(window.location.search).get('ticket');
+        if (ticket) {
+          var t = document.createElement('input');
+          t.type = 'hidden'; t.name = 'ticket'; t.value = ticket;
+          form.appendChild(t);
+          form.action = '/saju/ziwei/input?ticket=' + encodeURIComponent(ticket);
+        }
+        form.submit();
+      });
+    })();
+  </script>
+</body>
+</html>
