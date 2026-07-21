@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <style>
+    /* ══════════════════════════════════════════════════════════
+       자미두수 소개 랜딩 — Premium · Dark · Gold · Oriental · Modern
+       모바일 퍼스트(1080px 기준) / 롱스크롤 전환 구조
+       모든 스타일은 .ziwei-lp 하위로 스코프해 전역 CSS와 충돌 방지
+       ══════════════════════════════════════════════════════════ */
+    :root {
+      --zw-bg:      #090B12;
+      --zw-card:    #121721;
+      --zw-gold:    #D8B16D;
+      --zw-text:    #FFFFFF;
+      --zw-sub:     #C2C8D1;
+      --zw-body:    #99A2AF;
+      --zw-border:  rgba(255,255,255,.08);
+    }
+
+    .ziwei-lp * { box-sizing: border-box; }
+    .ziwei-lp {
+      margin: 0;
+      background: var(--zw-bg);
+      color: var(--zw-text);
+      font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+                   'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    /* 페이지 전역 배경까지 어둡게 (헤더/보디의 밝은 기본값 덮기) */
+    body.ziwei-body { background: var(--zw-bg); margin: 0; }
+
+    .ziwei-lp .wrap {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+
+    /* ── 섹션 공통 ── */
+    .ziwei-lp .section {
+      padding-top: 140px;
+      padding-bottom: 140px;
+      text-align: center;
+    }
+    .ziwei-lp .section--tight { padding-top: 110px; padding-bottom: 110px; }
+
+    .ziwei-lp .eyebrow {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.34em;
+      text-indent: 0.34em;
+      color: var(--zw-gold);
+      margin-bottom: 26px;
+      opacity: 0.9;
+    }
+    .ziwei-lp .title {
+      font-weight: 800;
+      /* 스펙 58~64px — 실제 모바일 폭에서 넘치지 않도록 clamp로 스케일 */
+      font-size: clamp(32px, 8.4vw, 60px);
+      line-height: 1.14;
+      letter-spacing: -0.03em;
+      color: var(--zw-text);
+      margin: 0;
+      word-break: keep-all;
+    }
+    .ziwei-lp .title .gold { color: var(--zw-gold); }
+    .ziwei-lp .subtitle {
+      margin-top: 24px;
+      font-size: clamp(17px, 4.6vw, 22px);
+      font-weight: 500;
+      line-height: 1.6;
+      color: var(--zw-sub);
+      word-break: keep-all;
+    }
+    .ziwei-lp .body {
+      margin-top: 26px;
+      font-size: clamp(15px, 4.2vw, 18px);
+      font-weight: 400;
+      line-height: 1.8;
+      color: var(--zw-body);
+      word-break: keep-all;
+    }
+
+    /* ── GIF 미디어 슬롯 (이미지 없으면 골드 테두리 플레이스홀더 노출) ── */
+    .ziwei-lp .media {
+      position: relative;
+      width: 100%;
+      margin: 40px auto 0;
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--zw-card);
+      border: 1px solid var(--zw-border);
+      aspect-ratio: 16 / 11;
+    }
+    .ziwei-lp .media--tall { aspect-ratio: 3 / 4; }
+    .ziwei-lp .media--wide { aspect-ratio: 4 / 3; }
+    .ziwei-lp .media > img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    /* 플레이스홀더: img가 실패(remove)하면 이 배경이 드러남 */
+    .ziwei-lp .media::before {
+      content: attr(data-label);
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.28em; text-indent: 0.28em;
+      color: rgba(216,177,109,0.55);
+      background:
+        radial-gradient(90% 70% at 50% 30%, rgba(216,177,109,0.06), transparent 70%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0 12px, transparent 12px 24px);
+      border: 1px dashed rgba(216,177,109,0.28);
+      border-radius: 20px;
+      z-index: 0;
+    }
+    .ziwei-lp .media > img { z-index: 1; }
+
+    /* ── 페이드 업 (텍스트 전용, GIF는 fade 없이 자연 등장) ── */
+    .ziwei-lp .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .ziwei-lp .fade-up.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .ziwei-lp .fade-up { opacity: 1; transform: none; transition: none; }
+    }
+
+    /* ══════ HERO ══════ */
+    .ziwei-lp .hero {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 88px 24px 96px;
+      overflow: hidden;
+    }
+    .ziwei-lp .hero__media {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+    .ziwei-lp .hero::after { /* 어두운 배경 폴백 + GIF 위 오버레이 40% */
+      content: "";
+      position: absolute; inset: 0; z-index: 1;
+      background:
+        linear-gradient(180deg, rgba(9,11,18,0.55) 0%, rgba(9,11,18,0.25) 42%, rgba(9,11,18,0.92) 100%),
+        rgba(9,11,18,0.40);
+    }
+    .ziwei-lp .hero__inner { position: relative; z-index: 2; max-width: 720px; }
+    .ziwei-lp .hero .title { font-size: clamp(34px, 9vw, 62px); }
+    .ziwei-lp .hero__scrollcue {
+      position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+      z-index: 2;
+      width: 1px; height: 46px;
+      background: linear-gradient(180deg, transparent, rgba(216,177,109,0.8));
+      animation: zw-cue 2.2s ease-in-out infinite;
+    }
+    @keyframes zw-cue { 0%,100% { opacity:.25; height:36px; } 50% { opacity:.9; height:46px; } }
+
+    /* 오행 상단 브랜드 바 */
+    .ziwei-lp .topbar {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 20px;
+    }
+    .ziwei-lp .topbar__back {
+      font-size: 22px; line-height: 1; color: #efe6d6; text-decoration: none;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.7);
+    }
+    .ziwei-lp .topbar__brand {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.36em; text-indent: 0.36em;
+      color: var(--zw-gold); text-shadow: 0 1px 8px rgba(0,0,0,0.7);
+    }
+
+    /* ── 6개 정보 카드 (Section 3) ── */
+    .ziwei-lp .cardgrid {
+      margin-top: 44px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .ziwei-lp .infocard {
+      padding: 26px 18px;
+      border-radius: 20px;
+      background: rgba(18,23,33,0.7);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid var(--zw-border);
+      text-align: center;
+    }
+    .ziwei-lp .infocard__ico {
+      font-size: 22px; line-height: 1;
+      color: var(--zw-gold);
+      display: block; margin-bottom: 12px;
+    }
+    .ziwei-lp .infocard__name {
+      font-size: 17px; font-weight: 700; color: var(--zw-text); letter-spacing: 0.01em;
+    }
+    .ziwei-lp .infocard__desc {
+      margin-top: 7px; font-size: 12.5px; line-height: 1.6; color: var(--zw-body); word-break: keep-all;
+    }
+
+    /* ── 2단 레이아웃 (Section 5 · Section 8) ── */
+    .ziwei-lp .split {
+      margin-top: 48px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      text-align: left;
+      align-items: center;
+    }
+    .ziwei-lp .split .media { margin-top: 0; }
+    .ziwei-lp .split__text .subtitle,
+    .ziwei-lp .split__text .body { text-align: left; }
+
+    .ziwei-lp .checklist { margin: 22px 0 0; padding: 0; list-style: none; }
+    .ziwei-lp .checklist li {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 0;
+      font-size: 16px; font-weight: 500; color: var(--zw-sub);
+      border-bottom: 1px solid var(--zw-border);
+    }
+    .ziwei-lp .checklist li:last-child { border-bottom: none; }
+    .ziwei-lp .checklist .tick {
+      flex: 0 0 22px; width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      border: 1px solid rgba(216,177,109,0.5);
+      color: var(--zw-gold); font-size: 12px;
+    }
+
+    /* ── 비교 카드 (Section 8) ── */
+    .ziwei-lp .compare {
+      margin-top: 44px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      text-align: left;
+    }
+    .ziwei-lp .cmpcard {
+      padding: 30px 24px;
+      border-radius: 20px;
+      background: var(--zw-card);
+      border: 1px solid var(--zw-border);
+    }
+    .ziwei-lp .cmpcard--gold { border-color: rgba(216,177,109,0.4); }
+    .ziwei-lp .cmpcard__tag {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.2em;
+      color: var(--zw-body); margin-bottom: 12px;
+    }
+    .ziwei-lp .cmpcard--gold .cmpcard__tag { color: var(--zw-gold); }
+    .ziwei-lp .cmpcard__title {
+      font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--zw-text); margin-bottom: 14px;
+    }
+    .ziwei-lp .cmpcard__desc { font-size: 15px; line-height: 1.8; color: var(--zw-body); word-break: keep-all; }
+
+    /* ── 후기 슬라이더 (Section 6) ── */
+    .ziwei-lp .reviews { margin-top: 44px; }
+    .ziwei-lp .review {
+      height: auto;
+      padding: 28px 24px;
+      border-radius: 20px;
+      background: var(--zw-card);
+      border: 1px solid var(--zw-border);
+      text-align: left;
+    }
+    .ziwei-lp .review__stars { color: var(--zw-gold); font-size: 14px; letter-spacing: 2px; margin-bottom: 14px; }
+    .ziwei-lp .review__text {
+      font-size: 15.5px; line-height: 1.75; color: var(--zw-sub); word-break: keep-all; min-height: 84px;
+    }
+    .ziwei-lp .review__who { margin-top: 16px; font-size: 13px; color: var(--zw-body); }
+    .ziwei-lp .swiper { padding-bottom: 4px; }
+    .ziwei-lp .swiper-slide { height: auto; }
+
+    /* ── 흐름 (Section 9) ── */
+    .ziwei-lp .flow { margin: 44px auto 0; max-width: 340px; }
+    .ziwei-lp .flow__step {
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: var(--zw-card);
+      border: 1px solid var(--zw-border);
+      font-size: 16px; font-weight: 600; color: var(--zw-sub);
+    }
+    .ziwei-lp .flow__step.is-last {
+      border-color: rgba(216,177,109,0.45);
+      color: var(--zw-gold);
+      background: linear-gradient(180deg, rgba(216,177,109,0.08), rgba(18,23,33,0.9));
+    }
+    .ziwei-lp .flow__arrow {
+      height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(216,177,109,0.55); font-size: 14px;
+    }
+
+    /* ══════ FINAL CTA (버튼은 여기에만) ══════ */
+    .ziwei-lp .final {
+      padding-top: 140px;
+      padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid var(--zw-border);
+      background: radial-gradient(120% 60% at 50% 0%, rgba(216,177,109,0.06), transparent 60%);
+      text-align: center;
+    }
+    .ziwei-lp .form {
+      margin: 40px auto 0;
+      max-width: 460px;
+      padding: 26px 22px 28px;
+      border-radius: 22px;
+      background: var(--zw-card);
+      border: 1px solid var(--zw-border);
+      text-align: left;
+    }
+    .ziwei-lp .field { margin-bottom: 18px; }
+    .ziwei-lp .field:last-of-type { margin-bottom: 0; }
+    .ziwei-lp .field__label {
+      display: block; margin-bottom: 9px;
+      font-size: 12.5px; font-weight: 600; letter-spacing: 0.14em; color: var(--zw-body);
+    }
+    .ziwei-lp .field input,
+    .ziwei-lp .field select {
+      width: 100%;
+      padding: 15px 16px;
+      border-radius: 12px;
+      background: rgba(9,11,18,0.6);
+      border: 1px solid var(--zw-border);
+      color: var(--zw-text);
+      font-family: inherit;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .ziwei-lp .field input::placeholder { color: rgba(153,162,175,0.5); }
+    .ziwei-lp .field input:focus,
+    .ziwei-lp .field select:focus {
+      border-color: rgba(216,177,109,0.6);
+      box-shadow: 0 0 0 3px rgba(216,177,109,0.1);
+    }
+    .ziwei-lp .field select {
+      appearance: none; -webkit-appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23D8B16D' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;
+    }
+    .ziwei-lp .field select option { background: #14181f; color: #f0f0f0; }
+    .ziwei-lp .genderbtns { display: flex; gap: 10px; }
+    .ziwei-lp .genderbtns button {
+      flex: 1;
+      padding: 14px 0;
+      border-radius: 12px;
+      background: rgba(9,11,18,0.6);
+      border: 1px solid var(--zw-border);
+      color: var(--zw-sub);
+      font-family: inherit; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .ziwei-lp .genderbtns button .hz { color: var(--zw-body); margin-right: 5px; font-weight: 700; }
+    .ziwei-lp .genderbtns button.active {
+      border-color: var(--zw-gold);
+      color: var(--zw-text);
+      background: linear-gradient(180deg, rgba(216,177,109,0.16), rgba(18,23,33,0.9));
+    }
+    .ziwei-lp .genderbtns button.active .hz { color: var(--zw-gold); }
+
+    .ziwei-lp .cta {
+      display: block; width: 100%;
+      margin-top: 24px;
+      padding: 18px 0;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #E6C588 0%, #D8B16D 55%, #C69A4F 100%);
+      color: #1a1305;
+      font-family: inherit;
+      font-size: 18px; font-weight: 800; letter-spacing: -0.01em;
+      cursor: pointer;
+      box-shadow: 0 14px 34px rgba(216,177,109,0.22);
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .ziwei-lp .cta:active { transform: scale(0.985); box-shadow: 0 8px 20px rgba(216,177,109,0.2); }
+    .ziwei-lp .final__note {
+      margin-top: 18px; font-size: 12.5px; line-height: 1.7; color: rgba(153,162,175,0.7); word-break: keep-all;
+    }
+
+    /* ── 데스크톱/큰 화면 ── */
+    @media (min-width: 768px) {
+      .ziwei-lp .cardgrid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .ziwei-lp .split { grid-template-columns: 1fr 1fr; gap: 40px; }
+      .ziwei-lp .split--rev .split__media { order: 2; }
+      .ziwei-lp .compare { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+
+<body class="ziwei-body">
+<div class="ziwei-lp">
+
+  <!-- ══════ HERO ══════ -->
+  <header class="hero">
+    <div class="topbar">
+      <a href="/saju" class="topbar__back" aria-label="뒤로">&#8592;</a>
+      <span class="topbar__brand">紫微斗數</span>
+    </div>
+    <!-- 배경 GIF: /public/gif/ 에서 교체 -->
+    <div class="hero__media media" data-label="HERO · GIF" style="border:none;border-radius:0;margin:0;aspect-ratio:auto;">
+      <img src="/gif/hero.gif" alt="" onerror="this.remove()">
+    </div>
+    <div class="hero__inner">
+      <h1 class="title fade-up">태어나는 순간,<br>당신의 명반은<br><span class="gold">이미 완성</span>되어 있었습니다.</h1>
+      <p class="subtitle fade-up">출생 정보 속에는<br>당신만의 삶의 구조가<br>담겨 있습니다.</p>
+    </div>
+    <span class="hero__scrollcue" aria-hidden="true"></span>
+  </header>
+
+  <!-- ══════ SECTION 2 ══════ -->
+  <section class="section">
+    <div class="wrap">
+      <span class="eyebrow fade-up">WHY ZIWEI</span>
+      <h2 class="title fade-up">왜 많은 사람들이<br><span class="gold">자미두수</span>를<br>선택할까요?</h2>
+      <div class="media media--wide" data-label="SECTION 2 · GIF">
+        <img src="/gif/section2.gif" alt="" onerror="this.remove()">
+      </div>
+      <p class="body fade-up">태어난 시간과<br>별의 위치에 따라<br>명반은 모두 다르게 만들어집니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════ SECTION 3 ══════ -->
+  <section class="section">
+    <div class="wrap">
+      <span class="eyebrow fade-up">WHAT IT READS</span>
+      <h2 class="title fade-up">자미두수는<br>무엇을<br><span class="gold">알려줄까요?</span></h2>
+      <div class="media" data-label="SECTION 3 · GIF">
+        <img src="/gif/section3.gif" alt="" onerror="this.remove()">
+      </div>
+      <div class="cardgrid">
+        <div class="infocard fade-up"><span class="infocard__ico">◇</span><span class="infocard__name">성향</span><p class="infocard__desc">타고난 기질과 마음의 결</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">❤</span><span class="infocard__name">연애</span><p class="infocard__desc">인연의 흐름과 관계의 온도</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">◈</span><span class="infocard__name">직업</span><p class="infocard__desc">잘 맞는 길과 일의 방향</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">◆</span><span class="infocard__name">재물</span><p class="infocard__desc">돈이 들고 나는 구조</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">◎</span><span class="infocard__name">인간관계</span><p class="infocard__desc">주변과 얽히는 방식</p></div>
+        <div class="infocard fade-up"><span class="infocard__ico">◐</span><span class="infocard__name">운의 흐름</span><p class="infocard__desc">때에 따라 바뀌는 큰 흐름</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ SECTION 4 ══════ -->
+  <section class="section">
+    <div class="wrap">
+      <span class="eyebrow fade-up">SAME DAY, DIFFERENT LIFE</span>
+      <h2 class="title fade-up">같은 생일인데<br>왜 삶은<br><span class="gold">다를까요?</span></h2>
+      <div class="media media--wide" data-label="SECTION 4 · GIF">
+        <img src="/gif/section4.gif" alt="" onerror="this.remove()">
+      </div>
+      <p class="body fade-up">같은 생일이라도<br>출생시간과 별의 위치에 따라<br>명반은 모두 달라집니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════ SECTION 5 (좌 GIF · 우 텍스트) ══════ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="split split--rev">
+        <div class="split__media">
+          <div class="media media--tall" data-label="SECTION 5 · PDF/GIF">
+            <img src="/gif/section5.gif" alt="" onerror="this.remove()">
+          </div>
+        </div>
+        <div class="split__text">
+          <span class="eyebrow fade-up">YOUR RESULT</span>
+          <h2 class="title fade-up" style="text-align:left;">결과는<br>이렇게<br><span class="gold">제공됩니다.</span></h2>
+          <ul class="checklist fade-up">
+            <li><span class="tick">✓</span> 성향</li>
+            <li><span class="tick">✓</span> 연애</li>
+            <li><span class="tick">✓</span> 직업</li>
+            <li><span class="tick">✓</span> 재물</li>
+            <li><span class="tick">✓</span> 운의 흐름</li>
+            <li><span class="tick">✓</span> 변화 시기</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ SECTION 6 (후기 슬라이더) ══════ -->
+  <section class="section">
+    <div class="wrap">
+      <span class="eyebrow fade-up">REVIEWS</span>
+      <h2 class="title fade-up">명반을 확인한 사람들이<br><span class="gold">이렇게 말했습니다.</span></h2>
+    </div>
+    <div class="reviews fade-up">
+      <div class="swiper" id="reviewSwiper">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide"><div class="review"><div class="review__stars">★★★★★</div><p class="review__text">"막연했던 부분이 궁의 구조로 딱 정리돼서 놀랐어요. 왜 늘 같은 지점에서 걸렸는지 이해됐습니다."</p><div class="review__who">이○○ · 30대</div></div></div>
+          <div class="swiper-slide"><div class="review"><div class="review__stars">★★★★★</div><p class="review__text">"연애 흐름 설명이 소름 돋을 만큼 지금 상황이랑 맞아서 계속 다시 읽게 되네요."</p><div class="review__who">김○○ · 20대</div></div></div>
+          <div class="swiper-slide"><div class="review"><div class="review__stars">★★★★★</div><p class="review__text">"재물과 직업 부분이 특히 현실적이었어요. 두루뭉술한 운세랑은 결이 다릅니다."</p><div class="review__who">박○○ · 40대</div></div></div>
+          <div class="swiper-slide"><div class="review"><div class="review__stars">★★★★★</div><p class="review__text">"출생시간 하나로 이렇게 달라진다는 게 신기했어요. 친구랑 비교해보니 완전히 다른 명반이더라고요."</p><div class="review__who">정○○ · 30대</div></div></div>
+          <div class="swiper-slide"><div class="review"><div class="review__stars">★★★★★</div><p class="review__text">"변화 시기를 짚어준 게 제일 좋았어요. 막연한 불안 대신 준비할 마음이 생겼습니다."</p><div class="review__who">최○○ · 30대</div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ SECTION 7 (전통성) ══════ -->
+  <section class="section">
+    <div class="wrap">
+      <span class="eyebrow fade-up">TRADITION</span>
+      <h2 class="title fade-up">수백 년 동안<br>이어져 온<br><span class="gold">명반 해석</span></h2>
+      <div class="media media--wide" data-label="SECTION 7 · GIF">
+        <img src="/gif/section7.gif" alt="" onerror="this.remove()">
+      </div>
+      <p class="body fade-up">오랜 시간 이어져 온<br>자미두수 해석 체계를<br>현대적으로 재구성했습니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════ SECTION 8 (사주 vs 자미두수 비교) ══════ -->
+  <section class="section">
+    <div class="wrap">
+      <span class="eyebrow fade-up">DIFFERENCE</span>
+      <h2 class="title fade-up">사주와<br>자미두수는<br><span class="gold">무엇이 다를까요?</span></h2>
+      <div class="compare">
+        <div class="cmpcard fade-up">
+          <div class="cmpcard__tag">四柱 · 사주</div>
+          <div class="cmpcard__title">여덟 글자로 보는<br>큰 기질과 균형</div>
+          <p class="cmpcard__desc">태어난 연·월·일·시를 천간·지지 여덟 글자로 뽑아, 오행의 균형과 일간을 중심으로 타고난 기질과 삶의 큰 결을 읽습니다.</p>
+        </div>
+        <div class="cmpcard cmpcard--gold fade-up">
+          <div class="cmpcard__tag">紫微斗數 · 자미두수</div>
+          <div class="cmpcard__title">열두 궁으로 그리는<br>삶의 지도</div>
+          <p class="cmpcard__desc">12개의 궁에 자미성을 비롯한 별을 배치해, 연애·재물·직업 등 삶의 영역별로 구체적인 구조와 흐름을 지도처럼 펼쳐 봅니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ SECTION 9 (분석 과정) ══════ -->
+  <section class="section">
+    <div class="wrap">
+      <span class="eyebrow fade-up">HOW IT WORKS</span>
+      <h2 class="title fade-up">당신의 정보는<br>어떻게<br><span class="gold">명반이 될까요?</span></h2>
+      <div class="media media--wide" data-label="SECTION 9 · GIF">
+        <img src="/gif/section9.gif" alt="" onerror="this.remove()">
+      </div>
+      <div class="flow fade-up">
+        <div class="flow__step">생년월일</div>
+        <div class="flow__arrow">▼</div>
+        <div class="flow__step">출생시간</div>
+        <div class="flow__arrow">▼</div>
+        <div class="flow__step">명반 생성</div>
+        <div class="flow__arrow">▼</div>
+        <div class="flow__step">분석</div>
+        <div class="flow__arrow">▼</div>
+        <div class="flow__step is-last">결과</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ FINAL CTA ══════ -->
+  <section class="final">
+    <div class="wrap">
+      <span class="eyebrow fade-up">OPEN YOUR CHART</span>
+      <h2 class="title fade-up">당신의 명반에는<br>어떤 삶의 흐름이<br><span class="gold">기록되어 있을까요?</span></h2>
+
+      <div class="media media--wide fade-up" data-label="FINAL · GIF" style="max-width:460px;">
+        <img src="/gif/final.gif" alt="" onerror="this.remove()">
+      </div>
+
+      <form id="ziweiForm" method="POST" action="/saju/ziwei/input" class="form fade-up">
+        <input type="hidden" name="gender" id="genderInput">
+        <input type="hidden" name="birthType" value="양력">
+        <input type="hidden" name="birthdate" id="birthdateInput">
+        <input type="hidden" name="goodsType" value="ZIWEI">
+
+        <div class="field">
+          <label class="field__label" for="birthdateDisplay">생년월일</label>
+          <input type="text" id="birthdateDisplay" inputmode="numeric" maxlength="8"
+                 placeholder="8자리 (예: 19980415)">
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="birthTimeSelect">출생시간</label>
+          <select name="birthTime" id="birthTimeSelect">
+            <option value="unknown">시(時) 모름</option>
+            <option value="00">자시 子 (23:30~01:29)</option>
+            <option value="02">축시 丑 (01:30~03:29)</option>
+            <option value="04">인시 寅 (03:30~05:29)</option>
+            <option value="06">묘시 卯 (05:30~07:29)</option>
+            <option value="08">진시 辰 (07:30~09:29)</option>
+            <option value="10">사시 巳 (09:30~11:29)</option>
+            <option value="12">오시 午 (11:30~13:29)</option>
+            <option value="14">미시 未 (13:30~15:29)</option>
+            <option value="16">신시 申 (15:30~17:29)</option>
+            <option value="18">유시 酉 (17:30~19:29)</option>
+            <option value="20">술시 戌 (19:30~21:29)</option>
+            <option value="22">해시 亥 (21:30~23:29)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field__label">성별</label>
+          <div class="genderbtns">
+            <button type="button" class="gender-cell" data-value="남성"><span class="hz">乾</span>남성</button>
+            <button type="button" class="gender-cell" data-value="여성"><span class="hz">坤</span>여성</button>
+          </div>
+        </div>
+
+        <button type="button" class="cta" id="openBtn">내 자미명반 열어보기</button>
+      </form>
+      <p class="final__note">입력한 정보는 당신의 명반을 계산하는 데에만 사용됩니다.</p>
+    </div>
+  </section>
+
+</div><!-- /.ziwei-lp -->
+
+  <script>
+    (function () {
+      /* ── 페이드 업: Intersection Observer ── */
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+      document.querySelectorAll('.ziwei-lp .fade-up').forEach(function (el, i) {
+        // 같은 섹션 내 순차 등장 느낌을 위해 약간의 지연
+        el.style.transitionDelay = (Math.min(i % 6, 5) * 0.06) + 's';
+        io.observe(el);
+      });
+
+      /* ── 후기 자동 슬라이더 (Swiper) ── */
+      if (window.Swiper) {
+        new Swiper('#reviewSwiper', {
+          slidesPerView: 1.1,
+          spaceBetween: 14,
+          centeredSlides: false,
+          loop: true,
+          autoplay: { delay: 3200, disableOnInteraction: false },
+          speed: 700,
+          breakpoints: { 768: { slidesPerView: 2.2, spaceBetween: 16 } }
+        });
+      }
+
+      /* ── 성별 선택 ── */
+      document.querySelectorAll('.genderbtns .gender-cell').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.genderbtns .gender-cell').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          document.getElementById('genderInput').value = btn.dataset.value;
+        });
+      });
+
+      /* ── 생년월일 숫자만 ── */
+      var bdDisplay = document.getElementById('birthdateDisplay');
+      bdDisplay.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 8);
+      });
+
+      /* ── 제출 ── */
+      var form = document.getElementById('ziweiForm');
+      document.getElementById('openBtn').addEventListener('click', function () {
+        var bd     = bdDisplay.value.replace(/\D/g, '');
+        var gender = document.getElementById('genderInput').value;
+
+        if (!/^\d{8}$/.test(bd)) { alert('생년월일을 8자리로 정확히 적어주세요. (예: 19980415)'); return; }
+        if (!gender) { alert('성별을 선택해주세요.'); return; }
+
+        document.getElementById('birthdateInput').value = bd;
+
+        var ticket = new URLSearchParams(window.location.search).get('ticket');
+        if (ticket) {
+          var t = document.createElement('input');
+          t.type = 'hidden'; t.name = 'ticket'; t.value = ticket;
+          form.appendChild(t);
+          form.action = '/saju/ziwei/input?ticket=' + ticket;
+        }
+        form.submit();
+      });
+    })();
+  </script>
+</body>
+</html>

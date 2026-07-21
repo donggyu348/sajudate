@@ -313,22 +313,22 @@ router.post("/reaper/result", async (req, res) => {
   }
 });
 
-/* 구미호 사주(홍연부) 인트로 — 씬 시퀀스 + 정보 입력까지 한 화면 */
-router.get("/gumiho/intro", (req, res) => {
-  res.render("tight/saju/gumiho/intro");
+/* 자미두수(紫微斗數) 인트로 — 롱스크롤 소개 랜딩 + 정보 입력 */
+router.get("/ziwei/intro", (req, res) => {
+  res.render("tight/saju/ziwei/intro");
 });
 
 // TODO: input/loading/result 단계는 reaper 패턴을 참고해 별도로 구현 필요
-// (gumihoChartService, GoodsType.GUMIHO, GPT 리포트 프롬프트 등 백엔드 연동 포함)
-router.post("/gumiho/input", async (req, res) => {
+// (ziweiCalService.getZiweiChart, GoodsType.ZIWEI, GPT 리포트 프롬프트 등 백엔드 연동 포함)
+router.post("/ziwei/input", async (req, res) => {
   try {
-    return res.render("tight/saju/gumiho/intro", {
+    return res.render("tight/saju/ziwei/intro", {
       userInfo: req.body,
       submitted: true,
     });
   } catch (e) {
-    console.error("gumiho input render error:", e);
-    return res.redirect("/saju/gumiho/intro");
+    console.error("ziwei input render error:", e);
+    return res.redirect("/saju/ziwei/intro");
   }
 });
 
