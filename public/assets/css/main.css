@@ -12674,6 +12674,10 @@ button,
   forced-color-adjust: none
 }
 
+.\[-\:\/\.\] {
+  -: /.
+}
+
 .\[-T\:\.Z\] {
   --t: .Z
 }
