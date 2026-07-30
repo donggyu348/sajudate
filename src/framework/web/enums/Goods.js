@@ -8,32 +8,32 @@ export const GoodsType = Object.freeze({
     code: "PREMIUM_SAJU",
     title: '프리미엄 종합사주',
     originalPrice: 52800,
-    discountPrice: 42900,
-    price: 9900,
+    discountPrice: 17000,
+    price: 35800,
     platform: Platform.JUJANGSO
   },
   CLASSIC: {
     code: "CLASSIC",
     title: '정통사주',
     originalPrice: 69800,
-    discountPrice: 59900,
-    price: 9900,
+    discountPrice: 37000,
+    price: 32800,
     platform: Platform.TIGHT
   },
   ROMANTIC: {
     code: "ROMANTIC",
     title: '홍연사주(연애사주)',
     originalPrice: 53800,
-    discountPrice: 43900,
-    price: 9900,
+    discountPrice: 18900,
+    price: 34900,
     platform: Platform.TIGHT
   },
    CLASSIC_BUNDLE: {
     code: "CLASSIC_BUNDLE",
     title: '정통사주 (+홍연사주(연애사주) 무료티켓 증정)',
     originalPrice: 149800,
-    discountPrice: 134900,
-    price: 14900,
+    discountPrice: 100000,
+    price: 49800,
     platform: Platform.TIGHT,
     reportCode: "CLASSIC",   // 이 번들의 본 리포트는 CLASSIC
     giveTicket: "ROMANTIC" // 이 상품을 사면 ROMANTIC 티켓을 줌
@@ -78,8 +78,8 @@ export const GoodsType = Object.freeze({
     code: "REAPER",
     title: "사자록(정통사주)",
     originalPrice: 63000,
-    discountPrice: 53100,
-    price: 9900,
+    discountPrice: 25200,
+    price: 37800,
     platform: Platform.TIGHT
   },
 
@@ -91,8 +91,8 @@ export const GoodsType = Object.freeze({
     code: "ROMANTIC_REAPER_BUNDLE",
     title: "홍연사주(연애사주) + 사자록(정통사주)",
     originalPrice: 72400,
-    discountPrice: 57500,
-    price: 14900,
+    discountPrice: 20800,
+    price: 51600,
     platform: Platform.TIGHT,
     reportCode: "ROMANTIC",
     giveTicket: "REAPER"
@@ -115,8 +115,8 @@ export const GoodsType = Object.freeze({
     code: "REAPER_ROMANTIC_BUNDLE",
     title: "사자록(정통사주) + 홍연사주(연애사주)",
     originalPrice: 72400,
-    discountPrice: 57500,
-    price: 14900,
+    discountPrice: 20800,
+    price: 51600,
     platform: Platform.TIGHT,
     reportCode: "REAPER",
     giveTicket: "ROMANTIC"
