@@ -1,15 +1,7 @@
-# Environment files
+node_modules/
 .env
 .env.local
-
-# Node
-node_modules/
-npm-debug.log*
-yarn-error.log*
-
-# Build outputs
-.dist/
-dist/
-coverage/
-
-
+public/assets/css/main.css
+uploads/
+*.log
+.DS_Store

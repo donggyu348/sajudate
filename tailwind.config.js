@@ -1,26 +1,38 @@
-module.exports = {
-  content: ['./**/*.ejs', './**/*.js'],
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./src/views/**/*.ejs'],
   theme: {
     extend: {
       colors: {
-        bluePrimary: '#2C557E'
+        // 강조색 하나만 사용 — 진지하고 신뢰감 있는 딥 인디고
+        accent: {
+          DEFAULT: '#4338ca', // indigo-700
+          soft: '#eef2ff', // indigo-50
+          ring: '#c7d2fe', // indigo-200
+        },
+        ink: {
+          DEFAULT: '#111827', // 본문 텍스트
+          soft: '#6b7280', // 서브 텍스트
+        },
+        line: '#e5e7eb', // 얇은 테두리
       },
       fontFamily: {
-        ridibatang: ['RIDIBatang', 'serif'],
-        chosun: ['ChosunCentennial', 'serif'],
-        chosunkm: ['ChosunKm', 'serif'],
-        gyeonggi: ['Gyeonggi_Batang_Regular', 'serif'],
-        'pretendard-regular': ['Pretendard-Regular', 'sans-serif'],
-        'pretendard-bold': ['Pretendard-Bold', 'sans-serif'],
-        'pretendard-medium': ['Pretendard-Medium', 'sans-serif'],
-        'pretendard-light': ['Pretendard-Light', 'sans-serif'],
-
-      }
+        sans: [
+          'Pretendard',
+          'system-ui',
+          '-apple-system',
+          'Segoe UI',
+          'Roboto',
+          'sans-serif',
+        ],
+      },
+      aspectRatio: {
+        '4/5': '4 / 5',
+      },
+      maxWidth: {
+        app: '480px', // 모바일 우선 컨테이너
+      },
     },
-    safelist: [
-      'font-ridibatang', 'font-chosun',
-      'font-pretendard-bold', 'font-pretendard-light',
-      'font-pretendard-medium', 'font-pretendard-regular'
-    ],
-  }
+  },
+  plugins: [],
 };
