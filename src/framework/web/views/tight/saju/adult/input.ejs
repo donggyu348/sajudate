@@ -18,6 +18,9 @@
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
+    /* DaisyUI(:root) 밝은테마 배경이 html을 덮어써 데스크톱에서 흰 여백이 생기는 것 방지 */
+    html:root { background: #000; }
+
     .stage {
       position: relative;
       max-width: 480px;
@@ -41,6 +44,13 @@
       );
       pointer-events: none;
     }
+
+    /* 이름 입력 스텝: 배경 이미지 제거하고 검은 화면 */
+    .stage--plain {
+      background-image: none;
+      background-color: #000;
+    }
+    .stage--plain::after { content: none; }
 
     .stage-inner {
       position: relative;
@@ -881,6 +891,9 @@
     document.getElementById('stepRel').classList.toggle('active', currentStep === 0);
     document.getElementById('step0').classList.toggle('active', currentStep === 1);
     document.getElementById('step1').classList.toggle('active', currentStep === 2);
+
+    // 배경 이미지는 관계 선택 스텝(0)에서만, 이름 입력 스텝은 검은 화면
+    document.querySelector('.stage').classList.toggle('stage--plain', currentStep !== 0);
 
     const header = document.querySelector('.form-header');
     const indicator = document.querySelector('.step-indicator');

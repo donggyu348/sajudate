@@ -12,6 +12,10 @@
       background: #000;
     }
 
+    /* DaisyUI(:root) 밝은테마 배경이 html을 덮어써 데스크톱에서 흰 여백이 생기는 것 방지 */
+    html:root { background: #000; }
+    body { min-height: 100dvh; }
+
     .page {
       max-width: 584px;
       margin: 0 auto;
