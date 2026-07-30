@@ -15,19 +15,54 @@
     .page {
       max-width: 584px;
       margin: 0 auto;
-      padding-bottom: 96px;
+      padding-bottom: 108px;
+      background: #000;
     }
 
+    /* ── 상단 바 ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .topbar__title {
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 3px;
+    }
+    .topbar__btn {
+      position: absolute;
+      top: 0;
+      height: 52px;
+      width: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .topbar__btn--back { left: 4px; }
+    .topbar__btn--heart { right: 4px; color: rgba(255, 255, 255, 0.85); }
+
+    /* ── 히어로 (gif + 타이틀 오버레이) ── */
     .intro-hero {
       position: relative;
       width: 100%;
       background: #000;
-      --intro-black-height: clamp(200px, 42vw, 300px);
-    }
-
-    .intro-hero__visual {
-      position: relative;
-      width: 100%;
+      overflow: hidden;
     }
 
     .intro-hero__gif {
@@ -36,52 +71,140 @@
       height: auto;
     }
 
-    .intro-hero__black {
-      width: 100%;
-      height: var(--intro-black-height);
-      background: #000;
-    }
-
     .intro-hero__gradient {
       position: absolute;
       left: 0;
       right: 0;
-      top: 0;
       bottom: 0;
+      height: 62%;
       pointer-events: none;
       z-index: 1;
       background: linear-gradient(
         to bottom,
-        transparent 0%,
-        transparent 48%,
-        rgba(0, 0, 0, 0.22) 58%,
-        rgba(0, 0, 0, 0.52) 68%,
-        rgba(0, 0, 0, 0.82) 78%,
-        #000 88%,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.15) 35%,
+        rgba(0, 0, 0, 0.55) 62%,
+        rgba(0, 0, 0, 0.88) 84%,
         #000 100%
       );
     }
 
-    .intro-hero__pont {
+    .intro-hero__title {
       position: absolute;
-      top: 58%;
-      right: 0;
-      bottom: calc(-1 * var(--intro-black-height));
-      width: auto;
-      max-width: 42%;
-      object-fit: contain;
-      object-position: right bottom;
-      transform: translateY(12px);
-      pointer-events: none;
+      left: 22px;
+      bottom: 22px;
       z-index: 2;
+      pointer-events: none;
     }
 
-    .landing-img {
+    .intro-hero__year {
       display: block;
-      width: 100%;
-      height: auto;
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      font-size: clamp(20px, 6.5vw, 34px);
+      font-weight: 800;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 6px;
     }
 
+    .intro-hero__main {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      font-size: clamp(38px, 12.5vw, 66px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.02em;
+      line-height: 1.02;
+      text-shadow: 0 4px 24px rgba(0, 0, 0, 0.65);
+    }
+
+    /* ── 후기 ── */
+    .reviews {
+      padding: 22px 16px 4px;
+    }
+    .reviews__head {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 0 14px;
+    }
+    .reviews__title {
+      margin: 0;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .reviews__live {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #e91e7a;
+    }
+    .reviews__dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #e91e7a;
+      box-shadow: 0 0 0 0 rgba(233, 30, 122, 0.6);
+      animation: rvpulse 1.6s infinite;
+    }
+    @keyframes rvpulse {
+      0%   { box-shadow: 0 0 0 0 rgba(233, 30, 122, 0.55); }
+      70%  { box-shadow: 0 0 0 6px rgba(233, 30, 122, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(233, 30, 122, 0); }
+    }
+
+    .reviews__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .rv-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 14px;
+      padding: 13px 13px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .rv-card__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .rv-card__nick {
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .rv-card__when {
+      color: rgba(255, 255, 255, 0.38);
+      font-size: 11px;
+    }
+    .rv-card__stars {
+      color: #e91e7a;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+    .rv-card__text {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.82);
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      font-size: 12.5px;
+      line-height: 1.55;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── 고정 CTA ── */
     .fixed-cta {
       position: fixed;
       bottom: 0;
@@ -92,7 +215,7 @@
       z-index: 100;
       padding: 16px 20px;
       padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-      background: #000;
+      background: linear-gradient(to top, #000 72%, rgba(0, 0, 0, 0));
     }
 
     .cta-btn {
@@ -106,7 +229,7 @@
       border-radius: 12px;
       background: #e91e7a;
       color: #fff;
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
       font-size: 16px;
       font-weight: 700;
       letter-spacing: -0.02em;
@@ -130,9 +253,8 @@
       font-size: 1.12em;
       font-weight: 700;
       line-height: 1;
-      opacity: 1;
       letter-spacing: -0.05em;
-      margin-left: 4px;
+      margin-left: 2px;
     }
 
     .cta-btn__text {
@@ -143,43 +265,77 @@
 
 <body>
   <div class="page">
-    <div class="intro-hero">
-      <div class="intro-hero__visual">
-        <img
-          class="intro-hero__gif"
-          src="/assets/images/tight/29/intro/0702.gif"
-          alt="29금 속궁합 사주 인트로"
-          width="584"
-          loading="eager"
-          decoding="async"
-        >
-        <img
-          class="intro-hero__pont"
-          src="/assets/images/tight/29/intro/pont.png"
-          alt=""
-          aria-hidden="true"
-          loading="eager"
-          decoding="async"
-        >
-      </div>
-      <div class="intro-hero__black" aria-hidden="true"></div>
-      <div class="intro-hero__gradient" aria-hidden="true"></div>
+    <div class="topbar">
+      <button type="button" class="topbar__btn topbar__btn--back" aria-label="뒤로" onclick="history.back()">&#8249;</button>
+      <span class="topbar__title">TIGHT</span>
+      <button type="button" class="topbar__btn topbar__btn--heart" aria-label="찜">&#9825;</button>
     </div>
 
-    <img
-      class="landing-img"
-      src="/assets/images/tight/29/intro/landing-full.png?v=1"
-      alt="29금 속궁합 사주 — 천해랑이 읽어주는 욕망과 속궁합의 비밀"
-      width="584"
-      height="19934"
-      loading="eager"
-      decoding="async"
-    >
+    <div class="intro-hero">
+      <img
+        class="intro-hero__gif"
+        src="/assets/images/tight/29/intro/0702.gif"
+        alt="29금 속궁합 사주 인트로"
+        width="584"
+        loading="eager"
+        decoding="async"
+      >
+      <div class="intro-hero__gradient" aria-hidden="true"></div>
+      <div class="intro-hero__title">
+        <span class="intro-hero__year">2026</span>
+        <h1 class="intro-hero__main">29금<br>속궁합 사주</h1>
+      </div>
+    </div>
+
+    <section class="reviews">
+      <div class="reviews__head">
+        <h2 class="reviews__title">방금 올라온 후기</h2>
+        <span class="reviews__live"><span class="reviews__dot"></span>실시간</span>
+      </div>
+
+      <div class="reviews__grid">
+        <article class="rv-card">
+          <div class="rv-card__head">
+            <span class="rv-card__nick">q***</span>
+            <span class="rv-card__when">7일 전</span>
+          </div>
+          <span class="rv-card__stars" aria-label="5점">★★★★★</span>
+          <p class="rv-card__text">별 기대 안 했는데… BDSM 맞추는 거 보고 이 정도면 해킹한 거 아니냐 싶었어요😳 한번쯤 재미삼아 봐도 좋을 거 같아요</p>
+        </article>
+
+        <article class="rv-card">
+          <div class="rv-card__head">
+            <span class="rv-card__nick">d***</span>
+            <span class="rv-card__when">1일 전</span>
+          </div>
+          <span class="rv-card__stars" aria-label="5점">★★★★★</span>
+          <p class="rv-card__text">미쳤다 완전 보수적인 사람이라 이런 거 관심 없었는데 이거 보고 완전 홀렸어요… 그 마음. 최고예욧🔥</p>
+        </article>
+
+        <article class="rv-card">
+          <div class="rv-card__head">
+            <span class="rv-card__nick">j***</span>
+            <span class="rv-card__when">3시간 전</span>
+          </div>
+          <span class="rv-card__stars" aria-label="5점">★★★★★</span>
+          <p class="rv-card__text">남친이랑 같이 봤는데 둘 다 얼굴 빨개져서 웃었어요ㅋㅋ 서로 뭘 좋아하는지 대화 트기 딱 좋더라고요</p>
+        </article>
+
+        <article class="rv-card">
+          <div class="rv-card__head">
+            <span class="rv-card__nick">s***</span>
+            <span class="rv-card__when">6시간 전</span>
+          </div>
+          <span class="rv-card__stars" aria-label="5점">★★★★★</span>
+          <p class="rv-card__text">솔직히 반신반의였는데 우리 케미 설명이 소름 돋게 맞아서… 캡처해서 바로 공유했어요. 디테일이 남달라요</p>
+        </article>
+      </div>
+    </section>
   </div>
 
   <div class="fixed-cta">
     <a href="/saju/adult/input" class="cta-btn">
-      <span class="cta-btn__text">S궁합 무료로 미리보기</span>
+      <span class="cta-btn__text">음탕한 속궁합 💋 보러가기</span>
       <span class="cta-btn__arrow" aria-hidden="true">--></span>
     </a>
   </div>
