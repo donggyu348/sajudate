@@ -119,7 +119,7 @@
       <div class="wg-gauge-wrap">
         <h3 class="wg-gauge__head">hoxy… 엄청난 <b>명기</b>의 소유자?</h3>
         <div class="wg-gauge">
-          <div class="wg-gauge__bar"><span class="wg-gauge__mark" style="top: <%= _wgGaugeTop %>%"></span></div>
+          <div class="wg-gauge__bar"><span class="wg-gauge__mark" style="--top: <%= _wgGaugeTop %>%"></span></div>
           <div class="wg-gauge__levels">
             <% _WG_GAUGE.forEach(function(lv, i){ %>
               <div class="wg-gauge__lv<%= i === _wgGaugeIdx ? ' is-on' : '' %>"><%= i === _wgGaugeIdx ? '▶ ' : '' %><%= lv %></div>
@@ -801,15 +801,26 @@
   overflow: hidden;
 }
 .wg-bar-fill {
+  position: relative;
   display: block;
   height: 100%;
-  width: 0;
+  width: var(--w);
   border-radius: 99px;
   background: linear-gradient(90deg, #b42828, #e88890 60%, #e6c27a);
   box-shadow: 0 0 12px rgba(230, 194, 122, 0.35);
-  transition: width 1.1s cubic-bezier(.22, 1, .36, 1);
+  overflow: hidden;
 }
-.wg-in .wg-bar-fill { width: var(--w); }
+.wg-js .wg-bar-fill { width: 0; transition: width 1.1s cubic-bezier(.22, 1, .36, 1); }
+.wg-js .wg-in .wg-bar-fill { width: var(--w); }
+/* 채워지는 바 위 반짝임 */
+.wg-bar-fill::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 245, 225, 0.4), transparent);
+  transform: translateX(-100%);
+}
+.wg-in .wg-bar-fill::after { animation: wgShimmer 1.5s ease 1.1s infinite; }
+@keyframes wgShimmer { to { transform: translateX(320%); } }
 .wg-bar-val {
   flex: 0 0 28px;
   text-align: right;
@@ -841,12 +852,27 @@
 .wg-gauge__mark {
   position: absolute;
   left: 50%;
+  top: var(--top);
   width: 22px; height: 22px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: #fff;
   border: 3px solid #b42828;
   box-shadow: 0 0 14px rgba(255, 255, 255, 0.55);
+}
+.wg-js .wg-gauge__mark { top: 100%; transition: top 1.1s cubic-bezier(.22, 1, .36, 1) 0.25s; }
+.wg-js .wg-in .wg-gauge__mark { top: var(--top); }
+.wg-gauge__mark::before {
+  content: "";
+  position: absolute; inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  opacity: 0;
+}
+.wg-in .wg-gauge__mark::before { animation: wgRing 1.7s ease-out 1.3s infinite; }
+@keyframes wgRing {
+  0% { opacity: 0.85; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(1.9); }
 }
 .wg-gauge__levels {
   flex: 1;
@@ -868,6 +894,60 @@
   margin: 20px 0 0;
   font-style: italic;
   word-break: keep-all;
+}
+
+/* ── 스크롤 진입 등장 + 생동 효과 (JS 활성 시에만 숨김) ── */
+.wg-js .wg-sec > * {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.wg-js .wg-sec.wg-in > * {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.65s cubic-bezier(.22, 1, .36, 1);
+}
+.wg-js .wg-sec.wg-in > *:nth-child(1) { transition-delay: 0.04s; }
+.wg-js .wg-sec.wg-in > *:nth-child(2) { transition-delay: 0.14s; }
+.wg-js .wg-sec.wg-in > *:nth-child(3) { transition-delay: 0.24s; }
+.wg-js .wg-sec.wg-in > *:nth-child(4) { transition-delay: 0.34s; }
+
+/* 부적 카드: 인장 발광 + 샤인 스윕 */
+.wg-card__seal { animation: wgSealGlow 2.6s ease-in-out infinite; }
+@keyframes wgSealGlow {
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(201, 160, 102, 0.25)); }
+  50% { filter: drop-shadow(0 0 26px rgba(230, 194, 122, 0.6)); }
+}
+.wg-card::after {
+  content: "";
+  position: absolute; top: 0; left: -60%;
+  width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 240, 210, 0.16), transparent);
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+.wg-persona.wg-in .wg-card::after { animation: wgShine 1.7s ease 0.55s 1; }
+@keyframes wgShine { to { left: 135%; } }
+
+/* 명기 등급 활성 라벨 은은한 발광 */
+.wg-in .wg-gauge__lv.is-on { animation: wgLvPulse 1.9s ease-in-out 1.4s infinite; }
+@keyframes wgLvPulse {
+  0%, 100% { text-shadow: 0 0 0 transparent; }
+  50% { text-shadow: 0 0 14px rgba(230, 194, 122, 0.65); }
+}
+
+/* 복숭아 둥실 */
+.wg-gauge__peach { animation: wgFloat 3.2s ease-in-out infinite; }
+@keyframes wgFloat {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-js .wg-sec > *,
+  .wg-card__seal, .wg-gauge__peach,
+  .wg-in .wg-bar-fill::after, .wg-in .wg-gauge__mark::before,
+  .wg-in .wg-gauge__lv.is-on { animation: none !important; transition: none !important; }
+  .wg-js .wg-sec > * { opacity: 1; transform: none; }
 }
 </style>
 
@@ -893,18 +973,48 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 순위 바: 화면에 들어오면 채움 애니메이션
-  var rankSec = document.querySelector(".wg-rank");
-  if (rankSec) {
-    var barObserver = new IntersectionObserver(function (entries, obs) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("wg-in");
-          obs.unobserve(entry.target);
+  // 위젯: 화면에 들어오면 등장 + 순위 바 채움 + 숫자 카운트업
+  var wgSecs = document.querySelectorAll(".wg-sec");
+  if (wgSecs.length) {
+    document.documentElement.classList.add("wg-js");
+
+    function wgCountUp(sec) {
+      sec.querySelectorAll(".wg-bar-val").forEach(function (el) {
+        var target = parseInt(el.textContent, 10) || 0;
+        var dur = 1100, startTs = null;
+        el.textContent = "0";
+        function step(ts) {
+          if (!startTs) startTs = ts;
+          var p = Math.min((ts - startTs) / dur, 1);
+          var eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(eased * target);
+          if (p < 1) requestAnimationFrame(step);
+          else el.textContent = target;
         }
+        requestAnimationFrame(step);
       });
-    }, { threshold: 0.35 });
-    barObserver.observe(rankSec);
+    }
+
+    function wgReveal(sec) {
+      sec.classList.add("wg-in");
+      if (sec.classList.contains("wg-rank")) {
+        setTimeout(function () { wgCountUp(sec); }, 180);
+      }
+    }
+
+    if ("IntersectionObserver" in window) {
+      var wgObserver = new IntersectionObserver(function (entries, obs) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            wgReveal(entry.target);
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      wgSecs.forEach(function (s) { wgObserver.observe(s); });
+    } else {
+      wgSecs.forEach(wgReveal);
+    }
   }
 
   if (window.karrotPixel) window.karrotPixel.track("Lead");
