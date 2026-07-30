@@ -254,6 +254,74 @@
       letter-spacing: -0.02em;
     }
 
+    /* ── 관계 선택 스텝 ── */
+    .rel-spacer {
+      height: clamp(140px, 36vh, 320px);
+    }
+    .rel-sub {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: -0.02em;
+    }
+    .rel-q {
+      margin: 0 0 18px;
+      font-size: clamp(24px, 6.6vw, 30px);
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.04em;
+      color: #fff;
+    }
+    .rel-options {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .rel-opt {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 13px 2px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .rel-opt input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .rel-opt__dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      flex-shrink: 0;
+      position: relative;
+      transition: border-color 0.15s ease;
+    }
+    .rel-opt input:checked + .rel-opt__dot {
+      border-color: #fff;
+    }
+    .rel-opt input:checked + .rel-opt__dot::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: #fff;
+    }
+    .rel-opt__text {
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.62);
+      letter-spacing: -0.02em;
+      transition: color 0.15s ease, font-weight 0.15s ease;
+    }
+    .rel-opt input:checked ~ .rel-opt__text {
+      color: #fff;
+      font-weight: 700;
+    }
+
   /* main.css 전역 .active(흰 배경)와 충돌 방지 — romantic/input에는 form-step 없음 */
     .form-step {
       display: none;
@@ -541,7 +609,40 @@
     </div>
 
     <form id="sajuForm" method="POST" action="/saju/adult/result">
-      <div class="form-step active" id="step0">
+      <div class="form-step active" id="stepRel">
+        <div class="rel-spacer" aria-hidden="true"></div>
+        <p class="rel-sub">그래서 말이지...</p>
+        <h1 class="rel-q">상대방과 너는 어떤 사이야?</h1>
+        <div class="rel-options" role="radiogroup" aria-label="상대방과의 관계">
+          <label class="rel-opt">
+            <input type="radio" name="relation" value="혼자 짝사랑중">
+            <span class="rel-opt__dot"></span>
+            <span class="rel-opt__text">혼자 짝사랑중..</span>
+          </label>
+          <label class="rel-opt">
+            <input type="radio" name="relation" value="썸타는 사이">
+            <span class="rel-opt__dot"></span>
+            <span class="rel-opt__text">썸타는 사이야</span>
+          </label>
+          <label class="rel-opt">
+            <input type="radio" name="relation" value="비밀스러운 사이">
+            <span class="rel-opt__dot"></span>
+            <span class="rel-opt__text">비밀스러운 사이 🤫</span>
+          </label>
+          <label class="rel-opt">
+            <input type="radio" name="relation" value="연인 사이" checked>
+            <span class="rel-opt__dot"></span>
+            <span class="rel-opt__text">연인 사이</span>
+          </label>
+          <label class="rel-opt">
+            <input type="radio" name="relation" value="부부 사이">
+            <span class="rel-opt__dot"></span>
+            <span class="rel-opt__text">부부 사이</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-step" id="step0">
         <input type="hidden" name="gender" id="genderInput">
         <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
 
@@ -777,17 +878,31 @@
   }
 
   function renderStep() {
-    document.getElementById('step0').classList.toggle('active', currentStep === 0);
-    document.getElementById('step1').classList.toggle('active', currentStep === 1);
-    document.getElementById('stepDot0').classList.toggle('active', currentStep === 0);
-    document.getElementById('stepDot1').classList.toggle('active', currentStep === 1);
+    document.getElementById('stepRel').classList.toggle('active', currentStep === 0);
+    document.getElementById('step0').classList.toggle('active', currentStep === 1);
+    document.getElementById('step1').classList.toggle('active', currentStep === 2);
 
+    const header = document.querySelector('.form-header');
+    const indicator = document.querySelector('.step-indicator');
     const title = document.getElementById('formTitle');
     const desc = document.getElementById('formDesc');
     const label = document.getElementById('stepLabel');
     const submitBtn = document.getElementById('submitBtn');
 
     if (currentStep === 0) {
+      // 관계 선택 스텝: 상단 헤더/스텝 표시 숨김 (이미지 배경 강조)
+      header.style.display = 'none';
+      indicator.style.display = 'none';
+      submitBtn.textContent = '다음으로';
+      return;
+    }
+
+    header.style.display = '';
+    indicator.style.display = '';
+    document.getElementById('stepDot0').classList.toggle('active', currentStep === 1);
+    document.getElementById('stepDot1').classList.toggle('active', currentStep === 2);
+
+    if (currentStep === 1) {
       title.textContent = '내 이름을 입력해주세요';
       desc.textContent = '속궁합 분석을 위해 먼저 본인 정보를 입력해 주세요.';
       label.textContent = '1 / 2 · 내 정보';
@@ -841,8 +956,10 @@
   }
 
   function buildUserData() {
+    const relationEl = document.querySelector("input[name='relation']:checked");
     return {
       name: document.querySelector("input[name='name']").value.trim(),
+      relation: relationEl ? relationEl.value : '',
       gender: genderInput.value,
       birthdate: birthdateInput.value.replace(/\D/g, ''),
       birthTime: birthTimeSelect.value,
@@ -1026,7 +1143,7 @@
 
   document.getElementById('navBackBtn').addEventListener('click', function () {
     if (currentStep > 0) {
-      currentStep = 0;
+      currentStep -= 1;
       renderStep();
       return;
     }
@@ -1035,8 +1152,14 @@
 
   document.getElementById('submitBtn').addEventListener('click', function () {
     if (currentStep === 0) {
-      if (!validateStep0()) return;
+      // 관계 선택 (기본값 '연인 사이'가 선택돼 있어 항상 통과)
       currentStep = 1;
+      renderStep();
+      return;
+    }
+    if (currentStep === 1) {
+      if (!validateStep0()) return;
+      currentStep = 2;
       renderStep();
       document.querySelector('#step1 .name-input').focus();
       return;
