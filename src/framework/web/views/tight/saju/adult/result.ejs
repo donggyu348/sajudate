@@ -94,6 +94,19 @@
           <div class="wg-list__row"><%= x.key %> <span>(<%= x.en %>)</span></div>
         <% }); %>
       </div>
+      <div class="wg-gauge-wrap">
+        <h3 class="wg-gauge__head">hoxy… 엄청난 <b>명기</b>의 소유자?</h3>
+        <div class="wg-gauge">
+          <div class="wg-gauge__bar"><span class="wg-gauge__mark" style="--top: <%= _wgGaugeTop %>%"></span></div>
+          <div class="wg-gauge__levels">
+            <% _WG_GAUGE.forEach(function(lv, i){ %>
+              <div class="wg-gauge__lv<%= i === _wgGaugeIdx ? ' is-on' : '' %>"><%= i === _wgGaugeIdx ? '▶ ' : '' %><%= lv %></div>
+            <% }); %>
+          </div>
+          <div class="wg-gauge__peach" data-emoji="🍑"><img src="/assets/images/tight/29/result/peach.png" alt="" onerror="this.parentNode.classList.add('is-empty'); this.remove();" /></div>
+        </div>
+        <p class="wg-gauge__note">천해랑: "이 등급이면… 상대가 쉽게 못 놓아줄 거야."</p>
+      </div>
     </section>
 
     <!-- part3: 상대 얼굴 이미지 -->
@@ -115,19 +128,6 @@
             <span class="wg-bar-val"><%= t.val %></span>
           </div>
         <% }); %>
-      </div>
-      <div class="wg-gauge-wrap">
-        <h3 class="wg-gauge__head">hoxy… 엄청난 <b>명기</b>의 소유자?</h3>
-        <div class="wg-gauge">
-          <div class="wg-gauge__bar"><span class="wg-gauge__mark" style="--top: <%= _wgGaugeTop %>%"></span></div>
-          <div class="wg-gauge__levels">
-            <% _WG_GAUGE.forEach(function(lv, i){ %>
-              <div class="wg-gauge__lv<%= i === _wgGaugeIdx ? ' is-on' : '' %>"><%= i === _wgGaugeIdx ? '▶ ' : '' %><%= lv %></div>
-            <% }); %>
-          </div>
-          <div class="wg-gauge__peach" data-emoji="🍑"><img src="/assets/images/tight/29/result/peach.png" alt="" onerror="this.parentNode.classList.add('is-empty'); this.remove();" /></div>
-        </div>
-        <p class="wg-gauge__note">천해랑: "이 등급이면… 상대가 쉽게 못 놓아줄 거야."</p>
       </div>
     </section>
 
@@ -907,9 +907,11 @@
   transition: opacity 0.6s ease, transform 0.65s cubic-bezier(.22, 1, .36, 1);
 }
 .wg-js .wg-sec.wg-in > *:nth-child(1) { transition-delay: 0.04s; }
-.wg-js .wg-sec.wg-in > *:nth-child(2) { transition-delay: 0.14s; }
-.wg-js .wg-sec.wg-in > *:nth-child(3) { transition-delay: 0.24s; }
-.wg-js .wg-sec.wg-in > *:nth-child(4) { transition-delay: 0.34s; }
+.wg-js .wg-sec.wg-in > *:nth-child(2) { transition-delay: 0.12s; }
+.wg-js .wg-sec.wg-in > *:nth-child(3) { transition-delay: 0.20s; }
+.wg-js .wg-sec.wg-in > *:nth-child(4) { transition-delay: 0.28s; }
+.wg-js .wg-sec.wg-in > *:nth-child(5) { transition-delay: 0.36s; }
+.wg-js .wg-sec.wg-in > *:nth-child(6) { transition-delay: 0.44s; }
 
 /* 부적 카드: 인장 발광 + 샤인 스윕 */
 .wg-card__seal { animation: wgSealGlow 2.6s ease-in-out infinite; }
