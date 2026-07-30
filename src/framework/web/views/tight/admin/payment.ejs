@@ -32,6 +32,20 @@
                 </div>
             </div>
 
+            <!-- 상단 탭 네비게이션 -->
+            <div class="px-6 pt-4 flex gap-2 border-b border-gray-200">
+                <button type="button" data-main-tab="payments"
+                    class="main-tab-btn px-4 py-2 -mb-px text-sm font-semibold rounded-t-lg border border-b-0 border-transparent text-gray-500 hover:text-gray-700">
+                    결제내역
+                </button>
+                <button type="button" data-main-tab="users"
+                    class="main-tab-btn px-4 py-2 -mb-px text-sm font-semibold rounded-t-lg border border-b-0 border-transparent text-gray-500 hover:text-gray-700">
+                    사용자 정보
+                </button>
+            </div>
+
+            <!-- ===== 탭: 결제내역 ===== -->
+            <div id="tab-payments">
             <div class="p-6 border-b border-gray-200">
                 <h3 class="text-lg font-bold text-gray-800 mb-3">날짜별 매출 기록 (최근 30일)</h3>
                 <div class="overflow-x-auto border rounded-xl shadow-sm">
@@ -175,11 +189,50 @@
                         </p>
                     </div>
                     <div>
-                   
+
       <div id="pagination" class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"></div>
                     </div>
                 </div>
             </div>
+            </div>
+            <!-- ===== /탭: 결제내역 ===== -->
+
+            <!-- ===== 탭: 사용자 정보 ===== -->
+            <div id="tab-users" class="hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800">구매자 입력 정보</h3>
+                    <p class="text-gray-500 mt-1 text-sm">결제한 사용자가 입력한 정보입니다. (29금 상품은 상대방과의 '관계'도 표시됩니다.)</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이름</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">전화번호</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">나이</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">성별</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관계(29금)</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상품</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">결제일</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="user-list-body">
+                            <tr><td colspan="7" class="text-center text-sm text-gray-500 py-4">불러오는 중...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between flex-col sm:flex-row">
+                        <div class="mb-4 sm:mb-0">
+                            <p id="userTotalCnt" class="text-sm text-gray-700"></p>
+                        </div>
+                        <div>
+                            <div id="user-pagination" class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ===== /탭: 사용자 정보 ===== -->
         </div>
     </div>
 </div>
@@ -482,8 +535,141 @@
       const dateStr = $('#trend-hourly-date').val();
       if (dateStr) loadHourlyTrend(dateStr);
     });
+
+    // ---------- 상단 탭 전환 ----------
+    let userListLoaded = false;
+    function showMainTab(tab) {
+      $('.main-tab-btn')
+        .removeClass('bg-white border-gray-200 text-indigo-600')
+        .addClass('border-transparent text-gray-500');
+      $('.main-tab-btn[data-main-tab="' + tab + '"]')
+        .addClass('bg-white border-gray-200 text-indigo-600')
+        .removeClass('border-transparent text-gray-500');
+      if (tab === 'users') {
+        $('#tab-payments').addClass('hidden');
+        $('#tab-users').removeClass('hidden');
+        if (!userListLoaded) { userListLoaded = true; setUserList(1); }
+      } else {
+        $('#tab-users').addClass('hidden');
+        $('#tab-payments').removeClass('hidden');
+      }
+    }
+    $('.main-tab-btn').on('click', function() {
+      showMainTab($(this).data('main-tab'));
+    });
+    showMainTab('payments');
   });
   
+  // ---------- 사용자 정보 탭 유틸 ----------
+  // birthdate 'YYYYMMDD' → 만 나이
+  const calcAge = (birthdate) => {
+    if (!birthdate) return '-';
+    const s = String(birthdate).replace(/\D/g, '');
+    if (s.length < 8) return '-';
+    const y = parseInt(s.slice(0, 4), 10);
+    const m = parseInt(s.slice(4, 6), 10);
+    const d = parseInt(s.slice(6, 8), 10);
+    if (!y || !m || !d) return '-';
+    const today = new Date();
+    let age = today.getFullYear() - y;
+    if (today.getMonth() + 1 < m || (today.getMonth() + 1 === m && today.getDate() < d)) age -= 1;
+    return (age >= 0 && age < 150) ? age + '세' : '-';
+  };
+
+  const formatBirth = (birthdate) => {
+    const s = String(birthdate || '').replace(/\D/g, '');
+    if (s.length < 8) return '';
+    return `${s.slice(0, 4)}.${s.slice(4, 6)}.${s.slice(6, 8)}`;
+  };
+
+  const isAdultGoods = (code) => !!code && String(code).toUpperCase().indexOf('ADULT') !== -1;
+
+  const esc = (v) => $('<div>').text(v == null ? '' : v).html();
+
+  // 사용자 정보 목록: /api/payments/list 를 재사용 (reportHistory.userInfo 포함)
+  const setUserList = (page = 1) => {
+    const PLATFORM = 'TIGHT';
+    $.ajax({
+      url: `/api/payments/list?page=${page}&platform=${PLATFORM}`,
+      type: 'POST',
+      dataType: 'json',
+      success: function(res) {
+        const rows = res.data.rows || [];
+        const count = res.data.count || 0;
+        $('#userTotalCnt').text(count + ' 건');
+
+        const tbody = $('#user-list-body');
+        tbody.empty();
+
+        if (rows.length === 0) {
+          tbody.append('<tr><td colspan="7" class="text-center text-sm text-gray-500 py-4">데이터가 없습니다.</td></tr>');
+        }
+
+        rows.forEach((payment) => {
+          const rh = payment.reportHistory || {};
+          const info = rh.userInfo || {};
+          const goodsCode = rh.goodsType;
+          const adult = isAdultGoods(goodsCode);
+
+          const name = info.name || '-';
+          const tel = payment.userTelNo || '-';
+          const age = calcAge(info.birthdate || info.birthDate);
+          const birth = formatBirth(info.birthdate || info.birthDate);
+          const gender = info.gender || '-';
+          const relation = adult ? (info.relation || '-') : '-';
+          const goodsTitle = getGoodsTitle(goodsCode);
+          const payDate = payment.approvalDate ? new Date(payment.approvalDate).toLocaleDateString() : '-';
+
+          const row = `
+            <tr class="hover:bg-gray-50 transition-colors duration-150">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${esc(name)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${esc(tel)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                ${esc(age)}${birth ? `<span class="block text-xs text-gray-400">${esc(birth)}</span>` : ''}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${esc(gender)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                ${adult
+                  ? `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-pink-100 text-pink-800">${esc(relation)}</span>`
+                  : '<span class="text-gray-400">-</span>'}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${esc(goodsTitle)}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">${esc(payDate)}</td>
+            </tr>
+          `;
+          tbody.append(row);
+        });
+
+        const limit = 10;
+        const totalPages = Math.ceil(count / limit);
+        const $pagination = $('#user-pagination');
+        $pagination.empty();
+        const maxButtons = 10;
+        const startPage = Math.max(1, page - Math.floor(maxButtons / 2));
+        const endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+        for (let i = startPage; i <= endPage; i++) {
+          const button = $(`
+            <a href="javascript:void(0);" class="relative inline-flex items-center px-4 py-2 border border-gray-300 ${
+              i === page ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-gray-700'
+            } text-sm font-medium hover:bg-indigo-100" data-page="${i}">
+              ${i}
+            </a>
+          `);
+          button.on('click', function(e) {
+            e.preventDefault();
+            setUserList(i);
+          });
+          $pagination.append(button);
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error('Error fetching user list:', error);
+        $('#user-list-body').html('<tr><td colspan="7" class="text-center text-sm text-red-500 py-4">조회 오류</td></tr>');
+      }
+    });
+  };
+
   // setList 함수: ID 'payment-list-body'에만 데이터 삽입하도록 수정
   const setList = (page = 1) => {
     const PLATFORM = 'TIGHT'; 
