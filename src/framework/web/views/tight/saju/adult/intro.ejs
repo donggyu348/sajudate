@@ -160,17 +160,33 @@
       100% { box-shadow: 0 0 0 0 rgba(233, 30, 122, 0); }
     }
 
-    .reviews__grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    .reviews {
+      padding-right: 0;
     }
+    .reviews__head {
+      padding-right: 16px;
+    }
+    .reviews__scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      padding: 2px 16px 2px 0;
+      margin: 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .reviews__scroll::-webkit-scrollbar { display: none; }
 
     .rv-card {
+      flex: 0 0 78%;
+      max-width: 300px;
+      scroll-snap-align: start;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.07);
       border-radius: 14px;
-      padding: 13px 13px 14px;
+      padding: 14px 15px 15px;
       display: flex;
       flex-direction: column;
       gap: 9px;
@@ -293,7 +309,7 @@
         <span class="reviews__live"><span class="reviews__dot"></span>실시간</span>
       </div>
 
-      <div class="reviews__grid">
+      <div class="reviews__scroll">
         <article class="rv-card">
           <div class="rv-card__head">
             <span class="rv-card__nick">q***</span>
