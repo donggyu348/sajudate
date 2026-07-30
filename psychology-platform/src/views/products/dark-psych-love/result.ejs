@@ -1,0 +1,46 @@
+<div class="p-4">
+  <h1 class="text-lg font-bold">1차 결과</h1>
+  <p class="mt-1 text-sm text-ink-soft">체크리스트 응답을 바탕으로 한 축별 경향입니다.</p>
+
+  <div class="mt-5 space-y-3">
+    <% rows.forEach(function (r) { %>
+      <div class="flat-card p-4">
+        <div class="flex items-baseline justify-between">
+          <div>
+            <p class="text-sm font-semibold"><%= r.label %></p>
+            <p class="text-[11px] text-ink-soft"><%= r.short %></p>
+          </div>
+          <p class="text-sm font-bold text-accent"><%= r.score.toFixed(1) %><span class="text-ink-soft">/5.0</span></p>
+        </div>
+        <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+          <div class="h-full rounded-full bg-accent" style="width: <%= r.score100 %>%"></div>
+        </div>
+        <p class="mt-2 text-xs text-ink-soft"><%= r.band.label %>.</p>
+      </div>
+    <% }); %>
+  </div>
+
+  <div class="mt-6 rounded-lg bg-accent-soft p-4 text-xs leading-relaxed text-accent">
+    위 결과는 관찰자 응답에 기반한 참고용 경향이며, 특정 진단명을 부여하지 않습니다.
+  </div>
+
+  <!-- 대화 분석으로 심화 (선택) -->
+  <div class="mt-6 flat-card p-4">
+    <p class="text-sm font-semibold">대화 분석으로 더 깊이 보기 (선택)</p>
+    <p class="mt-2 text-sm leading-relaxed text-ink-soft">
+      카카오톡 대화를 업로드하면 실제 대화 패턴을 통계적으로 함께 분석해 리포트를 심화할 수 있습니다.
+    </p>
+    <ul class="mt-3 space-y-1.5">
+      <% privacyNotice.bullets.forEach(function (b) { %>
+        <li class="flex items-start gap-2 text-xs text-ink-soft">
+          <span class="mt-1 h-1 w-1 shrink-0 rounded-full bg-accent"></span><span><%= b %></span>
+        </li>
+      <% }); %>
+    </ul>
+    <a href="<%= base %>/upload/<%= responseId %>" class="btn-primary mt-4 w-full">대화 업로드하고 심화 분석</a>
+  </div>
+
+  <form method="post" action="<%= base %>/report/from-checklist/<%= responseId %>" class="mt-3">
+    <button type="submit" class="btn-outline w-full">대화 없이 리포트 보기</button>
+  </form>
+</div>

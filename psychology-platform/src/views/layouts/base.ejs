@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title><%= typeof title !== 'undefined' ? title + ' · 심리 플랫폼' : '심리 플랫폼' %></title>
+    <link rel="stylesheet" href="/assets/css/main.css" />
+  </head>
+  <body class="bg-gray-50">
+    <div class="app-shell relative pb-20">
+      <%- include('../platform/partials/header') %>
+      <main><%- body %></main>
+      <%- include('../platform/partials/tabbar', { activeTab: typeof activeTab !== 'undefined' ? activeTab : null }) %>
+    </div>
+    <%- include('../platform/partials/drawer') %>
+    <script>
+      // 햄버거 드로어 토글
+      (function () {
+        const btn = document.getElementById('menuBtn');
+        const drawer = document.getElementById('drawer');
+        const overlay = document.getElementById('drawerOverlay');
+        function open() { drawer.classList.remove('translate-x-full'); overlay.classList.remove('hidden'); }
+        function close() { drawer.classList.add('translate-x-full'); overlay.classList.add('hidden'); }
+        btn && btn.addEventListener('click', open);
+        overlay && overlay.addEventListener('click', close);
+        document.getElementById('drawerClose') && document.getElementById('drawerClose').addEventListener('click', close);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+<div class="p-4">
+  <div class="aspect-[4/5] w-full overflow-hidden rounded-2xl border border-line">
+    <% if (product.thumbnailUrl) { %>
+      <img src="<%= product.thumbnailUrl %>" alt="<%= product.name %>" class="h-full w-full object-cover" />
+    <% } else { %>
+      <div class="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-ink-soft">이미지 준비 중</div>
+    <% } %>
+  </div>
+  <span class="mt-4 inline-block text-xs text-accent"><%= product.category %></span>
+  <h1 class="mt-1 text-xl font-bold"><%= product.name %></h1>
+  <p class="mt-2 text-sm leading-relaxed text-ink-soft"><%= product.description %></p>
+  <p class="mt-6 rounded-lg bg-gray-50 p-4 text-center text-sm text-ink-soft">이 상품은 준비 중입니다.</p>
+</div>

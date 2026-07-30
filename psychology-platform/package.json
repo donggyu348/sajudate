@@ -1,0 +1,34 @@
+{
+  "name": "psychology-platform",
+  "version": "0.1.0",
+  "description": "심리 관련 상품을 담는 플랫폼 (첫 상품: 다크심리학 연애 진단)",
+  "main": "src/server.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm:watch:css\" \"npm:dev:server\"",
+    "dev:server": "cross-env NODE_ENV=development nodemon --exec \"node -r dotenv/config\" src/server.js",
+    "start": "cross-env NODE_ENV=production node src/server.js",
+    "seed": "node -r dotenv/config src/seed/seed.js",
+    "build:css": "tailwindcss -i src/styles/input.css -o public/assets/css/main.css --minify",
+    "watch:css": "tailwindcss -i src/styles/input.css -o public/assets/css/main.css --watch"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.18.1",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.0",
+    "mysql2": "^3.11.0",
+    "sequelize": "^6.37.3"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.4",
+    "tailwindcss": "^3.4.10"
+  },
+  "license": "MIT"
+}

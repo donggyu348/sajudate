@@ -1,0 +1,40 @@
+<div class="p-4">
+  <div class="aspect-[4/5] w-full overflow-hidden rounded-2xl border border-line">
+    <% if (product.thumbnailUrl) { %>
+      <img src="<%= product.thumbnailUrl %>" alt="<%= product.name %>" class="h-full w-full object-cover" />
+    <% } else { %>
+      <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-xs text-ink-soft">이미지 준비 중 (4:5)</div>
+    <% } %>
+  </div>
+
+  <span class="mt-5 inline-block text-xs text-accent"><%= product.category %></span>
+  <h1 class="mt-1 text-xl font-bold leading-snug"><%= product.name %></h1>
+  <p class="mt-3 text-sm leading-relaxed text-ink-soft"><%= product.description %></p>
+
+  <!-- 진단 프레임워크 안내 (진지한 톤) -->
+  <div class="mt-6 flat-card p-4">
+    <p class="text-sm font-semibold">무엇을 진단하나요?</p>
+    <p class="mt-2 text-sm leading-relaxed text-ink-soft">
+      연애 관계 안에서 상대가 보이는 조종·가해 성향을 심리학적으로 검증된 프레임워크에 기반해 살펴봅니다.
+      재미 위주의 테스트가 아니라, 관계의 신호를 진지하게 점검하기 위한 도구입니다.
+    </p>
+    <ul class="mt-4 space-y-2 text-sm">
+      <% Object.values(axes).forEach(function (a) { %>
+        <li class="flex items-start gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
+          <span><span class="font-medium"><%= a.label %></span> <span class="text-ink-soft">· <%= a.short %></span></span>
+        </li>
+      <% }); %>
+    </ul>
+    <p class="mt-4 text-xs leading-relaxed text-ink-soft">
+      다크 트라이어드/테트라드(SD3·Dirty Dozen·SD4) 척도와 관계 조종 행동 패턴(가스라이팅, 러브바밍–평가절하,
+      삼각관계, DARVO)을 참고해 구성했습니다.
+    </p>
+  </div>
+
+  <div class="mt-6 rounded-lg bg-accent-soft p-4 text-xs leading-relaxed text-accent">
+    본 진단은 참고용 인사이트이며 임상적 진단을 대체하지 않습니다. 관찰자(나) 시점에서 <%= totalItems %>개 문항에 응답합니다.
+  </div>
+
+  <a href="<%= base %>/checklist" class="btn-primary mt-6 w-full">진단 시작하기</a>
+</div>

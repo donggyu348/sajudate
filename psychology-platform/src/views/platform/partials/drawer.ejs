@@ -1,0 +1,17 @@
+<div id="drawerOverlay" class="fixed inset-0 z-40 hidden bg-black/30"></div>
+<aside id="drawer" class="fixed right-0 top-0 z-50 h-full w-72 translate-x-full bg-white transition-transform duration-200 ease-out">
+  <div class="flex h-14 items-center justify-between border-b border-line px-4">
+    <span class="text-base font-bold">메뉴</span>
+    <button id="drawerClose" aria-label="닫기" class="flex h-9 w-9 items-center justify-center rounded-md hover:bg-gray-100">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+    </button>
+  </div>
+  <nav class="flex flex-col p-2 text-sm">
+    <a href="/" class="rounded-lg px-3 py-3 hover:bg-gray-50">홈</a>
+    <a href="/?category=연애진단" class="rounded-lg px-3 py-3 hover:bg-gray-50">연애진단</a>
+    <a href="/?category=체크리스트" class="rounded-lg px-3 py-3 hover:bg-gray-50">체크리스트</a>
+    <a href="/?category=리포트" class="rounded-lg px-3 py-3 hover:bg-gray-50">리포트</a>
+    <div class="my-2 border-t border-line"></div>
+    <a href="/library" class="rounded-lg px-3 py-3 hover:bg-gray-50">보관함</a>
+  </nav>
+</aside>
