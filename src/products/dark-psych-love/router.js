@@ -13,6 +13,7 @@ import { analyzeChat } from './logic/analyzeChat.js';
 import { buildFinalScores, buildSummaryText } from './logic/reportBuilder.js';
 import { PATTERN_TYPES } from './logic/llmPrompt.js';
 import { PRIVACY_NOTICE, REPORT_DISCLAIMER, HELP_RESOURCES } from './logic/safety.js';
+import { streamCounsel, isCounselorEnabled } from './logic/counselor.js';
 
 const SLUG = 'dark-psych-love';
 const BASE = `/products/${SLUG}`;
@@ -265,6 +266,48 @@ router.get('/report/:id', async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+});
+
+// ── 상담 봇 (대화형 진단/상담) ──────────────────
+router.get('/counsel', async (req, res, next) => {
+  try {
+    res.render(view('counsel'), {
+      title: '관계 상담',
+      base: BASE,
+      activeTab: 'chat',
+      enabled: isCounselorEnabled(),
+      helpResources: HELP_RESOURCES,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 대화 스트리밍: 요청 body = { messages: [{role, content}, ...] }
+// 응답은 텍스트 델타를 그대로 흘려보냄(클라이언트가 fetch 스트림으로 읽음)
+router.post('/counsel/stream', async (req, res) => {
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no'); // 프록시 버퍼링 방지
+
+  if (!isCounselorEnabled()) {
+    res.end('상담 봇이 아직 설정되지 않았습니다(API 키 미설정). 관리자에게 문의해 주세요.');
+    return;
+  }
+
+  const history = Array.isArray(req.body?.messages) ? req.body.messages : [];
+  try {
+    const stream = streamCounsel(history);
+    stream.on('text', (delta) => res.write(delta));
+    // 클라이언트가 중간에 끊으면 스트림도 중단
+    req.on('close', () => stream.abort?.());
+    await stream.finalMessage();
+    res.end();
+  } catch (err) {
+    console.error('[counsel/stream]', err);
+    res.write('\n\n(응답 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.)');
+    res.end();
   }
 });
 

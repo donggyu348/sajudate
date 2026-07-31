@@ -14,6 +14,7 @@
     "watch:css": "tailwindcss -i src/styles/input.css -o public/assets/css/main.css --watch"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
