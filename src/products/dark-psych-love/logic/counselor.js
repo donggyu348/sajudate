@@ -7,10 +7,10 @@ import { HELP_RESOURCES } from './safety.js';
  * 진지하고 신뢰감 있는 톤, 임상 진단 대체가 아님, 위기 신호 시 전문기관 안내.
  */
 
-const MODEL = process.env.LLM_MODEL || 'claude-opus-5';
+const DEFAULT_MODEL = process.env.LLM_MODEL || 'claude-opus-5';
 
-// 상담 봇 페르소나 + 안전 가드레일
-export const COUNSELOR_SYSTEM_PROMPT = `당신은 '관계 심리 상담 보조'입니다. 연애/애인 관계에서 상대의 조종·가해 성향(가스라이팅, 러브바밍-평가절하, 삼각관계, 책임 전가 등)으로 힘들어하는 사용자와 한국어로 대화합니다.
+// 기본 상담 봇 페르소나 + 안전 가드레일 (관리자 UI 최초 시드에 사용)
+export const DEFAULT_COUNSELOR_SYSTEM_PROMPT = `당신은 '관계 심리 상담 보조'입니다. 연애/애인 관계에서 상대의 조종·가해 성향(가스라이팅, 러브바밍-평가절하, 삼각관계, 책임 전가 등)으로 힘들어하는 사용자와 한국어로 대화합니다.
 
 [역할과 태도]
 - 따뜻하고 판단하지 않는 태도로, 그러나 재미 요소 없이 진지하게 경청합니다.
@@ -44,27 +44,33 @@ export function isCounselorEnabled() {
   return Boolean(process.env.ANTHROPIC_API_KEY || process.env.LLM_API_KEY);
 }
 
+const VALID_EFFORT = new Set(['low', 'medium', 'high']);
+
 /**
- * 대화 히스토리를 받아 Claude 스트림을 반환.
- * @param {{role: 'user'|'assistant', content: string}[]} history
+ * 에이전트 설정 + 대화 히스토리로 Claude 스트림을 반환.
+ * @param {Object} opts
+ * @param {{role: 'user'|'assistant', content: string}[]} opts.history
+ * @param {string} opts.systemPrompt  봇의 인격·규칙
+ * @param {string} [opts.model]       빈 값이면 서버 기본 모델
+ * @param {number} [opts.maxTokens]
+ * @param {string} [opts.effort]      'low'|'medium'|'high'
  * @returns {import('@anthropic-ai/sdk').MessageStream}
  */
-export function streamCounsel(history) {
+export function streamCounsel({ history, systemPrompt, model, maxTokens, effort } = {}) {
   const client = getCounselorClient();
   if (!client) throw new Error('상담 봇이 설정되지 않았습니다(API 키 없음).');
 
   // 최근 대화만 유지(과도한 토큰 방지)
-  const messages = history.slice(-20).map((m) => ({
+  const messages = (history || []).slice(-20).map((m) => ({
     role: m.role === 'assistant' ? 'assistant' : 'user',
     content: String(m.content || '').slice(0, 4000),
   }));
 
   return client.messages.stream({
-    model: MODEL,
-    max_tokens: 1600,
-    system: COUNSELOR_SYSTEM_PROMPT,
-    // 대화형이라 응답성 우선 — 낮은 effort로 사려 깊되 빠르게
-    output_config: { effort: 'low' },
+    model: model || DEFAULT_MODEL,
+    max_tokens: Number(maxTokens) > 0 ? Number(maxTokens) : 1600,
+    system: systemPrompt || DEFAULT_COUNSELOR_SYSTEM_PROMPT,
+    output_config: { effort: VALID_EFFORT.has(effort) ? effort : 'low' },
     messages,
   });
 }

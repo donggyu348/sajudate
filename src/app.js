@@ -6,6 +6,7 @@ import expressLayouts from 'express-ejs-layouts';
 import morgan from 'morgan';
 
 import homeRouter from './routes/home.js';
+import adminRouter from './routes/admin.js';
 import { mountProductModules } from './products/registry.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -38,6 +39,9 @@ export function createApp() {
     res.locals.currentPath = req.path;
     next();
   });
+
+  // 관리자
+  app.use('/admin', adminRouter);
 
   // 상품 전용 모듈이 /products/:slug 를 먼저 가로챈다.
   mountProductModules(app);

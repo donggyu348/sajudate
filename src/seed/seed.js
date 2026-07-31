@@ -1,4 +1,5 @@
-import { sequelize, Product } from '../models/index.js';
+import { sequelize, Product, Agent } from '../models/index.js';
+import { DEFAULT_COUNSELOR_SYSTEM_PROMPT } from '../products/dark-psych-love/logic/counselor.js';
 
 /** 초기 상품 시드. 플랫폼 구조 검증용 더미 + 첫 상품(dark-psych-love). */
 const PRODUCTS = [
@@ -41,12 +42,33 @@ const PRODUCTS = [
   },
 ];
 
+/** 기본 상담 에이전트 (관리자 UI에서 이후 자유롭게 수정/추가) */
+const AGENTS = [
+  {
+    slug: 'relationship-counselor',
+    name: '관계 상담사',
+    description: '연애 관계의 조종·가해 신호를 함께 살펴보는 대화형 상담 봇',
+    systemPrompt: DEFAULT_COUNSELOR_SYSTEM_PROMPT,
+    greeting: '안녕하세요. 요즘 관계에서 마음이 힘드셨나요? 어떤 일이 있었는지 편하게 이야기해 주세요.',
+    model: '',
+    maxTokens: 1600,
+    effort: 'low',
+    isActive: true,
+    sortOrder: 1,
+  },
+];
+
 async function run() {
   await sequelize.sync({ alter: true });
   for (const p of PRODUCTS) {
     const [row, created] = await Product.findOrCreate({ where: { slug: p.slug }, defaults: p });
     if (!created) await row.update(p);
-    console.log(`${created ? '[created]' : '[updated]'} ${p.slug}`);
+    console.log(`${created ? '[created]' : '[updated]'} product ${p.slug}`);
+  }
+  for (const a of AGENTS) {
+    // 기존 봇의 관리자 수정 내용을 덮어쓰지 않도록 create-only
+    const [, created] = await Agent.findOrCreate({ where: { slug: a.slug }, defaults: a });
+    console.log(`${created ? '[created]' : '[kept]'} agent ${a.slug}`);
   }
   console.log('시드 완료');
   await sequelize.close();

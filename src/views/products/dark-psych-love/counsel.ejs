@@ -1,9 +1,19 @@
 <div class="flex h-[calc(100vh-3.5rem-5rem)] flex-col">
   <!-- 헤더/고지 -->
   <div class="border-b border-line px-4 py-3">
-    <h1 class="text-base font-bold">관계 상담</h1>
+    <div class="flex items-center justify-between gap-2">
+      <h1 class="text-base font-bold"><%= current ? current.name : '관계 상담' %></h1>
+      <% if (agents && agents.length > 1) { %>
+        <select id="agentSelect" class="rounded-lg border border-line px-2 py-1 text-xs text-ink-soft focus:border-accent focus:outline-none">
+          <% agents.forEach(function (a) { %>
+            <option value="<%= a.slug %>" <%= current && a.slug === current.slug ? 'selected' : '' %>><%= a.name %></option>
+          <% }); %>
+        </select>
+      <% } %>
+    </div>
     <p class="mt-0.5 text-[11px] leading-relaxed text-ink-soft">
-      대화하며 관계의 신호를 함께 살펴봐요. 참고용 정서적 지지이며 전문 상담을 대체하지 않습니다.
+      <%= current && current.description ? current.description : '대화하며 관계의 신호를 함께 살펴봐요.' %>
+      참고용 정서적 지지이며 전문 상담을 대체하지 않습니다.
     </p>
     <% if (!enabled) { %>
       <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-700">
@@ -12,12 +22,16 @@
     <% } %>
   </div>
 
+  <% if (!current) { %>
+    <div class="flex flex-1 flex-col items-center justify-center px-6 text-center">
+      <p class="text-sm text-ink-soft">등록된 상담 봇이 없습니다.</p>
+      <a href="/admin/agents" class="btn-outline mt-4">관리자에서 봇 만들기</a>
+    </div>
+  <% } else { %>
   <!-- 메시지 영역 -->
   <div id="chatLog" class="flex-1 space-y-3 overflow-y-auto px-4 py-4">
     <div class="flex">
-      <div class="max-w-[85%] rounded-2xl rounded-tl-sm border border-line bg-white px-3.5 py-2.5 text-sm leading-relaxed">
-        안녕하세요. 요즘 관계에서 마음이 힘드셨나요? 어떤 일이 있었는지 편하게 이야기해 주세요.
-      </div>
+      <div class="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-sm border border-line bg-white px-3.5 py-2.5 text-sm leading-relaxed"><%= current.greeting || '안녕하세요. 어떤 이야기가 있으신가요? 편하게 말씀해 주세요.' %></div>
     </div>
   </div>
 
@@ -31,18 +45,28 @@
       </button>
     </div>
   </form>
+  <% } %>
 </div>
 
+<% if (current) { %>
 <script>
   (function () {
     const base = <%- JSON.stringify(base) %>;
+    const agentSlug = <%- JSON.stringify(current.slug) %>;
     const log = document.getElementById('chatLog');
     const form = document.getElementById('chatForm');
     const input = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
+    const agentSelect = document.getElementById('agentSelect');
 
-    // 대화 히스토리 (system 제외, user/assistant만)
-    const history = [];
+    // 봇 전환 → 페이지 리로드(대화 초기화)
+    if (agentSelect) {
+      agentSelect.addEventListener('change', function () {
+        location.href = base + '/counsel?agent=' + encodeURIComponent(agentSelect.value);
+      });
+    }
+
+    const history = []; // user/assistant 만
 
     function bubble(role) {
       const wrap = document.createElement('div');
@@ -57,7 +81,6 @@
       return b;
     }
 
-    // textarea 자동 높이
     input.addEventListener('input', function () {
       input.style.height = 'auto';
       input.style.height = Math.min(input.scrollHeight, 128) + 'px';
@@ -72,10 +95,8 @@
       const text = input.value.trim();
       if (!text || busy) return;
 
-      busy = true;
-      sendBtn.disabled = true;
-      input.value = '';
-      input.style.height = 'auto';
+      busy = true; sendBtn.disabled = true;
+      input.value = ''; input.style.height = 'auto';
 
       bubble('user').textContent = text;
       history.push({ role: 'user', content: text });
@@ -87,10 +108,9 @@
         const res = await fetch(base + '/counsel/stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: history }),
+          body: JSON.stringify({ agentSlug: agentSlug, messages: history }),
         });
         if (!res.body) throw new Error('no stream');
-
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let acc = '';
@@ -105,10 +125,9 @@
       } catch (err) {
         answer.textContent = '연결에 문제가 발생했어요. 잠시 후 다시 시도해 주세요.';
       } finally {
-        busy = false;
-        sendBtn.disabled = false;
-        input.focus();
+        busy = false; sendBtn.disabled = false; input.focus();
       }
     });
   })();
 </script>
+<% } %>

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { Product, ChecklistResponse, ChatAnalysis, Report } from '../../models/index.js';
+import { Product, Agent, ChecklistResponse, ChatAnalysis, Report } from '../../models/index.js';
 import {
   CHECKLIST_ITEMS,
   SCALE,
@@ -272,20 +272,32 @@ router.get('/report/:id', async (req, res, next) => {
 // ── 상담 봇 (대화형 진단/상담) ──────────────────
 router.get('/counsel', async (req, res, next) => {
   try {
+    const agents = await Agent.findAll({
+      where: { isActive: true },
+      order: [
+        ['sortOrder', 'ASC'],
+        ['createdAt', 'ASC'],
+      ],
+    });
+    // ?agent=slug 로 선택, 없으면 첫 번째 활성 에이전트
+    const current =
+      (req.query.agent && agents.find((a) => a.slug === req.query.agent)) || agents[0] || null;
+
     res.render(view('counsel'), {
       title: '관계 상담',
       base: BASE,
       activeTab: 'chat',
       enabled: isCounselorEnabled(),
       helpResources: HELP_RESOURCES,
+      agents,
+      current,
     });
   } catch (err) {
     next(err);
   }
 });
 
-// 대화 스트리밍: 요청 body = { messages: [{role, content}, ...] }
-// 응답은 텍스트 델타를 그대로 흘려보냄(클라이언트가 fetch 스트림으로 읽음)
+// 대화 스트리밍: 요청 body = { agentSlug, messages: [{role, content}, ...] }
 router.post('/counsel/stream', async (req, res) => {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -296,12 +308,25 @@ router.post('/counsel/stream', async (req, res) => {
     return;
   }
 
-  const history = Array.isArray(req.body?.messages) ? req.body.messages : [];
   try {
-    const stream = streamCounsel(history);
+    const agent = req.body?.agentSlug
+      ? await Agent.findOne({ where: { slug: req.body.agentSlug, isActive: true } })
+      : null;
+    if (!agent) {
+      res.end('선택된 상담 봇을 찾을 수 없습니다. 페이지를 새로고침해 주세요.');
+      return;
+    }
+
+    const history = Array.isArray(req.body?.messages) ? req.body.messages : [];
+    const stream = streamCounsel({
+      history,
+      systemPrompt: agent.systemPrompt,
+      model: agent.model,
+      maxTokens: agent.maxTokens,
+      effort: agent.effort,
+    });
     stream.on('text', (delta) => res.write(delta));
-    // 클라이언트가 중간에 끊으면 스트림도 중단
-    req.on('close', () => stream.abort?.());
+    req.on('close', () => stream.abort?.()); // 클라이언트 이탈 시 중단
     await stream.finalMessage();
     res.end();
   } catch (err) {
