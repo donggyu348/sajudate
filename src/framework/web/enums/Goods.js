@@ -142,8 +142,8 @@ export const GoodsType = Object.freeze({
   ADULT_CLASSIC_ROMANTIC_BUNDLE: {
     code: "ADULT_CLASSIC_ROMANTIC_BUNDLE",
     title: "S궁합사주 + 정통사주 + 연애사주",
-    originalPrice: 180400,
-    discountPrice: 115500,
+    originalPrice: 113400,
+    discountPrice: 48500,
     price: 64900,
     platform: Platform.TIGHT,
     reportCode: "ADULT",
