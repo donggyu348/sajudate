@@ -78,6 +78,7 @@ export const GoodsType = Object.freeze({
   REAPER: {
     code: "REAPER",
     title: "사자록(정통사주)",
+    shortTitle: '정통사주',   // 번들 카드 등 좁은 표기용
     originalPrice: 63000,
     discountPrice: 25200,
     price: 37800,
@@ -135,8 +136,9 @@ export const GoodsType = Object.freeze({
     giveTicket: "ADULT"
   },
 
-  // 3종 번들: S궁합 + 정통 + 연애 (S궁합 리포트 + 정통·연애 티켓 2장 증정)
+  // 3종 번들: S궁합 + 정통(사자록) + 연애 (S궁합 리포트 + 정통·연애 티켓 2장 증정)
   // giveTickets(배열)로 티켓 2장 발급, 문자는 한 통에 함께 발송
+  // 주의: '정통사주'는 CLASSIC(비노출 구상품)이 아니라 REAPER(사자록, 현재 실제 판매 상품)를 가리킴
   ADULT_CLASSIC_ROMANTIC_BUNDLE: {
     code: "ADULT_CLASSIC_ROMANTIC_BUNDLE",
     title: "S궁합사주 + 정통사주 + 연애사주",
@@ -145,7 +147,7 @@ export const GoodsType = Object.freeze({
     price: 64900,
     platform: Platform.TIGHT,
     reportCode: "ADULT",
-    giveTickets: ["CLASSIC", "ROMANTIC"],
+    giveTickets: ["REAPER", "ROMANTIC"],
     theme: "blue"            // 결제창 카드 파란 그라데이션
   }
 });
