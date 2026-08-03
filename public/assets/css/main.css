@@ -9462,6 +9462,10 @@ button,
   margin-bottom: 1.5rem
 }
 
+.-mb-px {
+  margin-bottom: -1px
+}
+
 .-mr-3 {
   margin-right: -0.75rem
 }
@@ -11012,6 +11016,11 @@ button,
   border-top-right-radius: 1.5rem
 }
 
+.rounded-t-lg {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem
+}
+
 .rounded-bl {
   border-bottom-left-radius: 0.25rem
 }
@@ -11072,6 +11081,10 @@ button,
 
 .border-b {
   border-bottom-width: 1px
+}
+
+.border-b-0 {
+  border-bottom-width: 0px
 }
 
 .border-b-2 {
@@ -11174,6 +11187,10 @@ button,
 
 .border-purple-500\/20 {
   border-color: rgb(168 85 247 / 0.2)
+}
+
+.border-transparent {
+  border-color: transparent
 }
 
 .border-white\/10 {
@@ -11292,6 +11309,11 @@ button,
 .bg-indigo-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(79 70 229 / var(--tw-bg-opacity))
+}
+
+.bg-pink-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(252 231 243 / var(--tw-bg-opacity))
 }
 
 .bg-pink-50\/30 {
@@ -12197,6 +12219,11 @@ button,
   color: rgb(219 39 119 / var(--tw-text-opacity))
 }
 
+.text-pink-800 {
+  --tw-text-opacity: 1;
+  color: rgb(157 23 77 / var(--tw-text-opacity))
+}
+
 .text-purple-200\/60 {
   color: rgb(233 213 255 / 0.6)
 }
@@ -12878,6 +12905,11 @@ button,
 .hover\:text-amber-400:hover {
   --tw-text-opacity: 1;
   color: rgb(251 191 36 / var(--tw-text-opacity))
+}
+
+.hover\:text-gray-700:hover {
+  --tw-text-opacity: 1;
+  color: rgb(55 65 81 / var(--tw-text-opacity))
 }
 
 .hover\:text-white:hover {
