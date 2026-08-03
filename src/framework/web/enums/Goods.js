@@ -132,5 +132,18 @@ export const GoodsType = Object.freeze({
     platform: Platform.TIGHT,
     reportCode: "REAPER",
     giveTicket: "ADULT"
+  },
+
+  // 3종 번들: S궁합 + 정통 + 연애 (S궁합 리포트 + 정통·연애 티켓 2장 증정)
+  // giveTickets(배열)로 티켓 2장 발급, 문자는 한 통에 함께 발송
+  ADULT_CLASSIC_ROMANTIC_BUNDLE: {
+    code: "ADULT_CLASSIC_ROMANTIC_BUNDLE",
+    title: "S궁합사주 + 정통사주 + 홍연사주(연애사주)",
+    originalPrice: 180400,
+    discountPrice: 115500,
+    price: 64900,
+    platform: Platform.TIGHT,
+    reportCode: "ADULT",
+    giveTickets: ["CLASSIC", "ROMANTIC"]
   }
 });

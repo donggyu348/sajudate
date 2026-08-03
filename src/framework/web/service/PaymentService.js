@@ -326,11 +326,10 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
         reportInfo = await reportGenerationService.generateReportForOrder(shopOrderNo);
     }
 
-    // 2. 번들인 경우 티켓 생성 로직
+    // 2. 번들인 경우 티켓 생성 로직 (단일 giveTicket / 다중 giveTickets 모두 지원)
     let ticketAddMsg = "";
     if (finalType && finalType.includes('_BUNDLE')) {
-        const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-        // 번들이 증정하는 티켓 종류(giveTicket)에 따라 giftType/giftName을 자동 결정.
+        // 번들이 증정하는 티켓 종류에 따라 giftType/giftName을 자동 결정.
         // ticket/verify 라우터의 매핑과 동일: '1'=정통, '2'=연애, '3'=29금, '4'=저승사자
         const GIFT_MAP = {
           CLASSIC: { type: '1', name: '정통사주' },
@@ -338,34 +337,42 @@ async generateReportAndSendEmail(paymentId, passedGoodsType) {
           ADULT: { type: '3', name: '29금 사주' },
           REAPER: { type: '4', name: '사자록' },
         };
-        const giveCode = (GoodsType[finalType] && GoodsType[finalType].giveTicket) || '';
-        const gift = GIFT_MAP[giveCode] || { type: '1', name: '신년 운세사주' };
-        let giftType = gift.type;
-        let giftName = gift.name;
+        const bundleDef = GoodsType[finalType] || {};
+        const giveCodes = Array.isArray(bundleDef.giveTickets)
+          ? bundleDef.giveTickets
+          : (bundleDef.giveTicket ? [bundleDef.giveTicket] : []);
 
+        const issued = []; // { name, code }
         try {
             // 🔥 [수정] 모델 파일을 직접 import 하여 경로 및 대소문자 문제를 방지합니다.
             const CouponsModule = await import("../orm/models/coupons.js");
-            const Coupons = CouponsModule.default; 
+            const Coupons = CouponsModule.default;
+            if (!Coupons) throw new Error("Coupons 모델 로드 실패");
 
-            if (Coupons) {
+            for (const giveCode of giveCodes) {
+                const gift = GIFT_MAP[giveCode] || { type: '1', name: '신년 운세사주' };
+                const ticketCode = Math.random().toString(36).substring(2, 10).toUpperCase();
                 await Coupons.create({
                     code: ticketCode,
                     isUsed: false,
                     type: 'BUNDLE',
-                    goodsType: giftType, 
+                    goodsType: gift.type,
                     receivedPhone: payment.userTelNo || userInfo.tel
                 });
-                console.log(`✅ [TICKET] 티켓 발급 성공: ${ticketCode}`);
-            } else {
-                throw new Error("Coupons 모델 로드 실패");
+                issued.push({ name: gift.name, code: ticketCode });
+                console.log(`✅ [TICKET] 티켓 발급 성공: ${gift.name} ${ticketCode}`);
             }
         } catch (dbErr) {
             console.error("❌ [TICKET ERROR] DB 저장 중 에러 (테이블명 확인 필수):", dbErr.message);
             // 티켓 생성이 실패해도 리포트 문자는 보낼 수 있도록 throw 하지 않고 진행합니다.
         }
 
-        ticketAddMsg = `\n\n[번들혜택] ${giftName} 무료 티켓이 발급되었습니다.\n티켓번호: [${ticketCode}]\n입력창에 번호를 입력하면 바로 사용 가능합니다.`;
+        if (issued.length === 1) {
+            ticketAddMsg = `\n\n[번들혜택] ${issued[0].name} 무료 티켓이 발급되었습니다.\n티켓번호: [${issued[0].code}]\n입력창에 번호를 입력하면 바로 사용 가능합니다.`;
+        } else if (issued.length > 1) {
+            const lines = issued.map((t) => `· ${t.name}: [${t.code}]`).join("\n");
+            ticketAddMsg = `\n\n[번들혜택] 무료 티켓 ${issued.length}장이 발급되었습니다.\n${lines}\n각 입력창에 해당 번호를 입력하면 바로 사용 가능합니다.`;
+        }
     }
 
   const rawAddress = payment.userTelNo || userInfo.phone || userInfo.tel || "";

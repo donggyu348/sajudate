@@ -644,8 +644,13 @@ function buildBundlesForBase(baseGoodsCode) {
   return Object.values(GoodsType)
     .filter((g) => g && typeof g.code === "string" && g.code.endsWith("_BUNDLE") && g.reportCode === baseGoodsCode)
     .map((g) => {
-      const gift = GoodsType[g.giveTicket] || {};
-      return { ...g, partnerTitle: gift.title || "무료 사주", benefit: `${gift.title || "무료 사주"} 무료 티켓` };
+      // 단일(giveTicket) / 다중(giveTickets) 모두 지원
+      const giftCodes = Array.isArray(g.giveTickets)
+        ? g.giveTickets
+        : (g.giveTicket ? [g.giveTicket] : []);
+      const giftTitles = giftCodes.map((c) => (GoodsType[c] && GoodsType[c].title) || "무료 사주");
+      const partnerTitle = giftTitles.length ? giftTitles.join(" + ") : "무료 사주";
+      return { ...g, partnerTitle, benefit: `${partnerTitle} 무료 티켓` };
     });
 }
 
