@@ -25,6 +25,8 @@ export default {
           'Roboto',
           'sans-serif',
         ],
+        // 에디토리얼 대제목용 세리프
+        serif: ['"Nanum Myeongjo"', 'Georgia', 'serif'],
       },
       aspectRatio: {
         '4/5': '4 / 5',
