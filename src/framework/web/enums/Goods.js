@@ -71,8 +71,7 @@ export const GoodsType = Object.freeze({
     price: 49800,
     platform: Platform.TIGHT,
     reportCode: "ADULT",     // 본 리포트 = 29금(S궁합) 사주
-    giveTicket: "ROMANTIC",
-    hideInBundleList: true   // 결제창 번들 목록에서 숨김(3종 번들만 노출)
+    giveTicket: "ROMANTIC"
   },
 
   /** 사자록 — 가격은 result 노잣돈 카드(63,000 → 37,800)와 일치 */
@@ -109,8 +108,7 @@ export const GoodsType = Object.freeze({
     price: 51600,
     platform: Platform.TIGHT,
     reportCode: "ADULT",
-    giveTicket: "REAPER",
-    hideInBundleList: true   // 결제창 번들 목록에서 숨김(3종 번들만 노출)
+    giveTicket: "REAPER"
   },
 
   // 저승사자 사주 + 연애사주 (리퍼 구매 시 연애 티켓 증정)

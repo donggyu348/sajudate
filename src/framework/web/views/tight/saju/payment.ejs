@@ -55,7 +55,7 @@
 
                             <% if (typeof bundles !== 'undefined' && bundles && bundles.length) { %>
                             <% bundles.forEach(function(b, bi){ %>
-          <div onclick="selectOption('<%= b.code %>')" id="card-<%= b.code %>" class="goods-card bundle-card relative border-2 <%= b.theme === 'blue' ? 'bundle-card--blue' : 'border-pink-400 bg-pink-50/30' %>">
+          <div onclick="selectOption('<%= b.code %>')" id="card-<%= b.code %>" class="goods-card bundle-card relative border-2 <%= b.theme === 'blue' ? 'bundle-card--blue' : 'bundle-card--red' %>">
             <% if (bi === 0) { %><div class="best-badge">BEST</div><% } %>
 
     <div class="flex items-center gap-3">
@@ -240,26 +240,32 @@
   padding: 22px 20px !important;
   margin: 6px 0;
   border-width: 2px !important;
-  box-shadow: 0 10px 24px rgba(236,72,153,0.18);
+  background: #fff;                 /* 기본: 흰색 */
+  border-color: #e5e7eb;            /* gray-200 */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
-.bundle-card.is-selected {
-  border-color: #ec4899 !important;
-  background-color: #fff1f2 !important;
+
+/* ── 빨강 테마(일반 번들): 흰색 → 선택 시 빨강 ── */
+.bundle-card--red .text-pink-600 { color: #dc2626 !important; }
+.bundle-card--red .text-pink-500 { color: #ef4444 !important; }
+.bundle-card--red .radio-dot { border-color: #ef4444 !important; }
+.bundle-card--red .best-badge { background: linear-gradient(135deg, #f87171, #ef4444); }
+.bundle-card--red.is-selected {
+  border-color: #ef4444 !important;
+  background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%) !important;
+  box-shadow: 0 10px 24px rgba(239,68,68,0.20) !important;
 }
-/* ── 파란색 그라데이션 번들 카드 (theme: 'blue') ── */
-.bundle-card--blue {
-  border-color: #60a5fa !important;
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%) !important;
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.20) !important;
-}
+
+/* ── 파랑 테마(3종 번들): 흰색 → 선택 시 파랑 그라데이션 ── */
+.bundle-card--blue .text-pink-600 { color: #2563eb !important; }
+.bundle-card--blue .text-pink-500 { color: #3b82f6 !important; }
+.bundle-card--blue .radio-dot { border-color: #60a5fa !important; }
+.bundle-card--blue .best-badge { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 .bundle-card--blue.is-selected {
   border-color: #2563eb !important;
   background: linear-gradient(135deg, #eff6ff 0%, #bfdbfe 100%) !important;
+  box-shadow: 0 10px 24px rgba(37,99,235,0.20) !important;
 }
-.bundle-card--blue .radio-dot { border-color: #60a5fa !important; }
-.bundle-card--blue .text-pink-600 { color: #2563eb !important; }
-.bundle-card--blue .text-pink-500 { color: #3b82f6 !important; }
-.bundle-card--blue .best-badge { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 .bundle-card .radio-dot {
   transform: scale(1.2);
 }
