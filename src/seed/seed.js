@@ -12,7 +12,8 @@ const PRODUCTS = [
     isFeatured: true,
     headline: '내 관계, 안전한가요?',
     subcopy: '다크 테트라드 척도로 읽는 관계의 위험 신호',
-    thumbnailUrl: null, // 직접 업로드 예정
+    // 히어로 배너 이미지 — public/assets/hero-dark-psych.png 에 파일 저장 시 노출
+    thumbnailUrl: '/assets/hero-dark-psych.png',
     isActive: true,
     sortOrder: 1,
   },

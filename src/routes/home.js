@@ -50,6 +50,30 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// GET /library → 보관함 (내가 받은 리포트 모음) — 로그인/유저 연결 전까지 안내 화면
+router.get('/library', (req, res) => {
+  res.render('platform/placeholder', {
+    title: '보관함',
+    activeTab: 'library',
+    icon:
+      '<path d="M9 4v13l-3 -2l-3 2v-13a2 2 0 0 1 2 -2h4a2 2 0 0 0 -1 3z" /><path d="M9 4h7a2 2 0 0 1 2 2v13l-3 -2l-3 2" />',
+    heading: '보관함',
+    message: '여기에서 받은 진단 리포트를 모아 볼 수 있어요. (준비 중)',
+  });
+});
+
+// GET /my → 마이페이지
+router.get('/my', (req, res) => {
+  res.render('platform/placeholder', {
+    title: '마이',
+    activeTab: 'my',
+    icon:
+      '<path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />',
+    heading: '마이페이지',
+    message: '내 정보와 이용 내역을 관리하는 공간이에요. (준비 중)',
+  });
+});
+
 // GET /products/:slug → 상품 상세 진입 (전용 모듈이 없는 경우의 기본 처리)
 router.get('/products/:slug', async (req, res, next) => {
   try {
