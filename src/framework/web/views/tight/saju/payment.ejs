@@ -61,8 +61,10 @@
     <div class="flex items-center gap-3">
         <div class="radio-dot border-pink-400"></div>
         <div>
+ <% if (Array.isArray(b.giveTickets) && b.giveTickets.length >= 2) { %>
  <p class="text-[11px] font-bold text-pink-600">
 👑 프리미엄 추천 구성      </p>
+ <% } %>
       <p class="font-bold text-gray-800">
         <%= goodsInfo.title %> + <%= b.partnerTitle %>
       </p>
