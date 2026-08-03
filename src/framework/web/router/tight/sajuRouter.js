@@ -642,13 +642,13 @@ router.post("/payment", async (req, res) => {
 /* 결제창 GET — 새로고침/뒤로가기/직접진입 대응 (reportHistoryId 기반 재렌더) */
 function buildBundlesForBase(baseGoodsCode) {
   return Object.values(GoodsType)
-    .filter((g) => g && typeof g.code === "string" && g.code.endsWith("_BUNDLE") && g.reportCode === baseGoodsCode)
+    .filter((g) => g && typeof g.code === "string" && g.code.endsWith("_BUNDLE") && g.reportCode === baseGoodsCode && !g.hideInBundleList)
     .map((g) => {
       // 단일(giveTicket) / 다중(giveTickets) 모두 지원
       const giftCodes = Array.isArray(g.giveTickets)
         ? g.giveTickets
         : (g.giveTicket ? [g.giveTicket] : []);
-      const giftTitles = giftCodes.map((c) => (GoodsType[c] && GoodsType[c].title) || "무료 사주");
+      const giftTitles = giftCodes.map((c) => (GoodsType[c] && (GoodsType[c].shortTitle || GoodsType[c].title)) || "무료 사주");
       const partnerTitle = giftTitles.length ? giftTitles.join(" + ") : "무료 사주";
       return { ...g, partnerTitle, benefit: `${partnerTitle} 무료 티켓` };
     });

@@ -23,6 +23,7 @@ export const GoodsType = Object.freeze({
   ROMANTIC: {
     code: "ROMANTIC",
     title: '홍연사주(연애사주)',
+    shortTitle: '연애사주',   // 번들 카드 등 좁은 표기용
     originalPrice: 53800,
     discountPrice: 18900,
     price: 34900,
@@ -70,7 +71,8 @@ export const GoodsType = Object.freeze({
     price: 49800,
     platform: Platform.TIGHT,
     reportCode: "ADULT",     // 본 리포트 = 29금(S궁합) 사주
-    giveTicket: "ROMANTIC"
+    giveTicket: "ROMANTIC",
+    hideInBundleList: true   // 결제창 번들 목록에서 숨김(3종 번들만 노출)
   },
 
   /** 사자록 — 가격은 result 노잣돈 카드(63,000 → 37,800)와 일치 */
@@ -107,7 +109,8 @@ export const GoodsType = Object.freeze({
     price: 51600,
     platform: Platform.TIGHT,
     reportCode: "ADULT",
-    giveTicket: "REAPER"
+    giveTicket: "REAPER",
+    hideInBundleList: true   // 결제창 번들 목록에서 숨김(3종 번들만 노출)
   },
 
   // 저승사자 사주 + 연애사주 (리퍼 구매 시 연애 티켓 증정)
@@ -138,12 +141,13 @@ export const GoodsType = Object.freeze({
   // giveTickets(배열)로 티켓 2장 발급, 문자는 한 통에 함께 발송
   ADULT_CLASSIC_ROMANTIC_BUNDLE: {
     code: "ADULT_CLASSIC_ROMANTIC_BUNDLE",
-    title: "S궁합사주 + 정통사주 + 홍연사주(연애사주)",
+    title: "S궁합사주 + 정통사주 + 연애사주",
     originalPrice: 180400,
     discountPrice: 115500,
     price: 64900,
     platform: Platform.TIGHT,
     reportCode: "ADULT",
-    giveTickets: ["CLASSIC", "ROMANTIC"]
+    giveTickets: ["CLASSIC", "ROMANTIC"],
+    theme: "blue"            // 결제창 카드 파란 그라데이션
   }
 });
