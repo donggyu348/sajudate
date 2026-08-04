@@ -7,8 +7,9 @@ const PORT = Number(process.env.PORT || 3000);
 async function start() {
   try {
     await assertDbConnection();
-    // 개발 편의를 위한 자동 동기화 (운영은 마이그레이션 권장)
-    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
+    // alter:true는 MySQL에서 매 재시작마다 UNIQUE 컬럼에 중복 인덱스를 추가하는 문제가 있어 비활성화.
+    // 스키마 변경(컬럼 추가 등)은 새 테이블만 자동 생성되며, 기존 테이블 alter는 수동으로 처리.
+    await sequelize.sync();
     console.log('[db] connected & synced');
   } catch (err) {
     console.error('[db] connection failed:', err.message);

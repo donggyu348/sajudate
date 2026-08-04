@@ -1,22 +1,42 @@
-<div class="flex h-[calc(100vh-3.5rem-5rem)] flex-col">
+<style>
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-3px); opacity: 1; }
+  }
+  .typing-dot { animation: typingBounce 1.1s ease-in-out infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+</style>
+
+<div class="flex h-[calc(100vh-3.5rem-5rem)] flex-col bg-gradient-to-b from-white via-accent-soft/20 to-white">
   <!-- 헤더/고지 -->
-  <div class="border-b border-line px-4 py-3">
+  <div class="border-b border-line/70 bg-white/90 px-4 py-3 backdrop-blur">
     <div class="flex items-center justify-between gap-2">
-      <h1 class="text-base font-bold"><%= current ? current.name : '관계 상담' %></h1>
+      <div class="flex min-w-0 items-center gap-2.5">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-[#332a99] text-white shadow-[0_4px_10px_-4px_rgba(67,56,202,0.6)]">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" /></svg>
+        </span>
+        <div class="min-w-0">
+          <h1 class="truncate text-[15px] font-semibold leading-tight"><%= current ? current.name : '관계 상담' %></h1>
+          <p class="mt-0.5 truncate text-[11px] leading-none text-ink-soft"><%= current && current.description ? current.description : '대화하며 관계의 신호를 함께 살펴봐요' %></p>
+        </div>
+      </div>
       <% if (agents && agents.length > 1) { %>
-        <select id="agentSelect" class="rounded-lg border border-line px-2 py-1 text-xs text-ink-soft focus:border-accent focus:outline-none">
+        <select id="agentSelect" class="shrink-0 rounded-full border border-line bg-white px-2.5 py-1.5 text-[11px] text-ink-soft focus:border-accent focus:outline-none">
           <% agents.forEach(function (a) { %>
             <option value="<%= a.slug %>" <%= current && a.slug === current.slug ? 'selected' : '' %>><%= a.name %></option>
           <% }); %>
         </select>
       <% } %>
     </div>
-    <p class="mt-0.5 text-[11px] leading-relaxed text-ink-soft">
-      <%= current && current.description ? current.description : '대화하며 관계의 신호를 함께 살펴봐요.' %>
-      참고용 정서적 지지이며 전문 상담을 대체하지 않습니다.
-    </p>
+    <% if (hasChatContext) { %>
+      <div class="mt-2.5 flex items-center gap-1.5 rounded-full border border-accent-ring bg-accent-soft px-3 py-1.5 text-[11px] text-accent">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M5 12l5 5l10 -10" /></svg>
+        업로드한 카카오톡 대화의 의심스러운 구간을 참고해서 상담합니다
+      </div>
+    <% } %>
     <% if (!enabled) { %>
-      <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-700">
+      <div class="mt-2.5 rounded-lg border border-amber-200 bg-amber-50 p-2 text-[11px] text-amber-700">
         현재 상담 봇이 설정되지 않았습니다(API 키 미설정). 화면 구성은 확인할 수 있으나 실제 응답은 나오지 않습니다.
       </div>
     <% } %>
@@ -29,19 +49,34 @@
     </div>
   <% } else { %>
   <!-- 메시지 영역 -->
-  <div id="chatLog" class="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-    <div class="flex">
-      <div class="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-sm border border-line bg-white px-3.5 py-2.5 text-sm leading-relaxed"><%= current.greeting || '안녕하세요. 어떤 이야기가 있으신가요? 편하게 말씀해 주세요.' %></div>
+  <div id="chatLog" class="flex-1 space-y-2.5 overflow-y-auto px-4 py-4">
+    <div class="mb-1 flex justify-center">
+      <span class="rounded-full bg-black/[0.04] px-3 py-1 text-center text-[10.5px] leading-relaxed text-ink-soft">참고용 정서적 지지이며 전문 상담을 대체하지 않아요</span>
+    </div>
+    <div class="flex items-end gap-1.5">
+      <span class="mb-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-[#332a99] text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" /></svg>
+      </span>
+      <div class="max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink shadow-[0_1px_2px_rgba(0,0,0,0.06)]"><%= current.greeting || '안녕하세요. 어떤 이야기가 있으신가요? 편하게 말씀해 주세요.' %></div>
     </div>
   </div>
 
+  <!-- 상담 마무리 → 결과 보기 (AI가 충분하다고 판단하면 표시됨) -->
+  <div id="finishBar" class="hidden border-t border-line/70 bg-white px-4 py-3">
+    <button id="finishBtn" type="button" class="flex w-full items-center justify-center gap-1.5 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-white shadow-[0_10px_20px_-8px_rgba(67,56,202,0.5)] transition-transform active:scale-[0.98]">
+      상담 마무리하고 결과 보기
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14 0" /><path d="M13 18l6 -6" /><path d="M13 6l6 6" /></svg>
+    </button>
+    <p id="finishError" class="mt-1.5 hidden text-center text-[11px] text-red-600"></p>
+  </div>
+
   <!-- 입력 -->
-  <form id="chatForm" class="border-t border-line px-3 py-3">
+  <form id="chatForm" class="border-t border-line/70 bg-white px-3 py-3">
     <div class="flex items-end gap-2">
       <textarea id="chatInput" rows="1" placeholder="메시지를 입력하세요…"
-        class="max-h-32 flex-1 resize-none rounded-2xl border border-line px-3.5 py-2.5 text-sm focus:border-accent focus:outline-none"></textarea>
-      <button id="sendBtn" type="submit" class="btn-primary shrink-0 rounded-full !px-4 !py-2.5" aria-label="보내기">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14l11 -11" /><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5" /></svg>
+        class="max-h-32 flex-1 resize-none rounded-3xl border border-line bg-gray-50/80 px-4 py-2.5 text-sm shadow-inner focus:border-accent focus:bg-white focus:outline-none"></textarea>
+      <button id="sendBtn" type="submit" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-white shadow-[0_8px_16px_-6px_rgba(67,56,202,0.55)] transition-transform active:scale-90 disabled:opacity-40" aria-label="보내기">
+        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14l11 -11" /><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5" /></svg>
       </button>
     </div>
   </form>
@@ -53,11 +88,17 @@
   (function () {
     const base = <%- JSON.stringify(base) %>;
     const agentSlug = <%- JSON.stringify(current.slug) %>;
+    const READY_MARKER = '[[READY_FOR_REPORT]]';
+    const FALLBACK_USER_TURNS = 10; // 마커가 안 와도 이 정도 대화하면 안전망으로 버튼 노출
+
     const log = document.getElementById('chatLog');
     const form = document.getElementById('chatForm');
     const input = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const agentSelect = document.getElementById('agentSelect');
+    const finishBar = document.getElementById('finishBar');
+    const finishBtn = document.getElementById('finishBtn');
+    const finishError = document.getElementById('finishError');
 
     // 봇 전환 → 페이지 리로드(대화 초기화)
     if (agentSelect) {
@@ -67,18 +108,38 @@
     }
 
     const history = []; // user/assistant 만
+    let userTurns = 0;
+
+    const AGENT_AVATAR_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" /></svg>';
 
     function bubble(role) {
       const wrap = document.createElement('div');
-      wrap.className = 'flex ' + (role === 'user' ? 'justify-end' : '');
+      wrap.className = 'flex items-end gap-1.5 ' + (role === 'user' ? 'justify-end' : '');
+      if (role !== 'user') {
+        const avatar = document.createElement('span');
+        avatar.className = 'mb-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-[#332a99] text-white';
+        avatar.innerHTML = AGENT_AVATAR_SVG;
+        wrap.appendChild(avatar);
+      }
       const b = document.createElement('div');
       b.className = role === 'user'
-        ? 'max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tr-sm bg-accent px-3.5 py-2.5 text-sm leading-relaxed text-white'
-        : 'max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-sm border border-line bg-white px-3.5 py-2.5 text-sm leading-relaxed';
+        ? 'max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-accent px-3.5 py-2.5 text-sm leading-relaxed text-white shadow-[0_4px_10px_-4px_rgba(67,56,202,0.5)]'
+        : 'max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink shadow-[0_1px_2px_rgba(0,0,0,0.06)]';
       wrap.appendChild(b);
       log.appendChild(wrap);
       log.scrollTop = log.scrollHeight;
       return b;
+    }
+
+    function typingDots() {
+      const dots = document.createElement('span');
+      dots.className = 'inline-flex items-center gap-1 py-0.5';
+      dots.innerHTML = '<span class="typing-dot h-1.5 w-1.5 rounded-full bg-ink-soft/50"></span>'.repeat(3);
+      return dots;
+    }
+
+    function showFinishBar() {
+      finishBar.classList.remove('hidden');
     }
 
     input.addEventListener('input', function () {
@@ -100,9 +161,10 @@
 
       bubble('user').textContent = text;
       history.push({ role: 'user', content: text });
+      userTurns += 1;
 
       const answer = bubble('assistant');
-      answer.innerHTML = '<span class="text-ink-soft">…</span>';
+      answer.appendChild(typingDots());
 
       try {
         const res = await fetch(base + '/counsel/stream', {
@@ -121,11 +183,41 @@
           answer.textContent = acc;
           log.scrollTop = log.scrollHeight;
         }
+
+        let ready = false;
+        if (acc.includes(READY_MARKER)) {
+          ready = true;
+          acc = acc.split(READY_MARKER).join('').trim();
+          answer.textContent = acc;
+        }
         history.push({ role: 'assistant', content: acc });
+
+        if (ready || userTurns >= FALLBACK_USER_TURNS) showFinishBar();
       } catch (err) {
         answer.textContent = '연결에 문제가 발생했어요. 잠시 후 다시 시도해 주세요.';
       } finally {
         busy = false; sendBtn.disabled = false; input.focus();
+      }
+    });
+
+    finishBtn.addEventListener('click', async function () {
+      finishError.classList.add('hidden');
+      finishBtn.disabled = true;
+      finishBtn.textContent = '결과 정리 중…';
+      try {
+        const res = await fetch(base + '/counsel/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ agentSlug: agentSlug, messages: history }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '리포트 생성에 실패했습니다.');
+        location.href = base + '/report/' + data.reportId;
+      } catch (err) {
+        finishError.textContent = err.message || '리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+        finishError.classList.remove('hidden');
+        finishBtn.disabled = false;
+        finishBtn.textContent = '상담 마무리하고 결과 보기';
       }
     });
   })();

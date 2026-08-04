@@ -1,10 +1,12 @@
 /**
  * 1차 규칙 기반 통계 분석.
- * 입력: parseKakaoExport 로 얻은 messages (원문 포함, 메모리에서만 사용)
+ * 입력: parseKakaoScreenshots 로 얻은 messages (원문 포함, 메모리에서만 사용)
  * 출력: 저장 가능한 통계 지표 + LLM 태깅 후보 구간(인덱스)
  *
  * 규칙 기반 단계에서 "가능성 있는 구간"만 좁혀서, 2차 LLM 태깅 비용/노출을 최소화한다.
  */
+
+/** @typedef {{ at: Date|null, sender: string, text: string }} KakaoMessage */
 
 // 관계 조종 신호와 느슨하게 연관된 키워드 (통계 카운트용, 판정 아님)
 const KEYWORDS = {
@@ -14,6 +16,15 @@ const KEYWORDS = {
   threatLeave: ['헤어져', '끝내', '떠날', '연락하지마', '차단'],
   apology: ['미안', '잘못했', '사과', '죄송'],
   control: ['어디야', '누구랑', '왜 안 읽', '왜 답 안', '보고해', '허락'],
+};
+
+/** 후보 구간 카테고리 → 사용자에게 보여줄 한국어 라벨 (apology는 후보 신호로 쓰지 않으므로 제외) */
+export const CATEGORY_LABELS = {
+  blame: '책임 전가',
+  gaslight: '가스라이팅 의심',
+  contempt: '경멸적 표현',
+  threatLeave: '관계 위협',
+  control: '과도한 통제',
 };
 
 function countKeywords(text, list) {
@@ -31,11 +42,9 @@ function isNight(date) {
 }
 
 /**
- * @param {import('./kakaoParser.js').KakaoMessage[]} messages
- * @param {{ selfName?: string }} [opts] - 본인(내) 이름. 주면 상대/나 구분 통계 강화
+ * @param {KakaoMessage[]} messages
  */
-export function computeStatPatterns(messages, opts = {}) {
-  const { selfName } = opts;
+export function computeStatPatterns(messages) {
   const senders = new Map();
   let nightCount = 0;
   const keywordTotals = { blame: 0, gaslight: 0, contempt: 0, threatLeave: 0, apology: 0, control: 0 };
@@ -91,10 +100,9 @@ export function computeStatPatterns(messages, opts = {}) {
   }
 
   const total = messages.length || 1;
+  // 발신자는 항상 오른쪽 말풍선="나"로 정규화돼 들어오므로, 나머지 한 명이 상대방
   const partnerName =
-    selfName && senders.size === 2
-      ? [...senders.keys()].find((n) => n !== selfName) || null
-      : null;
+    senders.size === 2 ? [...senders.keys()].find((n) => n !== '나') || null : null;
 
   return {
     stats: {
@@ -104,7 +112,6 @@ export function computeStatPatterns(messages, opts = {}) {
       nightRatio: Number((nightCount / total).toFixed(3)),
       avgResponseSec,
       keywordTotals,
-      selfName: selfName || null,
       partnerName,
       periodStart: messages.find((m) => m.at)?.at ?? null,
       periodEnd: [...messages].reverse().find((m) => m.at)?.at ?? null,
@@ -115,6 +122,7 @@ export function computeStatPatterns(messages, opts = {}) {
 
 /**
  * LLM 태깅용 후보 구간 추출: 후보 메시지 ± window 를 묶어 세그먼트로 반환.
+ * 각 메시지에 원본 인덱스(idx)를 함께 담아, LLM이 지목한 위치를 원문에 다시 매핑할 수 있게 한다.
  * 반환 세그먼트는 LLM 입력으로만 쓰고 저장하지 않는다.
  */
 export function buildCandidateSegments(messages, candidateIndexes, window = 2, maxSegments = 15) {
@@ -128,6 +136,7 @@ export function buildCandidateSegments(messages, candidateIndexes, window = 2, m
     for (let i = start; i <= end; i++) {
       used.add(i);
       seg.push({
+        idx: i,
         sender: messages[i].sender,
         text: messages[i].text,
       });
@@ -136,4 +145,66 @@ export function buildCandidateSegments(messages, candidateIndexes, window = 2, m
     if (segments.length >= maxSegments) break;
   }
   return segments;
+}
+
+const RISK_WEIGHTS = { gaslight: 3, blame: 2, contempt: 2, threatLeave: 2, control: 1.5 };
+
+function riskBand(score) {
+  if (score >= 70) return { level: 'high', label: '위험 신호가 다수 감지됐어요' };
+  if (score >= 40) return { level: 'elevated', label: '주의가 필요한 신호가 보여요' };
+  if (score >= 15) return { level: 'moderate', label: '경미한 신호가 일부 보여요' };
+  return { level: 'low', label: '뚜렷한 위험 신호는 적어요' };
+}
+
+/**
+ * 업로드 직후 내는 1차 위험 신호 점수(0~100).
+ * 키워드는 후보 구간을 좁히는 용도로만 쓰고, 점수 자체는 반드시 analyzeChatFlow가
+ * 대화 흐름을 보고 확정한 flowFlags(LLM 판단)만 근거로 삼는다 — 단순 키워드 매칭 결과는 쓰지 않는다.
+ * @param {{ idx: number, category: string }[]} flowFlags - analyzeChatFlow가 확정한 결과
+ * @param {number} messageCount - 전체 대화 메시지 수(정규화용)
+ */
+export function computePreviewRiskScore(flowFlags, messageCount) {
+  let weighted = 0;
+  const byCategory = {};
+  for (const f of flowFlags || []) {
+    const w = RISK_WEIGHTS[f.category] ?? 1;
+    weighted += w;
+    byCategory[f.category] = (byCategory[f.category] || 0) + 1;
+  }
+  const topSignals = Object.entries(byCategory)
+    .map(([category, count]) => ({ category, label: CATEGORY_LABELS[category] || category, count }))
+    .sort((a, b) => b.count - a.count);
+
+  const perMessage = messageCount ? weighted / messageCount : 0;
+  const score = Math.round(Math.min(100, perMessage * 500 + topSignals.length * 8));
+
+  return { score, band: riskBand(score), topSignals: topSignals.slice(0, 3) };
+}
+
+/**
+ * analyzeChatFlow가 확정한 flowFlags만 근거로 상담봇 컨텍스트를 직렬화.
+ * 키워드 후보가 아니라 LLM이 실제 조종적 발화로 확정한 지점만 카테고리 라벨과 함께 담아,
+ * 상담봇이 이 지점을 우선순위로 질문하게 한다. maxChars로 토큰 비용/노출 범위를 통제한다.
+ * @param {KakaoMessage[]} messages
+ * @param {{ idx: number, category: string }[]} flowFlags
+ */
+export function formatConfirmedContext(messages, flowFlags, window = 2, maxChars = 2500) {
+  if (!flowFlags || flowFlags.length === 0) return '';
+  const used = new Set();
+  let out = '';
+  for (const flag of flowFlags) {
+    if (used.has(flag.idx)) continue;
+    const start = Math.max(0, flag.idx - window);
+    const end = Math.min(messages.length - 1, flag.idx + window);
+    const lines = [];
+    for (let i = start; i <= end; i++) {
+      used.add(i);
+      lines.push(`${messages[i].sender}: ${messages[i].text}${i === flag.idx ? ' ← 의심 발화' : ''}`);
+    }
+    const label = CATEGORY_LABELS[flag.category] || flag.category;
+    const block = `--- [${label} 확정] ---\n${lines.join('\n')}\n`;
+    if (out.length + block.length > maxChars) break;
+    out += block;
+  }
+  return out.trim();
 }

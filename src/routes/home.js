@@ -37,7 +37,7 @@ router.get('/', async (req, res, next) => {
     const featured = activeProducts.filter((p) => p.isFeatured);
 
     res.render('platform/home', {
-      title: '심리 플랫폼',
+      title: '해답',
       activeTab: 'home',
       categories,
       selected,

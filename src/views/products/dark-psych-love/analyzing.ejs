@@ -1,0 +1,266 @@
+<style>
+  @keyframes scanSweep {
+    0% { top: -6rem; opacity: 0; }
+    12% { opacity: 1; }
+    88% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  .scan-sweep { animation: scanSweep 2.6s ease-in-out infinite; }
+</style>
+
+<div class="flex h-[calc(100vh-3.5rem-5rem)] flex-col bg-[#0b0d18] text-white">
+  <div class="border-b border-white/10 px-4 py-3">
+    <div class="flex items-center gap-2">
+      <span id="spinner" class="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-accent border-t-transparent"></span>
+      <h1 id="statusText" class="text-sm font-semibold">대화를 분석하고 있어요…</h1>
+    </div>
+    <p class="mt-0.5 text-[11px] leading-relaxed text-white/50">실제 판단은 이어지는 상담에서 함께 확인합니다.</p>
+  </div>
+
+  <div class="flex flex-1 flex-col items-center justify-center overflow-y-auto px-5 py-4">
+    <div id="stageFrame" class="relative w-full max-w-xs shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-[0_0_50px_-12px_rgba(99,102,241,0.7)]" style="height: 340px;">
+      <img id="stageImg" class="absolute left-0 top-0 w-full" alt="분석 중인 카카오톡 캡처" />
+      <div class="scan-sweep pointer-events-none absolute inset-x-0 h-24 bg-gradient-to-b from-transparent via-accent/25 to-transparent"></div>
+      <div id="stageBadge" class="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 justify-center px-4"></div>
+    </div>
+
+    <p id="stageCaption" class="mt-4 min-h-[2.6em] max-w-xs text-center text-[13px] leading-relaxed text-white/70 transition-opacity duration-300"></p>
+
+    <div class="mt-3 w-full max-w-xs">
+      <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+        <div id="progressBar" class="h-full w-0 rounded-full bg-gradient-to-r from-accent to-[#8b7bff] transition-[width] duration-300 ease-out"></div>
+      </div>
+      <p id="progressLabel" class="mt-1.5 text-right text-[11px] font-medium text-white/40">0%</p>
+    </div>
+
+    <div id="stageDots" class="mt-3 flex items-center justify-center gap-1.5"></div>
+
+    <div id="scoreSlot" class="mt-2 w-full max-w-xs"></div>
+  </div>
+
+  <div class="border-t border-white/10 px-4 py-3">
+    <a href="<%= nextUrl %>" class="block text-center text-xs text-white/50 underline">건너뛰고 바로 상담하기</a>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const analyzeUrl = <%- JSON.stringify(analyzeUrl) %>;
+    const nextUrl = <%- JSON.stringify(nextUrl) %>;
+    const captureImages = <%- JSON.stringify(captureImages) %>;
+
+    const spinner = document.getElementById('spinner');
+    const statusText = document.getElementById('statusText');
+    const stageFrame = document.getElementById('stageFrame');
+    const stageImg = document.getElementById('stageImg');
+    const stageBadge = document.getElementById('stageBadge');
+    const stageCaption = document.getElementById('stageCaption');
+    const stageDots = document.getElementById('stageDots');
+    const scoreSlot = document.getElementById('scoreSlot');
+    const progressBar = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
+
+    const GENERIC_CAPTIONS = [
+      '말투와 어조를 살펴보고 있어요',
+      '책임을 누구에게 돌리는지 확인하고 있어요',
+      '감정을 이용하는 표현이 있는지 보는 중이에요',
+      '대화의 주도권이 누구에게 있는지 분석하고 있어요',
+      '반복되는 말 패턴이 있는지 확인하고 있어요',
+      '맥락과 앞뒤 흐름을 짚어보는 중이에요',
+    ];
+    const MAX_HIGHLIGHT_SCENES = 6;
+
+    function fallbackScenes() {
+      return captureImages.map(function (_, i) {
+        return { imageIndex: i, positionPercent: 50, flagged: false };
+      });
+    }
+
+    let scenes = fallbackScenes();
+    let sceneIndex = 0;
+    let genericIndex = 0;
+    let usingFallback = true;
+
+    let analyzeDone = false; // fetch 응답 도착 여부(성공/빈결과 포함)
+    let analyzeFailed = false;
+    let highlights = null;
+    let previewScore = null;
+
+    let finished = false;
+    let timer = null;
+    let lastImageIndex = -1;
+
+    // 실제 분석은 단일 요청-응답이라 서버가 중간 진행률을 알려줄 수 없다 —
+    // 완료 전까지는 92%를 상한으로 서서히 채우다가, 응답이 오면 빠르게 100%로 마무리.
+    let progress = 0;
+    function stepProgress() {
+      if (finished) return;
+      const cap = analyzeDone ? 100 : 92;
+      progress += (cap - progress) * (analyzeDone ? 0.25 : 0.06);
+      if (cap - progress < 0.3) progress = cap;
+      progressBar.style.width = progress + '%';
+      progressLabel.textContent = Math.round(progress) + '%';
+      setTimeout(stepProgress, 150);
+    }
+
+    function positionStageImage(percent) {
+      function apply() {
+        const frameW = stageFrame.clientWidth;
+        const frameH = stageFrame.clientHeight;
+        const naturalW = stageImg.naturalWidth || frameW;
+        const naturalH = stageImg.naturalHeight || frameH;
+        const scale = frameW / naturalW;
+        const scaledH = naturalH * scale;
+        stageImg.style.height = scaledH + 'px';
+        let targetY = scaledH * (percent / 100) - frameH / 2;
+        targetY = Math.max(0, Math.min(targetY, Math.max(0, scaledH - frameH)));
+        stageImg.style.transform = 'translateY(-' + targetY + 'px)';
+      }
+      if (stageImg.complete && stageImg.naturalWidth) apply();
+      else stageImg.onload = apply;
+    }
+
+    function setCaption(text) {
+      stageCaption.classList.add('opacity-0');
+      setTimeout(function () {
+        stageCaption.textContent = text;
+        stageCaption.classList.remove('opacity-0');
+      }, 200);
+    }
+
+    function setBadge(label) {
+      if (!label) {
+        stageBadge.classList.add('hidden');
+        stageBadge.innerHTML = '';
+        return;
+      }
+      stageBadge.innerHTML =
+        '<span class="flex items-center gap-1 rounded-full bg-red-600 px-3 py-1.5 text-[12px] font-semibold text-white shadow-lg ring-2 ring-white/80">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>' +
+        label + ' 의심</span>';
+      stageBadge.classList.remove('hidden');
+    }
+
+    function updateDots() {
+      stageDots.innerHTML = '';
+      scenes.forEach(function (_, i) {
+        const dot = document.createElement('span');
+        const active = i === sceneIndex % scenes.length;
+        dot.className = 'h-1.5 rounded-full transition-all duration-300 ' + (active ? 'w-4 bg-accent' : 'w-1.5 bg-white/25');
+        stageDots.appendChild(dot);
+      });
+    }
+
+    function renderScene(scene, caption) {
+      const img = captureImages[scene.imageIndex];
+      if (!img) return;
+      if (lastImageIndex !== scene.imageIndex) {
+        stageImg.src = 'data:' + img.mimetype + ';base64,' + img.base64;
+        lastImageIndex = scene.imageIndex;
+      }
+      positionStageImage(scene.positionPercent);
+      setCaption(caption);
+      setBadge(scene.flagged ? scene.label : null);
+      updateDots();
+    }
+
+    function showScoreCard(scoreData) {
+      const band = scoreData.band || {};
+      const signalsHtml = (scoreData.topSignals || [])
+        .map(function (s) {
+          return '<span class="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-medium text-red-600">' + s.label + ' ' + s.count + '회</span>';
+        })
+        .join('');
+      const card = document.createElement('div');
+      card.className = 'rounded-2xl border border-line bg-white p-5 text-center opacity-0 shadow-xl transition-opacity duration-500';
+      card.innerHTML =
+        '<p class="text-xs font-medium text-ink-soft">1차 신호 분석 결과</p>' +
+        '<p class="mt-2 text-3xl font-extrabold text-accent">' + scoreData.score + '<span class="text-base text-ink-soft">/100</span></p>' +
+        '<p class="mt-1 text-sm font-semibold text-ink">' + (band.label || '') + '</p>' +
+        (signalsHtml ? '<div class="mt-3 flex flex-wrap justify-center gap-1.5">' + signalsHtml + '</div>' : '') +
+        '<a href="' + nextUrl + '" class="btn-primary mt-4 block">AI 상담으로 정확히 진단받기</a>' +
+        '<p class="mt-2 text-[10px] leading-relaxed text-ink-soft">업로드한 대화에서 확인된 신호 기반 예비 지표이며, 정밀 진단은 상담 후 리포트에서 확인할 수 있어요.</p>';
+      scoreSlot.appendChild(card);
+      requestAnimationFrame(function () {
+        card.classList.remove('opacity-0');
+      });
+    }
+
+    function finish() {
+      if (finished) return;
+      finished = true;
+      if (timer) clearTimeout(timer);
+      spinner.classList.add('hidden');
+      setBadge(null);
+      progress = 100;
+      progressBar.style.width = '100%';
+      progressLabel.textContent = '100%';
+      if (analyzeFailed) {
+        statusText.textContent = '분석을 완료하지 못했어요 — 상담으로 진행할게요';
+        setCaption('');
+        setTimeout(function () {
+          location.href = nextUrl;
+        }, 1000);
+        return;
+      }
+      if (previewScore) {
+        statusText.textContent = '1차 신호 분석 완료';
+        setCaption('아래에서 결과를 확인해 주세요.');
+        showScoreCard(previewScore);
+      } else {
+        statusText.textContent = '분석 완료 — 상담을 시작할게요';
+        setCaption('');
+        setTimeout(function () {
+          location.href = nextUrl;
+        }, 900);
+      }
+    }
+
+    function tick() {
+      if (finished) return;
+      const idx = sceneIndex % scenes.length;
+      const scene = scenes[idx];
+      const caption = scene.flagged ? scene.caption : GENERIC_CAPTIONS[genericIndex++ % GENERIC_CAPTIONS.length];
+      renderScene(scene, caption);
+      sceneIndex++;
+
+      const finishedOneLap = sceneIndex % scenes.length === 0;
+      if (finishedOneLap && analyzeDone) {
+        if (usingFallback) {
+          // 분석 완료 — 발견된 의심 구간들로 장면을 교체해 한 바퀴 더 보여준다
+          usingFallback = false;
+          scenes =
+            highlights && highlights.length
+              ? highlights.slice(0, MAX_HIGHLIGHT_SCENES).map(function (h) {
+                  return { imageIndex: h.imageIndex, positionPercent: h.positionPercent, flagged: true, label: h.label, caption: h.label + ' 표현이 의심돼요' };
+                })
+              : [{ imageIndex: 0, positionPercent: 50, flagged: false, caption: '뚜렷한 위험 신호는 보이지 않아요' }];
+          sceneIndex = 0;
+          timer = setTimeout(tick, 500);
+          return;
+        }
+        finish();
+        return;
+      }
+      timer = setTimeout(tick, scene.flagged ? 2600 : 2200);
+    }
+
+    tick();
+    stepProgress();
+
+    fetch(analyzeUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && data.error) throw new Error(data.error);
+        highlights = data.highlights || [];
+        previewScore = data.previewScore || null;
+        analyzeDone = true;
+      })
+      .catch(function () {
+        analyzeFailed = true;
+        analyzeDone = true;
+      });
+  })();
+</script>
