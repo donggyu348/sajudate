@@ -11,30 +11,106 @@
   const axisEnds = rows.map((r, i) => pt(i, 1));
 %>
 
-<div class="p-4">
+<style>
+  html { scroll-behavior: smooth; }
+  @keyframes radarGrow {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .radar-poly {
+    transform-box: view-box;
+    transform-origin: 130px 130px;
+    animation: radarGrow 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .radar-grid {
+    opacity: 0;
+    animation: radarGrow 0.6s ease-out both;
+  }
+  @keyframes barGrow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  .bar-fill {
+    transform-origin: left;
+    animation: barGrow 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes jackpotLand {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.08); }
+    65% { transform: scale(0.97); }
+    100% { transform: scale(1); }
+  }
+  .jackpot-land { animation: jackpotLand 0.45s ease-out; }
+</style>
+
+<div class="p-4 <%= !report.paid ? 'pb-24' : '' %>">
   <h1 class="text-lg font-bold">최종 리포트</h1>
   <p class="mt-1 text-sm text-ink-soft">AI 상담 대화를 바탕으로 결과를 정리했습니다.</p>
 
+  <!-- 목차 -->
+  <nav class="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
+    <a href="#gaslightCard" class="chip shrink-0 whitespace-nowrap">가스라이팅 확률</a>
+    <% if (keyFindings && keyFindings.length) { %><a href="#key-findings" class="chip shrink-0 whitespace-nowrap">핵심 관찰</a><% } %>
+    <a href="#partner-tendency" class="chip shrink-0 whitespace-nowrap">상대방 성향</a>
+    <a href="#patterns" class="chip shrink-0 whitespace-nowrap">감지된 패턴</a>
+    <% if (selfPattern) { %><a href="#self-pattern" class="chip shrink-0 whitespace-nowrap">나의 반응</a><% } %>
+    <a href="#summary" class="chip shrink-0 whitespace-nowrap">종합 소견</a>
+    <a href="#solutions" class="chip shrink-0 whitespace-nowrap">해결법</a>
+  </nav>
+
+  <!-- 헤드라인: 가스라이팅 확률 -->
+  <div id="gaslightCard" class="mt-4 rounded-2xl border border-accent-ring bg-accent-soft p-5 text-center">
+    <p class="text-xs font-medium text-accent">가스라이팅 확률</p>
+    <p class="mt-2 text-4xl font-extrabold text-accent"><span id="gaslightPercent" style="font-variant-numeric: tabular-nums;">0</span><span class="text-base text-accent/70">%</span></p>
+    <p class="mt-1 text-sm font-semibold text-accent"><%= gaslightingBand.label %></p>
+    <p class="mt-2 text-[11px] leading-relaxed text-accent/80">상담 대화에서 확인된 가스라이팅 발화 빈도와 AI의 확신도를 근거로 계산돼요.</p>
+  </div>
+
+  <!-- 이번 대화에서만 관찰된 구체적 패턴 (고정 유형이 아니라 대화 맥락에 따라 자유롭게 이름 붙여짐) -->
+  <% if (keyFindings && keyFindings.length) { %>
+  <div id="key-findings" class="mt-5">
+    <h2 class="text-sm font-bold">핵심 관찰</h2>
+    <p class="mt-1 text-[11px] text-ink-soft">상담 대화에서 반복적으로 확인된 상호작용 패턴이에요.</p>
+    <div class="mt-3 space-y-2">
+      <% keyFindings.forEach(function (f) { %>
+        <div class="flat-card p-4">
+          <p class="text-sm font-semibold text-ink"><%= f.title %></p>
+          <p class="mt-1.5 text-xs leading-relaxed text-ink-soft"><%= f.description %></p>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+  <% } %>
+
   <!-- 종합 배지 -->
-  <div class="mt-4 rounded-2xl border border-line bg-gray-50 p-5 text-center">
-    <p class="text-xs font-medium text-ink-soft">종합 진단</p>
+  <div id="partner-tendency" class="mt-3 rounded-2xl border border-line bg-gray-50 p-5 text-center">
+    <p class="text-xs font-medium text-ink-soft">상대방 성향 종합 점수</p>
     <p class="mt-2 text-3xl font-extrabold text-accent"><%= overallScore100 %><span class="text-base text-ink-soft">/100</span></p>
-    <p class="mt-1 text-sm font-semibold text-ink">
-      <% if (topAxis) { %><%= topAxis.label %> 경향이 두드러집니다 · <% } %><%= overallBand.label %>
+    <p class="mt-1 text-sm font-semibold text-ink"><%= overallBand.label %></p>
+    <p class="mt-2 text-[11px] leading-relaxed text-ink-soft">
+      아래 4가지 성향(나르시시즘·마키아벨리즘·사이코패시·사디즘) 점수를 평균 낸 값이에요. 높을수록 한두 가지가 아니라 여러 성향이 동시에 두드러지게 관찰됐다는 뜻이에요.
     </p>
+    <% if (topAxis && bottomAxis && topAxis.key !== bottomAxis.key) { %>
+      <p class="mt-2 text-[11px] leading-relaxed text-ink-soft">
+        가장 두드러진 성향은 <span class="font-semibold text-ink"><%= topAxis.label %></span>(<%= topAxis.short %>)이고,
+        가장 낮은 성향은 <span class="font-semibold text-ink"><%= bottomAxis.label %></span>(<%= bottomAxis.short %>)이에요.
+      </p>
+    <% } %>
   </div>
 
   <!-- 레이더 차트 -->
   <div class="mt-5 flat-card flex justify-center p-4">
     <svg viewBox="0 0 260 260" class="h-64 w-64">
-      <% gridLevels.forEach(function (lv) {
-           const poly = rows.map((r, i) => pt(i, lv).join(',')).join(' '); %>
-        <polygon points="<%= poly %>" fill="none" stroke="#e5e7eb" stroke-width="1" />
-      <% }); %>
-      <% axisEnds.forEach(function (p) { %>
-        <line x1="<%= cx %>" y1="<%= cy %>" x2="<%= p[0] %>" y2="<%= p[1] %>" stroke="#e5e7eb" stroke-width="1" />
-      <% }); %>
-      <polygon points="<%= dataPoly %>" fill="rgba(67,56,202,0.18)" stroke="#4338ca" stroke-width="2" />
+      <g class="radar-grid">
+        <% gridLevels.forEach(function (lv) {
+             const poly = rows.map((r, i) => pt(i, lv).join(',')).join(' '); %>
+          <polygon points="<%= poly %>" fill="none" stroke="#e5e7eb" stroke-width="1" />
+        <% }); %>
+        <% axisEnds.forEach(function (p) { %>
+          <line x1="<%= cx %>" y1="<%= cy %>" x2="<%= p[0] %>" y2="<%= p[1] %>" stroke="#e5e7eb" stroke-width="1" />
+        <% }); %>
+      </g>
+      <polygon class="radar-poly" points="<%= dataPoly %>" fill="rgba(67,56,202,0.18)" stroke="#4338ca" stroke-width="2" />
       <% rows.forEach(function (r, i) {
            const p = pt(i, 1.16);
            const anchor = Math.abs(p[0] - cx) < 4 ? 'middle' : (p[0] < cx ? 'end' : 'start'); %>
@@ -45,23 +121,35 @@
 
   <!-- 축별 점수 -->
   <div class="mt-4 space-y-3">
-    <% rows.forEach(function (r) { %>
+    <% rows.forEach(function (r, i) { %>
       <div class="flat-card p-4">
         <div class="flex items-baseline justify-between">
           <p class="text-sm font-semibold"><%= r.label %></p>
           <p class="text-sm font-bold text-accent"><%= r.score.toFixed(1) %><span class="text-ink-soft">/5.0</span></p>
         </div>
         <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-          <div class="h-full rounded-full bg-accent" style="width: <%= r.score100 %>%"></div>
+          <div class="bar-fill h-full rounded-full bg-accent" style="width: <%= r.score100 %>%; animation-delay: <%= i * 90 %>ms"></div>
         </div>
         <p class="mt-2 text-xs text-ink-soft"><%= r.band.label %>.</p>
+        <p class="mt-1.5 text-[11px] leading-relaxed text-ink-soft/80"><%= r.description %></p>
+
+        <details class="group mt-3 rounded-lg border border-line/70 bg-gray-50/60 p-3">
+          <summary class="flex cursor-pointer list-none items-center justify-between text-[11.5px] font-semibold text-ink [&::-webkit-details-marker]:hidden">
+            더 알아보기
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-ink-soft transition-transform duration-200 group-open:rotate-180"><path d="M6 9l6 6l6 -6" /></svg>
+          </summary>
+          <div class="mt-2 space-y-2 text-[11px] leading-relaxed text-ink-soft">
+            <p><%= r.example %></p>
+            <p><%= r.advice %></p>
+          </div>
+        </details>
       </div>
     <% }); %>
   </div>
 
   <!-- 상담 대화에서 감지된 패턴 (인용문 없음) -->
+  <div id="patterns" class="mt-6">
   <% if (patterns && patterns.length) { %>
-  <div class="mt-6">
     <h2 class="text-sm font-bold">대화에서 감지된 패턴</h2>
     <p class="mt-1 text-[11px] text-ink-soft">실제 대화 문장은 저장·표시되지 않으며, 유형과 빈도만 집계됩니다.</p>
     <div class="mt-3 space-y-2">
@@ -72,16 +160,16 @@
         </div>
       <% }); %>
     </div>
-  </div>
   <% } else { %>
-  <div class="mt-6 rounded-lg bg-gray-50 p-4 text-xs leading-relaxed text-ink-soft">
-    상담 대화에서 뚜렷한 조종 패턴 신호는 감지되지 않았습니다.
-  </div>
+    <div class="rounded-lg bg-gray-50 p-4 text-xs leading-relaxed text-ink-soft">
+      상담 대화에서 뚜렷한 조종 패턴 신호는 감지되지 않았습니다.
+    </div>
   <% } %>
+  </div>
 
   <!-- 나의 반응 패턴 -->
   <% if (selfPattern) { %>
-  <div class="mt-6 flat-card p-4">
+  <div id="self-pattern" class="mt-6 flat-card p-4">
     <h2 class="text-sm font-bold">나는 왜 벗어나기 어려웠을까</h2>
     <p class="mt-1 text-[11px] text-ink-soft">상대방이 아니라 나의 반응 패턴에 대한 소견입니다.</p>
     <div class="mt-3 flex items-baseline justify-between">
@@ -89,53 +177,125 @@
       <p class="text-sm font-bold text-accent"><%= selfPattern.score.toFixed(1) %><span class="text-ink-soft">/5.0</span></p>
     </div>
     <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-      <div class="h-full rounded-full bg-accent" style="width: <%= selfPattern.score100 %>%"></div>
+      <div class="bar-fill h-full rounded-full bg-accent" style="width: <%= selfPattern.score100 %>%"></div>
     </div>
     <p class="mt-3 text-sm leading-relaxed text-ink"><%= selfPattern.note %></p>
   </div>
   <% } %>
 
   <!-- 종합 소견 -->
-  <div class="mt-6 flat-card p-4">
+  <div id="summary" class="mt-6 flat-card p-4">
     <h2 class="text-sm font-bold">종합 소견</h2>
     <p class="mt-2 text-sm leading-relaxed text-ink"><%= report.summaryText %></p>
   </div>
 
-  <!-- 지금부터 뭘 해야 할까 -->
-  <% if (actionGuide) { %>
-  <div class="mt-6 flat-card p-4">
-    <h2 class="text-sm font-bold"><%= actionGuide.title %></h2>
-    <ul class="mt-3 space-y-2 text-sm leading-relaxed text-ink">
-      <% actionGuide.bullets.forEach(function (b) { %>
-        <li class="flex items-start gap-2">
-          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
-          <span><%= b %></span>
-        </li>
-      <% }); %>
-    </ul>
-  </div>
-  <% } %>
+  <!-- 해결법 -->
+  <% var unlocked = report.paid && premium; %>
+  <div id="solutions" class="mt-6">
+    <h2 class="text-sm font-bold">해결법</h2>
+    <p class="mt-1 text-[11px] text-ink-soft">
+      <% if (unlocked) { %>전체 리포트 내용이에요.<% } else { %>전체 리포트에는 아래 내용까지 담겨요.<% } %>
+    </p>
 
-  <!-- 안전 안내 -->
-  <div class="mt-6 rounded-xl border border-accent-ring bg-accent-soft p-4">
-    <h2 class="text-sm font-bold text-accent">안전 안내</h2>
-    <p class="mt-2 text-xs leading-relaxed text-accent"><%= disclaimer %></p>
-    <div class="mt-3 space-y-2">
-      <% helpResources.forEach(function (h) { %>
-        <div class="rounded-lg bg-white p-3">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-semibold"><%= h.name %></span>
-            <span class="text-sm font-bold text-accent"><%= h.contact %></span>
-          </div>
-          <p class="mt-0.5 text-[11px] text-ink-soft"><%= h.desc %></p>
-          <% if (h.url) { %>
-            <a href="<%= h.url %>" target="_blank" rel="noopener" class="mt-1 inline-block text-[11px] text-accent underline">바로가기</a>
-          <% } %>
+    <div class="relative mt-3 overflow-hidden rounded-2xl bg-gradient-to-br from-[#1b1440] via-[#2b2178] to-[#332a99] p-1.5 shadow-[0_24px_48px_-24px_rgba(51,42,153,0.65)]">
+      <span class="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10"></span>
+      <div class="flex items-center gap-1.5 px-3 pb-2 pt-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-white/50"><path d="M17.8 19.817l-2.172 -3.464a1 1 0 0 1 .04 -1.128l3.646 -4.822a1 1 0 0 1 .795 -.403h1.891a1 1 0 0 1 .811 1.585l-3.66 5.128a1 1 0 0 0 -.02 1.15l1.615 2.343" /><path d="M9 4h6a2 2 0 0 1 2 2v13a1 1 0 0 1 -1.5 .866l-3 -1.732l-3 1.732a1 1 0 0 1 -1.5 -.866v-13a2 2 0 0 1 2 -2" /></svg>
+        <span class="text-[10px] font-semibold tracking-[0.18em] text-white/50">FULL REPORT · <%= reportToc.length %>개 챕터</span>
+      </div>
+
+      <% if (report.paid && !premium) { %>
+        <div class="px-4 pb-5 pt-1 text-center">
+          <p class="text-[12.5px] leading-relaxed text-white/70">전체 리포트를 준비하고 있어요. 잠시 후 새로고침해 주세요.</p>
         </div>
-      <% }); %>
+      <% } else { %>
+        <% reportToc.forEach(function (chapter, i) { %>
+          <div class="px-3 py-3 <%= i > 0 ? 'border-t border-white/10' : '' %>">
+            <div class="flex items-center gap-3">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 font-serif text-[13px] text-white"><%= i + 1 %></span>
+              <p class="text-[14px] font-semibold text-white"><%= chapter.title %></p>
+            </div>
+            <div class="mt-2.5 space-y-3 pl-11">
+              <% chapter.sections.forEach(function (section) { %>
+                <div>
+                  <p class="text-[10px] font-semibold uppercase tracking-wide text-white/40"><%= section.title %></p>
+                  <ul class="mt-1.5 space-y-1.5">
+                    <% section.items.forEach(function (item) { %>
+                      <li class="flex items-start gap-1.5 text-[12px] leading-relaxed text-white/70">
+                        <% if (unlocked) { %>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-white/35"><path d="M5 12l5 5l10 -10" /></svg>
+                          <span>
+                            <span class="font-medium text-white/90"><%= item.label %></span>
+                            <%
+                              var val = item.fromFree ? gaslightingPercent : premium[chapter.key][item.key];
+                            %>
+                            <% if (item.type === 'percent') { %>
+                              <span class="font-semibold text-white"> — <%= (val != null ? val : '-') %>%</span>
+                            <% } else { %>
+                              <span> — <%= val %></span>
+                            <% } %>
+                          </span>
+                        <% } else { %>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-white/25"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
+                          <span><%= item.label %></span>
+                        <% } %>
+                      </li>
+                    <% }); %>
+                  </ul>
+                </div>
+              <% }); %>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
     </div>
-    <p class="mt-3 text-[10px] leading-relaxed text-accent/70">※ 상담 기관 정보는 배포 전 최신 여부를 확인해 확정합니다.</p>
   </div>
 
-  <a href="/" class="btn-outline mt-6 w-full">홈으로</a>
+  <p class="mt-6 text-[11px] leading-relaxed text-ink-soft"><%= disclaimer %></p>
 </div>
+
+<% if (!report.paid) { %>
+  <!-- 전체 리포트 CTA — 스크롤과 무관하게 화면 하단에 따라다니는 바 -->
+  <div class="fixed inset-x-0 bottom-14 z-20 mx-auto max-w-app px-4 pb-3">
+    <a href="<%= base %>/report/<%= report.id %>/checkout" class="btn-primary flex w-full items-center justify-center gap-1.5 py-3.5 shadow-[0_12px_24px_-8px_rgba(67,56,202,0.5)]">
+      전체 리포트 보기
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14 0" /><path d="M13 18l6 -6" /></svg>
+    </a>
+  </div>
+<% } %>
+
+<script>
+  (function () {
+    var el = document.getElementById('gaslightPercent');
+    var card = document.getElementById('gaslightCard');
+    if (!el) return;
+    var target = <%- JSON.stringify(gaslightingPercent) %>;
+    var spinMs = 550;
+    var settleMs = 900;
+    var startTime = null;
+
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+    function tick(ts) {
+      if (!startTime) startTime = ts;
+      var elapsed = ts - startTime;
+      if (elapsed < spinMs) {
+        // 잭팟처럼 관계없는 숫자가 빠르게 스쳐 지나가는 구간
+        el.textContent = Math.floor(Math.random() * 101);
+        requestAnimationFrame(tick);
+      } else if (elapsed < spinMs + settleMs) {
+        // 진짜 값으로 서서히 수렴
+        var p = easeOutCubic((elapsed - spinMs) / settleMs);
+        el.textContent = Math.round(target * p);
+        requestAnimationFrame(tick);
+      } else {
+        el.textContent = target;
+        if (card) {
+          card.classList.add('jackpot-land');
+          setTimeout(function () { card.classList.remove('jackpot-land'); }, 500);
+        }
+      }
+    }
+    requestAnimationFrame(tick);
+  })();
+</script>

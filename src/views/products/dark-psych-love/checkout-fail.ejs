@@ -1,0 +1,9 @@
+<div class="flex min-h-[70vh] flex-col items-center justify-center gap-4 p-6 text-center">
+  <div class="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
+    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+  </div>
+  <p class="text-sm font-semibold text-ink">결제가 완료되지 않았어요</p>
+  <p class="max-w-xs text-xs leading-relaxed text-ink-soft"><%= message %></p>
+  <a href="<%= base %>/report/<%= reportId %>/checkout" class="btn-primary w-full max-w-xs">다시 시도하기</a>
+  <a href="<%= base %>/report/<%= reportId %>" class="text-xs text-ink-soft underline">리포트로 돌아가기</a>
+</div>

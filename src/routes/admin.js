@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Agent } from '../models/index.js';
+import { Agent, Report } from '../models/index.js';
 
 const router = Router();
 
@@ -173,6 +173,43 @@ router.post('/agents/:id/delete', requireAdmin, async (req, res, next) => {
     const agent = await Agent.findByPk(req.params.id);
     if (agent) await agent.destroy();
     res.redirect('/admin/agents');
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── 매출 ─────────────────────────────────────────
+router.get('/sales', requireAdmin, async (req, res, next) => {
+  try {
+    const payments = await Report.findAll({
+      where: { paid: true },
+      order: [['createdAt', 'DESC']],
+    });
+
+    const now = new Date();
+    const isSameDay = (d) => d.toDateString() === now.toDateString();
+    const isSameMonth = (d) => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+
+    let totalRevenue = 0;
+    let todayRevenue = 0;
+    let monthRevenue = 0;
+    for (const p of payments) {
+      const amount = p.amount || 0;
+      totalRevenue += amount;
+      if (isSameDay(p.createdAt)) todayRevenue += amount;
+      if (isSameMonth(p.createdAt)) monthRevenue += amount;
+    }
+
+    res.render('admin/sales', {
+      title: '매출',
+      activeTab: null,
+      usingDefaultPw: USING_DEFAULT_PW,
+      payments,
+      totalRevenue,
+      todayRevenue,
+      monthRevenue,
+      totalCount: payments.length,
+    });
   } catch (err) {
     next(err);
   }

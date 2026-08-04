@@ -1,0 +1,89 @@
+<div class="relative flex items-center justify-center border-b border-line py-3.5">
+  <a href="<%= base %>/report/<%= reportId %>" class="absolute left-4 flex h-8 w-8 items-center justify-center text-ink">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg>
+  </a>
+  <h1 class="text-base font-bold">결제하기</h1>
+</div>
+
+<div class="space-y-6 p-6">
+  <div>
+    <p class="text-sm font-bold text-ink">전화번호</p>
+    <p class="mt-1 text-xs text-ink-soft">결제 완료 후 이 번호로 리포트 링크를 문자로 보내드려요.</p>
+    <input id="phoneInput" type="tel" inputmode="numeric" placeholder="010-0000-0000" class="mt-2 w-full rounded-lg border border-line bg-gray-50 px-3 py-2.5 text-sm focus:border-accent focus:bg-white focus:outline-none" />
+    <p id="phoneError" class="mt-1 hidden text-[11px] text-red-600">휴대폰 번호를 정확히 입력해 주세요.</p>
+  </div>
+
+  <hr class="border-line" />
+
+  <div>
+    <p class="mb-3 text-sm font-bold text-ink">상품</p>
+    <div class="flex items-center justify-between rounded-xl border-2 border-accent bg-accent-soft px-4 py-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-accent">
+          <span class="h-1.5 w-1.5 rounded-full bg-accent"></span>
+        </span>
+        <div>
+          <p class="text-[11px] font-bold text-accent">전체 리포트</p>
+          <p class="font-bold text-ink"><%= orderName %></p>
+        </div>
+      </div>
+      <p class="font-bold text-ink"><%= amount.toLocaleString('ko-KR') %>원</p>
+    </div>
+  </div>
+
+  <div class="rounded-xl bg-gray-50 px-4 py-3.5">
+    <div class="flex items-center justify-between">
+      <p class="text-sm font-bold text-ink">최종 결제금액</p>
+      <p class="text-xl font-bold text-accent"><%= amount.toLocaleString('ko-KR') %>원</p>
+    </div>
+  </div>
+
+  <button id="payBtn" type="button" class="btn-primary w-full py-3.5 text-base">결제하기</button>
+</div>
+
+<script src="https://js.tosspayments.com/v1/payment"></script>
+<script>
+  (function () {
+    var clientKey = <%- JSON.stringify(clientKey) %>;
+    var amount = <%- JSON.stringify(amount) %>;
+    var orderId = <%- JSON.stringify(orderId) %>;
+    var orderName = <%- JSON.stringify(orderName) %>;
+    var successUrl = <%- JSON.stringify(successUrl) %>;
+    var failUrl = <%- JSON.stringify(failUrl) %>;
+
+    var phoneInput = document.getElementById('phoneInput');
+    var phoneError = document.getElementById('phoneError');
+    var payBtn = document.getElementById('payBtn');
+
+    var tossPayments = TossPayments(clientKey);
+
+    function isValidPhone(v) {
+      return /^01[016789]\d{7,8}$/.test(String(v || '').replace(/[^0-9]/g, ''));
+    }
+
+    payBtn.addEventListener('click', function () {
+      var phone = phoneInput.value.trim();
+      if (!isValidPhone(phone)) {
+        phoneError.classList.remove('hidden');
+        phoneInput.focus();
+        return;
+      }
+      phoneError.classList.add('hidden');
+      payBtn.disabled = true;
+      payBtn.textContent = '결제창으로 이동 중…';
+
+      tossPayments
+        .requestPayment('카드', {
+          amount: amount,
+          orderId: orderId,
+          orderName: orderName,
+          successUrl: successUrl + '?phone=' + encodeURIComponent(phone.replace(/[^0-9]/g, '')),
+          failUrl: failUrl,
+        })
+        .catch(function () {
+          payBtn.disabled = false;
+          payBtn.textContent = '결제하기';
+        });
+    });
+  })();
+</script>

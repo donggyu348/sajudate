@@ -1,19 +1,38 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { Product, Agent, Report } from '../../models/index.js';
-import { AXES, scoreBand } from './logic/axes.js';
+import { AXES, scoreBand, gaslightingBand } from './logic/axes.js';
 import { prepareImageForVision, transcribeKakaoImages } from './logic/parseKakaoScreenshots.js';
 import {
   computeStatPatterns,
   buildCandidateSegments,
-  computePreviewRiskScore,
   formatConfirmedContext,
   CATEGORY_LABELS,
 } from './logic/chatStats.js';
 import { assessCounsel } from './logic/assessCounsel.js';
+import { generatePremiumReport, normalizePremiumReport } from './logic/premiumReport.js';
 import { analyzeChatFlow } from './logic/analyzeChatFlow.js';
-import { PRIVACY_NOTICE, REPORT_DISCLAIMER, HELP_RESOURCES, ACTION_GUIDES } from './logic/safety.js';
-import { streamCounsel, isCounselorEnabled, buildCounselSystemPrompt, MAX_USER_TURNS } from './logic/counselor.js';
+import { REPORT_DISCLAIMER, HELP_RESOURCES, REPORT_TOC } from './logic/safety.js';
+import {
+  REPORT_UNLOCK_PRICE,
+  getTossClientKey,
+  isTossEnabled,
+  buildOrderId,
+  confirmTossPayment,
+} from './logic/payments.js';
+import { sendReportLinkSms, isValidKoreanPhone } from './logic/sms.js';
+import {
+  streamCounsel,
+  isCounselorEnabled,
+  buildCounselSystemPrompt,
+  MAX_USER_TURNS,
+  EXTEND_TURNS,
+} from './logic/counselor.js';
+
+// 세션당 한 번만 연장 가능 — 이 한도를 넘으면 연장했는지 여부로 유효 한도를 계산
+function effectiveMaxTurns(req) {
+  return req.session.counselExtended ? MAX_USER_TURNS + EXTEND_TURNS : MAX_USER_TURNS;
+}
 
 const SLUG = 'dark-psych-love';
 const BASE = `/products/${SLUG}`;
@@ -28,7 +47,7 @@ const upload = multer({
   limits: { fileSize: 15 * 1024 * 1024, files: 10 },
   fileFilter: (req, file, cb) => {
     const ok = IMAGE_MIME_TYPES.has(file.mimetype);
-    cb(ok ? null : new Error('카카오톡 캡처 이미지(.png, .jpg, .webp)만 업로드할 수 있습니다.'), ok);
+    cb(ok ? null : new Error('대화 캡처 이미지(.png, .jpg, .webp)만 업로드할 수 있습니다.'), ok);
   },
 });
 
@@ -63,7 +82,6 @@ router.get('/upload', (req, res) => {
     title: '대화 업로드',
     base: BASE,
     activeTab: 'home',
-    privacyNotice: PRIVACY_NOTICE,
   });
 });
 
@@ -74,8 +92,7 @@ router.post('/upload', upload.array('chatImages', 10), async (req, res, next) =>
         title: '대화 업로드',
         base: BASE,
         activeTab: 'home',
-        privacyNotice: PRIVACY_NOTICE,
-        error: '카카오톡 캡처 이미지를 1장 이상 선택해 주세요.',
+        error: '대화 캡처 이미지를 1장 이상 선택해 주세요.',
       });
     }
 
@@ -123,7 +140,7 @@ router.post('/analyzing/analyze', async (req, res) => {
       return res.status(400).json({ error: '분석할 이미지가 없습니다.' });
     }
     if (dpl.analyzed) {
-      return res.json({ highlights: dpl.highlights || [], previewScore: dpl.previewScore || null });
+      return res.json({ highlights: dpl.highlights || [] });
     }
 
     const preparedImages = dpl.captureImages.map((img) => ({
@@ -135,8 +152,7 @@ router.post('/analyzing/analyze', async (req, res) => {
     if (messages.length === 0) {
       dpl.analyzed = true;
       dpl.highlights = [];
-      dpl.previewScore = null;
-      return res.json({ highlights: [], previewScore: null, empty: true });
+      return res.json({ highlights: [], empty: true });
     }
 
     const { stats, candidateIndexes } = computeStatPatterns(messages);
@@ -144,8 +160,6 @@ router.post('/analyzing/analyze', async (req, res) => {
 
     // 통계(키워드)는 후보 구간을 좁히는 용도로만 쓰고, 실제 조종 발화 판정은 대화 흐름을 본 LLM이 확정
     const flowFlags = await analyzeChatFlow(segments);
-    // 1차 위험점수도 키워드가 아니라 위에서 LLM이 확정한 flowFlags를 근거로 계산
-    const previewScore = computePreviewRiskScore(flowFlags, stats.messageCount);
     // 상담봇에 넘길 컨텍스트도 키워드 후보가 아니라 LLM이 확정한 flowFlags만 사용 —
     // 확정되지 않은 후보를 넘기면 상담봇이 근거 없는 의심을 앞세우게 되므로 제외한다.
     const chatContext = formatConfirmedContext(messages, flowFlags);
@@ -168,10 +182,18 @@ router.post('/analyzing/analyze', async (req, res) => {
     dpl.chatContext = chatContext || null;
     dpl.partnerName = stats.partnerName || null;
     dpl.highlights = highlights;
-    dpl.previewScore = previewScore;
+    // 상담 시작 인사말에서 "이 부분이 문제다"처럼 실제 발화를 바로 짚어주기 위해 보관 —
+    // 리포트에는 원문을 인용하지 않지만, 이건 본인이 방금 업로드한 내용을 본인에게 그대로 보여주는 것뿐이라 괜찮다.
+    dpl.confirmedQuotes = flowFlags
+      .map((f) => {
+        const msg = messages[f.idx];
+        if (!msg) return null;
+        return { label: CATEGORY_LABELS[f.category] || f.category, text: msg.text };
+      })
+      .filter(Boolean);
     dpl.analyzed = true;
 
-    res.json({ highlights, previewScore });
+    res.json({ highlights });
   } catch (err) {
     console.error('[analyzing/analyze]', err);
     res.status(500).json({ error: '분석 중 오류가 발생했습니다.' });
@@ -198,6 +220,21 @@ router.get('/counsel', async (req, res, next) => {
       delete req.session.dpl.highlights;
     }
 
+    // 캡처를 분석했다면, 정적 인사말 대신 그 결과부터 바로 말하고 시작한다 —
+    // 확정된 패턴이 있으면 실제 발화를 짚어서 "이 부분이 문제"라고 말하고, 없으면 없다고 말한 뒤 대화로 넘어간다.
+    const defaultGreeting = current?.greeting || '안녕하세요. 어떤 이야기가 있으신가요? 편하게 말씀해 주세요.';
+    let greeting = defaultGreeting;
+    if (req.session.dpl?.analyzed) {
+      const quotes = req.session.dpl.confirmedQuotes || [];
+      if (quotes.length > 0) {
+        const first = quotes[0];
+        const more = quotes.length > 1 ? ` 이 부분 말고도 비슷한 부분이 ${quotes.length - 1}군데 더 있었는데, 일단 여기부터 여쭤볼게요.` : '';
+        greeting = `대화 내용을 확인해봤는데, "${first.text}"라고 한 부분이 ${first.label}(으)로 보여요. 이 부분이 문제예요.${more} 그때 어떤 상황이었는지 편하게 말씀해 주세요.`;
+      } else {
+        greeting = '대화 내용을 확인해봤는데, 특별히 의심되는 부분은 눈에 띄지 않았어요. 혹시 다른 힘드셨던 경험이 있으신가요?';
+      }
+    }
+
     res.render(view('counsel'), {
       title: '관계 상담',
       base: BASE,
@@ -206,8 +243,11 @@ router.get('/counsel', async (req, res, next) => {
       helpResources: HELP_RESOURCES,
       agents,
       current,
+      greeting,
       hasChatContext: Boolean(req.session.dpl?.chatContext),
-      maxUserTurns: MAX_USER_TURNS,
+      maxUserTurns: effectiveMaxTurns(req),
+      extendTurns: EXTEND_TURNS,
+      canExtend: !req.session.counselExtended,
     });
   } catch (err) {
     next(err);
@@ -236,7 +276,7 @@ router.post('/counsel/stream', async (req, res) => {
 
     const history = Array.isArray(req.body?.messages) ? req.body.messages : [];
     const userTurns = history.filter((m) => m?.role === 'user').length;
-    if (userTurns > MAX_USER_TURNS) {
+    if (userTurns > effectiveMaxTurns(req)) {
       res.end('대화 한도에 도달했어요. 지금까지 나눈 이야기로 결과를 확인해 주세요.');
       return;
     }
@@ -262,6 +302,12 @@ router.post('/counsel/stream', async (req, res) => {
   }
 });
 
+// 대화 한도 도달 시 한 번만 연장 — 이미 연장했으면 그대로 현재 유효 한도만 반환(중복 연장 방지)
+router.post('/counsel/extend', (req, res) => {
+  req.session.counselExtended = true;
+  res.json({ maxUserTurns: effectiveMaxTurns(req) });
+});
+
 // 상담 종료 → 대화 전체를 근거로 최종 리포트 생성
 router.post('/counsel/report', async (req, res) => {
   try {
@@ -284,6 +330,7 @@ router.post('/counsel/report', async (req, res) => {
         axisScores: assessment.axisScores,
         axisScores100: assessment.axisScores100,
         patterns: assessment.patterns,
+        keyFindings: assessment.keyFindings,
         selfPattern: {
           score: assessment.selfPatternScore,
           score100: assessment.selfPatternScore100,
@@ -310,31 +357,65 @@ router.get('/report/:id', async (req, res, next) => {
     if (!report) return res.status(404).render('platform/404', { title: '리포트 없음' });
 
     const fs = report.finalScores || {};
-    const rows = Object.keys(AXES).map((key) => ({
-      key,
-      label: AXES[key].label,
-      short: AXES[key].short,
-      score: fs.axisScores?.[key] ?? 0,
-      score100: fs.axisScores100?.[key] ?? 0,
-      band: scoreBand(fs.axisScores?.[key] ?? 0),
-    }));
+    // 높은 성향부터 보여야 "뭐가 두드러지는지" 직관적으로 읽힘
+    const rows = Object.keys(AXES)
+      .map((key) => ({
+        key,
+        label: AXES[key].label,
+        short: AXES[key].short,
+        description: AXES[key].description,
+        example: AXES[key].example,
+        advice: AXES[key].advice,
+        score: fs.axisScores?.[key] ?? 0,
+        score100: fs.axisScores100?.[key] ?? 0,
+        band: scoreBand(fs.axisScores?.[key] ?? 0),
+      }))
+      .sort((a, b) => b.score - a.score);
 
-    const patterns = (fs.patterns || []).map((p) => ({
+    const rawPatterns = fs.patterns || [];
+    const patterns = rawPatterns.map((p) => ({
       label: p.label,
       count: p.count,
       confidence: Math.round((p.confidence || 0) * 100),
     }));
+
+    // 헤드라인 수치 — 다크테트라드 평균이 아니라 "가스라이팅 확률" 자체를 맨 앞에 보여준다
+    const gaslightPattern = rawPatterns.find((p) => p.type === 'gaslighting');
+    // 가스라이팅 패턴이 조금이라도 확인됐다면(count>=1) 확신도가 낮아도 30% 밑으로는 안 보여준다 —
+    // 아예 감지된 게 없을 때만 0%.
+    const gaslightingPercent = gaslightPattern ? Math.max(30, Math.round((gaslightPattern.confidence || 0) * 100)) : 0;
 
     // 종합 배지 — 상대방 4축 평균으로 첫 화면에서 바로 결론이 보이게 함
     const axisVals = rows.map((r) => r.score);
     const avgAxis = axisVals.length ? axisVals.reduce((a, b) => a + b, 0) / axisVals.length : 0;
     const overallScore100 = Math.round(((avgAxis - 1) / 4) * 100);
     const overallBand = scoreBand(avgAxis);
-    const topAxis = [...rows].sort((a, b) => b.score - a.score)[0] || null;
+    const topAxis = rows[0] || null;
+    const bottomAxis = rows[rows.length - 1] || null;
 
     const selfPattern = fs.selfPattern
       ? { ...fs.selfPattern, band: scoreBand(fs.selfPattern.score ?? 0) }
       : null;
+
+    // 결제 완료 후 이 리포트를 처음 볼 때만 1회 생성해 캐싱 — 원본 대화는 저장하지 않으므로
+    // 이미 있는 무료 결과(summary/axisScores/patterns/selfPattern)만 입력으로 쓴다.
+    if (report.paid && !report.premiumReport) {
+      try {
+        const raw = await generatePremiumReport({
+          summary: report.summaryText,
+          axisScores: fs.axisScores,
+          patterns: fs.patterns,
+          selfPattern: fs.selfPattern,
+        });
+        if (raw) {
+          report.premiumReport = normalizePremiumReport(raw);
+          await report.save();
+        }
+      } catch (err) {
+        console.error('[report] 프리미엄 리포트 생성 실패', err);
+        // premiumReport는 null로 유지 — 템플릿에서 안내만 보여주고, 다음 새로고침 때 재시도
+      }
+    }
 
     res.render(view('report'), {
       title: '최종 리포트',
@@ -343,17 +424,101 @@ router.get('/report/:id', async (req, res, next) => {
       report,
       rows,
       patterns,
+      keyFindings: fs.keyFindings || [],
+      gaslightingPercent,
+      gaslightingBand: gaslightingBand(gaslightingPercent),
       overallScore100,
       overallBand,
       topAxis,
+      bottomAxis,
       selfPattern,
-      actionGuide: ACTION_GUIDES[overallBand.level] || null,
+      reportToc: REPORT_TOC,
+      premium: report.premiumReport || null,
       disclaimer: REPORT_DISCLAIMER,
-      helpResources: HELP_RESOURCES,
     });
   } catch (err) {
     next(err);
   }
+});
+
+// ── 5. 결제 (전체 리포트 잠금 해제) ──────────────
+router.get('/report/:id/checkout', async (req, res, next) => {
+  try {
+    const report = await Report.findByPk(req.params.id);
+    if (!report) return res.status(404).render('platform/404', { title: '리포트 없음' });
+    if (!isTossEnabled()) {
+      return res.status(503).send('결제 기능이 아직 설정되지 않았습니다(토스페이먼츠 키 미설정).');
+    }
+    if (report.paid) {
+      return res.redirect(`${BASE}/report/${report.id}`);
+    }
+
+    const origin = `${req.protocol}://${req.get('host')}`;
+    res.render(view('checkout'), {
+      title: '결제하기',
+      layout: 'layouts/plain',
+      base: BASE,
+      reportId: report.id,
+      clientKey: getTossClientKey(),
+      amount: REPORT_UNLOCK_PRICE,
+      orderId: buildOrderId(report.id),
+      orderName: '전체 리포트 잠금 해제',
+      // 전화번호는 결제 시점에 클라이언트에서 입력받아 successUrl 쿼리로 함께 넘긴다 —
+      // 결제 승인 콜백에서 그 번호로 리포트 링크를 문자 발송한다.
+      successUrl: `${origin}${BASE}/report/${report.id}/checkout/success`,
+      failUrl: `${origin}${BASE}/report/${report.id}/checkout/fail`,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/report/:id/checkout/success', async (req, res, next) => {
+  const { paymentKey, orderId, phone } = req.query;
+  try {
+    const report = await Report.findByPk(req.params.id);
+    if (!report) return res.status(404).render('platform/404', { title: '리포트 없음' });
+
+    if (!paymentKey || !orderId) {
+      const message = encodeURIComponent('결제 정보가 올바르지 않습니다.');
+      return res.redirect(`${BASE}/report/${report.id}/checkout/fail?message=${message}`);
+    }
+
+    // 금액은 쿼리스트링 값을 신뢰하지 않고 confirmTossPayment 내부에서 서버 고정가로 승인 요청함
+    await confirmTossPayment({ paymentKey: String(paymentKey), orderId: String(orderId) });
+
+    report.paid = true;
+    report.orderId = String(orderId);
+    report.paymentKey = String(paymentKey);
+    report.amount = REPORT_UNLOCK_PRICE;
+    if (isValidKoreanPhone(phone)) {
+      report.phone = String(phone).replace(/[^0-9]/g, '');
+    }
+    await report.save();
+
+    if (report.phone) {
+      const origin = `${req.protocol}://${req.get('host')}`;
+      sendReportLinkSms({ phone: report.phone, reportUrl: `${origin}${BASE}/report/${report.id}` }).catch((err) =>
+        console.error('[checkout/success] sms 발송 실패', err)
+      );
+    }
+
+    res.redirect(`${BASE}/report/${report.id}`);
+  } catch (err) {
+    console.error('[checkout/success]', err);
+    const message = encodeURIComponent(err.message || '결제 승인에 실패했습니다.');
+    res.redirect(`${BASE}/report/${req.params.id}/checkout/fail?message=${message}`);
+  }
+});
+
+router.get('/report/:id/checkout/fail', (req, res) => {
+  res.render(view('checkout-fail'), {
+    title: '결제 실패',
+    layout: 'layouts/plain',
+    base: BASE,
+    reportId: req.params.id,
+    message: req.query.message || '결제가 완료되지 않았습니다.',
+  });
 });
 
 export default router;

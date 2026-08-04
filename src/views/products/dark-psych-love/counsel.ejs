@@ -21,13 +21,16 @@
           <p class="mt-0.5 truncate text-[11px] leading-none text-ink-soft"><%= current && current.description ? current.description : '대화하며 관계의 신호를 함께 살펴봐요' %></p>
         </div>
       </div>
-      <% if (agents && agents.length > 1) { %>
-        <select id="agentSelect" class="shrink-0 rounded-full border border-line bg-white px-2.5 py-1.5 text-[11px] text-ink-soft focus:border-accent focus:outline-none">
-          <% agents.forEach(function (a) { %>
-            <option value="<%= a.slug %>" <%= current && a.slug === current.slug ? 'selected' : '' %>><%= a.name %></option>
-          <% }); %>
-        </select>
-      <% } %>
+      <div class="flex shrink-0 items-center gap-2">
+        <% if (agents && agents.length > 1) { %>
+          <select id="agentSelect" class="shrink-0 rounded-full border border-line bg-white px-2.5 py-1.5 text-[11px] text-ink-soft focus:border-accent focus:outline-none">
+            <% agents.forEach(function (a) { %>
+              <option value="<%= a.slug %>" <%= current && a.slug === current.slug ? 'selected' : '' %>><%= a.name %></option>
+            <% }); %>
+          </select>
+        <% } %>
+        <button id="headerReportBtn" type="button" class="hidden shrink-0 rounded-full bg-accent px-3 py-1.5 text-[11px] font-semibold text-white shadow-[0_4px_10px_-4px_rgba(67,56,202,0.5)]">리포트 받기</button>
+      </div>
     </div>
     <% if (hasChatContext) { %>
       <div class="mt-2.5 flex items-center gap-1.5 rounded-full border border-accent-ring bg-accent-soft px-3 py-1.5 text-[11px] text-accent">
@@ -42,6 +45,13 @@
     <% } %>
   </div>
 
+  <% if (current) { %>
+    <!-- 상담 진행도 게이지 — 대화 턴 수 기준 추정치(AI가 실제로 정리 단계라고 판단하면 즉시 100%로) -->
+    <div class="h-1 w-full bg-gray-100">
+      <div id="progressBar" class="h-full bg-accent transition-[width] duration-500 ease-out" style="width: 0%"></div>
+    </div>
+  <% } %>
+
   <% if (!current) { %>
     <div class="flex flex-1 flex-col items-center justify-center px-6 text-center">
       <p class="text-sm text-ink-soft">등록된 상담 봇이 없습니다.</p>
@@ -53,20 +63,18 @@
     <div class="mb-1 flex justify-center">
       <span class="rounded-full bg-black/[0.04] px-3 py-1 text-center text-[10.5px] leading-relaxed text-ink-soft">참고용 정서적 지지이며 전문 상담을 대체하지 않아요</span>
     </div>
-    <div class="flex items-end gap-1.5">
-      <span class="mb-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-[#332a99] text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" /></svg>
-      </span>
-      <div class="max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-bl-md bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink shadow-[0_1px_2px_rgba(0,0,0,0.06)]"><%= current.greeting || '안녕하세요. 어떤 이야기가 있으신가요? 편하게 말씀해 주세요.' %></div>
-    </div>
   </div>
 
   <!-- 상담 마무리 → 결과 보기 (AI가 충분하다고 판단하면 표시됨) -->
   <div id="finishBar" class="hidden border-t border-line/70 bg-white px-4 py-3">
-    <button id="finishBtn" type="button" class="flex w-full items-center justify-center gap-1.5 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-white shadow-[0_10px_20px_-8px_rgba(67,56,202,0.5)] transition-transform active:scale-[0.98]">
-      상담 마무리하고 결과 보기
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14 0" /><path d="M13 18l6 -6" /><path d="M13 6l6 6" /></svg>
-    </button>
+    <div class="flex gap-2">
+      <button id="continueBtn" type="button" class="flex-1 rounded-full border border-line bg-white px-4 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-gray-50">
+        AI랑 더 대화해보기
+      </button>
+      <button id="finishBtn" type="button" class="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-accent px-4 py-3.5 text-sm font-semibold text-white shadow-[0_10px_20px_-8px_rgba(67,56,202,0.5)] transition-transform active:scale-[0.98]">
+        결과지 보기
+      </button>
+    </div>
     <p id="finishError" class="mt-1.5 hidden text-center text-[11px] text-red-600"></p>
   </div>
 
@@ -88,8 +96,12 @@
   (function () {
     const base = <%- JSON.stringify(base) %>;
     const agentSlug = <%- JSON.stringify(current.slug) %>;
+    const greetingText = <%- JSON.stringify(greeting) %>;
     const READY_MARKER = '[[READY_FOR_REPORT]]';
     const FALLBACK_USER_TURNS = 10; // 마커가 안 와도 이 정도 대화하면 안전망으로 버튼 노출
+    const EXTEND_TURNS = <%- JSON.stringify(extendTurns) %>;
+    let maxUserTurns = <%- JSON.stringify(maxUserTurns) %>; // 이 이상은 입력 자체를 막는 하드 한도(연장하면 늘어남)
+    let canExtend = <%- JSON.stringify(canExtend) %>; // 연장은 세션당 한 번만
 
     const log = document.getElementById('chatLog');
     const form = document.getElementById('chatForm');
@@ -98,7 +110,14 @@
     const agentSelect = document.getElementById('agentSelect');
     const finishBar = document.getElementById('finishBar');
     const finishBtn = document.getElementById('finishBtn');
+    const continueBtn = document.getElementById('continueBtn');
     const finishError = document.getElementById('finishError');
+    const headerReportBtn = document.getElementById('headerReportBtn');
+    const progressBar = document.getElementById('progressBar');
+
+    function updateProgress(pct) {
+      if (progressBar) progressBar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+    }
 
     // 봇 전환 → 페이지 리로드(대화 초기화)
     if (agentSelect) {
@@ -138,8 +157,89 @@
       return dots;
     }
 
+    // 실시간으로 도착하는 스트림 조각이 아니라, 사람이 타이핑하듯 일정한 속도로 한 글자씩 보여주기 위한 유틸.
+    // getTarget()이 매번 "지금까지 안전하게 보여줘도 되는 텍스트"를 돌려주면, 그 길이를 따라잡을 때까지 조금씩 채워나간다.
+    function typeToward(el, getTarget, intervalMs) {
+      let shown = 0;
+      const timer = setInterval(function () {
+        const target = getTarget();
+        if (shown < target.length) {
+          shown = Math.min(target.length, shown + 1);
+          el.textContent = target.slice(0, shown);
+          log.scrollTop = log.scrollHeight;
+        }
+      }, intervalMs || 28);
+      return {
+        // 확정된 최종 텍스트가 나오면 그걸 기준으로, 타이핑 속도 그대로 마저 보여주고 끝나면 resolve
+        finish: function (finalText) {
+          return new Promise(function (resolve) {
+            (function wait() {
+              const target = typeof finalText === 'string' ? finalText : getTarget();
+              if (shown >= target.length) {
+                clearInterval(timer);
+                el.textContent = target;
+                resolve();
+                return;
+              }
+              setTimeout(wait, 30);
+            })();
+          });
+        },
+      };
+    }
+
+    // 마커가 도착 중간에 걸쳐 있을 때 "[[READY_FO..." 처럼 잘린 채로 잠깐 보이는 것을 막고,
+    // 마커가 이미 완전히 도착했으면 통째로 제거한다.
+    function safeDisplayText(text) {
+      const withoutMarker = text.split(READY_MARKER).join('');
+      for (let i = Math.min(READY_MARKER.length, withoutMarker.length); i > 0; i--) {
+        if (withoutMarker.slice(-i) === READY_MARKER.slice(0, i)) return withoutMarker.slice(0, withoutMarker.length - i);
+      }
+      return withoutMarker;
+    }
+
     function showFinishBar() {
       finishBar.classList.remove('hidden');
+      headerReportBtn.classList.remove('hidden'); // 한 번 뜨면 대화를 계속해도 우상단에 계속 남겨둠
+    }
+
+    function lockChat(message) {
+      input.disabled = true;
+      input.placeholder = '대화 한도에 도달했어요';
+      sendBtn.disabled = true;
+      showFinishBar();
+
+      const wrap = document.createElement('div');
+      wrap.className = 'mb-1 flex flex-col items-center gap-2';
+      wrap.innerHTML =
+        '<span class="rounded-full bg-black/[0.04] px-3 py-1 text-center text-[10.5px] leading-relaxed text-ink-soft">' + message + '</span>' +
+        (canExtend
+          ? '<button type="button" id="extendBtn" class="rounded-full border border-accent-ring bg-accent-soft px-4 py-1.5 text-[12px] font-semibold text-accent">더 이야기하기 (+' + EXTEND_TURNS + '턴)</button>'
+          : '');
+      log.appendChild(wrap);
+      log.scrollTop = log.scrollHeight;
+
+      const extendBtn = document.getElementById('extendBtn');
+      if (extendBtn) {
+        extendBtn.addEventListener('click', async function () {
+          extendBtn.disabled = true;
+          extendBtn.textContent = '연장하는 중…';
+          try {
+            const res = await fetch(base + '/counsel/extend', { method: 'POST' });
+            const data = await res.json();
+            maxUserTurns = data.maxUserTurns;
+            canExtend = false;
+            input.disabled = false;
+            input.placeholder = '메시지를 입력하세요…';
+            sendBtn.disabled = false;
+            wrap.remove();
+            input.focus();
+          } catch (err) {
+            extendBtn.disabled = false;
+            extendBtn.textContent = '더 이야기하기 (+' + EXTEND_TURNS + '턴)';
+          }
+        });
+      }
     }
 
     input.addEventListener('input', function () {
@@ -154,7 +254,7 @@
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       const text = input.value.trim();
-      if (!text || busy) return;
+      if (!text || busy || userTurns >= maxUserTurns) return;
 
       busy = true; sendBtn.disabled = true;
       input.value = ''; input.style.height = 'auto';
@@ -162,6 +262,7 @@
       bubble('user').textContent = text;
       history.push({ role: 'user', content: text });
       userTurns += 1;
+      updateProgress((userTurns / FALLBACK_USER_TURNS) * 100);
 
       const answer = bubble('assistant');
       answer.appendChild(typingDots());
@@ -175,24 +276,31 @@
         if (!res.body) throw new Error('no stream');
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
-        let acc = '';
+        let raw = '';
+
+        // 응답이 오자마자 바로 타이핑을 시작하지 않고, 잠깐 "생각하는" 티를 낸 뒤 시작
+        await new Promise(function (resolve) { setTimeout(resolve, 350 + Math.random() * 300); });
+        answer.innerHTML = '';
+        const typer = typeToward(answer, function () { return safeDisplayText(raw); });
+
         while (true) {
           const { value, done } = await reader.read();
           if (done) break;
-          acc += decoder.decode(value, { stream: true });
-          answer.textContent = acc;
-          log.scrollTop = log.scrollHeight;
+          raw += decoder.decode(value, { stream: true });
         }
 
-        let ready = false;
-        if (acc.includes(READY_MARKER)) {
-          ready = true;
-          acc = acc.split(READY_MARKER).join('').trim();
-          answer.textContent = acc;
-        }
+        const ready = raw.includes(READY_MARKER);
+        const acc = raw.split(READY_MARKER).join('').trim();
+        await typer.finish(acc);
         history.push({ role: 'assistant', content: acc });
 
-        if (ready || userTurns >= FALLBACK_USER_TURNS) showFinishBar();
+        if (userTurns >= maxUserTurns) {
+          lockChat('대화 한도(' + maxUserTurns + '회)에 도달했어요. 지금까지 내용으로 결과를 확인해 주세요.');
+          updateProgress(100);
+        } else if (ready || userTurns >= FALLBACK_USER_TURNS) {
+          showFinishBar();
+          updateProgress(100);
+        }
       } catch (err) {
         answer.textContent = '연결에 문제가 발생했어요. 잠시 후 다시 시도해 주세요.';
       } finally {
@@ -200,10 +308,16 @@
       }
     });
 
-    finishBtn.addEventListener('click', async function () {
+    continueBtn.addEventListener('click', function () {
+      finishBar.classList.add('hidden');
+      input.focus();
+    });
+
+    async function goToReport(triggerBtn, originalLabel) {
       finishError.classList.add('hidden');
       finishBtn.disabled = true;
-      finishBtn.textContent = '결과 정리 중…';
+      headerReportBtn.disabled = true;
+      triggerBtn.textContent = '결과 정리 중…';
       try {
         const res = await fetch(base + '/counsel/report', {
           method: 'POST',
@@ -217,9 +331,28 @@
         finishError.textContent = err.message || '리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.';
         finishError.classList.remove('hidden');
         finishBtn.disabled = false;
-        finishBtn.textContent = '상담 마무리하고 결과 보기';
+        headerReportBtn.disabled = false;
+        triggerBtn.textContent = originalLabel;
       }
+    }
+
+    finishBtn.addEventListener('click', function () {
+      goToReport(finishBtn, '결과지 보기');
     });
+
+    headerReportBtn.addEventListener('click', function () {
+      goToReport(headerReportBtn, '리포트 받기');
+    });
+
+    // 미리 박아둔 인사말이 아니라, 실제로 AI가 지금 막 타이핑해서 보내는 것처럼 연출
+    (function showGreeting() {
+      const answer = bubble('assistant');
+      answer.appendChild(typingDots());
+      setTimeout(function () {
+        answer.innerHTML = '';
+        typeToward(answer, function () { return greetingText; }).finish(greetingText);
+      }, 700);
+    })();
   })();
 </script>
 <% } %>

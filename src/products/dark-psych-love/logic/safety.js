@@ -1,60 +1,189 @@
 /**
  * 안전 안내 데이터.
- * 리포트 하단 및 업로드 전 고지에 사용.
+ * 리포트 하단 고지에 사용.
  *
  * 주의: 아래 기관/연락처는 실제 배포 전 최신 정보로 검증 후 확정할 것.
  *       (플레이스홀더 아님을 명시하기 위해 verified 플래그로 관리)
  */
 
-export const PRIVACY_NOTICE = {
-  title: '업로드 전 안내',
-  bullets: [
-    '업로드한 캡처 이미지는 DB나 디스크에 저장되지 않습니다. AI가 이미지에서 대화 내용을 텍스트로 옮긴 뒤, 통계적으로 의심스러운 일부 구간만 골라 지금 상담 세션 동안만 서버 메모리에 임시로 남습니다.',
-    '이 구간은 AI 상담사가 대화 중 참고하는 용도로만 쓰이며, 상담을 마치고 리포트를 만들면 즉시 폐기됩니다.',
-    '리포트에는 실제 대화 문장이 인용되거나 표시되지 않습니다. (유형·경향만 요약)',
-  ],
-};
-
 export const REPORT_DISCLAIMER =
   '본 리포트는 심리학 척도를 각색한 참고용 인사이트입니다. 임상적 진단이나 법적 판단을 대체하지 않으며, ' +
-  '관계의 위험 신호가 의심된다면 아래의 전문 상담 기관에 도움을 요청하세요.';
+  '관계의 위험 신호가 의심된다면 전문 상담 기관에 도움을 요청하세요.';
 
 /**
- * 리포트 종합 배지의 위험 단계(scoreBand의 level)별 행동 가이드.
+ * 리포트 맨 아래 "해결법" 섹션의 목차.
+ * 실제 분석 로직 없이 제목만 나열 — 앞으로 제공될 내용의 목차 역할만 한다.
+ * (결제 시스템은 아직 연동 전 — 잠금 UI만 우선 구현)
  */
-export const ACTION_GUIDES = {
-  high: {
-    title: '지금 필요한 것 — 기록과 거리',
-    bullets: [
-      '대화나 상황을 캡처·메모로 남겨두세요. 나중에 스스로를 의심하게 될 때 근거가 됩니다.',
-      '중요한 결정을 상대와 단둘이 있는 상황에서 내리지 마세요.',
-      '믿을 수 있는 사람 한 명에게는 지금 상황을 알려두세요.',
-      '아래 전문기관에 상담을 받아보는 것을 권합니다.',
+export const REPORT_TOC = [
+  {
+    key: 'diagnosis',
+    title: 'AI 최종 진단',
+    sections: [
+      {
+        title: '관계 종합 분석',
+        items: [
+          { key: 'relationshipHealth', label: '관계 건강도', type: 'percent' },
+          { key: 'gaslightingRisk', label: '가스라이팅 위험도', type: 'percent', fromFree: true },
+          { key: 'continueRecommendation', label: '관계 지속 추천도', type: 'percent' },
+        ],
+      },
+      {
+        title: '핵심 진단',
+        items: [
+          { key: 'biggestProblem', label: '가장 큰 문제점', type: 'text' },
+          { key: 'relationshipStage', label: '현재 관계 단계', type: 'text' },
+          { key: 'oneLineConclusion', label: 'AI 한 줄 결론', type: 'text' },
+        ],
+      },
     ],
   },
-  elevated: {
-    title: '지금 필요한 것 — 경계 다시 세우기',
-    bullets: [
-      '불편했던 순간을 기록해보고, 패턴이 반복되는지 스스로 확인해보세요.',
-      '"그건 아니었다고 생각해"처럼 짧고 명확한 문장으로 경계를 표현하는 연습을 해보세요.',
-      '주변 사람에게 이번 상황을 이야기하고, 제3자의 시선으로 다시 바라봐 주는지 확인해보세요.',
+  {
+    key: 'partnerPsychology',
+    title: '상대 심리 분석',
+    sections: [
+      {
+        title: '성향 분석',
+        items: [
+          { key: 'responsibilityAvoidance', label: '책임 회피 성향', type: 'text' },
+          { key: 'empathy', label: '공감 능력', type: 'text' },
+          { key: 'conflictStyle', label: '갈등 해결 방식', type: 'text' },
+        ],
+      },
+      {
+        title: '행동 패턴',
+        items: [
+          { key: 'repeatedBehavior', label: '반복되는 행동', type: 'text' },
+          { key: 'manipulationStyle', label: '감정 조종 방식', type: 'text' },
+          { key: 'changePotential', label: '변화 가능성', type: 'text' },
+        ],
+      },
+      {
+        title: '종합 평가',
+        items: [
+          { key: 'recoveryPotential', label: '관계 회복 가능성', type: 'percent' },
+          { key: 'trustRecoveryPotential', label: '신뢰 회복 가능성', type: 'percent' },
+        ],
+      },
     ],
   },
-  moderate: {
-    title: '지금 필요한 것 — 관찰',
-    bullets: [
-      '이번 리포트에서 짚인 부분이 반복되는 패턴인지 조금 더 지켜봐도 좋습니다.',
-      '불편한 감정이 들 때마다 이유를 짧게 메모해두면 나중에 판단이 쉬워집니다.',
+  {
+    key: 'selfPsychology',
+    title: '내 심리 분석',
+    sections: [
+      {
+        title: '감정 상태',
+        items: [
+          { key: 'selfEsteemChange', label: '자존감 변화', type: 'text' },
+          { key: 'guiltSensitivity', label: '죄책감 민감도', type: 'text' },
+          { key: 'emotionalExhaustion', label: '감정 소진 정도', type: 'text' },
+        ],
+      },
+      {
+        title: '관계 성향',
+        items: [
+          { key: 'conflictAvoidance', label: '갈등 회피 성향', type: 'text' },
+          { key: 'partnerCenteredThinking', label: '상대 중심 사고', type: 'text' },
+          { key: 'psychologicalWeakness', label: '나의 심리적 약점', type: 'text' },
+        ],
+      },
+      {
+        title: '종합 평가',
+        items: [
+          { key: 'whyIWavered', label: '왜 흔들렸는지', type: 'text' },
+          { key: 'whatToWatchFor', label: '가장 조심해야 할 점', type: 'text' },
+        ],
+      },
     ],
   },
-  low: {
-    title: '지금 필요한 것 — 관계의 기본 점검',
-    bullets: [
-      '뚜렷한 위험 신호는 적지만, 스스로 불편했던 순간이 있다면 그 감정도 신뢰해도 됩니다.',
-      '건강한 관계에서도 경계와 소통은 꾸준히 연습이 필요합니다.',
+  {
+    key: 'futureOutlook',
+    title: '관계의 현재와 미래',
+    sections: [
+      {
+        title: '현재 관계 진단',
+        items: [
+          { key: 'coreConflictCause', label: '핵심 갈등 원인', type: 'text' },
+          { key: 'repeatedProblem', label: '반복되는 문제', type: 'text' },
+          { key: 'mostDangerousSignal', label: '가장 위험한 신호', type: 'text' },
+        ],
+      },
+      {
+        title: '미래 시나리오',
+        items: [
+          { key: 'ifContinue', label: '계속 만난다면', type: 'text' },
+          { key: 'ifDistance', label: '거리를 둔다면', type: 'text' },
+          { key: 'ifEnd', label: '관계를 끝낸다면', type: 'text' },
+        ],
+      },
     ],
   },
-};
+  {
+    key: 'actionGuide',
+    title: '관계를 위한 행동 가이드',
+    sections: [
+      {
+        title: '지금 해야 할 행동',
+        items: [
+          { key: 'today', label: '오늘', type: 'text' },
+          { key: 'thisWeek', label: '이번 주', type: 'text' },
+          { key: 'thisMonth', label: '이번 달', type: 'text' },
+        ],
+      },
+      {
+        title: '마지막 기회 체크리스트',
+        items: [
+          { key: 'checklistCriteria', label: '변화를 확인해야 할 기준', type: 'text' },
+          { key: 'checklistBehavior', label: '반드시 지켜봐야 할 행동', type: 'text' },
+          { key: 'checklistMinimum', label: '관계를 이어갈 최소 조건', type: 'text' },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'strategy',
+    title: '앞으로의 관계 전략',
+    sections: [
+      {
+        title: '다시는 당하지 않는 법',
+        items: [
+          { key: 'warningSignsToNotice', label: '위험 신호 알아보기', type: 'text' },
+          { key: 'healthyRelationshipCriteria', label: '건강한 관계의 기준', type: 'text' },
+          { key: 'boundariesToKeep', label: '경계해야 할 행동', type: 'text' },
+        ],
+      },
+      {
+        title: '나만의 관계 사용설명서',
+        items: [
+          { key: 'compatibleType', label: '잘 맞는 사람의 특징', type: 'text' },
+          { key: 'incompatibleType', label: '피해야 할 사람의 특징', type: 'text' },
+          { key: 'relationshipPrinciple', label: '앞으로의 관계 원칙', type: 'text' },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'finalSuggestion',
+    title: 'AI 최종 제안',
+    sections: [
+      {
+        title: '가장 추천하는 선택',
+        items: [
+          { key: 'optionStay', label: '관계 유지', type: 'percent' },
+          { key: 'optionDistance', label: '거리 두기', type: 'percent' },
+          { key: 'optionEnd', label: '관계 종료', type: 'percent' },
+        ],
+      },
+      {
+        title: '마지막 조언',
+        items: [
+          { key: 'mostImportantThing', label: '지금 가장 중요한 한 가지', type: 'text' },
+          { key: 'finalMessage', label: 'AI 최종 메시지', type: 'text' },
+        ],
+      },
+    ],
+  },
+];
 
 /**
  * 상담/도움 기관 링크.

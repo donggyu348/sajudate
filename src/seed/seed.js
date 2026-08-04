@@ -7,8 +7,8 @@ const PRODUCTS = [
     slug: 'dark-psych-love',
     name: '관계 심리 리포트',
     description:
-      '연애 관계 안에서 상대가 보이는 조종·가해 성향 패턴을 심리학 척도 기반으로 진지하게 진단합니다.',
-    category: '연애진단',
+      '일상생활 안에서 상대가 보이는 조종·가해 성향 패턴을 심리학 척도 기반으로 진지하게 진단합니다.',
+    category: '가스라이팅 진단',
     isFeatured: true,
     headline: '내 관계, 안전한가요?',
     subcopy: '다크 테트라드 척도로 읽는 관계의 위험 신호',

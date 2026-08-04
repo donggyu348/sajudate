@@ -34,6 +34,14 @@ export function normalizeAssessment(raw) {
       ? raw.summary.trim()
       : '대화 내용을 바탕으로 한 요약을 생성하지 못했습니다. 상담을 조금 더 진행한 뒤 다시 시도해 주세요.';
 
+  // 이번 대화에서만 관찰된 구체적 상호작용 구조 — 고정 패턴 유형과 달리 자유 형식, 최대 4개
+  const keyFindings = Array.isArray(raw?.keyFindings)
+    ? raw.keyFindings
+        .filter((f) => f && typeof f.title === 'string' && f.title.trim() && typeof f.description === 'string' && f.description.trim())
+        .slice(0, 4)
+        .map((f) => ({ title: f.title.trim(), description: f.description.trim() }))
+    : [];
+
   const selfPatternScoreRaw = Number(raw?.selfPatternScore);
   const selfPatternScore = Number.isFinite(selfPatternScoreRaw)
     ? Math.min(5, Math.max(1, selfPatternScoreRaw))
@@ -44,5 +52,14 @@ export function normalizeAssessment(raw) {
       ? raw.selfPatternNote.trim()
       : '자기 반응 패턴에 대한 소견을 생성하지 못했습니다.';
 
-  return { axisScores, axisScores100, patterns, summary, selfPatternScore, selfPatternScore100, selfPatternNote };
+  return {
+    axisScores,
+    axisScores100,
+    patterns,
+    keyFindings,
+    summary,
+    selfPatternScore,
+    selfPatternScore100,
+    selfPatternNote,
+  };
 }

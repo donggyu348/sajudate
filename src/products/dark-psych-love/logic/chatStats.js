@@ -147,40 +147,6 @@ export function buildCandidateSegments(messages, candidateIndexes, window = 2, m
   return segments;
 }
 
-const RISK_WEIGHTS = { gaslight: 3, blame: 2, contempt: 2, threatLeave: 2, control: 1.5 };
-
-function riskBand(score) {
-  if (score >= 70) return { level: 'high', label: '위험 신호가 다수 감지됐어요' };
-  if (score >= 40) return { level: 'elevated', label: '주의가 필요한 신호가 보여요' };
-  if (score >= 15) return { level: 'moderate', label: '경미한 신호가 일부 보여요' };
-  return { level: 'low', label: '뚜렷한 위험 신호는 적어요' };
-}
-
-/**
- * 업로드 직후 내는 1차 위험 신호 점수(0~100).
- * 키워드는 후보 구간을 좁히는 용도로만 쓰고, 점수 자체는 반드시 analyzeChatFlow가
- * 대화 흐름을 보고 확정한 flowFlags(LLM 판단)만 근거로 삼는다 — 단순 키워드 매칭 결과는 쓰지 않는다.
- * @param {{ idx: number, category: string }[]} flowFlags - analyzeChatFlow가 확정한 결과
- * @param {number} messageCount - 전체 대화 메시지 수(정규화용)
- */
-export function computePreviewRiskScore(flowFlags, messageCount) {
-  let weighted = 0;
-  const byCategory = {};
-  for (const f of flowFlags || []) {
-    const w = RISK_WEIGHTS[f.category] ?? 1;
-    weighted += w;
-    byCategory[f.category] = (byCategory[f.category] || 0) + 1;
-  }
-  const topSignals = Object.entries(byCategory)
-    .map(([category, count]) => ({ category, label: CATEGORY_LABELS[category] || category, count }))
-    .sort((a, b) => b.count - a.count);
-
-  const perMessage = messageCount ? weighted / messageCount : 0;
-  const score = Math.round(Math.min(100, perMessage * 500 + topSignals.length * 8));
-
-  return { score, band: riskBand(score), topSignals: topSignals.slice(0, 3) };
-}
-
 /**
  * analyzeChatFlow가 확정한 flowFlags만 근거로 상담봇 컨텍스트를 직렬화.
  * 키워드 후보가 아니라 LLM이 실제 조종적 발화로 확정한 지점만 카테고리 라벨과 함께 담아,

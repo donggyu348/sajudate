@@ -20,6 +20,11 @@ ${Object.entries(PATTERN_TYPES)
   .map(([k, v]) => `- ${k}: ${v}`)
   .join('\n')}
 
+[3. 핵심 관찰(keyFindings)] 이번 대화에서 실제로 반복된 구체적인 상호작용 구조에 이름을 붙이세요.
+- 위 4개 고정 패턴 유형과 달리, 이 대화에만 해당하는 구체적인 구조를 자유롭게 이름 붙일 수 있습니다(예: "체계적인 현실 부인", "일방적 사과 구조", "자기 기억의 신뢰도 약화" 등 — 예시일 뿐 그대로 쓰지 말고 실제 대화 내용에 맞게 지으세요).
+- 2~4개만, 실제로 대화에서 반복 확인된 것만 포함하세요. 근거가 약하면 억지로 채우지 마세요.
+- 각 항목은 title(4~10자 내외 짧은 이름)과 description(1문장, 왜 그렇게 판단했는지 담백하게) 형태.
+
 규칙:
 1. 반드시 아래 JSON 형태로만 응답하세요. 다른 텍스트나 마크다운은 절대 포함하지 마세요.
 2. 근거가 부족한 축/점수는 3점(중립)으로 두고, 과장하지 마세요.
@@ -27,7 +32,7 @@ ${Object.entries(PATTERN_TYPES)
 4. 원문 문장을 그대로 인용하지 마세요.
 5. 이것은 임상 진단이 아니라 참고용 인사이트임을 전제로 보수적으로 판단하세요.
 
-JSON 형식: {"axisScores": {"narcissism": 1, "machiavellianism": 1, "psychopathy": 1, "sadism": 1}, "selfPatternScore": 1, "selfPatternNote": "...", "patterns": [{"type": "gaslighting", "count": 0, "confidence": 0}], "summary": "..."}`;
+JSON 형식: {"axisScores": {"narcissism": 1, "machiavellianism": 1, "psychopathy": 1, "sadism": 1}, "selfPatternScore": 1, "selfPatternNote": "...", "patterns": [{"type": "gaslighting", "count": 0, "confidence": 0}], "keyFindings": [{"title": "...", "description": "..."}], "summary": "..."}`;
 
 /**
  * 상담 대화 전체(+ 선택적 카톡 참고 구간)를 근거로 최종 진단을 생성.
@@ -44,12 +49,12 @@ export async function assessCounsel({ history, chatContext } = {}) {
     .join('\n');
 
   const contextBlock = chatContext
-    ? `\n\n[참고: 업로드된 카카오톡 대화에서 통계적으로 의심스러운 것으로 추려진 구간(참고용, 확정 아님)]\n${chatContext}`
+    ? `\n\n[참고: 업로드된 대화 캡처에서 AI가 대화 흐름을 보고 이미 조종적 발화로 확정한 구간입니다. 통계적 추측이 아니라 확정된 근거이니, 아래 패턴 태깅에 적극 반영하세요.]\n${chatContext}`
     : '';
 
   const message = await client.messages.create({
     model: DEFAULT_MODEL,
-    max_tokens: 800,
+    max_tokens: 1500,
     system: ASSESS_SYSTEM_PROMPT,
     messages: [{ role: 'user', content: `=== 상담 대화 ===\n${transcript}${contextBlock}` }],
   });
