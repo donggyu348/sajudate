@@ -44,9 +44,15 @@ function chapterSkeleton(chapter) {
   return obj;
 }
 
-function buildChapterPrompt(chapter) {
+/**
+ * 챕터마다 똑같이 들어가는 앞부분(역할·입력 데이터·작성 규칙).
+ *
+ * 7번 호출하는 동안 이 부분은 한 글자도 달라지지 않아야 프롬프트 캐시가 걸린다.
+ * 그래서 챕터별로 달라지는 내용은 절대 여기 넣지 않는다.
+ */
+function buildSharedPrompt(inputBlock) {
   return `당신은 관계 심리 분석 보조입니다. 아래는 사용자에 대해 이미 만들어진 무료 요약 리포트입니다(원본 상담 대화가 아니라, 그 대화를 근거로 이미 한 번 채점·요약된 결과입니다).
-이 요약만을 근거로, 유료 전체 리포트의 「${chapter.title}」 챕터를 작성하세요.
+이 요약만을 근거로, 유료 전체 리포트의 한 챕터를 작성합니다.
 
 [입력으로 주어지는 무료 리포트 요약]
 - axisScores: 상대방의 다크테트라드 4축(${Object.values(AXES).map((a) => a.label).join('·')}) 점수(1~5)
@@ -54,8 +60,8 @@ function buildChapterPrompt(chapter) {
 - selfPattern: 사용자 자신의 반응 취약성 점수와 코멘트
 - summary: 종합 소견 요약문
 
-[이 챕터에서 작성할 항목]
-${chapterFieldLines(chapter)}
+[이 사용자의 무료 리포트 요약]
+${inputBlock}
 
 작성 규칙:
 1. 반드시 JSON 객체 하나로만 응답하세요. 설명·마크다운·코드펜스를 절대 붙이지 마세요.
@@ -69,22 +75,37 @@ ${chapterFieldLines(chapter)}
    "~한 성향이 관찰된다", "~일 가능성이 있다"처럼 관찰과 가능성으로 서술하세요.
 6. "헤어져라/참아라" 같은 결정을 대신 내리지 말고, 사용자가 스스로 판단할 근거와 선택지를 주세요.
 7. 퍼센트 항목은 정수로만 응답하고, 주어진 점수·패턴과 앞뒤가 맞게 정하세요.
-8. 이것은 임상 진단이 아니라 참고용 인사이트입니다. 근거가 약한 항목은 약하다고 밝히고 중립적으로 쓰세요.
+8. 이것은 임상 진단이 아니라 참고용 인사이트입니다. 근거가 약한 항목은 약하다고 밝히고 중립적으로 쓰세요.`;
+}
+
+/** 챕터마다 달라지는 뒷부분 — 캐시 경계 뒤에 온다 */
+function buildChapterPrompt(chapter) {
+  return `[지금 작성할 챕터] ${chapter.title}
+
+[이 챕터에서 작성할 항목]
+${chapterFieldLines(chapter)}
 
 JSON 형식: ${JSON.stringify(chapterSkeleton(chapter))}`;
 }
 
 /** 상담 봇이 일시적으로 몰릴 때가 있어, 챕터 단위로 재시도한다 */
-async function generateChapter(client, chapter, inputBlock) {
+async function generateChapter(client, chapter, inputBlock, usage) {
   const maxAttempts = 4;
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     try {
       const message = await client.messages.create({
         model: DEFAULT_MODEL,
         max_tokens: 4000,
-        system: buildChapterPrompt(chapter),
-        messages: [{ role: 'user', content: inputBlock }],
+        // 공통 부분(규칙·입력 데이터)을 앞에, 챕터별 부분을 뒤에 둔다.
+        // 프롬프트 캐시도 노려봤지만 공통 부분이 1,000토큰 남짓이라 Haiku의 캐시 최소 단위(2,048)에
+        // 못 미쳐 걸리지 않는다. 중복되는 입력 비용은 리포트 1건당 20원이 안 돼 그대로 둔다.
+        system: `${buildSharedPrompt(inputBlock)}\n\n${buildChapterPrompt(chapter)}`,
+        messages: [{ role: 'user', content: `「${chapter.title}」 챕터를 작성하세요.` }],
       });
+      if (usage && message?.usage) {
+        usage.input += message.usage.input_tokens || 0;
+        usage.output += message.usage.output_tokens || 0;
+      }
       const text = message?.content?.find((b) => b.type === 'text')?.text || '';
       return safeJsonParse(text);
     } catch (err) {
@@ -111,16 +132,12 @@ export async function generatePremiumReport({ summary, axisScores, patterns, sel
     `[자기 반응 패턴] ${JSON.stringify(selfPattern || {})}`,
   ].join('\n');
 
-  // 동시에 다 던지면 한꺼번에 몰려 과부하 오류(529)를 맞기 쉬워, 조금씩 나눠 보낸다.
-  const CONCURRENCY = 3;
   const result = {};
-  for (let i = 0; i < REPORT_TOC.length; i += CONCURRENCY) {
-    const batch = REPORT_TOC.slice(i, i + CONCURRENCY);
-    const settled = await Promise.allSettled(
-      batch.map((chapter) => generateChapter(client, chapter, inputBlock))
-    );
+  const usage = { input: 0, output: 0 };
+
+  function collect(chapters, settled) {
     settled.forEach((outcome, idx) => {
-      const chapter = batch[idx];
+      const chapter = chapters[idx];
       if (outcome.status === 'fulfilled') {
         result[chapter.key] = outcome.value;
       } else {
@@ -130,6 +147,18 @@ export async function generatePremiumReport({ summary, axisScores, patterns, sel
       }
     });
   }
+
+  // 한꺼번에 다 던지면 과부하 오류(529)를 맞기 쉬워 3개씩 나눠 보낸다.
+  const CONCURRENCY = 3;
+  for (let i = 0; i < REPORT_TOC.length; i += CONCURRENCY) {
+    const batch = REPORT_TOC.slice(i, i + CONCURRENCY);
+    collect(batch, await Promise.allSettled(
+      batch.map((chapter) => generateChapter(client, chapter, inputBlock, usage))
+    ));
+  }
+
+  // 건당 원가를 눈으로 확인할 수 있게 남긴다
+  console.log('[premium] 토큰 사용량:', usage);
   return result;
 }
 
