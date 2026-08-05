@@ -20,6 +20,7 @@ import {
   isTossEnabled,
   buildOrderId,
   confirmTossPayment,
+  resolvePrice,
 } from './logic/payments.js';
 import { sendReportLinkSms, isValidKoreanPhone } from './logic/sms.js';
 import {
@@ -555,9 +556,21 @@ router.post('/report/:publicId/checkout/prepare-phone', async (req, res) => {
   if (!orderId || !isValidKoreanPhone(phone)) {
     return res.status(400).json({ error: '전화번호 또는 주문 정보가 올바르지 않습니다.' });
   }
-  req.session.pendingPhones = req.session.pendingPhones || {};
-  req.session.pendingPhones[orderId] = String(phone).replace(/[^0-9]/g, '');
-  res.json({ ok: true });
+
+  // 금액은 여기(서버)에서만 결정한다. 클라이언트가 보낸 금액을 쓰면 누구나 1원 결제를 만들 수 있다.
+  // 결정된 금액은 세션에 저장했다가 승인(confirm) 때 그대로 사용한다.
+  const normalizedPhone = String(phone).replace(/[^0-9]/g, '');
+  const amount = resolvePrice(normalizedPhone);
+
+  req.session.pendingPayments = req.session.pendingPayments || {};
+  req.session.pendingPayments[orderId] = { phone: normalizedPhone, amount };
+
+  if (amount !== REPORT_UNLOCK_PRICE) {
+    console.log(`[checkout] 테스트 결제 금액 적용: ${amount}원 (orderId=${orderId})`);
+  }
+
+  // 클라이언트는 이 금액으로 결제위젯 금액을 갱신한다(표시용) — 신뢰의 근거는 세션 값이다
+  res.json({ ok: true, amount });
 });
 
 router.get('/report/:publicId/checkout', async (req, res, next) => {
@@ -607,18 +620,21 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
       return res.redirect(`${BASE}/report/${report.publicId}/checkout/fail?message=${message}`);
     }
 
-    // 금액은 쿼리스트링 값을 신뢰하지 않고 confirmTossPayment 내부에서 서버 고정가로 승인 요청함
-    await confirmTossPayment({ paymentKey: String(paymentKey), orderId: String(orderId) });
+    // 금액은 쿼리스트링을 신뢰하지 않고, 결제 시작 때 서버가 정해 세션에 넣어둔 값을 쓴다.
+    // 세션이 없으면(만료·다른 브라우저 등) 정가로 승인 — 임의 금액이 끼어들 여지를 두지 않는다.
+    const pending = req.session.pendingPayments?.[String(orderId)];
+    const amount = Number.isInteger(pending?.amount) ? pending.amount : REPORT_UNLOCK_PRICE;
+
+    await confirmTossPayment({ paymentKey: String(paymentKey), orderId: String(orderId), amount });
 
     report.paid = true;
     report.orderId = String(orderId);
     report.paymentKey = String(paymentKey);
-    report.amount = REPORT_UNLOCK_PRICE;
-    const pendingPhone = req.session.pendingPhones?.[String(orderId)];
-    if (isValidKoreanPhone(pendingPhone)) {
-      report.phone = String(pendingPhone).replace(/[^0-9]/g, '');
+    report.amount = amount; // 실제 승인된 금액을 그대로 기록 (매출 집계가 어긋나지 않도록)
+    if (isValidKoreanPhone(pending?.phone)) {
+      report.phone = String(pending.phone).replace(/[^0-9]/g, '');
     }
-    if (req.session.pendingPhones) delete req.session.pendingPhones[String(orderId)];
+    if (req.session.pendingPayments) delete req.session.pendingPayments[String(orderId)];
     await report.save();
 
     if (report.phone) {

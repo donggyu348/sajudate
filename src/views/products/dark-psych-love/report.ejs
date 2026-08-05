@@ -471,8 +471,19 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderId: orderId, phone: phone.replace(/[^0-9]/g, '') }),
       })
-        .then(function (r) { if (!r.ok) throw new Error('전화번호 저장에 실패했습니다.'); })
-        .then(ensureWidget)
+        .then(function (r) {
+          if (!r.ok) throw new Error('전화번호 저장에 실패했습니다.');
+          return r.json();
+        })
+        .then(function (data) {
+          return ensureWidget().then(function () {
+            // 금액은 서버가 정한다. 테스트 번호면 서버가 다른 금액을 돌려주므로 위젯 표시금액을 맞춘다.
+            // (승인 시 실제로 쓰이는 금액도 서버 세션 값이라, 여기서 조작해도 소용없다)
+            if (data && Number.isInteger(data.amount) && data.amount !== amount) {
+              return widget.updateAmount(data.amount);
+            }
+          });
+        })
         .then(function () {
           return widget.requestPayment({
             orderId: orderId,
