@@ -1,8 +1,13 @@
 import { Router } from 'express';
 import { Op } from 'sequelize';
 import { Product } from '../models/index.js';
+import { PRODUCT_MODULES } from '../products/registry.js';
 
 const router = Router();
+
+// 실제로 페이지가 있는 상품 목록. DB에만 있고 모듈이 없는 상품을 메인에 띄우면
+// 누르는 순간 404가 나므로, 노출 자체를 여기서 막는다.
+const LIVE_SLUGS = new Set(PRODUCT_MODULES.map((m) => m.slug));
 
 /** 훅 섹션 동적 카피 (상품 아님 — 플랫폼 카피) */
 const HOOK_SECTION = {
@@ -13,13 +18,14 @@ const HOOK_SECTION = {
 // GET / → 메인 페이지
 router.get('/', async (req, res, next) => {
   try {
-    const activeProducts = await Product.findAll({
+    const rows = await Product.findAll({
       where: { isActive: true },
       order: [
         ['sortOrder', 'ASC'],
         ['createdAt', 'DESC'],
       ],
     });
+    const activeProducts = rows.filter((p) => LIVE_SLUGS.has(p.slug));
 
     // 카테고리 탭 동적 생성 (전체 + 등장하는 카테고리들)
     const categories = ['전체', ...new Set(activeProducts.map((p) => p.category))];

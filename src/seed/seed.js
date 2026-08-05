@@ -1,7 +1,12 @@
 import { sequelize, Product, Agent } from '../models/index.js';
 import { DEFAULT_COUNSELOR_SYSTEM_PROMPT } from '../products/dark-psych-love/logic/counselor.js';
 
-/** 초기 상품 시드. 플랫폼 구조 검증용 더미 + 첫 상품(dark-psych-love). */
+/**
+ * 초기 상품 시드.
+ * 실제로 동작하는 상품만 넣는다 — 페이지가 없는 상품을 시드하면 메인에 노출된 뒤
+ * 누르는 순간 404가 나서 판매 중인 서비스처럼 보이지 않는다.
+ * 새 상품은 products/registry.js에 모듈을 등록한 뒤 여기에 추가한다.
+ */
 const PRODUCTS = [
   {
     slug: 'dark-psych-love',
@@ -16,30 +21,6 @@ const PRODUCTS = [
     thumbnailUrl: '/assets/hero-dark-psych.png',
     isActive: true,
     sortOrder: 1,
-  },
-  {
-    slug: 'attachment-check',
-    name: '애착 유형 체크',
-    description: '성인 애착 이론(ECR) 기반의 간단한 애착 유형 체크리스트입니다. (준비 중)',
-    category: '체크리스트',
-    isFeatured: false,
-    headline: '나의 애착 유형은?',
-    subcopy: '안정 · 불안 · 회피 — 관계 패턴의 뿌리',
-    thumbnailUrl: null,
-    isActive: true,
-    sortOrder: 2,
-  },
-  {
-    slug: 'relationship-report-sample',
-    name: '관계 종합 리포트',
-    description: '여러 진단을 종합한 관계 리포트 상품입니다. (준비 중)',
-    category: '리포트',
-    isFeatured: true,
-    headline: '흩어진 신호를 하나의 리포트로',
-    subcopy: '진단 결과를 종합해 관계를 입체적으로',
-    thumbnailUrl: null,
-    isActive: true,
-    sortOrder: 3,
   },
 ];
 

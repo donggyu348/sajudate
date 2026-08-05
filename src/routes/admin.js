@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { rateLimit } from 'express-rate-limit';
 import { Agent, Report } from '../models/index.js';
 import { confirmTossPayment, REPORT_UNLOCK_PRICE } from '../products/dark-psych-love/logic/payments.js';
+import { sendReportLinkSms, isSmsEnabled, isValidKoreanPhone } from '../products/dark-psych-love/logic/sms.js';
 
 const router = Router();
 
@@ -241,7 +242,40 @@ router.get('/sales', requireAdmin, async (req, res, next) => {
       todayRevenue,
       monthRevenue,
       totalCount: payments.length,
+      smsEnabled: isSmsEnabled(),
+      notice: req.query.notice ? String(req.query.notice) : null,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * 결과지 문자 재발송.
+ * 결제는 됐는데 문자가 안 갔을 때 복구용이고, 알리고 응답을 그대로 화면에 보여줘
+ * "키 문제인지 / 번호 문제인지 / 발신번호 미등록인지"를 바로 가릴 수 있게 한다.
+ */
+router.post('/reports/:id/resend-sms', requireAdmin, async (req, res, next) => {
+  try {
+    const report = await Report.findByPk(req.params.id);
+    if (!report) return res.redirect('/admin/sales?notice=' + encodeURIComponent('리포트를 찾을 수 없습니다.'));
+
+    if (!isSmsEnabled()) {
+      return res.redirect('/admin/sales?notice=' + encodeURIComponent('알리고 키(ALIGO_API_KEY/USER_ID/SENDER)가 설정되지 않았습니다.'));
+    }
+    if (!isValidKoreanPhone(report.phone)) {
+      return res.redirect('/admin/sales?notice=' + encodeURIComponent(`리포트 #${report.id}에 저장된 전화번호가 없습니다.`));
+    }
+
+    const origin = process.env.PUBLIC_ORIGIN || `${req.protocol}://${req.get('host')}`;
+    const reportUrl = `${origin}/products/dark-psych-love/report/${report.publicId}`;
+    const data = await sendReportLinkSms({ phone: report.phone, reportUrl });
+
+    const ok = data?.result_code === '1';
+    const notice = ok
+      ? `리포트 #${report.id} 문자를 발송했습니다.`
+      : `발송 실패 — ${data?.message || '알 수 없는 오류'} (code: ${data?.result_code ?? '-'})`;
+    res.redirect('/admin/sales?notice=' + encodeURIComponent(notice));
   } catch (err) {
     next(err);
   }

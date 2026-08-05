@@ -552,7 +552,9 @@
   <div id="reportSheetOverlay" class="report-sheet-overlay fixed inset-0 z-30 bg-black/40"></div>
   <%# 결제위젯이 결제수단·약관 UI를 직접 그려 넣으므로 시트가 길어진다.
       화면을 넘지 않도록 최대 높이를 두고 내부 스크롤을 준다. %>
-  <div id="reportSheet" class="report-sheet fixed inset-x-0 bottom-0 z-40 mx-auto flex max-h-[92vh] max-w-app flex-col rounded-t-2xl bg-white shadow-[0_-16px_40px_-16px_rgba(0,0,0,0.3)]">
+  <%# 시트는 흰 배경이라, 페이지 전체에 건 다크 테마 글자색(.app-shell)이 상속되면
+      입력한 글자가 밝은 회색으로 찍혀 잘 안 보인다. 여기서 글자색을 되돌려 놓는다. %>
+  <div id="reportSheet" class="report-sheet fixed inset-x-0 bottom-0 z-40 mx-auto flex max-h-[92vh] max-w-app flex-col rounded-t-2xl bg-white text-ink shadow-[0_-16px_40px_-16px_rgba(0,0,0,0.3)]">
     <div class="shrink-0 px-5 pt-5">
       <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200"></div>
       <p class="text-sm font-bold text-ink">전체 리포트 구매</p>
@@ -571,7 +573,7 @@
       <div class="mt-4">
         <p class="text-sm font-bold text-ink">전화번호</p>
         <p class="mt-1 text-xs text-ink-soft">결제 완료 후 이 번호로 리포트 링크를 문자로 보내드려요.</p>
-        <input id="sheetPhoneInput" type="tel" inputmode="numeric" placeholder="010-0000-0000" class="mt-2 w-full rounded-lg border border-line bg-gray-50 px-3 py-2.5 text-sm focus:border-accent focus:bg-white focus:outline-none" />
+        <input id="sheetPhoneInput" type="tel" inputmode="numeric" placeholder="010-0000-0000" class="mt-2 w-full rounded-lg border border-line bg-gray-50 px-3 py-2.5 text-sm text-ink placeholder:text-ink-soft/60 focus:border-accent focus:bg-white focus:outline-none" />
         <p id="sheetPhoneError" class="mt-1 hidden text-[11px] text-red-600">휴대폰 번호를 정확히 입력해 주세요.</p>
       </div>
 
