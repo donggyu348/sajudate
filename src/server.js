@@ -19,8 +19,29 @@ function assertProductionSecrets() {
   }
 }
 
+// 외부 연동 키가 빠지면 기능이 조용히 꺼진 채로 서비스된다(결제 버튼이 안 뜨거나 문자가 안 나감).
+// 어느 키가 비어 있는지 기동 로그에서 바로 보이게 해서, 서버에 붙어 일일이 확인하지 않아도 되게 한다.
+function logIntegrationStatus() {
+  const checks = [
+    ['LLM (Anthropic)', ['ANTHROPIC_API_KEY|LLM_API_KEY']],
+    ['토스페이먼츠', ['TOSS_CLIENT_KEY', 'TOSS_SECRET_KEY']],
+    ['알리고 SMS', ['ALIGO_API_KEY', 'ALIGO_USER_ID', 'ALIGO_SENDER']],
+  ];
+
+  console.log('[config] 외부 연동 상태');
+  for (const [label, keys] of checks) {
+    const missing = keys.filter((k) => !k.split('|').some((name) => process.env[name]));
+    if (missing.length === 0) {
+      console.log(`  ✓ ${label}`);
+    } else {
+      console.warn(`  ✗ ${label} — 누락: ${missing.join(', ')} (해당 기능이 꺼진 상태로 동작합니다)`);
+    }
+  }
+}
+
 async function start() {
   assertProductionSecrets();
+  logIntegrationStatus();
   try {
     await assertDbConnection();
     // alter:true는 MySQL에서 매 재시작마다 UNIQUE 컬럼에 중복 인덱스를 추가하는 문제가 있어 비활성화.

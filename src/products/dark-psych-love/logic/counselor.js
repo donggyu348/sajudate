@@ -122,6 +122,21 @@ export function retryDelayMs(attempt) {
   return Math.min(8000, 2 ** attempt * 500) + Math.floor(Math.random() * 300);
 }
 
+/**
+ * 폴백 모델.
+ *
+ * 특정 모델이 포화되면 같은 모델로 아무리 재시도해도 계속 529가 떨어진다.
+ * 그럴 때 상대적으로 여유 있는 모델로 갈아타 최소한 서비스는 계속되게 한다.
+ * 품질은 조금 떨어져도, 사용자가 빈 화면을 보는 것보다는 낫다.
+ */
+export const FALLBACK_MODEL = process.env.LLM_FALLBACK_MODEL || 'claude-haiku-4-5';
+
+/** 설정 모델과 폴백 모델이 같으면 갈아탈 이유가 없다. */
+export function fallbackModelFor(model) {
+  const current = model || DEFAULT_MODEL;
+  return current === FALLBACK_MODEL ? null : FALLBACK_MODEL;
+}
+
 const VALID_EFFORT = new Set(['low', 'medium', 'high']);
 
 // Haiku 4.5 / Sonnet 4.5 등 구형 모델은 output_config.effort 를 보내면 400 에러가 난다.
