@@ -413,9 +413,25 @@
             failUrl: failUrl,
           });
         })
-        .catch(function () {
+        .catch(function (err) {
           payBtn.disabled = false;
           payBtn.textContent = '구매하기';
+
+          // 사용자가 결제창을 직접 닫은 건 오류가 아니다
+          if (err && err.code === 'USER_CANCEL') return;
+
+          // 그동안 이 catch가 오류를 통째로 삼켜서 "눌러도 아무 일이 없는" 것처럼 보였다.
+          // 원인 파악이 가능하도록 콘솔에 남기고, 화면에도 코드를 함께 보여준다.
+          console.error('[toss] 결제창 호출 실패', err);
+          var code = (err && err.code) || '';
+          var detail =
+            code === 'INVALID_CLIENT_KEY'
+              ? '클라이언트 키가 올바르지 않습니다.'
+              : code === 'COMMON_ERROR' || code === 'NOT_ALLOWED_ORIGIN'
+                ? '이 주소에서는 결제창을 열 수 없습니다. (도메인 미등록 또는 HTTPS 아님)'
+                : (err && err.message) || '알 수 없는 오류';
+          phoneError.textContent = '결제창을 열지 못했습니다 — ' + detail + (code ? ' [' + code + ']' : '');
+          phoneError.classList.remove('hidden');
         });
     });
   })();
