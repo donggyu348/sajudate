@@ -56,7 +56,9 @@ async function start() {
 
   const app = createApp();
   app.listen(PORT, () => {
-    console.log(`[server] http://localhost:${PORT}`);
+    // 앱은 자기 도메인을 모른다 — 포트만 듣고, 도메인 매핑은 앞단 Nginx가 한다.
+    // "localhost로 뜬다"고 오해하지 않도록 포트만 표기한다.
+    console.log(`[server] 포트 ${PORT} 리슨 중 (외부 도메인 연결은 Nginx가 담당)`);
   });
 }
 

@@ -523,6 +523,16 @@ router.get('/report/:publicId', async (req, res, next) => {
 // 결제 시작 전 전화번호를 서버 세션에 orderId로 매칭해 저장 — successUrl 쿼리스트링에
 // 전화번호를 실어 보내지 않기 위함(접속 로그에 PII가 남는 걸 막음).
 router.post('/report/:publicId/checkout/prepare-phone', async (req, res) => {
+  // 진단용: 토스는 successUrl이 https가 아니면 결제창을 거부한다.
+  // Nginx 뒤에서 req.protocol이 https로 잡히는지(=trust proxy + X-Forwarded-Proto)를
+  // 여기서 바로 확인할 수 있게 남긴다. 원인 확정 후 제거해도 된다.
+  console.log('[checkout] origin 판정:', {
+    protocol: req.protocol,
+    host: req.get('host'),
+    'x-forwarded-proto': req.get('x-forwarded-proto') || '(없음)',
+    trustProxy: req.app.get('trust proxy'),
+  });
+
   const { orderId, phone } = req.body || {};
   if (!orderId || !isValidKoreanPhone(phone)) {
     return res.status(400).json({ error: '전화번호 또는 주문 정보가 올바르지 않습니다.' });
