@@ -546,6 +546,9 @@ router.post('/report/:publicId/checkout/prepare-phone', async (req, res) => {
     host: req.get('host'),
     'x-forwarded-proto': req.get('x-forwarded-proto') || '(없음)',
     trustProxy: req.app.get('trust proxy'),
+    PUBLIC_ORIGIN: process.env.PUBLIC_ORIGIN || '(미설정)',
+    // 실제로 토스에 넘어가는 주소 — https로 시작해야 결제창이 열린다
+    '최종 successUrl': `${publicOrigin(req)}${BASE}/report/${req.params.publicId}/checkout/success`,
   });
 
   const { orderId, phone } = req.body || {};
