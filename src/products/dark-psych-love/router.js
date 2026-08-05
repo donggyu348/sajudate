@@ -26,6 +26,8 @@ import {
   streamCounsel,
   isCounselorEnabled,
   buildCounselSystemPrompt,
+  isTransientLlmError,
+  retryDelayMs,
   MAX_USER_TURNS,
   EXTEND_TURNS,
 } from './logic/counselor.js';
@@ -304,20 +306,54 @@ router.post('/counsel/stream', counselStreamLimiter, async (req, res) => {
     const systemPrompt = buildCounselSystemPrompt(agent.systemPrompt, {
       chatContext: req.session.dpl?.chatContext,
     });
-    const stream = streamCounsel({
-      history,
-      systemPrompt,
-      model: agent.model,
-      maxTokens: agent.maxTokens,
-      effort: agent.effort,
+    // 스트리밍 오류는 SDK가 재시도해 주지 않는다 —
+    // HTTP 200으로 스트림이 열린 뒤 본문 안에서 오류가 오기 때문에 SDK의 maxRetries 범위 밖이다.
+    // 그래서 여기서 직접 재시도하되, "아직 한 글자도 내보내지 않았을 때"만 다시 시도한다.
+    // 이미 응답이 나가기 시작한 뒤에 재시도하면 같은 말이 두 번 이어붙어 버린다.
+    const MAX_STREAM_RETRIES = 3;
+    let wroteAny = false;
+    let aborted = false;
+    let currentStream = null;
+    // 리스너는 한 번만 등록하고 현재 스트림을 참조 — 루프 안에서 등록하면 재시도할 때마다 쌓인다
+    req.on('close', () => {
+      aborted = true;
+      currentStream?.abort?.();
     });
-    stream.on('text', (delta) => res.write(delta));
-    req.on('close', () => stream.abort?.()); // 클라이언트 이탈 시 중단
-    await stream.finalMessage();
-    res.end();
+
+    for (let attempt = 0; ; attempt++) {
+      const stream = streamCounsel({
+        history,
+        systemPrompt,
+        model: agent.model,
+        maxTokens: agent.maxTokens,
+        effort: agent.effort,
+      });
+      currentStream = stream;
+      stream.on('text', (delta) => {
+        wroteAny = true;
+        res.write(delta);
+      });
+
+      try {
+        await stream.finalMessage();
+        return res.end();
+      } catch (err) {
+        const canRetry =
+          !wroteAny && !aborted && attempt < MAX_STREAM_RETRIES && isTransientLlmError(err);
+        if (!canRetry) throw err;
+        console.warn(
+          `[counsel/stream] 일시적 오류로 재시도 ${attempt + 1}/${MAX_STREAM_RETRIES}:`,
+          err?.error?.error?.type || err?.status || err?.message
+        );
+        await new Promise((r) => setTimeout(r, retryDelayMs(attempt)));
+      }
+    }
   } catch (err) {
     console.error('[counsel/stream]', err);
-    res.write('\n\n(응답 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.)');
+    const msg = isTransientLlmError(err)
+      ? '\n\n(지금 요청이 몰려 답변을 받지 못했어요. 잠시 후 다시 보내주세요.)'
+      : '\n\n(응답 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.)';
+    res.write(msg);
     res.end();
   }
 });
@@ -368,7 +404,8 @@ router.post('/counsel/report', reportGenLimiter, async (req, res) => {
     console.error('[counsel/report]', err);
     // 529(overloaded)/429는 우리 쪽 문제가 아니라 일시적 혼잡 — 대화 내용은 브라우저에 그대로 남아 있으므로
     // "다시 눌러보라"고 분명히 안내해야 사용자가 대화를 날렸다고 오해하지 않는다.
-    const transient = err?.status === 529 || err?.status === 503 || err?.status === 429;
+    // status만 보면 스트리밍 경로의 오류(status undefined)를 놓치므로 공통 헬퍼로 판정한다.
+    const transient = isTransientLlmError(err);
     res.status(transient ? 503 : 500).json({
       error: transient
         ? '지금 요청이 몰려 결과를 만들지 못했어요. 대화 내용은 그대로 있으니 잠시 후 다시 눌러주세요.'

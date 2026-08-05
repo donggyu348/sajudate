@@ -98,6 +98,30 @@ export function isCounselorEnabled() {
   return Boolean(process.env.ANTHROPIC_API_KEY || process.env.LLM_API_KEY);
 }
 
+/**
+ * 우리 잘못이 아니라 잠시 후 다시 하면 되는 오류인지 판정.
+ *
+ * 주의: 스트리밍 중에 터진 오류는 HTTP 응답이 이미 200으로 시작된 뒤 SSE 본문 안에서 오기 때문에
+ * err.status가 undefined다. status만 보면 529를 놓치므로 응답 본문의 error.type도 함께 본다.
+ */
+const TRANSIENT_STATUS = new Set([408, 409, 429, 500, 502, 503, 504, 529]);
+const TRANSIENT_TYPES = new Set(['overloaded_error', 'rate_limit_error', 'api_error', 'timeout_error']);
+
+export function isTransientLlmError(err) {
+  if (!err) return false;
+  if (TRANSIENT_STATUS.has(err.status)) return true;
+  // SDK가 파싱해 둔 응답 본문: { type: 'error', error: { type: 'overloaded_error', ... } }
+  const bodyType = err.error?.error?.type ?? err.error?.type;
+  if (TRANSIENT_TYPES.has(bodyType)) return true;
+  // 파싱 실패로 메시지에만 남는 경우까지 커버
+  return [...TRANSIENT_TYPES].some((t) => String(err.message || '').includes(t));
+}
+
+/** 재시도 간 대기(지수 백오프 + 지터). SDK가 못 잡는 스트리밍 오류를 우리가 직접 재시도할 때 사용. */
+export function retryDelayMs(attempt) {
+  return Math.min(8000, 2 ** attempt * 500) + Math.floor(Math.random() * 300);
+}
+
 const VALID_EFFORT = new Set(['low', 'medium', 'high']);
 
 // Haiku 4.5 / Sonnet 4.5 등 구형 모델은 output_config.effort 를 보내면 400 에러가 난다.
