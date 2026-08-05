@@ -531,6 +531,16 @@ router.get('/report/:publicId', async (req, res, next) => {
     // 이미 있는 무료 결과(summary/axisScores/patterns/selfPattern)만 입력으로 쓴다.
     // 챕터별로 길게 쓰게 하다 보니 1~2분이 걸려, 요청 안에서 기다리면 타임아웃이 난다.
     // 생성은 백그라운드로 돌리고 화면은 로딩 페이지를 보여준다.
+    // 결제 직후 도착했을 때만 광고 구매 이벤트를 실어 보낸다.
+    // 금액은 클라이언트가 아니라 실제 승인된 값(report.amount)을 쓴다.
+    const purchaseEvent = req.query.purchased && report.paid
+      ? {
+          value: report.amount || REPORT_UNLOCK_PRICE,
+          currency: 'KRW',
+          orderId: report.orderId || String(report.publicId),
+        }
+      : null;
+
     if (report.paid && !report.premiumReport) {
       const job = premiumJobs.get(String(report.id));
       if (req.query.retry) premiumJobs.delete(String(report.id));
@@ -545,6 +555,7 @@ router.get('/report/:publicId', async (req, res, next) => {
         reportId: report.publicId,
         failed: !req.query.retry && job?.status === 'failed',
         chapterCount: REPORT_TOC.length,
+        purchaseEvent,
       });
     }
 
@@ -577,6 +588,7 @@ router.get('/report/:publicId', async (req, res, next) => {
         patterns,
       }),
       premium: report.premiumReport || null,
+      purchaseEvent,
       disclaimer: REPORT_DISCLAIMER,
       reportUnlockPrice: REPORT_UNLOCK_PRICE,
       tossEnabled: isTossEnabled(),
@@ -853,7 +865,8 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
       console.error(`[sms] 번호가 없어 발송하지 못했습니다 (reportId=${report.id}, orderId=${orderId})`);
     }
 
-    res.redirect(`${BASE}/report/${report.publicId}`);
+    // purchased 표시는 리포트 화면에서 광고 구매 이벤트를 한 번 쏘기 위한 것 (금액은 서버 값을 쓴다)
+    res.redirect(`${BASE}/report/${report.publicId}?purchased=1`);
   } catch (err) {
     // 토스가 돌려준 code까지 실패 화면에 전달해야 원인을 특정할 수 있다
     // (예: FORBIDDEN_REQUEST = 시크릿 키 권한/상점 상태 문제)

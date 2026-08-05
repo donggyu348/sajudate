@@ -1,0 +1,22 @@
+<%# 결제 완료 직후 한 번만 실행되는 구매 이벤트.
+    결제 후 처음 도착하는 화면이 리포트일 수도, 생성 대기 화면일 수도 있어 양쪽에서 include한다. %>
+<% if (typeof purchaseEvent !== 'undefined' && purchaseEvent) { %>
+<script>
+  (function () {
+    var ev = <%- JSON.stringify(purchaseEvent) %>;
+
+    // 사용자가 새로고침하면 같은 주문이 두 번 집계된다. 이미 보낸 주문은 표시해두고 건너뛴다.
+    var key = 'dpl_purchase_' + ev.orderId;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+    } catch (e) {
+      // 시크릿 모드 등에서 sessionStorage가 막혀 있어도 이벤트 자체는 보낸다
+    }
+
+    if (typeof fbq !== 'function') return;
+    // eventID를 주문번호로 두면, 나중에 서버 전송(Conversions API)을 붙여도 중복 집계되지 않는다
+    fbq('track', 'Purchase', { value: ev.value, currency: ev.currency }, { eventID: ev.orderId });
+  })();
+</script>
+<% } %>
