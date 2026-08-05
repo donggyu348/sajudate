@@ -41,6 +41,20 @@
     100% { transform: scale(1); }
   }
   .jackpot-land { animation: jackpotLand 0.45s ease-out; }
+  .report-sheet {
+    transform: translateY(100%);
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .report-sheet.is-open { transform: translateY(0); }
+  .report-sheet-overlay {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.32s ease;
+  }
+  .report-sheet-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
 </style>
 
 <div class="p-4 <%= !report.paid ? 'pb-24' : '' %>">
@@ -257,11 +271,46 @@
 <% if (!report.paid) { %>
   <!-- 전체 리포트 CTA — 스크롤과 무관하게 화면 하단에 따라다니는 바 -->
   <div class="fixed inset-x-0 bottom-14 z-20 mx-auto max-w-app px-4 pb-3">
-    <a href="<%= base %>/report/<%= report.id %>/checkout" class="btn-primary flex w-full items-center justify-center gap-1.5 py-3.5 shadow-[0_12px_24px_-8px_rgba(67,56,202,0.5)]">
+    <button id="openReportSheetBtn" type="button" class="btn-primary flex w-full items-center justify-center gap-1.5 py-3.5 shadow-[0_12px_24px_-8px_rgba(67,56,202,0.5)]">
       전체 리포트 보기
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14 0" /><path d="M13 18l6 -6" /></svg>
-    </a>
+    </button>
   </div>
+
+  <!-- 전체 리포트 구매 바텀시트 -->
+  <div id="reportSheetOverlay" class="report-sheet-overlay fixed inset-0 z-30 bg-black/40"></div>
+  <div id="reportSheet" class="report-sheet fixed inset-x-0 bottom-0 z-40 mx-auto max-w-app rounded-t-2xl bg-white p-5 pb-6 shadow-[0_-16px_40px_-16px_rgba(0,0,0,0.3)]">
+    <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200"></div>
+    <p class="text-sm font-bold text-ink">전체 리포트 구매</p>
+    <p class="mt-1 text-xs text-ink-soft">상담 대화를 바탕으로 한 전체 분석 결과를 확인해요.</p>
+
+    <div class="mt-4 flex items-center justify-between rounded-xl border-2 border-accent bg-accent-soft px-4 py-4">
+      <div>
+        <p class="text-[11px] font-bold text-accent">전체 리포트</p>
+        <p class="mt-0.5 font-bold text-ink">가스라이팅 심층 분석 리포트</p>
+      </div>
+      <p class="font-bold text-ink"><%= reportUnlockPrice.toLocaleString('ko-KR') %>원</p>
+    </div>
+
+    <div class="mt-4">
+      <p class="text-sm font-bold text-ink">전화번호</p>
+      <p class="mt-1 text-xs text-ink-soft">결제 완료 후 이 번호로 리포트 링크를 문자로 보내드려요.</p>
+      <input id="sheetPhoneInput" type="tel" inputmode="numeric" placeholder="010-0000-0000" class="mt-2 w-full rounded-lg border border-line bg-gray-50 px-3 py-2.5 text-sm focus:border-accent focus:bg-white focus:outline-none" />
+      <p id="sheetPhoneError" class="mt-1 hidden text-[11px] text-red-600">휴대폰 번호를 정확히 입력해 주세요.</p>
+    </div>
+
+    <% if (tossEnabled) { %>
+      <button id="sheetPayBtn" type="button" class="btn-primary mt-4 flex w-full items-center justify-center gap-1.5 py-3.5">
+        구매하기
+      </button>
+    <% } else { %>
+      <p class="mt-4 rounded-lg bg-gray-50 p-3 text-center text-xs text-ink-soft">결제 기능이 아직 설정되지 않았습니다.</p>
+    <% } %>
+  </div>
+<% } %>
+
+<% if (!report.paid && tossEnabled) { %>
+  <script src="https://js.tosspayments.com/v1/payment"></script>
 <% } %>
 
 <script>
@@ -298,4 +347,77 @@
     }
     requestAnimationFrame(tick);
   })();
+
+  (function () {
+    var openBtn = document.getElementById('openReportSheetBtn');
+    var sheet = document.getElementById('reportSheet');
+    var overlay = document.getElementById('reportSheetOverlay');
+    if (!openBtn || !sheet || !overlay) return;
+
+    function openSheet() {
+      sheet.classList.add('is-open');
+      overlay.classList.add('is-open');
+    }
+    function closeSheet() {
+      sheet.classList.remove('is-open');
+      overlay.classList.remove('is-open');
+    }
+
+    openBtn.addEventListener('click', openSheet);
+    overlay.addEventListener('click', closeSheet);
+  })();
+
+  <% if (!report.paid && tossEnabled) { %>
+  (function () {
+    var phoneInput = document.getElementById('sheetPhoneInput');
+    var phoneError = document.getElementById('sheetPhoneError');
+    var payBtn = document.getElementById('sheetPayBtn');
+    if (!phoneInput || !payBtn) return;
+
+    var clientKey = <%- JSON.stringify(clientKey) %>;
+    var amount = <%- JSON.stringify(reportUnlockPrice) %>;
+    var orderId = <%- JSON.stringify(orderId) %>;
+    var orderName = <%- JSON.stringify(orderName) %>;
+    var successUrl = <%- JSON.stringify(successUrl) %>;
+    var failUrl = <%- JSON.stringify(failUrl) %>;
+
+    var tossPayments = TossPayments(clientKey);
+
+    function isValidPhone(v) {
+      return /^01[016789]\d{7,8}$/.test(String(v || '').replace(/[^0-9]/g, ''));
+    }
+
+    payBtn.addEventListener('click', function () {
+      var phone = phoneInput.value.trim();
+      if (!isValidPhone(phone)) {
+        phoneError.classList.remove('hidden');
+        phoneInput.focus();
+        return;
+      }
+      phoneError.classList.add('hidden');
+      payBtn.disabled = true;
+      payBtn.textContent = '결제창으로 이동 중…';
+
+      fetch(window.location.pathname + '/checkout/prepare-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderId, phone: phone.replace(/[^0-9]/g, '') }),
+      })
+        .then(function (r) { if (!r.ok) throw new Error('전화번호 저장 실패'); })
+        .then(function () {
+          return tossPayments.requestPayment('카드', {
+            amount: amount,
+            orderId: orderId,
+            orderName: orderName,
+            successUrl: successUrl,
+            failUrl: failUrl,
+          });
+        })
+        .catch(function () {
+          payBtn.disabled = false;
+          payBtn.textContent = '구매하기';
+        });
+    });
+  })();
+  <% } %>
 </script>

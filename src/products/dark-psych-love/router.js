@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import { rateLimit } from 'express-rate-limit';
 import { Product, Agent, Report } from '../../models/index.js';
 import { AXES, scoreBand, gaslightingBand } from './logic/axes.js';
 import { prepareImageForVision, transcribeKakaoImages } from './logic/parseKakaoScreenshots.js';
@@ -12,7 +13,7 @@ import {
 import { assessCounsel } from './logic/assessCounsel.js';
 import { generatePremiumReport, normalizePremiumReport } from './logic/premiumReport.js';
 import { analyzeChatFlow } from './logic/analyzeChatFlow.js';
-import { REPORT_DISCLAIMER, HELP_RESOURCES, REPORT_TOC } from './logic/safety.js';
+import { REPORT_DISCLAIMER, REPORT_TOC } from './logic/safety.js';
 import {
   REPORT_UNLOCK_PRICE,
   getTossClientKey,
@@ -51,6 +52,22 @@ const upload = multer({
   },
 });
 
+// LLM/비전 API를 호출하는 엔드포인트는 요청마다 실제 비용이 발생하므로, 스크립트로 반복 호출해
+// 비용을 무제한으로 불릴 수 없도록 IP당 요청 한도를 둔다. 세션을 새로 만들면(쿠키 초기화) 우회는
+// 가능하지만, 최소한 단순 반복 스크립트로 인한 비용 폭탄은 막아준다.
+function llmRateLimit({ windowMinutes, max }) {
+  return rateLimit({
+    windowMs: windowMinutes * 60 * 1000,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.' },
+  });
+}
+const uploadAnalyzeLimiter = llmRateLimit({ windowMinutes: 15, max: 15 });
+const counselStreamLimiter = llmRateLimit({ windowMinutes: 10, max: 40 });
+const reportGenLimiter = llmRateLimit({ windowMinutes: 60, max: 10 });
+
 async function getProduct() {
   return Product.findOne({ where: { slug: SLUG } });
 }
@@ -85,7 +102,7 @@ router.get('/upload', (req, res) => {
   });
 });
 
-router.post('/upload', upload.array('chatImages', 10), async (req, res, next) => {
+router.post('/upload', uploadAnalyzeLimiter, upload.array('chatImages', 10), async (req, res, next) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).render(view('upload'), {
@@ -133,7 +150,7 @@ router.get('/analyzing', (req, res) => {
 
 // 실제 AI 판독(비전 OCR + 통계 후보 좁히기 + 대화 흐름 판정) — '분석 중' 화면이 뜬 뒤 클라이언트가 호출.
 // 새로고침 등으로 다시 호출되면 이미 만들어둔 결과를 그대로 재사용한다.
-router.post('/analyzing/analyze', async (req, res) => {
+router.post('/analyzing/analyze', uploadAnalyzeLimiter, async (req, res) => {
   try {
     const dpl = req.session.dpl;
     if (!dpl?.captureImages?.length) {
@@ -240,7 +257,6 @@ router.get('/counsel', async (req, res, next) => {
       base: BASE,
       activeTab: 'home',
       enabled: isCounselorEnabled(),
-      helpResources: HELP_RESOURCES,
       agents,
       current,
       greeting,
@@ -255,7 +271,7 @@ router.get('/counsel', async (req, res, next) => {
 });
 
 // 대화 스트리밍: 요청 body = { agentSlug, messages: [{role, content}, ...] }
-router.post('/counsel/stream', async (req, res) => {
+router.post('/counsel/stream', counselStreamLimiter, async (req, res) => {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('X-Accel-Buffering', 'no'); // 프록시 버퍼링 방지
@@ -309,7 +325,7 @@ router.post('/counsel/extend', (req, res) => {
 });
 
 // 상담 종료 → 대화 전체를 근거로 최종 리포트 생성
-router.post('/counsel/report', async (req, res) => {
+router.post('/counsel/report', reportGenLimiter, async (req, res) => {
   try {
     const history = Array.isArray(req.body?.messages) ? req.body.messages : [];
     if (history.length === 0) {
@@ -343,7 +359,7 @@ router.post('/counsel/report', async (req, res) => {
     // 업로드했던 카톡 참고 컨텍스트는 리포트 생성 후 폐기
     delete req.session.dpl;
 
-    res.json({ reportId: report.id });
+    res.json({ reportId: report.publicId });
   } catch (err) {
     console.error('[counsel/report]', err);
     res.status(500).json({ error: '리포트 생성 중 오류가 발생했습니다.' });
@@ -351,9 +367,11 @@ router.post('/counsel/report', async (req, res) => {
 });
 
 // ── 4. 최종 리포트 ──────────────────────────────
-router.get('/report/:id', async (req, res, next) => {
+// 리포트는 로그인 없이 링크만으로 접근하는 구조라, 라우트 파라미터는 반드시
+// 순차 추측이 불가능한 publicId(UUID)로만 조회한다 — 정수 PK로 조회하면 다른 사람 리포트를 열람당함.
+router.get('/report/:publicId', async (req, res, next) => {
   try {
-    const report = await Report.findByPk(req.params.id);
+    const report = await Report.findOne({ where: { publicId: req.params.publicId } });
     if (!report) return res.status(404).render('platform/404', { title: '리포트 없음' });
 
     const fs = report.finalScores || {};
@@ -417,6 +435,8 @@ router.get('/report/:id', async (req, res, next) => {
       }
     }
 
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const orderId = buildOrderId(report.id);
     res.render(view('report'), {
       title: '최종 리포트',
       base: BASE,
@@ -435,6 +455,15 @@ router.get('/report/:id', async (req, res, next) => {
       reportToc: REPORT_TOC,
       premium: report.premiumReport || null,
       disclaimer: REPORT_DISCLAIMER,
+      reportUnlockPrice: REPORT_UNLOCK_PRICE,
+      tossEnabled: isTossEnabled(),
+      clientKey: isTossEnabled() ? getTossClientKey() : null,
+      orderId,
+      orderName: '전체 리포트 잠금 해제',
+      // 전화번호는 별도 prepare-phone 호출로 서버 세션에 먼저 저장해두고, 결제 성공 콜백에서
+      // orderId로 꺼내 쓴다 — URL 쿼리스트링에 실어 보내면 접속 로그(morgan)에 평문으로 남기 때문.
+      successUrl: `${origin}${BASE}/report/${report.publicId}/checkout/success`,
+      failUrl: `${origin}${BASE}/report/${report.publicId}/checkout/fail`,
     });
   } catch (err) {
     next(err);
@@ -442,15 +471,28 @@ router.get('/report/:id', async (req, res, next) => {
 });
 
 // ── 5. 결제 (전체 리포트 잠금 해제) ──────────────
-router.get('/report/:id/checkout', async (req, res, next) => {
+
+// 결제 시작 전 전화번호를 서버 세션에 orderId로 매칭해 저장 — successUrl 쿼리스트링에
+// 전화번호를 실어 보내지 않기 위함(접속 로그에 PII가 남는 걸 막음).
+router.post('/report/:publicId/checkout/prepare-phone', async (req, res) => {
+  const { orderId, phone } = req.body || {};
+  if (!orderId || !isValidKoreanPhone(phone)) {
+    return res.status(400).json({ error: '전화번호 또는 주문 정보가 올바르지 않습니다.' });
+  }
+  req.session.pendingPhones = req.session.pendingPhones || {};
+  req.session.pendingPhones[orderId] = String(phone).replace(/[^0-9]/g, '');
+  res.json({ ok: true });
+});
+
+router.get('/report/:publicId/checkout', async (req, res, next) => {
   try {
-    const report = await Report.findByPk(req.params.id);
+    const report = await Report.findOne({ where: { publicId: req.params.publicId } });
     if (!report) return res.status(404).render('platform/404', { title: '리포트 없음' });
     if (!isTossEnabled()) {
       return res.status(503).send('결제 기능이 아직 설정되지 않았습니다(토스페이먼츠 키 미설정).');
     }
     if (report.paid) {
-      return res.redirect(`${BASE}/report/${report.id}`);
+      return res.redirect(`${BASE}/report/${report.publicId}`);
     }
 
     const origin = `${req.protocol}://${req.get('host')}`;
@@ -458,30 +500,35 @@ router.get('/report/:id/checkout', async (req, res, next) => {
       title: '결제하기',
       layout: 'layouts/plain',
       base: BASE,
-      reportId: report.id,
+      reportId: report.publicId,
       clientKey: getTossClientKey(),
       amount: REPORT_UNLOCK_PRICE,
       orderId: buildOrderId(report.id),
       orderName: '전체 리포트 잠금 해제',
-      // 전화번호는 결제 시점에 클라이언트에서 입력받아 successUrl 쿼리로 함께 넘긴다 —
-      // 결제 승인 콜백에서 그 번호로 리포트 링크를 문자 발송한다.
-      successUrl: `${origin}${BASE}/report/${report.id}/checkout/success`,
-      failUrl: `${origin}${BASE}/report/${report.id}/checkout/fail`,
+      successUrl: `${origin}${BASE}/report/${report.publicId}/checkout/success`,
+      failUrl: `${origin}${BASE}/report/${report.publicId}/checkout/fail`,
     });
   } catch (err) {
     next(err);
   }
 });
 
-router.get('/report/:id/checkout/success', async (req, res, next) => {
-  const { paymentKey, orderId, phone } = req.query;
+router.get('/report/:publicId/checkout/success', async (req, res, next) => {
+  const { paymentKey, orderId } = req.query;
   try {
-    const report = await Report.findByPk(req.params.id);
+    const report = await Report.findOne({ where: { publicId: req.params.publicId } });
     if (!report) return res.status(404).render('platform/404', { title: '리포트 없음' });
+
+    // 이미 결제 처리된 리포트인데 successUrl을 새로고침/재방문한 경우 —
+    // paymentKey를 다시 confirm하면 토스 쪽에서 거부해 실패 페이지로 튕기던 버그.
+    // 이미 처리됐다면 그냥 리포트로 보낸다.
+    if (report.paid) {
+      return res.redirect(`${BASE}/report/${report.publicId}`);
+    }
 
     if (!paymentKey || !orderId) {
       const message = encodeURIComponent('결제 정보가 올바르지 않습니다.');
-      return res.redirect(`${BASE}/report/${report.id}/checkout/fail?message=${message}`);
+      return res.redirect(`${BASE}/report/${report.publicId}/checkout/fail?message=${message}`);
     }
 
     // 금액은 쿼리스트링 값을 신뢰하지 않고 confirmTossPayment 내부에서 서버 고정가로 승인 요청함
@@ -491,32 +538,34 @@ router.get('/report/:id/checkout/success', async (req, res, next) => {
     report.orderId = String(orderId);
     report.paymentKey = String(paymentKey);
     report.amount = REPORT_UNLOCK_PRICE;
-    if (isValidKoreanPhone(phone)) {
-      report.phone = String(phone).replace(/[^0-9]/g, '');
+    const pendingPhone = req.session.pendingPhones?.[String(orderId)];
+    if (isValidKoreanPhone(pendingPhone)) {
+      report.phone = String(pendingPhone).replace(/[^0-9]/g, '');
     }
+    if (req.session.pendingPhones) delete req.session.pendingPhones[String(orderId)];
     await report.save();
 
     if (report.phone) {
       const origin = `${req.protocol}://${req.get('host')}`;
-      sendReportLinkSms({ phone: report.phone, reportUrl: `${origin}${BASE}/report/${report.id}` }).catch((err) =>
-        console.error('[checkout/success] sms 발송 실패', err)
+      sendReportLinkSms({ phone: report.phone, reportUrl: `${origin}${BASE}/report/${report.publicId}` }).catch(
+        (err) => console.error('[checkout/success] sms 발송 실패', err)
       );
     }
 
-    res.redirect(`${BASE}/report/${report.id}`);
+    res.redirect(`${BASE}/report/${report.publicId}`);
   } catch (err) {
     console.error('[checkout/success]', err);
     const message = encodeURIComponent(err.message || '결제 승인에 실패했습니다.');
-    res.redirect(`${BASE}/report/${req.params.id}/checkout/fail?message=${message}`);
+    res.redirect(`${BASE}/report/${req.params.publicId}/checkout/fail?message=${message}`);
   }
 });
 
-router.get('/report/:id/checkout/fail', (req, res) => {
+router.get('/report/:publicId/checkout/fail', (req, res) => {
   res.render(view('checkout-fail'), {
     title: '결제 실패',
     layout: 'layouts/plain',
     base: BASE,
-    reportId: req.params.id,
+    reportId: req.params.publicId,
     message: req.query.message || '결제가 완료되지 않았습니다.',
   });
 });

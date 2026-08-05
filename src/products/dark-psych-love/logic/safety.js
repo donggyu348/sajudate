@@ -1,9 +1,6 @@
 /**
  * 안전 안내 데이터.
  * 리포트 하단 고지에 사용.
- *
- * 주의: 아래 기관/연락처는 실제 배포 전 최신 정보로 검증 후 확정할 것.
- *       (플레이스홀더 아님을 명시하기 위해 verified 플래그로 관리)
  */
 
 export const REPORT_DISCLAIMER =
@@ -185,30 +182,3 @@ export const REPORT_TOC = [
   },
 ];
 
-/**
- * 상담/도움 기관 링크.
- * verified:false 는 배포 전 확인 필요(placeholder). 확인되면 true 로 전환.
- */
-export const HELP_RESOURCES = [
-  {
-    name: '여성긴급전화',
-    contact: '1366',
-    desc: '가정폭력·데이트폭력·스토킹 등 24시간 상담',
-    url: null,
-    verified: false,
-  },
-  {
-    name: '한국생명의전화',
-    contact: '1588-9191',
-    desc: '위기 상담 및 정서 지원',
-    url: null,
-    verified: false,
-  },
-  {
-    name: '정신건강 위기상담전화',
-    contact: '1577-0199',
-    desc: '정신건강 관련 위기 상담',
-    url: null,
-    verified: false,
-  },
-];

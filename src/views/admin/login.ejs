@@ -13,6 +13,7 @@
   <% } %>
 
   <form method="post" action="/admin/login" class="mt-5 space-y-3">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
     <input type="password" name="password" placeholder="비밀번호" autofocus
       class="w-full rounded-lg border border-line px-3 py-2.5 text-sm focus:border-accent focus:outline-none" />
     <button type="submit" class="btn-primary w-full">로그인</button>

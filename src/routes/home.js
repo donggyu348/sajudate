@@ -74,6 +74,15 @@ router.get('/my', (req, res) => {
   });
 });
 
+// GET /terms, /privacy → 법적 고지 페이지 (전자상거래법상 필수 고지)
+router.get('/terms', (req, res) => {
+  res.render('platform/terms', { title: '서비스 이용약관', layout: 'layouts/plain' });
+});
+
+router.get('/privacy', (req, res) => {
+  res.render('platform/privacy', { title: '개인정보 처리방침', layout: 'layouts/plain' });
+});
+
 // GET /products/:slug → 상품 상세 진입 (전용 모듈이 없는 경우의 기본 처리)
 router.get('/products/:slug', async (req, res, next) => {
   try {

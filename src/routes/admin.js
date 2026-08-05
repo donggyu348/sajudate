@@ -1,10 +1,42 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
+import { rateLimit } from 'express-rate-limit';
 import { Agent, Report } from '../models/index.js';
+import { confirmTossPayment, REPORT_UNLOCK_PRICE } from '../products/dark-psych-love/logic/payments.js';
 
 const router = Router();
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 const USING_DEFAULT_PW = !process.env.ADMIN_PASSWORD;
+
+// 무차별 대입 방어 — IP당 15분에 10회로 제한 (정상적인 로그인 실패 재시도는 넉넉히 허용하되,
+// 자동화된 비밀번호 대입 공격은 막는다).
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.' },
+});
+
+// ── CSRF 방어 ────────────────────────────────────
+// 세션에 토큰을 발급해두고, admin의 모든 POST 폼은 hidden _csrf 필드로 이 토큰을 함께 제출해야
+// 통과된다 — 로그인된 관리자 세션 쿠키만으로 외부 사이트가 POST를 흉내낼 수 없게 막는다.
+router.use((req, res, next) => {
+  if (!req.session.csrfToken) req.session.csrfToken = randomUUID();
+  res.locals.csrfToken = req.session.csrfToken;
+  next();
+});
+
+function verifyCsrf(req, res, next) {
+  const submitted = req.body?._csrf;
+  if (submitted && submitted === req.session.csrfToken) return next();
+  return res.status(403).send('요청이 만료되었거나 올바르지 않습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+}
+router.use((req, res, next) => {
+  if (req.method === 'POST') return verifyCsrf(req, res, next);
+  next();
+});
 
 // ── 인증 ────────────────────────────────────────
 function requireAdmin(req, res, next) {
@@ -22,7 +54,7 @@ router.get('/login', (req, res) => {
   });
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', loginLimiter, (req, res) => {
   if ((req.body?.password || '') === ADMIN_PASSWORD) {
     req.session.isAdmin = true;
     return res.redirect('/admin/agents');
@@ -212,6 +244,54 @@ router.get('/sales', requireAdmin, async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+});
+
+// ── 결제 수동 확인 (토스 승인은 됐는데 successUrl 리다이렉트가 유실된 경우 복구용) ──
+router.get('/reports/unpaid', requireAdmin, async (req, res, next) => {
+  try {
+    const reports = await Report.findAll({
+      where: { paid: false },
+      order: [['createdAt', 'DESC']],
+      limit: 100,
+    });
+    res.render('admin/reports-unpaid', {
+      title: '미결제 리포트',
+      activeTab: null,
+      usingDefaultPw: USING_DEFAULT_PW,
+      reports,
+      error: null,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/reports/:id/mark-paid', requireAdmin, async (req, res, next) => {
+  try {
+    const report = await Report.findByPk(req.params.id);
+    const { paymentKey, orderId } = req.body || {};
+    if (!report) return res.redirect('/admin/reports/unpaid');
+    if (!report.paid && paymentKey && orderId) {
+      // 토스 확인 API로 실제 승인된 결제인지 검증 후에만 잠금 해제 — 관리자가 아무 값이나
+      // 입력해도 잠금이 풀리지 않도록, confirm 성공 시에만 paid 처리한다.
+      await confirmTossPayment({ paymentKey: String(paymentKey), orderId: String(orderId) });
+      report.paid = true;
+      report.orderId = String(orderId);
+      report.paymentKey = String(paymentKey);
+      report.amount = REPORT_UNLOCK_PRICE;
+      await report.save();
+    }
+    res.redirect('/admin/reports/unpaid');
+  } catch (err) {
+    const reports = await Report.findAll({ where: { paid: false }, order: [['createdAt', 'DESC']], limit: 100 });
+    res.status(400).render('admin/reports-unpaid', {
+      title: '미결제 리포트',
+      activeTab: null,
+      usingDefaultPw: USING_DEFAULT_PW,
+      reports,
+      error: err.message || '결제 확인에 실패했습니다.',
+    });
   }
 });
 

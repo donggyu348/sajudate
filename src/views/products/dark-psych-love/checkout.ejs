@@ -72,13 +72,20 @@
       payBtn.disabled = true;
       payBtn.textContent = '결제창으로 이동 중…';
 
-      tossPayments
-        .requestPayment('카드', {
-          amount: amount,
-          orderId: orderId,
-          orderName: orderName,
-          successUrl: successUrl + '?phone=' + encodeURIComponent(phone.replace(/[^0-9]/g, '')),
-          failUrl: failUrl,
+      fetch(window.location.pathname + '/prepare-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderId, phone: phone.replace(/[^0-9]/g, '') }),
+      })
+        .then(function (r) { if (!r.ok) throw new Error('전화번호 저장 실패'); })
+        .then(function () {
+          return tossPayments.requestPayment('카드', {
+            amount: amount,
+            orderId: orderId,
+            orderName: orderName,
+            successUrl: successUrl,
+            failUrl: failUrl,
+          });
         })
         .catch(function () {
           payBtn.disabled = false;

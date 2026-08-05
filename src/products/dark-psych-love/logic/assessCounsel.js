@@ -2,6 +2,7 @@ import { getCounselorClient, DEFAULT_MODEL } from './counselor.js';
 import { AXES, PATTERN_TYPES } from './axes.js';
 import { normalizeAssessment } from './reportBuilder.js';
 import { safeJsonParse } from './jsonUtil.js';
+import { wrapUntrusted } from './untrusted.js';
 
 const ASSESS_SYSTEM_PROMPT = `당신은 관계 심리 분석 보조입니다. 아래는 사용자가 AI 상담사와 나눈 상담 대화 전체입니다(사용자가 자신의 연애 상대에 대해 이야기한 내용).
 이 대화만을 근거로 아래 두 가지를 평가하세요.
@@ -49,14 +50,19 @@ export async function assessCounsel({ history, chatContext } = {}) {
     .join('\n');
 
   const contextBlock = chatContext
-    ? `\n\n[참고: 업로드된 대화 캡처에서 AI가 대화 흐름을 보고 이미 조종적 발화로 확정한 구간입니다. 통계적 추측이 아니라 확정된 근거이니, 아래 패턴 태깅에 적극 반영하세요.]\n${chatContext}`
+    ? `\n\n[참고: 업로드된 대화 캡처에서 AI가 대화 흐름을 보고 이미 조종적 발화로 확정한 구간입니다. 통계적 추측이 아니라 확정된 근거이니, 아래 패턴 태깅에 적극 반영하세요.]\n${wrapUntrusted(chatContext, '업로드된 카카오톡 대화 발췌')}`
     : '';
 
   const message = await client.messages.create({
     model: DEFAULT_MODEL,
     max_tokens: 1500,
     system: ASSESS_SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: `=== 상담 대화 ===\n${transcript}${contextBlock}` }],
+    messages: [
+      {
+        role: 'user',
+        content: `${wrapUntrusted(transcript, '상담 대화 기록')}${contextBlock}`,
+      },
+    ],
   });
 
   const text = message?.content?.find((b) => b.type === 'text')?.text || '';

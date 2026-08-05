@@ -2,17 +2,23 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import session from 'express-session';
+import connectSessionSequelize from 'connect-session-sequelize';
 import expressLayouts from 'express-ejs-layouts';
 import morgan from 'morgan';
 
 import homeRouter from './routes/home.js';
 import adminRouter from './routes/admin.js';
+import { sequelize } from './db/sequelize.js';
 import { mountProductModules } from './products/registry.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export function createApp() {
   const app = express();
+
+  // Nginx 등 리버스 프록시 뒤에서 동작 — X-Forwarded-Proto를 신뢰해야 req.protocol이 https로 잡히고
+  // (결제 successUrl/failUrl이 https로 생성됨) secure 쿠키도 정상 전송된다.
+  if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
 
   // 뷰 엔진
   app.set('view engine', 'ejs');
@@ -25,12 +31,26 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use(express.static(path.join(__dirname, '..', 'public')));
+
+  // 세션 저장소는 MySQL(Sequelize) 사용 — 기본 MemoryStore는 서버 재시작/멀티프로세스에서
+  // 진행 중인 진단 세션이 통째로 날아가고 메모리 누수도 있어 운영에 쓸 수 없다.
+  const SequelizeStore = connectSessionSequelize(session.Store);
+  const sessionStore = new SequelizeStore({ db: sequelize, tableName: 'sessions' });
+  sessionStore.sync();
+
   app.use(
     session({
       secret: process.env.SESSION_SECRET || 'dev-secret',
+      store: sessionStore,
       resave: false,
       saveUninitialized: false,
-      cookie: { httpOnly: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 6 },
+      cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        // 운영은 HTTPS 전제 — 쿠키가 평문 HTTP로 새어나가지 않도록 secure 플래그를 켠다.
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 1000 * 60 * 60 * 6,
+      },
     })
   );
 

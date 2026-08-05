@@ -1,6 +1,7 @@
 import { getCounselorClient, DEFAULT_MODEL } from './counselor.js';
 import { CATEGORY_LABELS } from './chatStats.js';
 import { safeJsonParse } from './jsonUtil.js';
+import { wrapUntrusted } from './untrusted.js';
 
 const VALID_CATEGORIES = new Set(Object.keys(CATEGORY_LABELS));
 
@@ -52,7 +53,9 @@ export async function analyzeChatFlow(segments) {
     model: DEFAULT_MODEL,
     max_tokens: 600,
     system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: buildPrompt(segments) }],
+    // 캡처 이미지를 OCR한 원문이 그대로 들어오는 지점 — 사용자가 이미지 안에 지시문을 심어두면
+    // 판정을 조작할 수 있으므로 데이터 구획으로 감싼다.
+    messages: [{ role: 'user', content: wrapUntrusted(buildPrompt(segments), '업로드된 카카오톡 대화 후보 구간') }],
   });
 
   const text = message?.content?.find((b) => b.type === 'text')?.text || '';

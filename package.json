@@ -15,10 +15,12 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
+    "connect-session-sequelize": "^8.0.6",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "express-ejs-layouts": "^2.5.1",
+    "express-rate-limit": "^8.6.1",
     "express-session": "^1.18.1",
     "morgan": "^1.10.0",
     "multer": "^2.0.0",
