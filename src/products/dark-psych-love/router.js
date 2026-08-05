@@ -14,11 +14,13 @@ import { assessCounsel } from './logic/assessCounsel.js';
 import { generatePremiumReport, normalizePremiumReport } from './logic/premiumReport.js';
 import { analyzeChatFlow } from './logic/analyzeChatFlow.js';
 import { REPORT_DISCLAIMER, REPORT_TOC } from './logic/safety.js';
+import { recommendChapters } from './logic/chapterRecommend.js';
 import {
   REPORT_UNLOCK_PRICE,
   getTossClientKey,
   isTossEnabled,
   buildOrderId,
+  parseOrderId,
   confirmTossPayment,
   fetchTossPayment,
   resolvePrice,
@@ -506,6 +508,8 @@ router.get('/report/:publicId', async (req, res, next) => {
       title: '최종 리포트',
       base: BASE,
       activeTab: 'home',
+      // 리포트는 전체가 다크 테마라, 밝은 푸터가 붙으면 페이지 끝에서 톤이 끊긴다
+      hideFooter: true,
       report,
       rows,
       patterns,
@@ -518,6 +522,14 @@ router.get('/report/:publicId', async (req, res, next) => {
       bottomAxis,
       selfPattern,
       reportToc: REPORT_TOC,
+      // 목차에서 "꼭 봐야 할 챕터"를 진단 결과로부터 고른다 (근거 문구까지 함께)
+      recommendedChapters: recommendChapters({
+        toc: REPORT_TOC,
+        gaslightingPercent,
+        rows,
+        selfPattern,
+        patterns,
+      }),
       premium: report.premiumReport || null,
       disclaimer: REPORT_DISCLAIMER,
       reportUnlockPrice: REPORT_UNLOCK_PRICE,
@@ -564,11 +576,12 @@ router.post('/report/:publicId/checkout/prepare-phone', async (req, res) => {
   // orderId는 결제를 시도할 때마다 새로 발급한다.
   // 페이지 렌더 시점에 한 번만 만들면, 결제에 실패한 뒤 다시 누를 때 같은 orderId가 재사용돼
   // 토스가 요청을 거부한다(재사용 불가). 클라이언트가 보낸 orderId는 신뢰하지 않는다.
-  const orderId = buildOrderId(report.id);
-
   // 금액도 여기(서버)에서만 결정한다. 클라이언트가 보낸 금액을 쓰면 누구나 1원 결제를 만들 수 있다.
   const normalizedPhone = String(phone).replace(/[^0-9]/g, '');
   const amount = resolvePrice(normalizedPhone);
+
+  // 금액을 orderId에 서명해 실어둔다 — 세션이 끊겨도 승인 금액을 정확히 복원하기 위함
+  const orderId = buildOrderId(report.id, amount);
 
   req.session.pendingPayments = req.session.pendingPayments || {};
   req.session.pendingPayments[orderId] = { phone: normalizedPhone, amount };
@@ -631,7 +644,20 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
     // 금액은 쿼리스트링을 신뢰하지 않고, 결제 시작 때 서버가 정해 세션에 넣어둔 값을 쓴다.
     // 세션이 없으면(만료·다른 브라우저 등) 정가로 승인 — 임의 금액이 끼어들 여지를 두지 않는다.
     const pending = req.session.pendingPayments?.[String(orderId)];
-    const amount = Number.isInteger(pending?.amount) ? pending.amount : REPORT_UNLOCK_PRICE;
+
+    // 금액 우선순위: 세션 → orderId 서명값 → 정가.
+    // 간편결제로 앱을 다녀오면 세션이 끊기는 경우가 있어(특히 모바일), 세션만 믿으면
+    // 실제 결제 금액과 승인 금액이 달라져 토스가 거부한다. orderId의 서명은 서버가 찍은 것이라 신뢰할 수 있다.
+    const signed = parseOrderId(orderId);
+    if (!pending) {
+      console.error('[checkout/success] 세션에 결제 정보가 없습니다:', {
+        orderId,
+        'orderId에서_복원한_금액': signed ? signed.amount : '(복원 실패)',
+      });
+    }
+    const amount = Number.isInteger(pending?.amount)
+      ? pending.amount
+      : (signed ? signed.amount : REPORT_UNLOCK_PRICE);
 
     try {
       await confirmTossPayment({ paymentKey: String(paymentKey), orderId: String(orderId), amount });
@@ -640,14 +666,25 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
       // 이때는 결제 건을 조회해 실제로 완료됐는지 확인하고, 완료됐다면 정상 결제로 처리한다.
       // (조회해서 DONE이 아니면 원래 오류를 그대로 올린다)
       const payment = await fetchTossPayment(String(paymentKey));
+
+      // 승인 거부의 가장 흔한 원인은 "결제요청 금액 ≠ 승인요청 금액"이다.
+      // 실제 결제 건과 우리가 보낸 금액을 나란히 남겨 원인을 바로 가릴 수 있게 한다.
+      if (payment) {
+        console.error('[checkout/success] 토스에 기록된 실제 결제 건:', {
+          상태: payment.status,
+          실제결제금액: payment.totalAmount,
+          우리가_승인요청한_금액: amount,
+          금액일치: Number(payment.totalAmount) === Number(amount),
+          결제수단: payment.method,
+          세션값: pending ? { amount: pending.amount } : '(없음)',
+        });
+      }
+
       const alreadyDone = payment?.status === 'DONE';
       if (!alreadyDone) throw err;
 
       // 실제 승인된 금액이 우리가 기대한 금액과 다르면 위변조 가능성 — 통과시키지 않는다
-      if (Number(payment.totalAmount) !== Number(amount)) {
-        console.error('[checkout/success] 금액 불일치:', { 기대: amount, 실제: payment.totalAmount });
-        throw err;
-      }
+      if (Number(payment.totalAmount) !== Number(amount)) throw err;
       console.warn('[checkout/success] confirm은 거부됐으나 결제는 이미 완료된 상태 — 정상 처리합니다.');
     }
 

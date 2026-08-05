@@ -4,6 +4,8 @@
  * 성공 시 우리 successUrl로 paymentKey/orderId/amount와 함께 리다이렉트 → 서버가 confirm API로 최종 승인.
  */
 
+import { createHmac } from 'node:crypto';
+
 export const REPORT_UNLOCK_PRICE = 34900;
 
 const TOSS_API_BASE = 'https://api.tosspayments.com/v1';
@@ -20,9 +22,38 @@ export function isTossEnabled() {
   return Boolean(process.env.TOSS_CLIENT_KEY && process.env.TOSS_SECRET_KEY);
 }
 
+/**
+ * orderId에 금액을 서명해서 실어 보낸다.
+ *
+ * 금액을 서버 세션에만 두면, 간편결제로 앱을 다녀오는 사이 세션이 끊겼을 때
+ * 승인 금액이 정가로 되돌아가 결제 금액과 어긋난다(토스는 이걸 FORBIDDEN_REQUEST로 거부한다).
+ * orderId는 토스가 그대로 돌려주므로, 서명을 붙여두면 세션 없이도 금액을 안전하게 복원할 수 있다.
+ * 서명이 없으면 사용자가 orderId를 조작해 임의 금액으로 승인시킬 수 있다.
+ */
+function orderIdSecret() {
+  return process.env.SESSION_SECRET || 'dev-secret';
+}
+
+function signOrder(payload) {
+  return createHmac('sha256', orderIdSecret()).update(payload).digest('hex').slice(0, 12);
+}
+
 /** 결제 시도마다 새로 발급 — 토스는 orderId 재사용을 허용하지 않는다. */
-export function buildOrderId(reportId) {
-  return `dpl_${reportId}_${Date.now()}`;
+export function buildOrderId(reportId, amount = REPORT_UNLOCK_PRICE) {
+  const payload = `${reportId}_${amount}_${Date.now()}`;
+  return `dpl_${payload}_${signOrder(payload)}`;
+}
+
+/**
+ * orderId에서 금액을 복원한다. 서명이 맞지 않으면 null — 조작된 값은 절대 신뢰하지 않는다.
+ * @returns {{ reportId: string, amount: number }|null}
+ */
+export function parseOrderId(orderId) {
+  const m = /^dpl_(\d+)_(\d+)_(\d+)_([0-9a-f]{12})$/.exec(String(orderId || ''));
+  if (!m) return null;
+  const [, reportId, amount, ts, sig] = m;
+  if (signOrder(`${reportId}_${amount}_${ts}`) !== sig) return null;
+  return { reportId, amount: Number(amount) };
 }
 
 /**

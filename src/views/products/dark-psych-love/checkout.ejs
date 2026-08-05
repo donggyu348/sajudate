@@ -84,6 +84,23 @@
 
     var widget = null;
     var methodWidget = null; // 금액 변경(updateAmount)은 이 객체에만 있다
+    // 위젯에 "실제로 설정돼 있는" 금액. 서버가 정한 승인 금액과 다르면
+    // 토스가 결제요청/승인요청 금액 불일치로 FORBIDDEN_REQUEST를 낸다.
+    var widgetAmount = amount;
+
+    function syncWidgetAmount(next) {
+      if (!Number.isInteger(next) || next === widgetAmount) return Promise.resolve();
+      if (!methodWidget || typeof methodWidget.updateAmount !== 'function') {
+        return Promise.reject(new Error('결제 금액을 설정할 수 없습니다.'));
+      }
+      return Promise.resolve(methodWidget.updateAmount(next)).then(function () {
+        widgetAmount = next;
+        // updateAmount는 위젯 iframe으로 비동기 반영된다. 반영 전에 requestPayment가 나가면
+        // 결제창은 옛 금액으로 열리고 서버는 새 금액으로 승인해 금액이 어긋난다.
+        return new Promise(function (resolve) { setTimeout(resolve, 400); });
+      });
+    }
+
     try {
       widget = PaymentWidget(clientKey, PaymentWidget.ANONYMOUS);
       // renderPaymentMethods의 반환값이 결제수단 위젯 — updateAmount는 여기 달려 있다
@@ -120,13 +137,7 @@
         .then(function (data) {
           if (!data || !data.orderId) throw new Error('주문번호를 받지 못했습니다.');
           // 금액은 서버가 결정한다 — 위젯에 설정된 금액이 곧 결제 금액이라 반드시 맞춰야 한다
-          if (!Number.isInteger(data.amount) || data.amount === amount) return data;
-          if (!methodWidget || typeof methodWidget.updateAmount !== 'function') {
-            throw new Error('결제 금액을 설정할 수 없습니다.');
-          }
-          return Promise.resolve(methodWidget.updateAmount(data.amount)).then(function () {
-            return data;
-          });
+          return syncWidgetAmount(data.amount).then(function () { return data; });
         })
         .then(function (data) {
           // orderId는 서버가 이번 시도용으로 새로 발급한 값 — 재사용하면 토스가 거부한다

@@ -13,6 +13,62 @@
 
 <style>
   html { scroll-behavior: smooth; }
+
+  /* ── 리포트 전용 다크 테마 ───────────────────────────────
+     이 페이지에서만 로드되는 style 블록이라, 전역 셀렉터로 껍데기(헤더·탭바)까지
+     함께 어둡게 바꾼다. 리포트만 검고 프레임이 흰색이면 오히려 어색해진다. */
+  /* 레이아웃이 body에 bg-gray-50 유틸리티를 걸어둬 클래스 선택자가 이긴다 —
+     이 페이지에서만 확실히 덮어쓰기 위해 !important를 쓴다 */
+  body { background: #0b0f16 !important; }
+  .app-shell { background: #0b0f16; color: #e8ecf3; min-height: 100vh; }
+  .app-shell > header {
+    background: rgba(11, 15, 22, 0.88);
+    backdrop-filter: blur(10px);
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+  }
+  .app-shell > header span { color: #f2f4f8; }
+  .app-shell > header button { color: rgba(255, 255, 255, 0.62); }
+  .app-shell > header button:hover { background: rgba(255, 255, 255, 0.06); }
+  .app-shell > nav {
+    background: rgba(11, 15, 22, 0.96);
+    border-top-color: rgba(255, 255, 255, 0.07);
+  }
+  .app-shell > nav a.text-ink-soft { color: rgba(255, 255, 255, 0.4); }
+
+  /* 카드·칩 — 톤을 한 곳에서 관리해 페이지 전체가 같은 결을 유지하게 한다 */
+  .rp-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.028);
+    border-radius: 16px;
+  }
+  .rp-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.62);
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-size: 11.5px;
+    font-weight: 500;
+  }
+  .rp-eyebrow {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.32);
+  }
+  /* 핵심 단어 강조 — 상세페이지와 같은 붉은 톤을 쓴다 */
+  .kw { color: #f87171; font-weight: 600; }
+  .kw-strong { color: #ef4444; font-weight: 700; }
+
+  /* 스크롤하며 나타나는 등장 효과 */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+  .reveal.is-in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
   @keyframes radarGrow {
     from { transform: scale(0); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
@@ -57,39 +113,48 @@
   }
 </style>
 
+<% var unlocked = report.paid && premium; %>
+
 <div class="p-4 <%= !report.paid ? 'pb-24' : '' %>">
-  <h1 class="text-lg font-bold">최종 리포트</h1>
-  <p class="mt-1 text-sm text-ink-soft">AI 상담 대화를 바탕으로 결과를 정리했습니다.</p>
+  <p class="rp-eyebrow">DIAGNOSIS REPORT</p>
+  <h1 class="mt-2 font-serif text-[24px] font-bold leading-[1.45] text-white">최종 리포트</h1>
+  <p class="mt-2 text-[13px] leading-relaxed text-white/45">AI 상담 대화를 바탕으로 결과를 정리했습니다.</p>
 
   <!-- 목차 -->
-  <nav class="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
-    <a href="#gaslightCard" class="chip shrink-0 whitespace-nowrap">가스라이팅 확률</a>
-    <% if (keyFindings && keyFindings.length) { %><a href="#key-findings" class="chip shrink-0 whitespace-nowrap">핵심 관찰</a><% } %>
-    <a href="#partner-tendency" class="chip shrink-0 whitespace-nowrap">상대방 성향</a>
-    <a href="#patterns" class="chip shrink-0 whitespace-nowrap">감지된 패턴</a>
-    <% if (selfPattern) { %><a href="#self-pattern" class="chip shrink-0 whitespace-nowrap">나의 반응</a><% } %>
-    <a href="#summary" class="chip shrink-0 whitespace-nowrap">종합 소견</a>
-    <a href="#solutions" class="chip shrink-0 whitespace-nowrap">해결법</a>
+  <nav class="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1">
+    <a href="#gaslightCard" class="rp-chip shrink-0 whitespace-nowrap">가스라이팅 확률</a>
+    <% if (keyFindings && keyFindings.length) { %><a href="#key-findings" class="rp-chip shrink-0 whitespace-nowrap">핵심 관찰</a><% } %>
+    <a href="#partner-tendency" class="rp-chip shrink-0 whitespace-nowrap">상대방 성향</a>
+    <a href="#patterns" class="rp-chip shrink-0 whitespace-nowrap">감지된 패턴</a>
+    <% if (selfPattern) { %><a href="#self-pattern" class="rp-chip shrink-0 whitespace-nowrap">나의 반응</a><% } %>
+    <a href="#summary" class="rp-chip shrink-0 whitespace-nowrap">종합 소견</a>
+    <a href="#solutions" class="rp-chip shrink-0 whitespace-nowrap">전체 목차</a>
   </nav>
 
   <!-- 헤드라인: 가스라이팅 확률 -->
-  <div id="gaslightCard" class="mt-4 rounded-2xl border border-accent-ring bg-accent-soft p-5 text-center">
-    <p class="text-xs font-medium text-accent">가스라이팅 확률</p>
-    <p class="mt-2 text-4xl font-extrabold text-accent"><span id="gaslightPercent" style="font-variant-numeric: tabular-nums;">0</span><span class="text-base text-accent/70">%</span></p>
-    <p class="mt-1 text-sm font-semibold text-accent"><%= gaslightingBand.label %></p>
-    <p class="mt-2 text-[11px] leading-relaxed text-accent/80">상담 대화에서 확인된 가스라이팅 발화 빈도와 AI의 확신도를 근거로 계산돼요.</p>
+  <div id="gaslightCard" class="relative mt-5 overflow-hidden rounded-2xl border border-red-500/25 bg-[#140b12] p-6 text-center">
+    <%# 카드 위쪽에서 붉은 기운이 번지는 효과 — 수치 자체에 시선이 멈추게 한다 %>
+    <span class="pointer-events-none absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-red-500/20 blur-3xl"></span>
+    <div class="relative">
+      <p class="rp-eyebrow">가스라이팅 확률</p>
+      <p class="mt-3 font-serif text-[52px] font-bold leading-none text-white">
+        <span id="gaslightPercent" style="font-variant-numeric: tabular-nums;">0</span><span class="text-[24px] text-red-400/80">%</span>
+      </p>
+      <p class="mt-3 text-[15px] font-semibold text-red-400"><%= gaslightingBand.label %></p>
+      <p class="mt-3 text-[11.5px] leading-relaxed text-white/40">상담 대화에서 확인된 가스라이팅 발화 빈도와 AI의 확신도를 근거로 계산돼요.</p>
+    </div>
   </div>
 
   <!-- 이번 대화에서만 관찰된 구체적 패턴 (고정 유형이 아니라 대화 맥락에 따라 자유롭게 이름 붙여짐) -->
   <% if (keyFindings && keyFindings.length) { %>
-  <div id="key-findings" class="mt-5">
-    <h2 class="text-sm font-bold">핵심 관찰</h2>
-    <p class="mt-1 text-[11px] text-ink-soft">상담 대화에서 반복적으로 확인된 상호작용 패턴이에요.</p>
-    <div class="mt-3 space-y-2">
+  <div id="key-findings" class="reveal mt-8">
+    <h2 class="font-serif text-[17px] font-bold text-white">핵심 관찰</h2>
+    <p class="mt-1.5 text-[11.5px] text-white/35">상담 대화에서 반복적으로 확인된 상호작용 패턴이에요.</p>
+    <div class="mt-4 space-y-2.5">
       <% keyFindings.forEach(function (f) { %>
-        <div class="flat-card p-4">
-          <p class="text-sm font-semibold text-ink"><%= f.title %></p>
-          <p class="mt-1.5 text-xs leading-relaxed text-ink-soft"><%= f.description %></p>
+        <div class="rp-card p-4">
+          <p class="text-[14px] font-semibold text-white/90"><%= f.title %></p>
+          <p class="mt-2 text-[12.5px] leading-relaxed text-white/45"><%= f.description %></p>
         </div>
       <% }); %>
     </div>
@@ -97,38 +162,38 @@
   <% } %>
 
   <!-- 종합 배지 -->
-  <div id="partner-tendency" class="mt-3 rounded-2xl border border-line bg-gray-50 p-5 text-center">
-    <p class="text-xs font-medium text-ink-soft">상대방 성향 종합 점수</p>
-    <p class="mt-2 text-3xl font-extrabold text-accent"><%= overallScore100 %><span class="text-base text-ink-soft">/100</span></p>
-    <p class="mt-1 text-sm font-semibold text-ink"><%= overallBand.label %></p>
-    <p class="mt-2 text-[11px] leading-relaxed text-ink-soft">
+  <div id="partner-tendency" class="reveal mt-8 rp-card p-6 text-center">
+    <p class="rp-eyebrow">상대방 성향 종합 점수</p>
+    <p class="mt-3 font-serif text-[40px] font-bold leading-none text-white"><%= overallScore100 %><span class="text-[17px] text-white/30">/100</span></p>
+    <p class="mt-2.5 text-[14px] font-semibold text-red-400"><%= overallBand.label %></p>
+    <p class="mt-3 text-[11.5px] leading-relaxed text-white/40">
       아래 4가지 성향(나르시시즘·마키아벨리즘·사이코패시·사디즘) 점수를 평균 낸 값이에요. 높을수록 한두 가지가 아니라 여러 성향이 동시에 두드러지게 관찰됐다는 뜻이에요.
     </p>
     <% if (topAxis && bottomAxis && topAxis.key !== bottomAxis.key) { %>
-      <p class="mt-2 text-[11px] leading-relaxed text-ink-soft">
-        가장 두드러진 성향은 <span class="font-semibold text-ink"><%= topAxis.label %></span>(<%= topAxis.short %>)이고,
-        가장 낮은 성향은 <span class="font-semibold text-ink"><%= bottomAxis.label %></span>(<%= bottomAxis.short %>)이에요.
+      <p class="mt-2.5 text-[11.5px] leading-relaxed text-white/40">
+        가장 두드러진 성향은 <span class="kw"><%= topAxis.label %></span>(<%= topAxis.short %>)이고,
+        가장 낮은 성향은 <span class="font-semibold text-white/70"><%= bottomAxis.label %></span>(<%= bottomAxis.short %>)이에요.
       </p>
     <% } %>
   </div>
 
   <!-- 레이더 차트 -->
-  <div class="mt-5 flat-card flex justify-center p-4">
+  <div class="reveal mt-4 rp-card flex justify-center p-4">
     <svg viewBox="0 0 260 260" class="h-64 w-64">
       <g class="radar-grid">
         <% gridLevels.forEach(function (lv) {
              const poly = rows.map((r, i) => pt(i, lv).join(',')).join(' '); %>
-          <polygon points="<%= poly %>" fill="none" stroke="#e5e7eb" stroke-width="1" />
+          <polygon points="<%= poly %>" fill="none" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1" />
         <% }); %>
         <% axisEnds.forEach(function (p) { %>
-          <line x1="<%= cx %>" y1="<%= cy %>" x2="<%= p[0] %>" y2="<%= p[1] %>" stroke="#e5e7eb" stroke-width="1" />
+          <line x1="<%= cx %>" y1="<%= cy %>" x2="<%= p[0] %>" y2="<%= p[1] %>" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1" />
         <% }); %>
       </g>
-      <polygon class="radar-poly" points="<%= dataPoly %>" fill="rgba(67,56,202,0.18)" stroke="#4338ca" stroke-width="2" />
+      <polygon class="radar-poly" points="<%= dataPoly %>" fill="rgba(239,68,68,0.2)" stroke="#ef4444" stroke-width="2" />
       <% rows.forEach(function (r, i) {
            const p = pt(i, 1.16);
            const anchor = Math.abs(p[0] - cx) < 4 ? 'middle' : (p[0] < cx ? 'end' : 'start'); %>
-        <text x="<%= p[0] %>" y="<%= p[1] %>" text-anchor="<%= anchor %>" dominant-baseline="middle" font-size="11" fill="#6b7280"><%= r.label %></text>
+        <text x="<%= p[0] %>" y="<%= p[1] %>" text-anchor="<%= anchor %>" dominant-baseline="middle" font-size="11" fill="rgba(255,255,255,0.45)"><%= r.label %></text>
       <% }); %>
     </svg>
   </div>
@@ -136,23 +201,23 @@
   <!-- 축별 점수 -->
   <div class="mt-4 space-y-3">
     <% rows.forEach(function (r, i) { %>
-      <div class="flat-card p-4">
+      <div class="reveal rp-card p-4">
         <div class="flex items-baseline justify-between">
-          <p class="text-sm font-semibold"><%= r.label %></p>
-          <p class="text-sm font-bold text-accent"><%= r.score.toFixed(1) %><span class="text-ink-soft">/5.0</span></p>
+          <p class="text-[14px] font-semibold text-white/90"><%= r.label %></p>
+          <p class="text-[14px] font-bold text-red-400"><%= r.score.toFixed(1) %><span class="text-white/30">/5.0</span></p>
         </div>
-        <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-          <div class="bar-fill h-full rounded-full bg-accent" style="width: <%= r.score100 %>%; animation-delay: <%= i * 90 %>ms"></div>
+        <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
+          <div class="bar-fill h-full rounded-full" style="width: <%= r.score100 %>%; animation-delay: <%= i * 90 %>ms; background: linear-gradient(90deg, #b91c1c, #ef4444);"></div>
         </div>
-        <p class="mt-2 text-xs text-ink-soft"><%= r.band.label %>.</p>
-        <p class="mt-1.5 text-[11px] leading-relaxed text-ink-soft/80"><%= r.description %></p>
+        <p class="mt-2.5 text-[12px] text-white/50"><%= r.band.label %>.</p>
+        <p class="mt-1.5 text-[11.5px] leading-relaxed text-white/35"><%= r.description %></p>
 
-        <details class="group mt-3 rounded-lg border border-line/70 bg-gray-50/60 p-3">
-          <summary class="flex cursor-pointer list-none items-center justify-between text-[11.5px] font-semibold text-ink [&::-webkit-details-marker]:hidden">
+        <details class="group mt-3 rounded-lg border border-white/[0.07] bg-white/[0.02] p-3">
+          <summary class="flex cursor-pointer list-none items-center justify-between text-[11.5px] font-semibold text-white/70 [&::-webkit-details-marker]:hidden">
             더 알아보기
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-ink-soft transition-transform duration-200 group-open:rotate-180"><path d="M6 9l6 6l6 -6" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-white/35 transition-transform duration-200 group-open:rotate-180"><path d="M6 9l6 6l6 -6" /></svg>
           </summary>
-          <div class="mt-2 space-y-2 text-[11px] leading-relaxed text-ink-soft">
+          <div class="mt-2 space-y-2 text-[11.5px] leading-relaxed text-white/40">
             <p><%= r.example %></p>
             <p><%= r.advice %></p>
           </div>
@@ -162,20 +227,20 @@
   </div>
 
   <!-- 상담 대화에서 감지된 패턴 (인용문 없음) -->
-  <div id="patterns" class="mt-6">
+  <div id="patterns" class="reveal mt-8">
   <% if (patterns && patterns.length) { %>
-    <h2 class="text-sm font-bold">대화에서 감지된 패턴</h2>
-    <p class="mt-1 text-[11px] text-ink-soft">실제 대화 문장은 저장·표시되지 않으며, 유형과 빈도만 집계됩니다.</p>
-    <div class="mt-3 space-y-2">
+    <h2 class="font-serif text-[17px] font-bold text-white">대화에서 감지된 패턴</h2>
+    <p class="mt-1.5 text-[11.5px] text-white/35">실제 대화 문장은 저장·표시되지 않으며, 유형과 빈도만 집계됩니다.</p>
+    <div class="mt-4 space-y-2">
       <% patterns.forEach(function (p) { %>
-        <div class="flat-card flex items-center justify-between p-3">
-          <span class="text-sm font-medium"><%= p.label %></span>
-          <span class="text-xs text-ink-soft"><%= p.count %>회 · 신뢰도 <%= p.confidence %>%</span>
+        <div class="rp-card flex items-center justify-between px-4 py-3.5">
+          <span class="text-[13.5px] font-medium text-white/85"><%= p.label %></span>
+          <span class="text-[11.5px] text-white/40"><%= p.count %>회 · 신뢰도 <%= p.confidence %>%</span>
         </div>
       <% }); %>
     </div>
   <% } else { %>
-    <div class="rounded-lg bg-gray-50 p-4 text-xs leading-relaxed text-ink-soft">
+    <div class="rp-card p-4 text-[12px] leading-relaxed text-white/40">
       상담 대화에서 뚜렷한 조종 패턴 신호는 감지되지 않았습니다.
     </div>
   <% } %>
@@ -183,95 +248,241 @@
 
   <!-- 나의 반응 패턴 -->
   <% if (selfPattern) { %>
-  <div id="self-pattern" class="mt-6 flat-card p-4">
-    <h2 class="text-sm font-bold">나는 왜 벗어나기 어려웠을까</h2>
-    <p class="mt-1 text-[11px] text-ink-soft">상대방이 아니라 나의 반응 패턴에 대한 소견입니다.</p>
-    <div class="mt-3 flex items-baseline justify-between">
-      <p class="text-sm font-semibold">자기 반응 취약성</p>
-      <p class="text-sm font-bold text-accent"><%= selfPattern.score.toFixed(1) %><span class="text-ink-soft">/5.0</span></p>
+  <div id="self-pattern" class="reveal mt-8 rp-card p-5">
+    <h2 class="font-serif text-[17px] font-bold text-white">나는 왜 벗어나기 어려웠을까</h2>
+    <p class="mt-1.5 text-[11.5px] text-white/35">상대방이 아니라 나의 반응 패턴에 대한 소견입니다.</p>
+    <div class="mt-4 flex items-baseline justify-between">
+      <p class="text-[13.5px] font-semibold text-white/85">자기 반응 취약성</p>
+      <p class="text-[14px] font-bold text-red-400"><%= selfPattern.score.toFixed(1) %><span class="text-white/30">/5.0</span></p>
     </div>
-    <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-      <div class="bar-fill h-full rounded-full bg-accent" style="width: <%= selfPattern.score100 %>%"></div>
+    <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
+      <div class="bar-fill h-full rounded-full" style="width: <%= selfPattern.score100 %>%; background: linear-gradient(90deg, #b91c1c, #ef4444);"></div>
     </div>
-    <p class="mt-3 text-sm leading-relaxed text-ink"><%= selfPattern.note %></p>
+    <p class="mt-4 text-[13px] leading-relaxed text-white/65"><%= selfPattern.note %></p>
   </div>
   <% } %>
 
   <!-- 종합 소견 -->
-  <div id="summary" class="mt-6 flat-card p-4">
-    <h2 class="text-sm font-bold">종합 소견</h2>
-    <p class="mt-2 text-sm leading-relaxed text-ink"><%= report.summaryText %></p>
+  <div id="summary" class="reveal mt-8 rounded-2xl border-l-2 border-red-500/45 bg-white/[0.025] py-5 pl-5 pr-4">
+    <p class="rp-eyebrow">종합 소견</p>
+    <p class="mt-3 text-[13.5px] leading-relaxed text-white/80"><%= report.summaryText %></p>
   </div>
 
-  <!-- 해결법 -->
-  <% var unlocked = report.paid && premium; %>
-  <div id="solutions" class="mt-6">
-    <h2 class="text-sm font-bold">해결법</h2>
-    <p class="mt-1 text-[11px] text-ink-soft">
-      <% if (unlocked) { %>전체 리포트 내용이에요.<% } else { %>전체 리포트에는 아래 내용까지 담겨요.<% } %>
-    </p>
+  <!-- ── 전체 리포트 목차 ─────────────────────────── -->
+  <div id="solutions" class="mt-12">
+    <p class="rp-eyebrow">FULL REPORT · <%= reportToc.length %>개 챕터</p>
+    <h2 class="mt-2.5 font-serif text-[21px] font-bold leading-[1.45] text-white">
+      <% if (unlocked) { %>전체 리포트 목차<% } else { %>전체 리포트에는<br />여기까지 담깁니다<% } %>
+    </h2>
 
-    <div class="relative mt-3 overflow-hidden rounded-2xl bg-gradient-to-br from-[#1b1440] via-[#2b2178] to-[#332a99] p-1.5 shadow-[0_24px_48px_-24px_rgba(51,42,153,0.65)]">
-      <span class="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10"></span>
-      <div class="flex items-center gap-1.5 px-3 pb-2 pt-3">
-        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-white/50"><path d="M17.8 19.817l-2.172 -3.464a1 1 0 0 1 .04 -1.128l3.646 -4.822a1 1 0 0 1 .795 -.403h1.891a1 1 0 0 1 .811 1.585l-3.66 5.128a1 1 0 0 0 -.02 1.15l1.615 2.343" /><path d="M9 4h6a2 2 0 0 1 2 2v13a1 1 0 0 1 -1.5 .866l-3 -1.732l-3 1.732a1 1 0 0 1 -1.5 -.866v-13a2 2 0 0 1 2 -2" /></svg>
-        <span class="text-[10px] font-semibold tracking-[0.18em] text-white/50">FULL REPORT · <%= reportToc.length %>개 챕터</span>
+    <% if (report.paid && !premium) { %>
+      <div class="mt-5 rp-card p-5 text-center">
+        <p class="text-[12.5px] leading-relaxed text-white/55">전체 리포트를 준비하고 있어요. 잠시 후 새로고침해 주세요.</p>
+      </div>
+    <% } else { %>
+
+      <%# 진단 결과에서 뽑은 추천 챕터 — 근거 문구까지 함께 보여준다 %>
+      <% if (recommendedChapters && recommendedChapters.length) { %>
+        <div class="reveal mt-6 overflow-hidden rounded-2xl border border-red-500/25 bg-[#140b12]">
+          <div class="border-b border-red-500/15 px-5 py-4">
+            <p class="rp-eyebrow" style="color: rgba(248,113,113,0.7);">FOR YOU</p>
+            <p class="mt-2 font-serif text-[17px] font-bold text-white">당신이 꼭 봐야 할 챕터</p>
+            <p class="mt-1.5 text-[11.5px] leading-relaxed text-white/40">위 진단 결과를 근거로 골랐어요.</p>
+          </div>
+          <% recommendedChapters.forEach(function (rec, i) { %>
+            <a href="#chapter-<%= rec.key %>" class="flex items-start gap-3.5 px-5 py-4 <%= i > 0 ? 'border-t border-white/[0.06]' : '' %>">
+              <span class="mt-0.5 shrink-0 font-serif text-[15px] font-bold text-red-400/70"><%= rec.number %></span>
+              <div class="min-w-0 flex-1">
+                <p class="text-[14px] font-semibold text-white"><%= rec.title %></p>
+                <p class="mt-1 text-[12px] leading-relaxed text-white/45"><%= rec.reason %></p>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-1 shrink-0 text-white/25"><path d="M9 6l6 6l-6 6" /></svg>
+            </a>
+          <% }); %>
+        </div>
+      <% } %>
+
+      <%# 목차 본문 — 챕터별 번호 카드, 섹션은 칩, 세부 항목은 불릿 %>
+      <div class="mt-4 space-y-3">
+        <% reportToc.forEach(function (chapter, i) { %>
+          <% var isPicked = (recommendedChapters || []).some(function (rec) { return rec.key === chapter.key; }); %>
+          <article id="chapter-<%= chapter.key %>" class="reveal scroll-mt-20 rounded-2xl border p-5 <%= isPicked ? 'border-red-500/30 bg-[#120c12]' : 'border-white/[0.08] bg-white/[0.025]' %>">
+            <div class="flex items-start gap-3.5">
+              <span class="font-serif text-[22px] font-bold leading-none <%= isPicked ? 'text-red-400/80' : 'text-white/20' %>"><%= String(i + 1).padStart(2, '0') %></span>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <h3 class="text-[16px] font-bold text-white"><%= chapter.title %></h3>
+                  <% if (isPicked) { %>
+                    <span class="shrink-0 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-400">추천</span>
+                  <% } %>
+                </div>
+                <div class="mt-2.5 flex flex-wrap gap-1.5">
+                  <% chapter.sections.forEach(function (section) { %>
+                    <span class="rp-chip"><%= section.title %></span>
+                  <% }); %>
+                </div>
+              </div>
+            </div>
+
+            <ul class="mt-4 space-y-2 border-t border-white/[0.06] pt-4">
+              <% chapter.sections.forEach(function (section) { %>
+                <% section.items.forEach(function (item) { %>
+                  <li class="flex items-start gap-2 text-[12.5px] leading-relaxed">
+                    <% if (unlocked) { %>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="mt-1 shrink-0 text-red-400/60"><path d="M5 12l5 5l10 -10" /></svg>
+                      <span class="min-w-0">
+                        <span class="font-medium text-white/85"><%= item.label %></span>
+                        <% var val = item.fromFree ? gaslightingPercent : premium[chapter.key][item.key]; %>
+                        <% if (item.type === 'percent') { %>
+                          <span class="font-semibold text-red-400"> — <%= (val != null ? val : '-') %>%</span>
+                        <% } else { %>
+                          <span class="text-white/55"> — <%= val %></span>
+                        <% } %>
+                      </span>
+                    <% } else { %>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="mt-1 shrink-0 text-white/20"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
+                      <span class="text-white/45"><%= item.label %></span>
+                    <% } %>
+                  </li>
+                <% }); %>
+              <% }); %>
+            </ul>
+          </article>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+
+  <p class="mt-8 text-[11px] leading-relaxed text-white/25"><%= disclaimer %></p>
+</div>
+
+<%# ── 상세 안내(세일즈) — 아직 결제 전인 사람에게만 보여준다 ─────────── %>
+<% if (!report.paid) { %>
+  <div class="mt-4 border-t border-white/[0.06] pb-24">
+
+    <!-- 1. 이 진단이 왜 필요한가 -->
+    <section class="reveal px-6 py-14">
+      <h2 class="font-serif text-[21px] font-bold leading-[1.5] text-white">
+        가스라이팅 피해자는 평균적으로<br />
+        <span class="kw-strong">훨씬 지나서야</span> 자신이<br />
+        당하고 있다는 걸 깨닫습니다
+      </h2>
+      <p class="mt-4 text-[13.5px] leading-relaxed text-white/50">
+        그 사이, 당신의 <span class="kw">판단력</span>은<br />이미 조금씩 <span class="kw">무너지고 있습니다</span>
+      </p>
+
+      <div class="mt-8">
+        <p class="text-[13px] font-semibold text-white/80">가스라이팅이 남기는 것</p>
+        <p class="mt-1.5 text-[12px] leading-relaxed text-white/40">
+          단순히 기분이 상하는 문제가 아닙니다.<br />
+          심리적 학대는 <span class="kw">관계가 끝난 뒤에도</span> 오래 남습니다.
+        </p>
+
+        <div class="mt-4 space-y-2">
+          <% [
+            ['판단력 자체가 무너집니다', '내 기억과 감정을 스스로 믿지 못하게 되고, 사소한 결정조차 남에게 확인받게 됩니다'],
+            ['관계에서 빠져나오기 어려워집니다', '"나 같은 사람을 받아줄 사람은 없다"는 생각이 자리 잡으면서 의존이 깊어집니다'],
+            ['혼자 남게 됩니다', '가해자가 주변 관계를 하나씩 끊어내, 도움을 청할 사람이 사라집니다'],
+            ['몸과 마음이 함께 무너집니다', '만성 불안·우울·불면으로 이어지는 경우가 많고, 회복에는 훨씬 더 긴 시간이 걸립니다'],
+          ].forEach(function (row) { %>
+            <div class="flex items-start gap-3 rp-card px-4 py-3.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-red-400/70"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
+              <div class="min-w-0">
+                <p class="text-[13.5px] font-semibold text-white/90"><%= row[0] %></p>
+                <p class="mt-1 text-[12px] leading-relaxed text-white/45"><%= row[1] %></p>
+              </div>
+            </div>
+          <% }); %>
+        </div>
       </div>
 
-      <% if (report.paid && !premium) { %>
-        <div class="px-4 pb-5 pt-1 text-center">
-          <p class="text-[12.5px] leading-relaxed text-white/70">전체 리포트를 준비하고 있어요. 잠시 후 새로고침해 주세요.</p>
-        </div>
-      <% } else { %>
-        <% reportToc.forEach(function (chapter, i) { %>
-          <div class="px-3 py-3 <%= i > 0 ? 'border-t border-white/10' : '' %>">
-            <div class="flex items-center gap-3">
-              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 font-serif text-[13px] text-white"><%= i + 1 %></span>
-              <p class="text-[14px] font-semibold text-white"><%= chapter.title %></p>
-            </div>
-            <div class="mt-2.5 space-y-3 pl-11">
-              <% chapter.sections.forEach(function (section) { %>
-                <div>
-                  <p class="text-[10px] font-semibold uppercase tracking-wide text-white/40"><%= section.title %></p>
-                  <ul class="mt-1.5 space-y-1.5">
-                    <% section.items.forEach(function (item) { %>
-                      <li class="flex items-start gap-1.5 text-[12px] leading-relaxed text-white/70">
-                        <% if (unlocked) { %>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-white/35"><path d="M5 12l5 5l10 -10" /></svg>
-                          <span>
-                            <span class="font-medium text-white/90"><%= item.label %></span>
-                            <%
-                              var val = item.fromFree ? gaslightingPercent : premium[chapter.key][item.key];
-                            %>
-                            <% if (item.type === 'percent') { %>
-                              <span class="font-semibold text-white"> — <%= (val != null ? val : '-') %>%</span>
-                            <% } else { %>
-                              <span> — <%= val %></span>
-                            <% } %>
-                          </span>
-                        <% } else { %>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0 text-white/25"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
-                          <span><%= item.label %></span>
-                        <% } %>
-                      </li>
-                    <% }); %>
-                  </ul>
-                </div>
-              <% }); %>
-            </div>
-          </div>
-        <% }); %>
-      <% } %>
-    </div>
-  </div>
+      <div class="mt-8 border-l-2 border-red-400/40 pl-4">
+        <p class="text-[14px] font-semibold leading-relaxed text-white/85">
+          가장 무서운 건, <span class="kw">가해자가 아니라</span><br />
+          당신 스스로 <span class="kw-strong">'내 잘못'</span>이라고<br />믿게 되는 것입니다
+        </p>
+      </div>
+    </section>
 
-  <p class="mt-6 text-[11px] leading-relaxed text-ink-soft"><%= disclaimer %></p>
-</div>
+    <!-- 2. 근거 -->
+    <section class="reveal border-t border-white/[0.06] bg-[#0e1420] px-6 py-14">
+      <p class="rp-eyebrow">FRAMEWORK</p>
+      <h2 class="mt-3 font-serif text-[21px] font-bold leading-[1.5] text-white">
+        감정이 아니라,<br /><span class="kw-strong">데이터</span>로 증명합니다
+      </h2>
+      <p class="mt-4 text-[13.5px] leading-relaxed text-white/50">
+        이 진단은 <span class="kw">다크 테트라드(Dark Tetrad)</span> 이론을 기반으로 설계되었습니다
+      </p>
+
+      <div class="mt-7 rounded-2xl border border-white/[0.09] bg-black/35 p-5">
+        <p class="text-[11px] font-medium tracking-wide text-white/40">진단 설계에 참고한 연구</p>
+        <ul class="mt-3.5 space-y-2.5">
+          <% [
+            ['다크 트라이어드·테트라드 척도(SD3·SD4)', '4개 축 각각을 무엇으로 판단하는지 기준이 있습니다'],
+            ['조종 행동 분류 체계', '가스라이팅·러브바밍·DARVO 등 어떤 발화가 신호인지 미리 알고 듣습니다'],
+            ['맥락 확인 질문 설계', '한 장면만 보고 단정하지 않고, 반복성과 전후 상황을 되묻습니다'],
+          ].forEach(function (row) { %>
+            <li class="flex items-start gap-2.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="mt-1 shrink-0 text-red-400/70"><path d="M5 12l5 5l10 -10" /></svg>
+              <span>
+                <span class="block text-[12.5px] font-medium text-white/85"><%= row[0] %></span>
+                <span class="mt-0.5 block text-[11.5px] leading-relaxed text-white/40"><%= row[1] %></span>
+              </span>
+            </li>
+          <% }); %>
+        </ul>
+        <p class="mt-4 border-t border-white/[0.07] pt-3 text-[11px] leading-relaxed text-white/30">
+          AI 상담사는 심리 검사 도구를 참고해 설계된 대화 보조이며, 의료·임상 진단을 제공하지 않습니다.
+        </p>
+      </div>
+    </section>
+
+    <!-- 3. 차별화 -->
+    <section class="reveal border-t border-white/[0.06] px-6 py-14">
+      <h2 class="font-serif text-[21px] font-bold leading-[1.5] text-white">
+        <span class="kw">위로</span>가 아니라,<br /><span class="text-white">진단</span>이 필요합니다
+      </h2>
+
+      <div class="mt-7 space-y-3">
+        <div class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 opacity-60">
+          <p class="text-[11px] font-medium tracking-wide text-white/35">일반 상담 앱</p>
+          <p class="mt-2 text-[13.5px] leading-relaxed text-white/55">
+            "많이 힘드셨겠어요"<br />
+            — 기분은 나아지지만, 그 사람이 실제로 어떤 사람인지는 <span class="kw">그대로 모른 채</span> 남습니다
+          </p>
+        </div>
+        <div class="rounded-xl border border-red-500/25 bg-red-500/[0.07] p-4">
+          <p class="text-[11px] font-medium tracking-wide text-red-400/80">해답의 전체 리포트</p>
+          <p class="mt-2 text-[13.5px] leading-relaxed text-white/75">
+            수치와 근거로 정리된 <span class="kw-strong"><%= reportToc.length %>개 챕터</span><br />
+            — 상대가 어떤 사람인지, 내가 왜 흔들렸는지, 앞으로 무엇을 해야 하는지까지 답이 나옵니다
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 마무리 -->
+    <section class="reveal relative overflow-hidden border-t border-white/[0.06] px-6 py-16 text-center">
+      <span class="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-500/10 blur-3xl"></span>
+      <div class="relative">
+        <span class="mx-auto block h-8 w-px bg-white/15"></span>
+        <p class="mt-6 font-serif text-[19px] font-bold leading-[1.6] text-white">
+          확인하지 않으면<br />
+          <span class="kw-strong">달라지는 건 없습니다</span>
+        </p>
+        <p class="mt-4 text-[12.5px] leading-relaxed text-white/40">
+          지금 나온 결과는 전체의 일부일 뿐입니다.<br />
+          남은 <%= reportToc.length %>개 챕터에 답이 있습니다.
+        </p>
+      </div>
+    </section>
+  </div>
+<% } %>
 
 <% if (!report.paid) { %>
   <!-- 전체 리포트 CTA — 스크롤과 무관하게 화면 하단에 따라다니는 바 -->
   <div class="fixed inset-x-0 bottom-14 z-20 mx-auto max-w-app px-4 pb-3">
-    <button id="openReportSheetBtn" type="button" class="btn-primary flex w-full items-center justify-center gap-1.5 py-3.5 shadow-[0_12px_24px_-8px_rgba(67,56,202,0.5)]">
+    <button id="openReportSheetBtn" type="button" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-red-600 py-3.5 text-[15px] font-bold text-white shadow-[0_12px_28px_-8px_rgba(239,68,68,0.55)] active:bg-red-700">
       전체 리포트 보기
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14 0" /><path d="M13 18l6 -6" /></svg>
     </button>
@@ -364,6 +575,28 @@
     requestAnimationFrame(tick);
   })();
 
+  // 스크롤에 맞춰 섹션이 하나씩 나타나게 한다.
+  // 실패해도 내용이 보이지 않는 상태로 남으면 안 되므로, 관찰이 안 되는 환경에서는 즉시 해제한다.
+  (function () {
+    var items = document.querySelectorAll('.reveal');
+    if (!items.length) return;
+    function showAll() {
+      items.forEach(function (el) { el.classList.add('is-in'); });
+    }
+    if (!('IntersectionObserver' in window)) return showAll();
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-in');
+        io.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -12% 0px' });
+    items.forEach(function (el) { io.observe(el); });
+
+    setTimeout(showAll, 1500); // 관찰이 어떤 이유로든 동작하지 않았을 때의 안전장치
+  })();
+
   (function () {
     var openBtn = document.getElementById('openReportSheetBtn');
     var sheet = document.getElementById('reportSheet');
@@ -425,6 +658,22 @@
     var widget = null;
     var methodWidget = null; // 금액 변경(updateAmount)은 이 객체에만 있다
     var rendering = null;
+    // 위젯에 "실제로 설정돼 있는" 금액. 서버가 정한 승인 금액과 이 값이 다르면
+    // 토스가 결제요청/승인요청 금액 불일치로 FORBIDDEN_REQUEST를 낸다.
+    var widgetAmount = amount;
+
+    function syncWidgetAmount(next) {
+      if (!Number.isInteger(next) || next === widgetAmount) return Promise.resolve();
+      if (!methodWidget || typeof methodWidget.updateAmount !== 'function') {
+        return Promise.reject(new Error('결제 금액을 설정할 수 없습니다.'));
+      }
+      return Promise.resolve(methodWidget.updateAmount(next)).then(function () {
+        widgetAmount = next;
+        // updateAmount는 위젯 iframe으로 비동기 반영된다. 반영 전에 requestPayment가 나가면
+        // 결제창은 옛 금액으로 열리고 서버는 새 금액으로 승인해 금액이 어긋난다.
+        return new Promise(function (resolve) { setTimeout(resolve, 400); });
+      });
+    }
 
     function ensureWidget() {
       if (rendering) return rendering;
@@ -479,18 +728,12 @@
         })
         .then(function (data) {
           if (!data || !data.orderId) throw new Error('주문번호를 받지 못했습니다.');
-          return ensureWidget().then(function () {
+          return ensureWidget()
             // 금액은 서버가 정한다. 테스트 번호면 서버가 다른 금액을 돌려주므로 위젯 금액을 맞춘다.
             // 위젯에 설정된 금액이 곧 결제 금액이라 이 갱신은 반드시 성공해야 한다.
             // (승인 시 토스에 보내는 금액도 서버 세션 값이라, 여기서 조작해도 소용없다)
-            if (!Number.isInteger(data.amount) || data.amount === amount) return data;
-            if (!methodWidget || typeof methodWidget.updateAmount !== 'function') {
-              throw new Error('결제 금액을 설정할 수 없습니다.');
-            }
-            return Promise.resolve(methodWidget.updateAmount(data.amount)).then(function () {
-              return data;
-            });
-          });
+            .then(function () { return syncWidgetAmount(data.amount); })
+            .then(function () { return data; });
         })
         .then(function (data) {
           // orderId는 서버가 이번 시도용으로 새로 발급한 값을 쓴다 —
