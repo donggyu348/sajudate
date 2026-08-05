@@ -111,23 +111,27 @@
       fetch(window.location.pathname + '/prepare-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: orderId, phone: phone.replace(/[^0-9]/g, '') }),
+        body: JSON.stringify({ phone: phone.replace(/[^0-9]/g, '') }),
       })
         .then(function (r) {
-          if (!r.ok) throw new Error('전화번호 저장에 실패했습니다.');
+          if (!r.ok) throw new Error('결제 준비에 실패했습니다.');
           return r.json();
         })
         .then(function (data) {
+          if (!data || !data.orderId) throw new Error('주문번호를 받지 못했습니다.');
           // 금액은 서버가 결정한다 — 위젯에 설정된 금액이 곧 결제 금액이라 반드시 맞춰야 한다
-          if (!data || !Number.isInteger(data.amount) || data.amount === amount) return;
+          if (!Number.isInteger(data.amount) || data.amount === amount) return data;
           if (!methodWidget || typeof methodWidget.updateAmount !== 'function') {
             throw new Error('결제 금액을 설정할 수 없습니다.');
           }
-          return methodWidget.updateAmount(data.amount);
+          return Promise.resolve(methodWidget.updateAmount(data.amount)).then(function () {
+            return data;
+          });
         })
-        .then(function () {
+        .then(function (data) {
+          // orderId는 서버가 이번 시도용으로 새로 발급한 값 — 재사용하면 토스가 거부한다
           return widget.requestPayment({
-            orderId: orderId,
+            orderId: data.orderId,
             orderName: orderName,
             successUrl: successUrl,
             failUrl: failUrl,

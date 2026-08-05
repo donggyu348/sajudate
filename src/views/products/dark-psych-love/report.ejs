@@ -471,27 +471,32 @@
       fetch(window.location.pathname + '/checkout/prepare-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: orderId, phone: phone.replace(/[^0-9]/g, '') }),
+        body: JSON.stringify({ phone: phone.replace(/[^0-9]/g, '') }),
       })
         .then(function (r) {
-          if (!r.ok) throw new Error('전화번호 저장에 실패했습니다.');
+          if (!r.ok) throw new Error('결제 준비에 실패했습니다.');
           return r.json();
         })
         .then(function (data) {
+          if (!data || !data.orderId) throw new Error('주문번호를 받지 못했습니다.');
           return ensureWidget().then(function () {
             // 금액은 서버가 정한다. 테스트 번호면 서버가 다른 금액을 돌려주므로 위젯 금액을 맞춘다.
             // 위젯에 설정된 금액이 곧 결제 금액이라 이 갱신은 반드시 성공해야 한다.
             // (승인 시 토스에 보내는 금액도 서버 세션 값이라, 여기서 조작해도 소용없다)
-            if (!data || !Number.isInteger(data.amount) || data.amount === amount) return;
+            if (!Number.isInteger(data.amount) || data.amount === amount) return data;
             if (!methodWidget || typeof methodWidget.updateAmount !== 'function') {
               throw new Error('결제 금액을 설정할 수 없습니다.');
             }
-            return methodWidget.updateAmount(data.amount);
+            return Promise.resolve(methodWidget.updateAmount(data.amount)).then(function () {
+              return data;
+            });
           });
         })
-        .then(function () {
+        .then(function (data) {
+          // orderId는 서버가 이번 시도용으로 새로 발급한 값을 쓴다 —
+          // 페이지에 박힌 값을 재사용하면 재시도 시 토스가 거부한다
           return widget.requestPayment({
-            orderId: orderId,
+            orderId: data.orderId,
             orderName: orderName,
             successUrl: successUrl,
             failUrl: failUrl,

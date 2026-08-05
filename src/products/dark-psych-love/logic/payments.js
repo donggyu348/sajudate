@@ -32,7 +32,11 @@ export function buildOrderId(reportId) {
  * 유출되면 번호만 바꾸면 되고, 운영 중에는 값을 비워 완전히 끌 수 있다.
  * 미설정이면 테스트 결제는 아예 동작하지 않는다.
  */
-export const TEST_PAYMENT_AMOUNT = 1;
+// 라이브 환경에는 결제수단별 최소 결제금액이 있어 1원은 거부될 수 있다.
+// 기본을 100원으로 두고, 필요하면 TEST_PAYMENT_AMOUNT로 조정한다.
+export const TEST_PAYMENT_AMOUNT = Number(process.env.TEST_PAYMENT_AMOUNT) > 0
+  ? Math.floor(Number(process.env.TEST_PAYMENT_AMOUNT))
+  : 100;
 
 function normalizePhone(v) {
   return String(v || '').replace(/[^0-9]/g, '');

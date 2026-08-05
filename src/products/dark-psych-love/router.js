@@ -552,13 +552,20 @@ router.post('/report/:publicId/checkout/prepare-phone', async (req, res) => {
     '최종 successUrl': `${publicOrigin(req)}${BASE}/report/${req.params.publicId}/checkout/success`,
   });
 
-  const { orderId, phone } = req.body || {};
-  if (!orderId || !isValidKoreanPhone(phone)) {
-    return res.status(400).json({ error: '전화번호 또는 주문 정보가 올바르지 않습니다.' });
+  const { phone } = req.body || {};
+  if (!isValidKoreanPhone(phone)) {
+    return res.status(400).json({ error: '전화번호가 올바르지 않습니다.' });
   }
 
-  // 금액은 여기(서버)에서만 결정한다. 클라이언트가 보낸 금액을 쓰면 누구나 1원 결제를 만들 수 있다.
-  // 결정된 금액은 세션에 저장했다가 승인(confirm) 때 그대로 사용한다.
+  const report = await Report.findOne({ where: { publicId: req.params.publicId } });
+  if (!report) return res.status(404).json({ error: '리포트를 찾을 수 없습니다.' });
+
+  // orderId는 결제를 시도할 때마다 새로 발급한다.
+  // 페이지 렌더 시점에 한 번만 만들면, 결제에 실패한 뒤 다시 누를 때 같은 orderId가 재사용돼
+  // 토스가 요청을 거부한다(재사용 불가). 클라이언트가 보낸 orderId는 신뢰하지 않는다.
+  const orderId = buildOrderId(report.id);
+
+  // 금액도 여기(서버)에서만 결정한다. 클라이언트가 보낸 금액을 쓰면 누구나 1원 결제를 만들 수 있다.
   const normalizedPhone = String(phone).replace(/[^0-9]/g, '');
   const amount = resolvePrice(normalizedPhone);
 
@@ -569,8 +576,8 @@ router.post('/report/:publicId/checkout/prepare-phone', async (req, res) => {
     console.log(`[checkout] 테스트 결제 금액 적용: ${amount}원 (orderId=${orderId})`);
   }
 
-  // 클라이언트는 이 금액으로 결제위젯 금액을 갱신한다(표시용) — 신뢰의 근거는 세션 값이다
-  res.json({ ok: true, amount });
+  // 클라이언트는 이 orderId와 금액으로 결제를 요청한다 — 신뢰의 근거는 세션에 저장된 값이다
+  res.json({ ok: true, amount, orderId });
 });
 
 router.get('/report/:publicId/checkout', async (req, res, next) => {
