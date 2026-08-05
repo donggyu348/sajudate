@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "concurrently \"npm:watch:css\" \"npm:dev:server\"",
     "dev:server": "cross-env NODE_ENV=development nodemon --exec \"node -r dotenv/config\" src/server.js",
-    "start": "cross-env NODE_ENV=production node src/server.js",
+    "start": "cross-env NODE_ENV=production node -r dotenv/config src/server.js",
     "seed": "node -r dotenv/config src/seed/seed.js",
     "build:css": "tailwindcss -i src/styles/input.css -o public/assets/css/main.css --minify",
     "watch:css": "tailwindcss -i src/styles/input.css -o public/assets/css/main.css --watch"
