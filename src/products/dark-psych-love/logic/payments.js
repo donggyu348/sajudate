@@ -103,3 +103,30 @@ export async function confirmTossPayment({ paymentKey, orderId, amount }) {
   }
   return data;
 }
+
+/**
+ * 결제 건 조회.
+ *
+ * 상점이 자동 승인으로 설정돼 있으면 토스가 이미 승인을 끝낸 뒤라, 우리가 confirm을 호출하면
+ * FORBIDDEN_REQUEST로 거부된다. 그때 이 조회로 실제 상태를 확인해 이미 완료된 결제인지 가린다.
+ * @returns {Promise<object|null>} 조회 실패 시 null
+ */
+export async function fetchTossPayment(paymentKey) {
+  const secretKey = getTossSecretKey();
+  if (!secretKey) return null;
+
+  try {
+    const res = await fetch(`${TOSS_API_BASE}/payments/${encodeURIComponent(paymentKey)}`, {
+      headers: { Authorization: 'Basic ' + Buffer.from(`${secretKey}:`).toString('base64') },
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      console.error('[toss] 결제 조회 실패:', { status: res.status, code: data?.code, message: data?.message });
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.error('[toss] 결제 조회 중 오류:', err.message);
+    return null;
+  }
+}

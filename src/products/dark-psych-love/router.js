@@ -20,6 +20,7 @@ import {
   isTossEnabled,
   buildOrderId,
   confirmTossPayment,
+  fetchTossPayment,
   resolvePrice,
 } from './logic/payments.js';
 import { sendReportLinkSms, isValidKoreanPhone } from './logic/sms.js';
@@ -632,7 +633,23 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
     const pending = req.session.pendingPayments?.[String(orderId)];
     const amount = Number.isInteger(pending?.amount) ? pending.amount : REPORT_UNLOCK_PRICE;
 
-    await confirmTossPayment({ paymentKey: String(paymentKey), orderId: String(orderId), amount });
+    try {
+      await confirmTossPayment({ paymentKey: String(paymentKey), orderId: String(orderId), amount });
+    } catch (err) {
+      // 상점이 자동 승인으로 설정돼 있으면 토스가 이미 승인을 끝낸 상태라 confirm이 거부된다.
+      // 이때는 결제 건을 조회해 실제로 완료됐는지 확인하고, 완료됐다면 정상 결제로 처리한다.
+      // (조회해서 DONE이 아니면 원래 오류를 그대로 올린다)
+      const payment = await fetchTossPayment(String(paymentKey));
+      const alreadyDone = payment?.status === 'DONE';
+      if (!alreadyDone) throw err;
+
+      // 실제 승인된 금액이 우리가 기대한 금액과 다르면 위변조 가능성 — 통과시키지 않는다
+      if (Number(payment.totalAmount) !== Number(amount)) {
+        console.error('[checkout/success] 금액 불일치:', { 기대: amount, 실제: payment.totalAmount });
+        throw err;
+      }
+      console.warn('[checkout/success] confirm은 거부됐으나 결제는 이미 완료된 상태 — 정상 처리합니다.');
+    }
 
     report.paid = true;
     report.orderId = String(orderId);
