@@ -719,6 +719,12 @@ router.post('/report/:publicId/checkout/prepare-phone', async (req, res) => {
   req.session.pendingPayments = req.session.pendingPayments || {};
   req.session.pendingPayments[orderId] = { phone: normalizedPhone, amount };
 
+  // 번호를 세션에만 두면, 간편결제로 앱을 다녀오는 사이 세션이 끊겼을 때 번호가 사라져
+  // 결제는 됐는데 문자가 안 가는 일이 생긴다. 리포트 행에도 함께 적어둔다.
+  // (phone 컬럼은 저장 시 암호화된다 — models/Report.js의 getter/setter 참고)
+  report.phone = normalizedPhone;
+  await report.save();
+
   if (amount !== REPORT_UNLOCK_PRICE) {
     console.log(`[checkout] 테스트 결제 금액 적용: ${amount}원 (orderId=${orderId})`);
   }
@@ -825,17 +831,26 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
     report.orderId = String(orderId);
     report.paymentKey = String(paymentKey);
     report.amount = amount; // 실제 승인된 금액을 그대로 기록 (매출 집계가 어긋나지 않도록)
+    // 세션이 살아 있으면 그 번호를, 끊겼으면 결제 시작 때 리포트에 적어둔 번호를 쓴다
     if (isValidKoreanPhone(pending?.phone)) {
       report.phone = String(pending.phone).replace(/[^0-9]/g, '');
     }
     if (req.session.pendingPayments) delete req.session.pendingPayments[String(orderId)];
     await report.save();
 
-    if (report.phone) {
+    if (isValidKoreanPhone(report.phone)) {
       const origin = publicOrigin(req);
-      sendReportLinkSms({ phone: report.phone, reportUrl: `${origin}${BASE}/report/${report.publicId}` }).catch(
-        (err) => console.error('[checkout/success] sms 발송 실패', err)
-      );
+      const reportUrl = `${origin}${BASE}/report/${report.publicId}`;
+      sendReportLinkSms({ phone: report.phone, reportUrl })
+        .then((data) => {
+          if (data && data.result_code === '1') {
+            console.log(`[sms] 리포트 링크 발송 완료 (reportId=${report.id})`);
+          }
+        })
+        .catch((err) => console.error('[sms] 발송 중 오류:', err.message));
+    } else {
+      // 여기까지 왔는데 번호가 없으면 문자가 안 나간다 — 문의가 들어왔을 때 바로 확인할 수 있게 남긴다
+      console.error(`[sms] 번호가 없어 발송하지 못했습니다 (reportId=${report.id}, orderId=${orderId})`);
     }
 
     res.redirect(`${BASE}/report/${report.publicId}`);
