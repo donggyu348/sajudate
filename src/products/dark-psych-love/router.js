@@ -74,6 +74,21 @@ async function getProduct() {
   return Product.findOne({ where: { slug: SLUG } });
 }
 
+/**
+ * 외부에 노출되는 서비스 주소.
+ *
+ * 토스는 successUrl/failUrl이 https가 아니면 결제창을 거부한다(COMMON_ERROR).
+ * 그런데 Nginx가 X-Forwarded-Proto를 넘기지 않으면 req.protocol이 http로 잡혀
+ * http:// successUrl이 만들어진다. Nginx를 손대기 어려운 환경도 있으므로,
+ * PUBLIC_ORIGIN이 설정돼 있으면 그 값을 최우선으로 쓴다.
+ * 예) PUBLIC_ORIGIN=https://www.sajudate.store
+ */
+function publicOrigin(req) {
+  const configured = process.env.PUBLIC_ORIGIN;
+  if (configured) return configured.replace(/\/+$/, '');
+  return `${req.protocol}://${req.get('host')}`;
+}
+
 function view(name) {
   return `products/dark-psych-love/${name}`;
 }
@@ -483,7 +498,7 @@ router.get('/report/:publicId', async (req, res, next) => {
       }
     }
 
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = publicOrigin(req);
     const orderId = buildOrderId(report.id);
     res.render(view('report'), {
       title: '최종 리포트',
@@ -553,7 +568,7 @@ router.get('/report/:publicId/checkout', async (req, res, next) => {
       return res.redirect(`${BASE}/report/${report.publicId}`);
     }
 
-    const origin = `${req.protocol}://${req.get('host')}`;
+    const origin = publicOrigin(req);
     res.render(view('checkout'), {
       title: '결제하기',
       layout: 'layouts/plain',
@@ -604,7 +619,7 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
     await report.save();
 
     if (report.phone) {
-      const origin = `${req.protocol}://${req.get('host')}`;
+      const origin = publicOrigin(req);
       sendReportLinkSms({ phone: report.phone, reportUrl: `${origin}${BASE}/report/${report.publicId}` }).catch(
         (err) => console.error('[checkout/success] sms 발송 실패', err)
       );
