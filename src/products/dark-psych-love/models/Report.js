@@ -39,7 +39,7 @@ export default function defineReport(sequelize) {
       amount: { type: DataTypes.INTEGER, allowNull: true },
       // 결제 완료 후 1회 생성해 캐싱하는 전체 리포트 콘텐츠(REPORT_TOC 구조) — 무료 finalScores와 분리 보관
       premiumReport: { type: DataTypes.JSON, allowNull: true },
-      // 알리고 문자 발송 시각 — 결제 직후 실패해도 리포트 생성 완료 시 재시도할 수 있게 둔다
+      // 알리고 문자 발송 시각 — 프리미엄 리포트 생성 완료 후 발송. 실패 시 재시도 판별용
       smsSentAt: { type: DataTypes.DATE, allowNull: true },
     },
     {

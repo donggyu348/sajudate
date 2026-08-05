@@ -61,7 +61,7 @@ const premiumJobs = new Map();
 
 /**
  * 리포트 링크 문자 발송. 성공 시에만 smsSentAt을 찍어 중복 발송을 막는다.
- * 결제 직후·프리미엄 생성 완료·이미 paid 재방문에서 공통으로 쓴다.
+ * 프리미엄 리포트 생성 완료 시점에만 호출한다(결제 직후가 아님).
  */
 async function deliverReportSms(report, origin) {
   if (report.smsSentAt) return { skipped: true, reason: 'already_sent' };
@@ -124,8 +124,7 @@ function startPremiumGeneration(report, fs, origin) {
       premiumJobs.delete(key);
       console.log(`[premium] 리포트 생성 완료 (reportId=${key})`);
 
-      // 결제 직후 SMS가 실패·스킵됐어도, 리포트가 준비된 시점에 한 번 더 보낸다.
-      // (문자는 "완성된 리포트 링크"를 기대하는 경우가 많고, 결제 시점 fire-and-forget은 유실되기 쉽다)
+      // 완성된 리포트 링크를 문자로 보낸다 — 결제 직후가 아니라 생성 완료 시점
       if (fresh.paid && !fresh.smsSentAt) {
         await deliverReportSms(fresh, origin || process.env.PUBLIC_ORIGIN || '');
       }
@@ -606,7 +605,7 @@ router.get('/report/:publicId', async (req, res, next) => {
 
     const origin = publicOrigin(req);
 
-    // 이미 생성된 리포트인데 문자만 빠진 경우(결제 직후 실패·구버전 버그) — 화면은 막고 재시도
+    // 리포트는 완성됐는데 문자만 빠진 경우(생성 직후 알리고 실패 등) — 조회 시 한 번 재시도
     if (report.paid && report.premiumReport && !report.smsSentAt) {
       deliverReportSms(report, origin).catch((err) => {
         console.error('[sms] 리포트 조회 시 재발송 실패:', err.message);
@@ -841,11 +840,8 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
 
     // 이미 결제 처리된 리포트인데 successUrl을 새로고침/재방문한 경우 —
     // paymentKey를 다시 confirm하면 토스 쪽에서 거부해 실패 페이지로 튕기던 버그.
-    // 이미 처리됐다면 문자만 미발송인 경우를 복구한 뒤 리포트로 보낸다.
+    // 이미 처리됐다면 그냥 리포트로 보낸다. (문자는 리포트 생성 완료 시 발송)
     if (report.paid) {
-      if (!report.smsSentAt) {
-        await deliverReportSms(report, publicOrigin(req));
-      }
       return res.redirect(`${BASE}/report/${report.publicId}`);
     }
 
@@ -916,8 +912,7 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
     if (req.session.pendingPayments) delete req.session.pendingPayments[String(orderId)];
     await report.save();
 
-    // 문자는 결제 승인 직후 1회 시도한다. 실패해도 리포트 생성 완료 시 deliverReportSms로 재시도한다.
-    await deliverReportSms(report, publicOrigin(req));
+    // 문자는 결제 직후가 아니라 프리미엄 리포트 생성 완료 시 발송한다.
 
     // purchased 표시는 리포트 화면에서 광고 구매 이벤트를 한 번 쏘기 위한 것 (금액은 서버 값을 쓴다)
     res.redirect(`${BASE}/report/${report.publicId}?purchased=1`);
