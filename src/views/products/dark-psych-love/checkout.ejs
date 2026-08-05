@@ -83,9 +83,11 @@
     }
 
     var widget = null;
+    var methodWidget = null; // 금액 변경(updateAmount)은 이 객체에만 있다
     try {
       widget = PaymentWidget(clientKey, PaymentWidget.ANONYMOUS);
-      widget.renderPaymentMethods('#payment-method', { value: amount });
+      // renderPaymentMethods의 반환값이 결제수단 위젯 — updateAmount는 여기 달려 있다
+      methodWidget = widget.renderPaymentMethods('#payment-method', { value: amount });
       widget.renderAgreement('#agreement');
       payBtn.disabled = false;
       payBtn.textContent = '결제하기';
@@ -116,10 +118,12 @@
           return r.json();
         })
         .then(function (data) {
-          // 금액은 서버가 결정한다 — 여기서는 위젯 표시금액만 맞춘다
-          if (data && Number.isInteger(data.amount) && data.amount !== amount) {
-            return widget.updateAmount(data.amount);
+          // 금액은 서버가 결정한다 — 위젯에 설정된 금액이 곧 결제 금액이라 반드시 맞춰야 한다
+          if (!data || !Number.isInteger(data.amount) || data.amount === amount) return;
+          if (!methodWidget || typeof methodWidget.updateAmount !== 'function') {
+            throw new Error('결제 금액을 설정할 수 없습니다.');
           }
+          return methodWidget.updateAmount(data.amount);
         })
         .then(function () {
           return widget.requestPayment({
