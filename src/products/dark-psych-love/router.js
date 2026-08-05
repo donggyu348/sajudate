@@ -11,9 +11,14 @@ import {
   CATEGORY_LABELS,
 } from './logic/chatStats.js';
 import { assessCounsel } from './logic/assessCounsel.js';
-import { generatePremiumReport, normalizePremiumReport } from './logic/premiumReport.js';
+import {
+  generatePremiumReport,
+  normalizePremiumReport,
+  isPremiumReportUsable,
+} from './logic/premiumReport.js';
 import { analyzeChatFlow } from './logic/analyzeChatFlow.js';
 import { REPORT_DISCLAIMER, REPORT_TOC } from './logic/safety.js';
+import { buildReportChatPrompt, isOverChatLimit } from './logic/reportChat.js';
 import { recommendChapters } from './logic/chapterRecommend.js';
 import {
   REPORT_UNLOCK_PRICE,
@@ -45,6 +50,46 @@ const SLUG = 'dark-psych-love';
 const BASE = `/products/${SLUG}`;
 
 const router = Router();
+
+/**
+ * 전체 리포트 생성 작업 상태 (reportId → { status }).
+ * 생성이 1~2분 걸려 HTTP 요청 안에서 기다릴 수 없기 때문에 백그라운드로 돌리고,
+ * 로딩 화면이 상태를 물어볼 수 있게 여기에 담아둔다.
+ * 같은 리포트에 대해 중복 생성이 도는 것도 이 맵으로 막는다.
+ */
+const premiumJobs = new Map();
+
+function startPremiumGeneration(report, fs) {
+  const key = String(report.id);
+  if (premiumJobs.get(key)?.status === 'running') return;
+  premiumJobs.set(key, { status: 'running', startedAt: Date.now() });
+
+  (async () => {
+    try {
+      const raw = await generatePremiumReport({
+        summary: report.summaryText,
+        axisScores: fs.axisScores,
+        patterns: fs.patterns,
+        selfPattern: fs.selfPattern,
+      });
+      const normalized = raw ? normalizePremiumReport(raw) : null;
+      // 대부분 실패하면 normalize가 기본 문구로 다 채워 "완성된 것처럼" 보인다 — 그 상태로 저장하지 않는다
+      if (!normalized || !isPremiumReportUsable(normalized)) {
+        throw new Error('생성 결과가 충분히 채워지지 않았습니다.');
+      }
+      // 오래 걸리는 사이 다른 요청이 같은 행을 건드렸을 수 있어 다시 읽어 저장한다
+      const fresh = await Report.findByPk(report.id);
+      if (!fresh) throw new Error('리포트를 찾을 수 없습니다.');
+      fresh.premiumReport = normalized;
+      await fresh.save();
+      premiumJobs.delete(key);
+      console.log(`[premium] 리포트 생성 완료 (reportId=${key})`);
+    } catch (err) {
+      console.error('[premium] 리포트 생성 실패:', err.message);
+      premiumJobs.set(key, { status: 'failed', message: err.message });
+    }
+  })();
+}
 
 // 원본 이미지를 디스크에 남기지 않도록 메모리 스토리지 사용. 캡처 이미지 최대 10장, 장당 15MB
 // (긴 스크롤 캡처는 세로가 길어 용량이 큰 편이라 여유를 둠 — 8000px 초과분은 서버에서 자동 분할).
@@ -484,22 +529,23 @@ router.get('/report/:publicId', async (req, res, next) => {
 
     // 결제 완료 후 이 리포트를 처음 볼 때만 1회 생성해 캐싱 — 원본 대화는 저장하지 않으므로
     // 이미 있는 무료 결과(summary/axisScores/patterns/selfPattern)만 입력으로 쓴다.
+    // 챕터별로 길게 쓰게 하다 보니 1~2분이 걸려, 요청 안에서 기다리면 타임아웃이 난다.
+    // 생성은 백그라운드로 돌리고 화면은 로딩 페이지를 보여준다.
     if (report.paid && !report.premiumReport) {
-      try {
-        const raw = await generatePremiumReport({
-          summary: report.summaryText,
-          axisScores: fs.axisScores,
-          patterns: fs.patterns,
-          selfPattern: fs.selfPattern,
-        });
-        if (raw) {
-          report.premiumReport = normalizePremiumReport(raw);
-          await report.save();
-        }
-      } catch (err) {
-        console.error('[report] 프리미엄 리포트 생성 실패', err);
-        // premiumReport는 null로 유지 — 템플릿에서 안내만 보여주고, 다음 새로고침 때 재시도
+      const job = premiumJobs.get(String(report.id));
+      if (req.query.retry) premiumJobs.delete(String(report.id));
+      if (req.query.retry || job?.status !== 'failed') {
+        startPremiumGeneration(report, fs);
       }
+      return res.render(view('report-generating'), {
+        title: '전체 리포트 준비 중',
+        base: BASE,
+        activeTab: 'home',
+        hideFooter: true,
+        reportId: report.publicId,
+        failed: !req.query.retry && job?.status === 'failed',
+        chapterCount: REPORT_TOC.length,
+      });
     }
 
     const origin = publicOrigin(req);
@@ -544,6 +590,93 @@ router.get('/report/:publicId', async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+});
+
+// 로딩 화면이 폴링하는 생성 상태. 리포트 내용은 담지 않는다(준비 여부만 알려준다).
+router.get('/report/:publicId/premium-status', async (req, res) => {
+  const report = await Report.findOne({ where: { publicId: req.params.publicId } });
+  if (!report) return res.status(404).json({ error: '리포트를 찾을 수 없습니다.' });
+  const job = premiumJobs.get(String(report.id));
+  res.json({
+    ready: Boolean(report.premiumReport),
+    failed: job?.status === 'failed',
+  });
+});
+
+/**
+ * 리포트를 보면서 이어가는 후속 대화.
+ * 결제한 사람만 쓸 수 있고, 답변 근거는 그 리포트 내용으로 한정한다.
+ */
+router.post('/report/:publicId/ask', counselStreamLimiter, async (req, res) => {
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+
+  if (!isCounselorEnabled()) {
+    return res.end('상담 봇이 아직 설정되지 않았습니다(API 키 미설정).');
+  }
+
+  try {
+    const report = await Report.findOne({ where: { publicId: req.params.publicId } });
+    if (!report) return res.end('리포트를 찾을 수 없습니다.');
+    if (!report.paid) return res.end('전체 리포트를 구매하시면 이어서 질문할 수 있어요.');
+
+    const history = Array.isArray(req.body?.messages) ? req.body.messages : [];
+    if (isOverChatLimit(history)) {
+      return res.end('이 리포트에 대한 질문 한도에 도달했어요.');
+    }
+
+    const fs = report.finalScores || {};
+    const gaslightPattern = (fs.patterns || []).find((p) => p.type === 'gaslighting');
+    const systemPrompt = buildReportChatPrompt({
+      summary: report.summaryText,
+      gaslightingPercent: gaslightPattern
+        ? Math.max(30, Math.round((gaslightPattern.confidence || 0) * 100))
+        : 0,
+      axisScores: fs.axisScores,
+      patterns: fs.patterns,
+      selfPattern: fs.selfPattern,
+      premium: report.premiumReport,
+    });
+
+    // 상담 스트리밍과 같은 재시도 방식 — 아직 한 글자도 안 나갔을 때만 다시 시도한다
+    const MAX_STREAM_RETRIES = 3;
+    let wroteAny = false;
+    let aborted = false;
+    let currentStream = null;
+    req.on('close', () => {
+      aborted = true;
+      currentStream?.abort?.();
+    });
+
+    for (let attempt = 0; ; attempt++) {
+      const stream = streamCounsel({ history, systemPrompt });
+      currentStream = stream;
+      stream.on('text', (delta) => {
+        wroteAny = true;
+        res.write(delta);
+      });
+
+      try {
+        await stream.finalMessage();
+        return res.end();
+      } catch (err) {
+        const canRetry =
+          !wroteAny && !aborted && attempt < MAX_STREAM_RETRIES && isTransientLlmError(err);
+        if (!canRetry) throw err;
+        console.warn(`[report/ask] 일시적 오류로 재시도 ${attempt + 1}/${MAX_STREAM_RETRIES}`);
+        await new Promise((r) => setTimeout(r, retryDelayMs(attempt)));
+      }
+    }
+  } catch (err) {
+    console.error('[report/ask]', err);
+    res.write(
+      isTransientLlmError(err)
+        ? '\n\n(지금 요청이 몰려 답변을 받지 못했어요. 잠시 후 다시 보내주세요.)'
+        : '\n\n(응답 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.)'
+    );
+    res.end();
   }
 });
 
