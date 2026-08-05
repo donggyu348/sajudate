@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# 관리자 화면은 색인 대상이 아님
+Disallow: /admin
+
+# 리포트는 링크를 아는 본인만 보는 개인 결과물 — 절대 색인되면 안 됨
+Disallow: /products/dark-psych-love/report/
+
+# 상담·결제 흐름은 색인할 이유가 없고, 크롤러가 긁으면 LLM 비용만 발생
+Disallow: /products/dark-psych-love/counsel
+Disallow: /products/dark-psych-love/upload
+Disallow: /products/dark-psych-love/analyzing

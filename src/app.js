@@ -27,7 +27,16 @@ export function createApp() {
   app.set('layout', 'layouts/base');
 
   // 미들웨어
-  if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
+  // 이 도메인에서 예전에 서비스하던 사이트의 경로를 봇/캐시가 계속 긁어 404 로그가 쌓인다.
+  // 우리 코드에는 없는 경로이므로, 그런 404만 로그에서 빼서 진짜 오류가 묻히지 않게 한다.
+  const STALE_PATHS = /^\/(meta\.json|sitemap\.xml|ads\.txt|saju|\.well-known\/|assets\/images\/)/;
+  if (process.env.NODE_ENV !== 'test') {
+    app.use(
+      morgan('dev', {
+        skip: (req, res) => res.statusCode === 404 && STALE_PATHS.test(req.path),
+      })
+    );
+  }
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use(express.static(path.join(__dirname, '..', 'public')));
