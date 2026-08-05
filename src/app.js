@@ -49,16 +49,20 @@ export function createApp() {
 
   app.use(
     session({
+      name: 'haedap.sid',
       secret: process.env.SESSION_SECRET || 'dev-secret',
       store: sessionStore,
       resave: false,
       saveUninitialized: false,
+      // Nginx/Apache 뒤에서 X-Forwarded-Proto를 보고 secure 쿠키를 결정한다.
+      // secure:true 고정이면 HTTP로 들어올 때 브라우저가 쿠키를 버려 로그인이 즉시 풀린다.
+      proxy: true,
       cookie: {
         httpOnly: true,
         sameSite: 'lax',
-        // 운영은 HTTPS 전제 — 쿠키가 평문 HTTP로 새어나가지 않도록 secure 플래그를 켠다.
-        secure: process.env.NODE_ENV === 'production',
+        secure: 'auto',
         maxAge: 1000 * 60 * 60 * 6,
+        path: '/',
       },
     })
   );

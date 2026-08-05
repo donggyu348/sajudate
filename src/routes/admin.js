@@ -53,18 +53,37 @@ router.use((req, res, next) => {
 // ── 인증 ────────────────────────────────────────
 function requireAdmin(req, res, next) {
   if (req.session?.isAdmin) return next();
+  // 로그인 POST는 성공했는데 다음 요청에 세션이 없으면 쿠키(Secure/프록시) 문제다.
+  // 그냥 /login으로 보내면 "아무 말 없이 그대로"처럼 보여서 원인을 안내한다.
+  if (req.query.authed) {
+    console.error('[admin] 로그인 직후 세션 유실:', {
+      sessionID: req.sessionID,
+      secure: req.secure,
+      protocol: req.protocol,
+      'x-forwarded-proto': req.get('x-forwarded-proto') || '(없음)',
+      hasCookie: Boolean(req.headers.cookie),
+    });
+    return res.redirect('/admin/login?err=session');
+  }
   return res.redirect('/admin/login');
 }
 
 router.get('/login', (req, res) => {
   if (req.session?.isAdmin) return res.redirect('/admin/agents');
+
+  let error = null;
+  if (req.query.err === 'session') {
+    error =
+      '비밀번호는 맞지만 로그인 상태가 유지되지 않습니다. https:// 도메인으로 접속했는지, 브라우저 쿠키 차단 여부를 확인해 주세요.';
+  }
+
   // CSRF 토큰을 심은 세션이 쿠키로 내려가기 전에 응답이 나가면 POST에서 토큰 불일치가 난다
   req.session.save((err) => {
     if (err) console.error('[admin] 로그인 세션 저장 실패:', err.message);
     res.render('admin/login', {
       title: '관리자 로그인',
       activeTab: null,
-      error: null,
+      error,
       usingDefaultPw: usingDefaultPw(),
     });
   });
@@ -72,7 +91,8 @@ router.get('/login', (req, res) => {
 
 router.post('/login', loginLimiter, (req, res) => {
   const submitted = String(req.body?.password || '').trim();
-  if (submitted === adminPassword()) {
+  const expected = adminPassword();
+  if (submitted === expected) {
     req.session.isAdmin = true;
     // MySQL 세션 스토어는 저장이 비동기라, 리다이렉트보다 먼저 커밋해야
     // 다음 요청에서 isAdmin이 비어 다시 로그인 화면으로 튕기지 않는다.
@@ -86,13 +106,29 @@ router.post('/login', loginLimiter, (req, res) => {
           usingDefaultPw: usingDefaultPw(),
         });
       }
-      return res.redirect('/admin/agents');
+      console.log('[admin] 로그인 성공:', {
+        sessionID: req.sessionID,
+        secure: req.secure,
+        protocol: req.protocol,
+        'x-forwarded-proto': req.get('x-forwarded-proto') || '(없음)',
+      });
+      // 303: POST 이후 GET으로 바꿔 세션 쿠키가 다음 요청에 실리면 바로 확인 가능
+      return res.redirect(303, '/admin/agents?authed=1');
     });
   }
+  // 비밀번호 본문은 로그에 남기지 않고, 길이만 남겨 .env와 입력이 어긋난 경우를 바로 가린다
+  console.warn(
+    `[admin] 로그인 실패 — 입력 ${submitted.length}자 / .env 설정 ${expected.length}자` +
+      (usingDefaultPw() ? ' (기본값 admin 사용 중)' : '')
+  );
+  const hint =
+    submitted.length !== expected.length
+      ? ` 입력은 ${submitted.length}자인데 설정된 비밀번호는 ${expected.length}자입니다. .env의 ADMIN_PASSWORD를 확인하세요.`
+      : '';
   res.status(401).render('admin/login', {
     title: '관리자 로그인',
     activeTab: null,
-    error: '비밀번호가 올바르지 않습니다.',
+    error: `비밀번호가 올바르지 않습니다.${hint}`,
     usingDefaultPw: usingDefaultPw(),
   });
 });
