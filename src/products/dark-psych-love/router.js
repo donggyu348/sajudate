@@ -505,7 +505,7 @@ router.get('/report/:publicId', async (req, res, next) => {
     const origin = publicOrigin(req);
     const orderId = buildOrderId(report.id);
     res.render(view('report'), {
-      title: '최종 리포트',
+      title: report.paid ? '전체 리포트' : '미리보는 리포트',
       base: BASE,
       activeTab: 'home',
       // 리포트는 전체가 다크 테마라, 밝은 푸터가 붙으면 페이지 끝에서 톤이 끊긴다

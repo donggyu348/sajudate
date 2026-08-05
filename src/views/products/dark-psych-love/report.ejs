@@ -117,19 +117,8 @@
 
 <div class="p-4 <%= !report.paid ? 'pb-24' : '' %>">
   <p class="rp-eyebrow">DIAGNOSIS REPORT</p>
-  <h1 class="mt-2 font-serif text-[24px] font-bold leading-[1.45] text-white">최종 리포트</h1>
+  <h1 class="mt-2 font-serif text-[24px] font-bold leading-[1.45] text-white"><%= report.paid ? '전체 리포트' : '미리보는 리포트' %></h1>
   <p class="mt-2 text-[13px] leading-relaxed text-white/45">AI 상담 대화를 바탕으로 결과를 정리했습니다.</p>
-
-  <!-- 목차 -->
-  <nav class="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1">
-    <a href="#gaslightCard" class="rp-chip shrink-0 whitespace-nowrap">가스라이팅 확률</a>
-    <% if (keyFindings && keyFindings.length) { %><a href="#key-findings" class="rp-chip shrink-0 whitespace-nowrap">핵심 관찰</a><% } %>
-    <a href="#partner-tendency" class="rp-chip shrink-0 whitespace-nowrap">상대방 성향</a>
-    <a href="#patterns" class="rp-chip shrink-0 whitespace-nowrap">감지된 패턴</a>
-    <% if (selfPattern) { %><a href="#self-pattern" class="rp-chip shrink-0 whitespace-nowrap">나의 반응</a><% } %>
-    <a href="#summary" class="rp-chip shrink-0 whitespace-nowrap">종합 소견</a>
-    <a href="#solutions" class="rp-chip shrink-0 whitespace-nowrap">전체 목차</a>
-  </nav>
 
   <!-- 헤드라인: 가스라이팅 확률 -->
   <div id="gaslightCard" class="relative mt-5 overflow-hidden rounded-2xl border border-red-500/25 bg-[#140b12] p-6 text-center">
@@ -283,15 +272,15 @@
 
       <%# 진단 결과에서 뽑은 추천 챕터 — 근거 문구까지 함께 보여준다 %>
       <% if (recommendedChapters && recommendedChapters.length) { %>
-        <div class="reveal mt-6 overflow-hidden rounded-2xl border border-red-500/25 bg-[#140b12]">
-          <div class="border-b border-red-500/15 px-5 py-4">
-            <p class="rp-eyebrow" style="color: rgba(248,113,113,0.7);">FOR YOU</p>
+        <div class="reveal mt-6 overflow-hidden rp-card">
+          <div class="border-b border-white/[0.08] px-5 py-4">
+            <p class="rp-eyebrow">FOR YOU</p>
             <p class="mt-2 font-serif text-[17px] font-bold text-white">당신이 꼭 봐야 할 챕터</p>
             <p class="mt-1.5 text-[11.5px] leading-relaxed text-white/40">위 진단 결과를 근거로 골랐어요.</p>
           </div>
           <% recommendedChapters.forEach(function (rec, i) { %>
             <a href="#chapter-<%= rec.key %>" class="flex items-start gap-3.5 px-5 py-4 <%= i > 0 ? 'border-t border-white/[0.06]' : '' %>">
-              <span class="mt-0.5 shrink-0 font-serif text-[15px] font-bold text-red-400/70"><%= rec.number %></span>
+              <span class="mt-0.5 shrink-0 font-serif text-[15px] font-bold text-white/30"><%= rec.number %></span>
               <div class="min-w-0 flex-1">
                 <p class="text-[14px] font-semibold text-white"><%= rec.title %></p>
                 <p class="mt-1 text-[12px] leading-relaxed text-white/45"><%= rec.reason %></p>
@@ -306,9 +295,11 @@
       <div class="mt-4 space-y-3">
         <% reportToc.forEach(function (chapter, i) { %>
           <% var isPicked = (recommendedChapters || []).some(function (rec) { return rec.key === chapter.key; }); %>
-          <article id="chapter-<%= chapter.key %>" class="reveal scroll-mt-20 rounded-2xl border p-5 <%= isPicked ? 'border-red-500/30 bg-[#120c12]' : 'border-white/[0.08] bg-white/[0.025]' %>">
+          <%# 추천 챕터도 카드 색은 똑같이 간다 — 색이 갈리면 목차가 통일감 없이 보인다.
+              구분은 제목 옆 '추천' 배지 하나로만 준다. %>
+          <article id="chapter-<%= chapter.key %>" class="reveal scroll-mt-20 rp-card p-5">
             <div class="flex items-start gap-3.5">
-              <span class="font-serif text-[22px] font-bold leading-none <%= isPicked ? 'text-red-400/80' : 'text-white/20' %>"><%= String(i + 1).padStart(2, '0') %></span>
+              <span class="font-serif text-[22px] font-bold leading-none text-white/20"><%= String(i + 1).padStart(2, '0') %></span>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
                   <h3 class="text-[16px] font-bold text-white"><%= chapter.title %></h3>
