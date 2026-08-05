@@ -256,6 +256,8 @@ router.get('/counsel', async (req, res, next) => {
       title: '관계 상담',
       base: BASE,
       activeTab: 'home',
+      // 채팅은 화면 높이를 꽉 채우는 전용 UI라 하단 푸터를 넣지 않는다
+      hideFooter: true,
       enabled: isCounselorEnabled(),
       agents,
       current,

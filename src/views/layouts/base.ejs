@@ -30,9 +30,18 @@
     <!-- End Meta Pixel Code -->
   </head>
   <body class="bg-gray-50">
-    <div class="app-shell relative pb-20">
+    <%
+      // 하단 고정 탭바에 콘텐츠가 가리지 않게 여백이 필요한데, 이 여백을 app-shell에 주면
+      // 푸터 "아래"에 흰 여백이 생겨 푸터가 붕 떠 보인다. 그래서 푸터가 있는 페이지는
+      // 푸터 자체가 탭바까지 배경을 채우고, 푸터가 없는 페이지에만 main에 여백을 준다.
+      const showFooter = typeof hideFooter === 'undefined' || !hideFooter;
+    %>
+    <div class="app-shell relative flex flex-col">
       <%- include('../platform/partials/header') %>
-      <main><%- body %></main>
+      <main class="flex-1 <%= showFooter ? '' : 'pb-20' %>"><%- body %></main>
+      <% if (showFooter) { %>
+        <%- include('../platform/partials/footer') %>
+      <% } %>
       <%- include('../platform/partials/tabbar', { activeTab: typeof activeTab !== 'undefined' ? activeTab : null }) %>
     </div>
     <%- include('../platform/partials/drawer') %>

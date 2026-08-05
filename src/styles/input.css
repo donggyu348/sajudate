@@ -12,9 +12,22 @@
 }
 
 @layer components {
-  /* 모바일 우선 앱 컨테이너 */
+  /* 모바일 우선 앱 컨테이너 — 데스크톱에서도 같은 폭으로 가운데 정렬한다 */
   .app-shell {
     @apply mx-auto w-full max-w-app min-h-screen bg-white;
+  }
+
+  /* 가로 스크롤 카드 줄 — 한 화면에 2.2장 정도 보이게 해서 옆에 더 있다는 걸 알린다 */
+  .card-rail {
+    @apply no-scrollbar -mx-5 flex gap-3 overflow-x-auto px-5;
+  }
+  .card-rail > * {
+    @apply w-[44%] shrink-0;
+  }
+
+  /* 섹션 제목 — 이모지 + 구어체 후킹 카피 */
+  .section-title {
+    @apply text-[17px] font-bold leading-snug text-ink;
   }
 
   /* 플랫 디자인: 얇은 테두리, 그림자 없음 */
