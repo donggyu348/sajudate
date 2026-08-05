@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { DataTypes } from 'sequelize';
 import { createApp } from './app.js';
 import { sequelize } from './models/index.js';

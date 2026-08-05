@@ -7,8 +7,17 @@ import { sendReportLinkSms, isSmsEnabled, isValidKoreanPhone, isSmsSuccess } fro
 
 const router = Router();
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
-const USING_DEFAULT_PW = !process.env.ADMIN_PASSWORD;
+function adminPassword() {
+  // 기동 후 .env를 바꿔도(또는 앞뒤 공백이 있어도) 비교가 어긋나지 않게 요청 시점에 읽는다
+  const raw = process.env.ADMIN_PASSWORD;
+  if (raw == null || String(raw).trim() === '') return 'admin';
+  return String(raw).trim();
+}
+
+function usingDefaultPw() {
+  const raw = process.env.ADMIN_PASSWORD;
+  return raw == null || String(raw).trim() === '';
+}
 
 // 무차별 대입 방어 — IP당 15분에 10회로 제한 (정상적인 로그인 실패 재시도는 넉넉히 허용하되,
 // 자동화된 비밀번호 대입 공격은 막는다).
@@ -35,7 +44,9 @@ function verifyCsrf(req, res, next) {
   return res.status(403).send('요청이 만료되었거나 올바르지 않습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
 }
 router.use((req, res, next) => {
-  if (req.method === 'POST') return verifyCsrf(req, res, next);
+  // 로그인은 세션이 막 생기는 단계라 CSRF 쿠키/세션 레이스에 자주 걸린다.
+  // 비밀번호 + rate limit으로 막고, CSRF는 로그인 이후에만 강제한다.
+  if (req.method === 'POST' && req.path !== '/login') return verifyCsrf(req, res, next);
   next();
 });
 
@@ -47,24 +58,42 @@ function requireAdmin(req, res, next) {
 
 router.get('/login', (req, res) => {
   if (req.session?.isAdmin) return res.redirect('/admin/agents');
-  res.render('admin/login', {
-    title: '관리자 로그인',
-    activeTab: null,
-    error: null,
-    usingDefaultPw: USING_DEFAULT_PW,
+  // CSRF 토큰을 심은 세션이 쿠키로 내려가기 전에 응답이 나가면 POST에서 토큰 불일치가 난다
+  req.session.save((err) => {
+    if (err) console.error('[admin] 로그인 세션 저장 실패:', err.message);
+    res.render('admin/login', {
+      title: '관리자 로그인',
+      activeTab: null,
+      error: null,
+      usingDefaultPw: usingDefaultPw(),
+    });
   });
 });
 
 router.post('/login', loginLimiter, (req, res) => {
-  if ((req.body?.password || '') === ADMIN_PASSWORD) {
+  const submitted = String(req.body?.password || '').trim();
+  if (submitted === adminPassword()) {
     req.session.isAdmin = true;
-    return res.redirect('/admin/agents');
+    // MySQL 세션 스토어는 저장이 비동기라, 리다이렉트보다 먼저 커밋해야
+    // 다음 요청에서 isAdmin이 비어 다시 로그인 화면으로 튕기지 않는다.
+    return req.session.save((err) => {
+      if (err) {
+        console.error('[admin] 로그인 세션 저장 실패:', err.message);
+        return res.status(500).render('admin/login', {
+          title: '관리자 로그인',
+          activeTab: null,
+          error: '로그인 처리 중 오류가 발생했습니다. 다시 시도해 주세요.',
+          usingDefaultPw: usingDefaultPw(),
+        });
+      }
+      return res.redirect('/admin/agents');
+    });
   }
   res.status(401).render('admin/login', {
     title: '관리자 로그인',
     activeTab: null,
     error: '비밀번호가 올바르지 않습니다.',
-    usingDefaultPw: USING_DEFAULT_PW,
+    usingDefaultPw: usingDefaultPw(),
   });
 });
 
@@ -115,7 +144,7 @@ router.get('/agents', requireAdmin, async (req, res, next) => {
       title: '에이전트 관리',
       activeTab: null,
       agents,
-      usingDefaultPw: USING_DEFAULT_PW,
+      usingDefaultPw: usingDefaultPw(),
     });
   } catch (err) {
     next(err);
@@ -236,7 +265,7 @@ router.get('/sales', requireAdmin, async (req, res, next) => {
     res.render('admin/sales', {
       title: '매출',
       activeTab: null,
-      usingDefaultPw: USING_DEFAULT_PW,
+      usingDefaultPw: usingDefaultPw(),
       payments,
       totalRevenue,
       todayRevenue,
@@ -298,7 +327,7 @@ router.get('/reports/unpaid', requireAdmin, async (req, res, next) => {
     res.render('admin/reports-unpaid', {
       title: '미결제 리포트',
       activeTab: null,
-      usingDefaultPw: USING_DEFAULT_PW,
+      usingDefaultPw: usingDefaultPw(),
       reports,
       error: null,
     });
@@ -328,7 +357,7 @@ router.post('/reports/:id/mark-paid', requireAdmin, async (req, res, next) => {
     res.status(400).render('admin/reports-unpaid', {
       title: '미결제 리포트',
       activeTab: null,
-      usingDefaultPw: USING_DEFAULT_PW,
+      usingDefaultPw: usingDefaultPw(),
       reports,
       error: err.message || '결제 확인에 실패했습니다.',
     });
