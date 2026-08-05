@@ -87,6 +87,8 @@ router.get('/', async (req, res, next) => {
       base: BASE,
       activeTab: 'home',
       axes: AXES,
+      // 랜딩은 자체 CTA와 고지로 끝나는 구성이라 공통 푸터를 넣지 않는다
+      hideFooter: true,
     });
   } catch (err) {
     next(err);
