@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import { rateLimit } from 'express-rate-limit';
 import { Agent, Report } from '../models/index.js';
 import { confirmTossPayment, REPORT_UNLOCK_PRICE } from '../products/dark-psych-love/logic/payments.js';
-import { sendReportLinkSms, isSmsEnabled, isValidKoreanPhone } from '../products/dark-psych-love/logic/sms.js';
+import { sendReportLinkSms, isSmsEnabled, isValidKoreanPhone, isSmsSuccess } from '../products/dark-psych-love/logic/sms.js';
 
 const router = Router();
 
@@ -271,10 +271,16 @@ router.post('/reports/:id/resend-sms', requireAdmin, async (req, res, next) => {
     const reportUrl = `${origin}/products/dark-psych-love/report/${report.publicId}`;
     const data = await sendReportLinkSms({ phone: report.phone, reportUrl });
 
-    const ok = data?.result_code === '1';
+    const ok = isSmsSuccess(data);
+    if (ok && !report.smsSentAt) {
+      report.smsSentAt = new Date();
+      await report.save();
+    }
     const notice = ok
       ? `리포트 #${report.id} 문자를 발송했습니다.`
-      : `발송 실패 — ${data?.message || '알 수 없는 오류'} (code: ${data?.result_code ?? '-'})`;
+      : data == null
+        ? '알리고 키가 설정되지 않아 발송하지 못했습니다.'
+        : `발송 실패 — ${data?.message || '알 수 없는 오류'} (code: ${data?.result_code ?? '-'})`;
     res.redirect('/admin/sales?notice=' + encodeURIComponent(notice));
   } catch (err) {
     next(err);

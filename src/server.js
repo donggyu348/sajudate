@@ -1,3 +1,4 @@
+import { DataTypes } from 'sequelize';
 import { createApp } from './app.js';
 import { sequelize } from './models/index.js';
 import { assertDbConnection } from './db/sequelize.js';
@@ -39,6 +40,22 @@ function logIntegrationStatus() {
   }
 }
 
+/** 기존 dpl_reports에 누락된 컬럼만 추가 (전체 alter:true는 쓰지 않음). */
+async function ensureReportColumns() {
+  const qi = sequelize.getQueryInterface();
+  const table = 'dpl_reports';
+  let desc;
+  try {
+    desc = await qi.describeTable(table);
+  } catch {
+    return; // 테이블이 없으면 sync가 이미 만들었거나 아직 없음
+  }
+  if (!desc.smsSentAt) {
+    await qi.addColumn(table, 'smsSentAt', { type: DataTypes.DATE, allowNull: true });
+    console.log('[db] dpl_reports.smsSentAt 컬럼 추가');
+  }
+}
+
 async function start() {
   assertProductionSecrets();
   logIntegrationStatus();
@@ -47,6 +64,8 @@ async function start() {
     // alter:true는 MySQL에서 매 재시작마다 UNIQUE 컬럼에 중복 인덱스를 추가하는 문제가 있어 비활성화.
     // 스키마 변경(컬럼 추가 등)은 새 테이블만 자동 생성되며, 기존 테이블 alter는 수동으로 처리.
     await sequelize.sync();
+    // sync()는 기존 테이블에 컬럼을 추가하지 않으므로, 필요한 컬럼만 안전하게 보강한다.
+    await ensureReportColumns();
     console.log('[db] connected & synced');
   } catch (err) {
     console.error('[db] connection failed:', err.message);

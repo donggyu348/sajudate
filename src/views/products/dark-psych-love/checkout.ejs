@@ -140,6 +140,16 @@
           return syncWidgetAmount(data.amount).then(function () { return data; });
         })
         .then(function (data) {
+          if (typeof fbq === 'function') {
+            try {
+              fbq('track', 'InitiateCheckout', {
+                value: Number(data.amount),
+                currency: 'KRW',
+                content_name: '전체 리포트 잠금 해제',
+                content_type: 'product',
+              }, { eventID: 'ic_' + data.orderId });
+            } catch (e) {}
+          }
           // orderId는 서버가 이번 시도용으로 새로 발급한 값 — 재사용하면 토스가 거부한다
           return widget.requestPayment({
             orderId: data.orderId,

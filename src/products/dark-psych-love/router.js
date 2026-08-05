@@ -30,7 +30,7 @@ import {
   fetchTossPayment,
   resolvePrice,
 } from './logic/payments.js';
-import { sendReportLinkSms, isValidKoreanPhone } from './logic/sms.js';
+import { sendReportLinkSms, isValidKoreanPhone, isSmsSuccess } from './logic/sms.js';
 import {
   streamCounsel,
   isCounselorEnabled,
@@ -59,7 +59,46 @@ const router = Router();
  */
 const premiumJobs = new Map();
 
-function startPremiumGeneration(report, fs) {
+/**
+ * 리포트 링크 문자 발송. 성공 시에만 smsSentAt을 찍어 중복 발송을 막는다.
+ * 결제 직후·프리미엄 생성 완료·이미 paid 재방문에서 공통으로 쓴다.
+ */
+async function deliverReportSms(report, origin) {
+  if (report.smsSentAt) return { skipped: true, reason: 'already_sent' };
+  if (!isValidKoreanPhone(report.phone)) {
+    console.error(`[sms] 번호가 없어 발송하지 못했습니다 (reportId=${report.id})`);
+    return { skipped: true, reason: 'no_phone' };
+  }
+  const baseOrigin = String(origin || process.env.PUBLIC_ORIGIN || '').replace(/\/+$/, '');
+  if (!baseOrigin) {
+    console.error(`[sms] PUBLIC_ORIGIN이 없어 링크를 만들 수 없습니다 (reportId=${report.id})`);
+    return { skipped: true, reason: 'no_origin' };
+  }
+  const reportUrl = `${baseOrigin}${BASE}/report/${report.publicId}`;
+  try {
+    const data = await sendReportLinkSms({ phone: report.phone, reportUrl });
+    if (data == null) {
+      console.error(
+        `[sms] 알리고 미설정으로 발송 생략 (reportId=${report.id}). ` +
+          'ALIGO_API_KEY / ALIGO_USER_ID / ALIGO_SENDER 확인 후 관리자 화면에서 재발송하세요.'
+      );
+      return { skipped: true, reason: 'not_configured' };
+    }
+    if (isSmsSuccess(data)) {
+      report.smsSentAt = new Date();
+      await report.save();
+      console.log(`[sms] 리포트 링크 발송 완료 (reportId=${report.id})`);
+      return { ok: true, data };
+    }
+    console.error(`[sms] 발송 실패 (reportId=${report.id}):`, data);
+    return { ok: false, data };
+  } catch (err) {
+    console.error(`[sms] 발송 중 오류 (reportId=${report.id}):`, err.message);
+    return { ok: false, error: err.message };
+  }
+}
+
+function startPremiumGeneration(report, fs, origin) {
   const key = String(report.id);
   if (premiumJobs.get(key)?.status === 'running') return;
   premiumJobs.set(key, { status: 'running', startedAt: Date.now() });
@@ -84,6 +123,12 @@ function startPremiumGeneration(report, fs) {
       await fresh.save();
       premiumJobs.delete(key);
       console.log(`[premium] 리포트 생성 완료 (reportId=${key})`);
+
+      // 결제 직후 SMS가 실패·스킵됐어도, 리포트가 준비된 시점에 한 번 더 보낸다.
+      // (문자는 "완성된 리포트 링크"를 기대하는 경우가 많고, 결제 시점 fire-and-forget은 유실되기 쉽다)
+      if (fresh.paid && !fresh.smsSentAt) {
+        await deliverReportSms(fresh, origin || process.env.PUBLIC_ORIGIN || '');
+      }
     } catch (err) {
       console.error('[premium] 리포트 생성 실패:', err.message);
       premiumJobs.set(key, { status: 'failed', message: err.message });
@@ -545,7 +590,7 @@ router.get('/report/:publicId', async (req, res, next) => {
       const job = premiumJobs.get(String(report.id));
       if (req.query.retry) premiumJobs.delete(String(report.id));
       if (req.query.retry || job?.status !== 'failed') {
-        startPremiumGeneration(report, fs);
+        startPremiumGeneration(report, fs, publicOrigin(req));
       }
       return res.render(view('report-generating'), {
         title: '전체 리포트 준비 중',
@@ -560,6 +605,14 @@ router.get('/report/:publicId', async (req, res, next) => {
     }
 
     const origin = publicOrigin(req);
+
+    // 이미 생성된 리포트인데 문자만 빠진 경우(결제 직후 실패·구버전 버그) — 화면은 막고 재시도
+    if (report.paid && report.premiumReport && !report.smsSentAt) {
+      deliverReportSms(report, origin).catch((err) => {
+        console.error('[sms] 리포트 조회 시 재발송 실패:', err.message);
+      });
+    }
+
     const orderId = buildOrderId(report.id);
     res.render(view('report'), {
       title: report.paid ? '전체 리포트' : '미리보는 리포트',
@@ -737,6 +790,12 @@ router.post('/report/:publicId/checkout/prepare-phone', async (req, res) => {
   report.phone = normalizedPhone;
   await report.save();
 
+  // 클라이언트가 응답을 받자마자 토스 앱으로 넘어가면, 세션이 MySQL에 커밋되기 전에
+  // successUrl이 들어올 수 있다. res.json 직전 저장을 명시적으로 기다린다.
+  await new Promise((resolve, reject) => {
+    req.session.save((err) => (err ? reject(err) : resolve()));
+  });
+
   if (amount !== REPORT_UNLOCK_PRICE) {
     console.log(`[checkout] 테스트 결제 금액 적용: ${amount}원 (orderId=${orderId})`);
   }
@@ -782,8 +841,11 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
 
     // 이미 결제 처리된 리포트인데 successUrl을 새로고침/재방문한 경우 —
     // paymentKey를 다시 confirm하면 토스 쪽에서 거부해 실패 페이지로 튕기던 버그.
-    // 이미 처리됐다면 그냥 리포트로 보낸다.
+    // 이미 처리됐다면 문자만 미발송인 경우를 복구한 뒤 리포트로 보낸다.
     if (report.paid) {
+      if (!report.smsSentAt) {
+        await deliverReportSms(report, publicOrigin(req));
+      }
       return res.redirect(`${BASE}/report/${report.publicId}`);
     }
 
@@ -800,10 +862,14 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
     // 간편결제로 앱을 다녀오면 세션이 끊기는 경우가 있어(특히 모바일), 세션만 믿으면
     // 실제 결제 금액과 승인 금액이 달라져 토스가 거부한다. orderId의 서명은 서버가 찍은 것이라 신뢰할 수 있다.
     const signed = parseOrderId(orderId);
+    // 모바일 간편결제(토스 앱 왕복)에서는 세션 쿠키가 안 따라오는 경우가 흔하다.
+    // 금액은 orderId 서명으로 복원하므로 결제 실패가 아니다 — 경고만 남긴다.
     if (!pending) {
-      console.error('[checkout/success] 세션에 결제 정보가 없습니다:', {
+      const level = signed ? 'warn' : 'error';
+      console[level]('[checkout/success] 세션에 결제 정보가 없습니다:', {
         orderId,
         'orderId에서_복원한_금액': signed ? signed.amount : '(복원 실패)',
+        '전화번호_폴백': isValidKoreanPhone(report.phone) ? 'DB에 있음' : '없음',
       });
     }
     const amount = Number.isInteger(pending?.amount)
@@ -850,20 +916,8 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
     if (req.session.pendingPayments) delete req.session.pendingPayments[String(orderId)];
     await report.save();
 
-    if (isValidKoreanPhone(report.phone)) {
-      const origin = publicOrigin(req);
-      const reportUrl = `${origin}${BASE}/report/${report.publicId}`;
-      sendReportLinkSms({ phone: report.phone, reportUrl })
-        .then((data) => {
-          if (data && data.result_code === '1') {
-            console.log(`[sms] 리포트 링크 발송 완료 (reportId=${report.id})`);
-          }
-        })
-        .catch((err) => console.error('[sms] 발송 중 오류:', err.message));
-    } else {
-      // 여기까지 왔는데 번호가 없으면 문자가 안 나간다 — 문의가 들어왔을 때 바로 확인할 수 있게 남긴다
-      console.error(`[sms] 번호가 없어 발송하지 못했습니다 (reportId=${report.id}, orderId=${orderId})`);
-    }
+    // 문자는 결제 승인 직후 1회 시도한다. 실패해도 리포트 생성 완료 시 deliverReportSms로 재시도한다.
+    await deliverReportSms(report, publicOrigin(req));
 
     // purchased 표시는 리포트 화면에서 광고 구매 이벤트를 한 번 쏘기 위한 것 (금액은 서버 값을 쓴다)
     res.redirect(`${BASE}/report/${report.publicId}?purchased=1`);

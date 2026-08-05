@@ -10,6 +10,14 @@ export function isSmsEnabled() {
 }
 
 /**
+ * 알리고 스펙상 result_code는 Integer(성공=1).
+ * JSON이 숫자로 오는데 문자열 '1'과 === 비교하면 성공을 실패로 오판한다.
+ */
+export function isSmsSuccess(data) {
+  return Number(data?.result_code) === 1;
+}
+
+/**
  * @param {{ phone: string, reportUrl: string }} opts
  * @returns {Promise<any|null>} 알리고 응답 JSON. 설정이 없으면 발송을 건너뛰고 null 반환.
  */
@@ -19,14 +27,22 @@ export async function sendReportLinkSms({ phone, reportUrl }) {
     return null;
   }
 
+  const msg = `[해답] 결제하신 전체 리포트를 확인해보세요.\n${reportUrl}`;
+  // URL이 들어가면 SMS(90바이트)를 넘기므로 LMS로 명시. 미지정 시 알리고가 거절하는 경우가 있다.
   const body = new URLSearchParams({
     key: process.env.ALIGO_API_KEY,
     user_id: process.env.ALIGO_USER_ID,
     sender: process.env.ALIGO_SENDER,
     receiver: phone,
-    msg: `[해답] 결제하신 전체 리포트를 확인해보세요.\n${reportUrl}`,
+    msg,
+    msg_type: 'LMS',
+    title: '해답 리포트',
     testmode_yn: process.env.ALIGO_TEST_MODE === 'true' ? 'Y' : 'N',
   });
+
+  if (process.env.ALIGO_TEST_MODE === 'true') {
+    console.warn('[sms] ALIGO_TEST_MODE=true — 실제 문자는 나가지 않을 수 있습니다.');
+  }
 
   const res = await fetch(`${ALIGO_BASE}/send/`, {
     method: 'POST',
@@ -34,8 +50,14 @@ export async function sendReportLinkSms({ phone, reportUrl }) {
     body,
   });
 
-  const data = await res.json();
-  if (data.result_code !== '1') {
+  let data;
+  try {
+    data = await res.json();
+  } catch (err) {
+    throw new Error(`알리고 응답 파싱 실패 (HTTP ${res.status}): ${err.message}`);
+  }
+
+  if (!isSmsSuccess(data)) {
     console.error('[sms] 발송 실패:', data);
   }
   return data;

@@ -916,6 +916,17 @@
             .then(function () { return data; });
         })
         .then(function (data) {
+          // 결제창을 열기 직전에 퍼널 이벤트를 남긴다 — Purchase만 있으면 광고 최적화 신호가 얇다
+          if (typeof fbq === 'function') {
+            try {
+              fbq('track', 'InitiateCheckout', {
+                value: Number(data.amount),
+                currency: 'KRW',
+                content_name: '전체 리포트 잠금 해제',
+                content_type: 'product',
+              }, { eventID: 'ic_' + data.orderId });
+            } catch (e) {}
+          }
           // orderId는 서버가 이번 시도용으로 새로 발급한 값을 쓴다 —
           // 페이지에 박힌 값을 재사용하면 재시도 시 토스가 거부한다
           return widget.requestPayment({
