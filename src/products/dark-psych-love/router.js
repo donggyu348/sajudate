@@ -646,19 +646,28 @@ router.get('/report/:publicId/checkout/success', async (req, res, next) => {
 
     res.redirect(`${BASE}/report/${report.publicId}`);
   } catch (err) {
-    console.error('[checkout/success]', err);
+    // 토스가 돌려준 code까지 실패 화면에 전달해야 원인을 특정할 수 있다
+    // (예: FORBIDDEN_REQUEST = 시크릿 키 권한/상점 상태 문제)
+    console.error('[checkout/success] 승인 실패:', err.tossError || err.message);
+    const code = err.tossError?.code ? `&code=${encodeURIComponent(err.tossError.code)}` : '';
     const message = encodeURIComponent(err.message || '결제 승인에 실패했습니다.');
-    res.redirect(`${BASE}/report/${req.params.publicId}/checkout/fail?message=${message}`);
+    res.redirect(`${BASE}/report/${req.params.publicId}/checkout/fail?message=${message}${code}`);
   }
 });
 
 router.get('/report/:publicId/checkout/fail', (req, res) => {
+  // 토스는 실패 시 code/message를 쿼리로 붙여 보낸다. 코드가 없으면 원인 파악이 어려우므로 함께 남기고 표시한다.
+  const code = req.query.code ? String(req.query.code) : null;
+  const message = req.query.message ? String(req.query.message) : '결제가 완료되지 않았습니다.';
+  console.warn(`[checkout/fail] code=${code || '(없음)'} message=${message}`);
+
   res.render(view('checkout-fail'), {
     title: '결제 실패',
     layout: 'layouts/plain',
     base: BASE,
     reportId: req.params.publicId,
-    message: req.query.message || '결제가 완료되지 않았습니다.',
+    message,
+    code,
   });
 });
 

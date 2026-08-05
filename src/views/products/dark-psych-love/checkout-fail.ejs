@@ -4,6 +4,9 @@
   </div>
   <p class="text-sm font-semibold text-ink">결제가 완료되지 않았어요</p>
   <p class="max-w-xs text-xs leading-relaxed text-ink-soft"><%= message %></p>
+  <% if (typeof code !== 'undefined' && code) { %>
+    <p class="text-[10.5px] text-ink-soft/60">오류 코드: <%= code %></p>
+  <% } %>
   <a href="<%= base %>/report/<%= reportId %>/checkout" class="btn-primary w-full max-w-xs">다시 시도하기</a>
   <a href="<%= base %>/report/<%= reportId %>" class="text-xs text-ink-soft underline">리포트로 돌아가기</a>
 </div>
