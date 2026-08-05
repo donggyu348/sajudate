@@ -83,6 +83,20 @@ export async function confirmTossPayment({ paymentKey, orderId, amount }) {
 
   const data = await res.json();
   if (!res.ok) {
+    // 승인 거부는 요청 내용보다 "어떤 키로 보냈는지"가 원인인 경우가 많다.
+    // .env에 따옴표·공백·개행이 섞이면 값이 조용히 달라지므로 길이와 앞뒤 일부만 남겨 대조한다.
+    // (키 전체는 절대 로그에 남기지 않는다)
+    console.error('[toss] confirm 거부:', {
+      status: res.status,
+      code: data?.code,
+      message: data?.message,
+      보낸값: { orderId, amount },
+      시크릿키: `${secretKey.slice(0, 9)}…${secretKey.slice(-4)} (길이 ${secretKey.length})`,
+      클라이언트키: (() => {
+        const ck = getTossClientKey() || '';
+        return ck ? `${ck.slice(0, 9)}…${ck.slice(-4)} (길이 ${ck.length})` : '(없음)';
+      })(),
+    });
     const err = new Error(data?.message || '결제 승인에 실패했습니다.');
     err.tossError = data;
     throw err;
