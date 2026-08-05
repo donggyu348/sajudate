@@ -366,7 +366,14 @@ router.post('/counsel/report', reportGenLimiter, async (req, res) => {
     res.json({ reportId: report.publicId });
   } catch (err) {
     console.error('[counsel/report]', err);
-    res.status(500).json({ error: '리포트 생성 중 오류가 발생했습니다.' });
+    // 529(overloaded)/429는 우리 쪽 문제가 아니라 일시적 혼잡 — 대화 내용은 브라우저에 그대로 남아 있으므로
+    // "다시 눌러보라"고 분명히 안내해야 사용자가 대화를 날렸다고 오해하지 않는다.
+    const transient = err?.status === 529 || err?.status === 503 || err?.status === 429;
+    res.status(transient ? 503 : 500).json({
+      error: transient
+        ? '지금 요청이 몰려 결과를 만들지 못했어요. 대화 내용은 그대로 있으니 잠시 후 다시 눌러주세요.'
+        : '리포트 생성 중 오류가 발생했습니다.',
+    });
   }
 });
 

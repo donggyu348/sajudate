@@ -87,7 +87,10 @@ let _client;
 export function getCounselorClient() {
   const apiKey = process.env.ANTHROPIC_API_KEY || process.env.LLM_API_KEY;
   if (!apiKey) return null;
-  if (!_client) _client = new Anthropic({ apiKey });
+  // Anthropic 쪽이 일시적으로 몰리면 529(overloaded)가 내려온다. SDK 기본 재시도는 2회뿐이라
+  // 사용자가 상담을 다 끝낸 뒤 리포트 생성에서 실패하면 대화가 통째로 날아가는 느낌을 준다.
+  // 재시도 횟수를 늘리고(지수 백오프는 SDK가 처리) 타임아웃도 넉넉히 잡는다.
+  if (!_client) _client = new Anthropic({ apiKey, maxRetries: 5, timeout: 120000 });
   return _client;
 }
 
