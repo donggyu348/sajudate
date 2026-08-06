@@ -17,7 +17,11 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-YDXFFP434Y');
+      // 리포트 주소의 UUID를 그대로 보내면 리포트마다 별개 페이지로 잡혀 조회수가 전부 1이 된다.
+      // 실제 주소는 그대로 두고, GA에 보고하는 경로만 :reportId 로 묶어서 한 페이지로 집계한다.
+      gtag('config', 'G-YDXFFP434Y', {
+        page_location: window.location.origin + <%- JSON.stringify(typeof gaPath !== 'undefined' ? gaPath : '/') %> + window.location.search,
+      });
     </script>
 
     <!-- Meta Pixel Code -->

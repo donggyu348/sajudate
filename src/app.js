@@ -68,9 +68,16 @@ export function createApp() {
     })
   );
 
+  // 리포트 주소에 박히는 publicId(UUID). 링크만으로 열리는 구조라 추측 불가능해야 해서 쓰는 값이지만,
+  // 그대로 GA4에 보내면 리포트 1건이 곧 페이지 1개가 되어 조회수가 전부 1로 흩어진다.
+  const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+
   // 뷰 전역 변수
   app.use((req, res, next) => {
     res.locals.currentPath = req.path;
+    // 분석 도구에 보낼 경로 — 실제 주소는 그대로 두고 UUID 자리만 자리표시자로 바꾼다.
+    // 예: /report/15daa9f6-... → /report/:reportId (리포트 전체가 한 페이지로 집계됨)
+    res.locals.gaPath = req.path.replace(UUID_RE, ':reportId');
     next();
   });
 
