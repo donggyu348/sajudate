@@ -31,10 +31,15 @@ const READINESS_INSTRUCTION = `
 /**
  * 에이전트의 시스템 프롬프트에 (1) 종료 판단 지시, (2) 업로드된 카톡 참고 컨텍스트를 덧붙인다.
  * @param {string} basePrompt 에이전트별 시스템 프롬프트
- * @param {{ chatContext?: string|null }} [opts]
+ * @param {{ chatContext?: string|null, checklistContext?: string|null }} [opts]
  */
-export function buildCounselSystemPrompt(basePrompt, { chatContext } = {}) {
+export function buildCounselSystemPrompt(basePrompt, { chatContext, checklistContext } = {}) {
   let prompt = (basePrompt || DEFAULT_COUNSELOR_SYSTEM_PROMPT) + READINESS_INSTRUCTION;
+  // 체크리스트는 우리가 만든 고정 문항이라 사용자 자유 입력이 섞이지 않는다 —
+  // 그래서 untrusted 래핑 없이 그대로 붙인다.
+  if (checklistContext) {
+    prompt += `\n\n[참고: 사용자가 상담 시작 전 자가 체크리스트에서 직접 '그렇다'고 답한 항목입니다. 사용자가 이미 문제라고 느끼고 있는 지점이니, 처음부터 다시 캐묻지 말고 여기서부터 구체적인 상황을 확인해 나가세요. 다만 체크했다는 사실만으로 단정하지 말고, 실제 정황을 들어본 뒤 판단하세요.]\n${checklistContext}`;
+  }
   if (chatContext) {
     prompt += `\n\n[참고: 사용자가 업로드한 카카오톡 대화를 AI가 먼저 읽고, 실제로 조종적 발화로 보이는 지점을 카테고리별로 확정해 둔 구간입니다. 단, 이건 대화 텍스트만 본 1차 판단이라 실제 맥락(그 전후 상황, 반복 여부 등)은 아직 모릅니다.
 - 대화를 일반론으로 이끌지 말고, 이 구간부터 우선적으로 질문하세요. 여러 구간이 있으면 어떤 것부터 물어볼지 스스로 판단하세요.

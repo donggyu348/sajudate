@@ -17,6 +17,7 @@ import {
   isPremiumReportUsable,
 } from './logic/premiumReport.js';
 import { analyzeChatFlow } from './logic/analyzeChatFlow.js';
+import { CHECKLIST, scoreChecklist, formatChecklistContext } from './logic/checklist.js';
 import { REPORT_DISCLAIMER, REPORT_TOC } from './logic/safety.js';
 import { buildReportChatPrompt, isOverChatLimit } from './logic/reportChat.js';
 import { recommendChapters } from './logic/chapterRecommend.js';
@@ -205,7 +206,45 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// ── 2. 카카오톡 대화 캡처 업로드 (선택 — 상담 컨텍스트로만 사용) ──
+// ── 2. 30초 자가 체크리스트 ─────────────────────
+// 광고 클릭 직후에 업로드부터 요구하면 대부분 이탈한다. 클릭 몇 번으로 끝나는
+// 체크리스트를 먼저 통과시키고, 업로드는 그 다음 선택지로 내린다.
+router.get('/check', (req, res) => {
+  res.render(view('check'), {
+    title: '30초 자가 체크',
+    base: BASE,
+    activeTab: 'home',
+    hideFooter: true,
+    checklist: CHECKLIST,
+  });
+});
+
+router.post('/check', (req, res) => {
+  // 체크박스는 1개만 고르면 문자열, 여러 개면 배열로 온다
+  const raw = req.body?.answers;
+  const answers = (Array.isArray(raw) ? raw : raw ? [raw] : []).map(String);
+  // 문항 key만 남긴다 — 임의 값이 세션에 그대로 들어가지 않게 한다
+  const valid = answers.filter((key) => CHECKLIST.some((q) => q.key === key));
+
+  req.session.dpl = { ...(req.session.dpl || {}), checklist: valid };
+  // 세션 저장이 끝나기 전에 리다이렉트하면 결과 화면에서 답이 비어 보인다
+  req.session.save(() => res.redirect(`${BASE}/check/result`));
+});
+
+router.get('/check/result', (req, res) => {
+  const answers = req.session.dpl?.checklist;
+  if (!answers) return res.redirect(`${BASE}/check`);
+
+  res.render(view('check-result'), {
+    title: '간이 진단 결과',
+    base: BASE,
+    activeTab: 'home',
+    hideFooter: true,
+    result: scoreChecklist(answers),
+  });
+});
+
+// ── 3. 카카오톡 대화 캡처 업로드 (선택 — 상담 컨텍스트로만 사용) ──
 router.get('/upload', (req, res) => {
   res.render(view('upload'), {
     title: '대화 업로드',
@@ -232,7 +271,9 @@ router.post('/upload', uploadAnalyzeLimiter, upload.array('chatImages', 10), asy
     const images = preparedLists.flat();
 
     // 서버 세션 메모리에만 임시 보관 — 이미지는 분석 완료 후(상담 시작 시) 즉시 폐기
+    // 앞서 통과한 체크리스트 답변은 상담·진단에서 계속 쓰므로 덮어쓰지 않는다
     req.session.dpl = {
+      ...(req.session.dpl || {}),
       captureImages: images.map((img) => ({ mimetype: img.mimetype, base64: img.buffer.toString('base64') })),
       analyzed: false,
     };
@@ -329,7 +370,7 @@ router.post('/analyzing/analyze', uploadAnalyzeLimiter, async (req, res) => {
   }
 });
 
-// ── 3. AI 상담 ──────────────────────────────────
+// ── 4. AI 상담 ──────────────────────────────────
 router.get('/counsel', async (req, res, next) => {
   try {
     const agents = await Agent.findAll({
@@ -362,6 +403,14 @@ router.get('/counsel', async (req, res, next) => {
       } else {
         greeting = '대화 내용을 확인해봤는데, 특별히 의심되는 부분은 눈에 띄지 않았어요. 혹시 다른 힘드셨던 경험이 있으신가요?';
       }
+    } else if (req.session.dpl?.checklist?.length) {
+      // 업로드를 건너뛰고 체크리스트에서 바로 넘어온 경우 —
+      // 방금 체크한 항목을 그대로 이어받아야 "처음부터 다시 설명하는" 느낌이 안 든다.
+      const checked = CHECKLIST.filter((q) => req.session.dpl.checklist.includes(q.key));
+      // 문항 원문에는 따옴표가 들어 있어 그대로 인용하면 따옴표가 겹친다 —
+      // 대화체로 다듬어둔 topic을 쓴다.
+      const more = checked.length > 1 ? ` 체크하신 ${checked.length}가지 중에 여기부터 여쭤볼게요.` : '';
+      greeting = `체크해주신 내용 봤어요. ${checked[0].topic}, 그 부분이 걸리셨네요.${more} 최근에 그렇게 느꼈던 상황을 편하게 말씀해 주세요.`;
     }
 
     res.render(view('counsel'), {
@@ -413,6 +462,7 @@ router.post('/counsel/stream', counselStreamLimiter, async (req, res) => {
 
     const systemPrompt = buildCounselSystemPrompt(agent.systemPrompt, {
       chatContext: req.session.dpl?.chatContext,
+      checklistContext: formatChecklistContext(req.session.dpl?.checklist),
     });
     // 스트리밍 오류는 SDK가 재시도해 주지 않는다 —
     // HTTP 200으로 스트림이 열린 뒤 본문 안에서 오류가 오기 때문에 SDK의 maxRetries 범위 밖이다.
@@ -483,6 +533,7 @@ router.post('/counsel/report', reportGenLimiter, async (req, res) => {
     const assessment = await assessCounsel({
       history,
       chatContext: req.session.dpl?.chatContext,
+      checklistContext: formatChecklistContext(req.session.dpl?.checklist),
     });
     if (!assessment) {
       return res.status(503).json({ error: '상담 봇이 아직 설정되지 않았습니다(API 키 미설정).' });
@@ -522,7 +573,7 @@ router.post('/counsel/report', reportGenLimiter, async (req, res) => {
   }
 });
 
-// ── 4. 최종 리포트 ──────────────────────────────
+// ── 5. 최종 리포트 ──────────────────────────────
 // 리포트는 로그인 없이 링크만으로 접근하는 구조라, 라우트 파라미터는 반드시
 // 순차 추측이 불가능한 publicId(UUID)로만 조회한다 — 정수 PK로 조회하면 다른 사람 리포트를 열람당함.
 router.get('/report/:publicId', async (req, res, next) => {
@@ -744,7 +795,7 @@ router.post('/report/:publicId/ask', counselStreamLimiter, async (req, res) => {
   }
 });
 
-// ── 5. 결제 (전체 리포트 잠금 해제) ──────────────
+// ── 6. 결제 (전체 리포트 잠금 해제) ──────────────
 
 // 결제 시작 전 전화번호를 서버 세션에 orderId로 매칭해 저장 — successUrl 쿼리스트링에
 // 전화번호를 실어 보내지 않기 위함(접속 로그에 PII가 남는 걸 막음).

@@ -37,10 +37,10 @@ JSON 형식: {"axisScores": {"narcissism": 1, "machiavellianism": 1, "psychopath
 
 /**
  * 상담 대화 전체(+ 선택적 카톡 참고 구간)를 근거로 최종 진단을 생성.
- * @param {{ history: {role:string, content:string}[], chatContext?: string|null }} opts
+ * @param {{ history: {role:string, content:string}[], chatContext?: string|null, checklistContext?: string|null }} opts
  * @returns {Promise<ReturnType<typeof normalizeAssessment>|null>} 상담 봇 미설정 시 null
  */
-export async function assessCounsel({ history, chatContext } = {}) {
+export async function assessCounsel({ history, chatContext, checklistContext } = {}) {
   const client = getCounselorClient();
   if (!client) return null;
 
@@ -53,6 +53,12 @@ export async function assessCounsel({ history, chatContext } = {}) {
     ? `\n\n[참고: 업로드된 대화 캡처에서 AI가 대화 흐름을 보고 이미 조종적 발화로 확정한 구간입니다. 통계적 추측이 아니라 확정된 근거이니, 아래 패턴 태깅에 적극 반영하세요.]\n${wrapUntrusted(chatContext, '업로드된 카카오톡 대화 발췌')}`
     : '';
 
+  // 자가 체크 결과는 상담 대화에서 미처 다 말하지 못한 신호를 메워준다.
+  // 우리가 만든 고정 문항이라 사용자 입력이 섞이지 않아 그대로 붙인다.
+  const checklistBlock = checklistContext
+    ? `\n\n[참고: 사용자가 상담 전 자가 체크리스트에서 직접 '그렇다'고 답한 항목입니다. 본인 신고 자료이니 상담 대화에서 확인된 내용과 함께 반영하되, 이것만으로 점수를 올리지는 마세요.]\n${checklistContext}`
+    : '';
+
   const message = await client.messages.create({
     model: DEFAULT_MODEL,
     max_tokens: 1500,
@@ -60,7 +66,7 @@ export async function assessCounsel({ history, chatContext } = {}) {
     messages: [
       {
         role: 'user',
-        content: `${wrapUntrusted(transcript, '상담 대화 기록')}${contextBlock}`,
+        content: `${wrapUntrusted(transcript, '상담 대화 기록')}${contextBlock}${checklistBlock}`,
       },
     ],
   });

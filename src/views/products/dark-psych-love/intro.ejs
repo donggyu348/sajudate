@@ -579,10 +579,12 @@
 
 <!-- 스크롤 후 따라붙는 하단 고정 CTA (히어로를 지나면 등장) -->
 <div id="stickyCta" class="pointer-events-none fixed inset-x-0 bottom-14 z-20 mx-auto max-w-app px-4 pb-3 opacity-0 transition-opacity duration-300">
-  <a href="<%= base %>/upload" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-red-600 py-3.5 text-[14px] font-bold text-white shadow-[0_12px_28px_-10px_rgba(220,38,38,0.85)]">
-    무료로 진단 받기
+  <%# 첫 관문은 업로드가 아니라 체크리스트 — 광고 클릭 직후의 공수를 최대한 낮춘다 %>
+  <a href="<%= base %>/check" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-red-600 py-3.5 text-[14px] font-bold text-white shadow-[0_12px_28px_-10px_rgba(220,38,38,0.85)]">
+    30초 무료 자가 진단
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14 0" /><path d="M13 18l6 -6" /></svg>
   </a>
+  <p class="mt-2 text-center text-[10.5px] text-white/30">업로드·회원가입 없이 바로 시작</p>
 </div>
 
 <script>
