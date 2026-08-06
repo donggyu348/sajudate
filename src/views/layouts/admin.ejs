@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= typeof title !== 'undefined' ? title + ' · 관리자' : '관리자' %></title>
+    <link rel="icon" href="/assets/favicon.ico" sizes="any" />
+    <link rel="stylesheet" href="/assets/css/main.css" />
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body class="bg-black">
+    <div class="flex min-h-screen w-full items-start justify-center p-2 sm:p-6">
+      <div class="container max-w-6xl">
+        <div class="overflow-hidden rounded-xl bg-white shadow-md">
+          <% if (typeof showNav === 'undefined' || showNav) { %>
+            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-3">
+              <nav class="flex gap-1">
+                <a href="/admin" class="rounded-lg px-3 py-1.5 text-sm font-medium <%= currentPath === '/admin' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50' %>">결제내역</a>
+                <a href="/admin/reports/unpaid" class="rounded-lg px-3 py-1.5 text-sm font-medium <%= currentPath.startsWith('/admin/reports') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50' %>">미결제</a>
+                <a href="/agent-admin" class="rounded-lg px-3 py-1.5 text-sm font-medium <%= currentPath.startsWith('/agent-admin') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50' %>">AI 에이전트</a>
+              </nav>
+              <form method="post" action="/admin/logout">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button class="text-xs text-gray-500 underline hover:text-gray-800">로그아웃</button>
+              </form>
+            </div>
+          <% } %>
+          <%- body %>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

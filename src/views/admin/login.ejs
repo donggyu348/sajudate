@@ -1,9 +1,9 @@
-<div class="px-4 py-10">
-  <h1 class="text-lg font-bold">관리자 로그인</h1>
-  <p class="mt-1 text-sm text-ink-soft">에이전트(상담 봇)를 관리하려면 로그인하세요.</p>
+<div class="p-8">
+  <h1 class="text-xl font-bold text-gray-800">관리자 로그인</h1>
+  <p class="mt-1 text-sm text-gray-500">결제내역과 AI 에이전트를 관리하려면 로그인하세요.</p>
 
   <% if (usingDefaultPw) { %>
-    <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[11px] leading-relaxed text-amber-700">
+    <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-700">
       <code>ADMIN_PASSWORD</code>가 설정되지 않아 임시 비밀번호 <code>admin</code>이 사용 중입니다. 배포 전 반드시 <code>.env</code>에 <code>ADMIN_PASSWORD</code>를 지정하세요.
     </div>
   <% } %>
@@ -12,10 +12,10 @@
     <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600"><%= error %></div>
   <% } %>
 
-  <form method="post" action="/admin/login" class="mt-5 space-y-3">
+  <form method="post" action="/admin/login" class="mt-5 max-w-sm space-y-3">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
     <input type="password" name="password" placeholder="비밀번호" autofocus
-      class="w-full rounded-lg border border-line px-3 py-2.5 text-sm focus:border-accent focus:outline-none" />
-    <button type="submit" class="btn-primary w-full">로그인</button>
+      class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none" />
+    <button type="submit" class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">로그인</button>
   </form>
 </div>

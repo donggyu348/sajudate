@@ -1,0 +1,61 @@
+<div class="border-b border-gray-200 p-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+    <div>
+      <h2 class="text-xl font-bold text-gray-800">AI 에이전트 관리</h2>
+      <p class="mt-1 text-gray-500">상담 봇의 인격(시스템 프롬프트)·모델·파라미터를 코드 없이 관리합니다.</p>
+    </div>
+    <a href="/agent-admin/new" class="mt-4 shrink-0 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 md:mt-0">+ 새 에이전트</a>
+  </div>
+
+  <% if (usingDefaultPw) { %>
+    <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-700">
+      임시 비밀번호(<code>admin</code>) 사용 중 — 배포 전 <code>.env</code>의 <code>ADMIN_PASSWORD</code>를 설정하세요.
+    </div>
+  <% } %>
+</div>
+
+<div class="overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">이름</th>
+        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">slug / 모델</th>
+        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">상태</th>
+        <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">관리</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200 bg-white">
+      <% if (!agents.length) { %>
+        <tr><td colspan="4" class="py-10 text-center text-sm text-gray-500">아직 에이전트가 없습니다. 위 버튼으로 만들어 보세요.</td></tr>
+      <% } %>
+      <% agents.forEach(function (a) { %>
+        <tr class="transition-colors duration-150 hover:bg-gray-50">
+          <td class="px-6 py-4">
+            <p class="text-sm font-semibold text-gray-900"><%= a.name %></p>
+            <% if (a.description) { %><p class="mt-0.5 max-w-md text-xs text-gray-500"><%= a.description %></p><% } %>
+          </td>
+          <td class="whitespace-nowrap px-6 py-4 text-xs text-gray-500">
+            /<%= a.slug %><br /><%= a.model || '기본 모델' %> · effort <%= a.effort %>
+          </td>
+          <td class="whitespace-nowrap px-6 py-4">
+            <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 <%= a.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500' %>"><%= a.isActive ? '활성' : '비활성' %></span>
+          </td>
+          <td class="whitespace-nowrap px-6 py-4">
+            <div class="flex flex-wrap items-center justify-end gap-2">
+              <a href="/agent-admin/<%= a.id %>/edit" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-50">수정</a>
+              <a href="/products/dark-psych-love/counsel?agent=<%= a.slug %>" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-50">대화 테스트</a>
+              <form method="post" action="/agent-admin/<%= a.id %>/toggle">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-50"><%= a.isActive ? '비활성화' : '활성화' %></button>
+              </form>
+              <form method="post" action="/agent-admin/<%= a.id %>/delete" onsubmit="return confirm('삭제할까요? 되돌릴 수 없습니다.');">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                <button class="px-2 py-1.5 text-xs text-red-500">삭제</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,76 @@
+<%
+  const a = agent || {};
+  const isEdit = a && a.id;
+  const action = isEdit ? ('/agent-admin/' + a.id) : '/agent-admin';
+  function v(x) { return x == null ? '' : String(x); }
+  const input = 'mt-1.5 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none';
+%>
+<div class="p-6">
+  <a href="/agent-admin" class="text-xs text-gray-500 hover:text-gray-800">← 목록으로</a>
+  <h2 class="mt-2 text-xl font-bold text-gray-800"><%= isEdit ? '에이전트 수정' : '새 에이전트' %></h2>
+
+  <% if (error) { %>
+    <div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600"><%= error %></div>
+  <% } %>
+
+  <form method="post" action="<%= action %>" class="mt-5 max-w-3xl space-y-4">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+    <div>
+      <label class="text-sm font-medium">이름 *</label>
+      <input type="text" name="name" value="<%= v(a.name) %>" required placeholder="예: 관계 상담사" class="<%= input %>" />
+    </div>
+
+    <div>
+      <label class="text-sm font-medium">slug (URL 키, 비우면 자동)</label>
+      <input type="text" name="slug" value="<%= v(a.slug) %>" placeholder="예: relationship-counselor" class="<%= input %>" />
+    </div>
+
+    <div>
+      <label class="text-sm font-medium">한 줄 설명</label>
+      <input type="text" name="description" value="<%= v(a.description) %>" placeholder="목록/채팅 화면에 노출" class="<%= input %>" />
+    </div>
+
+    <div>
+      <label class="text-sm font-medium">시스템 프롬프트 * <span class="font-normal text-gray-500">(봇의 인격·규칙)</span></label>
+      <textarea name="systemPrompt" rows="12" required placeholder="당신은 ~~ 입니다. [역할] ... [하지 말 것] ... [안전] ..."
+        class="mt-1.5 w-full resize-y rounded-lg border border-gray-300 px-3 py-2.5 font-mono text-xs leading-relaxed focus:border-indigo-500 focus:outline-none"><%= v(a.systemPrompt) %></textarea>
+      <p class="mt-1 text-xs text-gray-500">위기 신호(자해·폭력) 대응, 진단 단정 금지 등 안전 지침을 꼭 포함하세요.</p>
+    </div>
+
+    <div>
+      <label class="text-sm font-medium">첫 인사말</label>
+      <textarea name="greeting" rows="2" placeholder="안녕하세요. 어떤 이야기가 있으신가요?"
+        class="mt-1.5 w-full resize-y rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none"><%= v(a.greeting) %></textarea>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3">
+      <div class="col-span-3">
+        <label class="text-sm font-medium">모델 (비우면 서버 기본)</label>
+        <input type="text" name="model" value="<%= v(a.model) %>" placeholder="claude-opus-5 / claude-sonnet-5" class="<%= input %>" />
+      </div>
+      <div>
+        <label class="text-sm font-medium">max tokens</label>
+        <input type="number" name="maxTokens" value="<%= v(a.maxTokens || 1600) %>" min="256" max="8000" class="<%= input %>" />
+      </div>
+      <div>
+        <label class="text-sm font-medium">effort</label>
+        <select name="effort" class="<%= input %>">
+          <% ['low','medium','high'].forEach(function (e) { %>
+            <option value="<%= e %>" <%= (a.effort || 'low') === e ? 'selected' : '' %>><%= e %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-medium">정렬순서</label>
+        <input type="number" name="sortOrder" value="<%= v(a.sortOrder || 0) %>" class="<%= input %>" />
+      </div>
+    </div>
+
+    <label class="flex items-center gap-2 text-sm">
+      <input type="checkbox" name="isActive" <%= (a.id ? a.isActive : true) ? 'checked' : '' %> class="h-4 w-4 rounded border-gray-300 text-indigo-600" />
+      활성 (채팅 화면에 노출)
+    </label>
+
+    <button type="submit" class="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700"><%= isEdit ? '저장' : '만들기' %></button>
+  </form>
+</div>

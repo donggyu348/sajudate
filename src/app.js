@@ -8,6 +8,7 @@ import morgan from 'morgan';
 
 import homeRouter from './routes/home.js';
 import adminRouter from './routes/admin.js';
+import agentAdminRouter from './routes/agent-admin.js';
 import { sequelize } from './db/sequelize.js';
 import { mountProductModules } from './products/registry.js';
 
@@ -73,8 +74,9 @@ export function createApp() {
     next();
   });
 
-  // 관리자
+  // 관리자 — 결제내역(/admin)과 AI 에이전트 관리(/agent-admin)는 별도 페이지로 분리
   app.use('/admin', adminRouter);
+  app.use('/agent-admin', agentAdminRouter);
 
   // 상품 전용 모듈이 /products/:slug 를 먼저 가로챈다.
   mountProductModules(app);
