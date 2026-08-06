@@ -251,7 +251,7 @@
                     </svg>
                     3초만에 채널 추가하고 쿠폰 받기
                 </a>
-                <button type="button" id="channel-later-btn" class="channel-modal__later">24시간 동안 안 보기</button>
+                <button type="button" id="channel-later-btn" class="channel-modal__later">다음에 할게요</button>
             </div>
         </div>
     </div>
@@ -733,12 +733,8 @@
         const CHANNEL_COUPON_DISCOUNT = <%= channelCouponDiscount %>;
         // 채널 쿠폰은 번들 상품에만 적용된다 (서버 ChannelCouponService와 동일 규칙)
         const channelDiscountFor = (code) => (String(code).includes("_BUNDLE") ? CHANNEL_COUPON_DISCOUNT : 0);
-        // 값에 "다시 노출 가능 시각(ms)"을 저장한다. (구버전의 "1" 기록은 무시)
-        const CHANNEL_POPUP_SEEN_KEY = "kakaoChannelPopupSeen";
         // 채널을 추가해 쿠폰을 받은 적이 있는지 (결제 없이 나갔다 돌아와도 쿠폰을 되살리는 근거)
         const CHANNEL_COUPON_OWNED_KEY = "kakaoChannelCouponOwned";
-        const CHANNEL_POPUP_MUTE_HOURS = 24;
-        const CHANNEL_POPUP_MUTE_FOREVER_HOURS = 24 * 365;
         // 서버 세션에 이미 발급 기록이 있으면 새로고침 후에도 할인 표기를 유지한다.
         let channelCouponApplied = <%= channelCouponIssued ? "true" : "false" %>;
 
@@ -869,29 +865,9 @@
             document.body.style.overflow = "";
         }
 
-        // "24시간 동안 안 보기" / 쿠폰 수령 시에만 재노출을 막는다.
-        // X로 닫거나 그냥 떠난 경우엔 기록하지 않아 다시 들어오면 한 번 더 노출된다.
-        function muteChannelPopup(hours) {
-            localStorage.setItem(CHANNEL_POPUP_SEEN_KEY, String(Date.now() + hours * 60 * 60 * 1000));
-        }
-
-        function isChannelPopupMuted() {
-            const until = localStorage.getItem(CHANNEL_POPUP_SEEN_KEY);
-            if (!until || until === "1") return false; // 구버전 기록은 무시
-
-            // 쿠폰 수령으로 인한 장기 억제인데 보유 기록이 없으면(구버전에서 받은 경우)
-            // 쿠폰도 팝업도 못 받는 상태가 되므로 억제를 무시하고 다시 노출한다.
-            const remainHours = (Number(until) - Date.now()) / (60 * 60 * 1000);
-            if (remainHours > CHANNEL_POPUP_MUTE_HOURS + 1 && localStorage.getItem(CHANNEL_COUPON_OWNED_KEY) !== "1") {
-                localStorage.removeItem(CHANNEL_POPUP_SEEN_KEY);
-                return false;
-            }
-
-            return Date.now() < Number(until);
-        }
-
+        // 노출 규칙은 단순하다: 쿠폰이 없으면 들어올 때마다 노출, 쿠폰이 있으면 노출하지 않는다.
+        // (이미 받은 사용자는 팝업 없이 할인가가 그대로 적용된다)
         function dismissChannelModal() {
-            muteChannelPopup(CHANNEL_POPUP_MUTE_HOURS);
             hideChannelModal();
         }
 
@@ -924,7 +900,6 @@
                 if (response.data.code !== 200) return;
                 channelCouponApplied = true;
                 localStorage.setItem(CHANNEL_COUPON_OWNED_KEY, "1");
-                muteChannelPopup(CHANNEL_POPUP_MUTE_FOREVER_HOURS);
                 renderChannelCoupon();
                 if (!silent) showChannelToast();
             } catch (error) {
@@ -963,13 +938,11 @@
             restoreChannelCoupon();
 
             document.getElementById("channel-follow-btn").addEventListener("click", followKakaoChannel);
-            document.getElementById("channel-close-btn").addEventListener("click", hideChannelModal); // X는 이번 방문만 닫기
-            document.getElementById("channel-later-btn").addEventListener("click", dismissChannelModal); // 24시간 동안 안 보기
+            document.getElementById("channel-close-btn").addEventListener("click", hideChannelModal);
+            document.getElementById("channel-later-btn").addEventListener("click", dismissChannelModal);
 
-            // 쿠폰을 받았거나 "24시간 동안 안 보기"를 누른 사용자에게는 노출하지 않는다.
-            if (channelCouponApplied) return;
-            if (isChannelPopupMuted()) return;
-
+            // 들어올 때마다 노출한다. 쿠폰을 이미 받았더라도 할인은 5,000원 그대로이므로(중복 적용 없음)
+            // 다시 눌러도 손해가 없다.
             showChannelModal();
         }
 
