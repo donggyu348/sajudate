@@ -21,6 +21,7 @@ import { CHECKLIST, scoreChecklist, formatChecklistContext } from './logic/check
 import { REPORT_DISCLAIMER, REPORT_TOC } from './logic/safety.js';
 import { buildReportChatPrompt, isOverChatLimit } from './logic/reportChat.js';
 import { recommendChapters } from './logic/chapterRecommend.js';
+import { pickReviews } from './logic/reviews.js';
 import {
   REPORT_UNLOCK_PRICE,
   getTossClientKey,
@@ -198,6 +199,7 @@ router.get('/', async (req, res, next) => {
       base: BASE,
       activeTab: 'home',
       axes: AXES,
+      reviews: pickReviews(8),
       // 랜딩은 자체 CTA와 고지로 끝나는 구성이라 공통 푸터를 넣지 않는다
       hideFooter: true,
     });
@@ -435,6 +437,8 @@ router.get('/counsel', async (req, res, next) => {
       greeting,
       hasChatContext: Boolean(req.session.dpl?.chatContext),
       maxUserTurns: effectiveMaxTurns(req),
+      // 결과지 만드는 동안 띄우는 로딩 화면에서 한 장씩 넘겨 보여줄 후기
+      reviews: pickReviews(6),
       extendTurns: EXTEND_TURNS,
       canExtend: !req.session.counselExtended,
     });

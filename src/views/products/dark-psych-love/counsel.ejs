@@ -25,6 +25,29 @@
     border-top-color: rgba(255, 255, 255, 0.07);
   }
   .app-shell > nav a.text-ink-soft { color: rgba(255, 255, 255, 0.4); }
+
+  /* ── 결과지 생성 대기 화면 ─────────────────────────── */
+  @keyframes rlPulse {
+    0%, 100% { opacity: 0.35; transform: scale(0.94); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+  .rl-ring { animation: rlPulse 1.8s ease-in-out infinite; }
+
+  @keyframes rlSweep {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(400%); }
+  }
+  .rl-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 25%;
+    background: linear-gradient(90deg, transparent, #ef4444, transparent);
+    animation: rlSweep 1.6s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rl-ring, .rl-bar::after { animation: none; }
+  }
 </style>
 
 <div class="flex h-[calc(100vh-3.5rem-5rem)] flex-col bg-[#0b0f16]">
@@ -163,6 +186,48 @@
     </button>
   </div>
   <p id="quickReportError" class="mt-2 hidden text-center text-[11px] text-red-600"></p>
+</div>
+
+<!-- 결과지 생성 대기 화면 — 수십 초 걸리는 동안 빈 화면 대신 후기를 한 장씩 넘겨 보여준다 -->
+<div id="reportLoading" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center bg-[#0b0f16] px-6">
+  <div class="relative h-16 w-16">
+    <span class="rl-ring absolute inset-0 rounded-full border border-red-500/40"></span>
+    <span class="rl-ring absolute inset-2 rounded-full border border-red-500/25" style="animation-delay: 0.3s;"></span>
+    <span class="absolute inset-0 flex items-center justify-center text-red-400">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a2 2 0 0 1 2 2v13a1 1 0 0 1 -1.5 .866l-3 -1.732l-3 1.732a1 1 0 0 1 -1.5 -.866v-13a2 2 0 0 1 2 -2" /></svg>
+    </span>
+  </div>
+
+  <h2 class="mt-7 text-center font-serif text-[20px] font-bold leading-[1.5] text-white">
+    나눈 대화를 분석해<br />결과지를 만들고 있어요
+  </h2>
+  <p class="mt-3 text-center text-[12.5px] leading-relaxed text-white/45">
+    잠시만 기다려 주세요. 이 화면을 닫으면 처음부터 다시 해야 해요.
+  </p>
+
+  <div class="relative mt-6 h-[3px] w-full max-w-xs overflow-hidden rounded-full bg-white/[0.07]">
+    <span class="rl-bar absolute inset-0"></span>
+  </div>
+
+  <div class="mt-10 w-full max-w-xs overflow-hidden">
+    <p class="mb-3 text-center text-[10.5px] font-semibold tracking-[0.18em] text-white/25">REVIEWS</p>
+    <div id="reportLoadingTrack" class="flex transition-transform duration-500 ease-out">
+      <% reviews.forEach(function (r) { %>
+        <article class="w-full shrink-0 px-1">
+          <div class="rounded-2xl border border-white/[0.09] bg-white/[0.03] px-5 py-5">
+            <p class="font-serif text-[13.5px] leading-[1.75] text-white/85">&ldquo;<%= r.text %>&rdquo;</p>
+            <p class="mt-3.5 text-[11px] text-white/30"><%= r.nick %> · <%= r.days %>일 전</p>
+          </div>
+        </article>
+      <% }); %>
+    </div>
+    <div id="reportLoadingDots" class="mt-4 flex justify-center gap-1.5">
+      <% reviews.forEach(function (r, i) { %>
+        <span class="h-1.5 rounded-full transition-all duration-300 <%= i === 0 ? 'w-5 bg-white/60' : 'w-1.5 bg-white/20' %>"></span>
+      <% }); %>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -456,11 +521,43 @@
       input.focus();
     });
 
+    // ── 결과지 생성 대기 화면 ──────────────────────────
+    // 생성에 수십 초가 걸려, 버튼 라벨만 바꿔두면 멈춘 것처럼 보인다.
+    // 대기 화면을 덮고 그 안에서 후기를 한 장씩 자동으로 넘긴다.
+    const loadingEl = document.getElementById('reportLoading');
+    const loadingTrack = document.getElementById('reportLoadingTrack');
+    const loadingDots = document.getElementById('reportLoadingDots');
+    let loadingTimer = null;
+
+    function showReportLoading() {
+      if (!loadingEl) return;
+      loadingEl.classList.remove('hidden');
+      loadingEl.classList.add('flex');
+      const total = loadingTrack ? loadingTrack.children.length : 0;
+      if (total < 2 || loadingTimer) return;
+      let i = 0;
+      loadingTimer = setInterval(function () {
+        i = (i + 1) % total;
+        loadingTrack.style.transform = 'translateX(-' + i * 100 + '%)';
+        Array.prototype.forEach.call(loadingDots.children, function (dot, di) {
+          dot.className = 'h-1.5 rounded-full transition-all duration-300 ' + (di === i ? 'w-5 bg-white/60' : 'w-1.5 bg-white/20');
+        });
+      }, 3500);
+    }
+
+    function hideReportLoading() {
+      if (!loadingEl) return;
+      if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+      loadingEl.classList.add('hidden');
+      loadingEl.classList.remove('flex');
+    }
+
     async function goToReport(triggerBtn, originalLabel) {
       finishError.classList.add('hidden');
       finishBtn.disabled = true;
       headerReportBtn.disabled = true;
       triggerBtn.textContent = '결과 정리 중…';
+      showReportLoading();
       try {
         const res = await fetch(base + '/counsel/report', {
           method: 'POST',
@@ -471,6 +568,7 @@
         if (!res.ok) throw new Error(data.error || '리포트 생성에 실패했습니다.');
         location.href = base + '/report/' + data.reportId;
       } catch (err) {
+        hideReportLoading();
         finishError.textContent = err.message || '리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.';
         finishError.classList.remove('hidden');
         finishBtn.disabled = false;
@@ -540,6 +638,8 @@
         confirmBtn.disabled = true;
         cancelBtn.disabled = true;
         confirmBtn.textContent = '결과 정리 중…';
+        closeModal();
+        showReportLoading();
         try {
           const res = await fetch(base + '/counsel/report', {
             method: 'POST',
@@ -550,6 +650,10 @@
           if (!res.ok) throw new Error(data.error || '리포트 생성에 실패했습니다.');
           location.href = base + '/report/' + data.reportId;
         } catch (err) {
+          // 실패하면 대기 화면을 걷고, 에러를 보여주기 위해 모달을 다시 연다
+          hideReportLoading();
+          modal.classList.remove('hidden');
+          overlay.classList.remove('hidden');
           quickError.textContent = err.message || '리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.';
           quickError.classList.remove('hidden');
           confirmBtn.disabled = false;
