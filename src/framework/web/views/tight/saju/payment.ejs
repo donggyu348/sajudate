@@ -160,6 +160,22 @@
         </div>
     </div>
 
+    <!-- 쿠폰 적용 안내 토스트 -->
+    <div id="channel-toast" class="channel-toast" role="status" aria-live="polite">
+        <div class="channel-toast__icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 10.5l4 4 8-9" />
+            </svg>
+        </div>
+        <div class="channel-toast__body">
+            <p class="channel-toast__title"><%= channelCouponDiscount.toLocaleString() %>원 할인쿠폰이 적용됐어요</p>
+            <p class="channel-toast__desc">
+                <span class="channel-toast__code"><%= channelCouponCode %></span>
+                최종 결제금액에서 자동 차감됩니다
+            </p>
+        </div>
+    </div>
+
     <!-- 결제 이탈 방지 모달 -->
     <div id="exit-modal" class="exit-modal hidden" aria-hidden="true">
         <div class="exit-modal__backdrop"></div>
@@ -471,6 +487,83 @@
   color: #191600;
   box-shadow: 0 8px 20px rgba(254, 229, 0, 0.35);
 }
+/* 쿠폰 적용 안내 토스트 */
+.channel-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 32px);
+  max-width: 420px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: #111827;
+  box-shadow: 0 16px 40px rgba(17, 24, 39, 0.35);
+  transform: translate(-50%, 24px);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.32s ease;
+}
+.channel-toast.is-visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  visibility: visible;
+}
+.channel-toast__icon {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fee500;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.channel-toast__icon svg {
+  width: 18px;
+  height: 18px;
+}
+.channel-toast__body {
+  min-width: 0;
+}
+.channel-toast__title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.channel-toast__desc {
+  margin-top: 3px;
+  color: #9ca3af;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.channel-toast__code {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(254, 229, 0, 0.15);
+  color: #fee500;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* 쿠폰 행이 새로 붙을 때 한 번 반짝 */
+@keyframes coupon-pop {
+  0% { transform: translateY(-4px); opacity: 0; }
+  60% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.coupon-row-pop {
+  animation: coupon-pop 0.45s ease-out;
+}
+
 .channel-modal__close {
   position: absolute;
   top: 10px;
@@ -510,6 +603,7 @@
 
         const channelModal = document.getElementById("channel-modal");
         const channelCouponRow = document.getElementById("channel-coupon-row");
+        let channelToastTimerId = null;
 
         const exitModal = document.getElementById("exit-modal");
         const exitHoursEl = document.getElementById("exit-hours");
@@ -641,6 +735,22 @@
             hideChannelModal();
         }
 
+        // 쿠폰 적용 안내 — alert 대신 하단 토스트로 보여주고 몇 초 뒤 자동으로 닫는다.
+        function showChannelToast() {
+            const toast = document.getElementById("channel-toast");
+            if (!toast) return;
+
+            toast.classList.add("is-visible");
+            if (channelCouponRow) {
+                channelCouponRow.classList.remove("coupon-row-pop");
+                void channelCouponRow.offsetWidth; // 애니메이션 재시작
+                channelCouponRow.classList.add("coupon-row-pop");
+            }
+
+            clearTimeout(channelToastTimerId);
+            channelToastTimerId = setTimeout(() => toast.classList.remove("is-visible"), 4200);
+        }
+
         // 쿠폰 적용 상태를 결제 상세 UI에 반영 (금액 계산은 selectOption에서 함께 처리)
         function renderChannelCoupon() {
             if (!channelCouponRow) return;
@@ -655,7 +765,7 @@
                 channelCouponApplied = true;
                 localStorage.setItem(CHANNEL_POPUP_SEEN_KEY, "1");
                 renderChannelCoupon();
-                alert(`쿠폰(${CHANNEL_COUPON_CODE})이 발급되어 ${CHANNEL_COUPON_DISCOUNT.toLocaleString()}원 할인이 적용되었습니다.`);
+                showChannelToast();
             } catch (error) {
                 console.error("[ChannelCoupon] 발급 실패", error);
             }
