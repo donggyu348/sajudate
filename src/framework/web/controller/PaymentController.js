@@ -18,7 +18,10 @@ const PaymentController = {
    */
   async issueChannelCoupon(req, res) {
     try {
-      const result = ChannelCouponService.issue(req.session);
+      const result = await ChannelCouponService.issue({
+        session: req.session,
+        reportHistoryId: req.body.reportHistoryId
+      });
       return res.status(StatusCode.SUCCESS).json({
         code: 200,
         message: "채널 추가 쿠폰 발급 성공",
@@ -278,11 +281,13 @@ let finalAmount = GoodsType[currentGoodsType].price;      if (TEST_PHONE_NUMBER.
         console.log(`[TEST MODE] ${userTelNo} → 금액 ${TEST_AMOUNT}원`);
         finalAmount = TEST_AMOUNT;
       } else {
-        // 카카오톡 채널 추가 쿠폰(-4,000원). 화면 표기 금액과 실제 승인 금액을 맞추기 위해 서버에서도 차감한다.
+        // 카카오톡 채널 추가 쿠폰(번들 한정 -5,000원). 화면 표기 금액과 실제 승인 금액을 맞추기 위해 서버에서도 차감한다.
         try {
           const channelDiscount = await ChannelCouponService.consume({
             session: req.session,
-            userTelNo
+            userTelNo,
+            goodsType: currentGoodsType,
+            reportHistoryId
           });
           if (channelDiscount > 0) {
             finalAmount = Math.max(1000, finalAmount - channelDiscount);

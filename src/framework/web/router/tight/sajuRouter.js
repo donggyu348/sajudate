@@ -688,8 +688,11 @@ router.get("/payment", async (req, res) => {
       channelPopupImage: CHANNEL_POPUP_IMAGES[baseGoodsCode] || "",
       channelCouponCode: CHANNEL_COUPON_CODE,
       channelCouponDiscount: CHANNEL_COUPON_DISCOUNT,
-      // 이미 쿠폰을 받은 세션이면 새로고침 후에도 할인 표기를 유지한다.
-      channelCouponIssued: ChannelCouponService.isIssued(req.session)
+      // 이미 쿠폰을 받았다면 새로고침(또는 서버 재시작으로 세션이 날아간 뒤)에도 할인 표기를 유지한다.
+      channelCouponIssued: await ChannelCouponService.isIssuedFor({
+        session: req.session,
+        reportHistoryId: reportHistory.id
+      })
     });
   } catch (err) {
     console.error("❌ /payment GET 처리 실패:", err);

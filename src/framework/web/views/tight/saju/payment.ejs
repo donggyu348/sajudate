@@ -138,8 +138,12 @@
                                 카카오톡 채널 쿠폰
                                 <span id="channel-coupon-code" class="text-[10px] bg-yellow-400 text-yellow-900 rounded-full px-2 h-4 flex items-center font-bold"><%= channelCouponCode %></span>
                             </p>
-                            <span>-<%= channelCouponDiscount.toLocaleString() %>원</span>
+                            <span id="channel-coupon-amount">-<%= channelCouponDiscount.toLocaleString() %>원</span>
                         </div>
+
+                        <p id="channel-coupon-hint" class="hidden text-[11px] text-gray-400">
+                            ※ 채널 쿠폰은 번들 상품 결제 시에만 적용됩니다
+                        </p>
 
                         <div class="flex justify-between items-center bg-white rounded-lg px-4 py-3 mt-3 font-bold">
                             <p>최종 결제금액</p>
@@ -235,7 +239,7 @@
                 </h3>
                 <p class="channel-modal__desc">
                     채널 추가 안 하면 혜택을 놓쳐요<br>
-                    지금 추가하고 결제할 때 바로 쓰세요
+                    지금 추가하고 번들 상품 결제할 때 바로 쓰세요
                 </p>
 
                 <button type="button" id="channel-follow-btn" class="channel-modal__cta">
@@ -721,6 +725,8 @@
         const KAKAO_CHANNEL_ADD_URL = `https://pf.kakao.com/${KAKAO_CHANNEL_PUBLIC_ID}/friend`;
         const CHANNEL_COUPON_CODE = "<%= channelCouponCode %>";
         const CHANNEL_COUPON_DISCOUNT = <%= channelCouponDiscount %>;
+        // 채널 쿠폰은 번들 상품에만 적용된다 (서버 ChannelCouponService와 동일 규칙)
+        const channelDiscountFor = (code) => (String(code).includes("_BUNDLE") ? CHANNEL_COUPON_DISCOUNT : 0);
         // 값에 "다시 노출 가능 시각(ms)"을 저장한다. (구버전의 "1" 기록은 무시)
         const CHANNEL_POPUP_SEEN_KEY = "kakaoChannelPopupSeen";
         const CHANNEL_POPUP_MUTE_HOURS = 24;
@@ -897,7 +903,7 @@
 
         async function requestChannelCoupon() {
             try {
-                const response = await axios.post("/api/payments/channel-coupon", {});
+                const response = await axios.post("/api/payments/channel-coupon", { reportHistoryId });
                 if (response.data.code !== 200) return;
                 channelCouponApplied = true;
                 muteChannelPopup(CHANNEL_POPUP_MUTE_FOREVER_HOURS);
@@ -981,9 +987,17 @@
 
             const data = GOODS_MAP[finalGoodsCode];
             if (data) {
-                // 카카오톡 채널 쿠폰이 적용됐다면 최종 결제금액에서 추가 차감 (서버 register와 동일 계산)
-                const channelDiscount = channelCouponApplied ? CHANNEL_COUPON_DISCOUNT : 0;
-                if (channelCouponRow) channelCouponRow.classList.toggle("hidden", !channelCouponApplied);
+                // 카카오톡 채널 쿠폰(번들 한정)이 적용됐다면 최종 결제금액에서 추가 차감 (서버 register와 동일 계산)
+                const channelDiscount = channelCouponApplied ? channelDiscountFor(finalGoodsCode) : 0;
+                if (channelCouponRow) {
+                    channelCouponRow.classList.toggle("hidden", channelDiscount <= 0);
+                    const amountEl = document.getElementById("channel-coupon-amount");
+                    if (amountEl) amountEl.innerText = "-" + channelDiscount.toLocaleString() + "원";
+                }
+                // 쿠폰은 있는데 단품을 고른 경우에만 적용 조건을 안내한다.
+                const couponHint = document.getElementById("channel-coupon-hint");
+                if (couponHint) couponHint.classList.toggle("hidden", !(channelCouponApplied && channelDiscount <= 0));
+
                 finalPriceDisplay.innerText = Math.max(1000, data.price - channelDiscount).toLocaleString() + "원";
                 dTitle.innerText = data.title;
                 dOriginal.innerText = data.originalPrice.toLocaleString() + "원";
