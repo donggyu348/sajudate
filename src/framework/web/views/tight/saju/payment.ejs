@@ -872,6 +872,15 @@
         function isChannelPopupMuted() {
             const until = localStorage.getItem(CHANNEL_POPUP_SEEN_KEY);
             if (!until || until === "1") return false; // 구버전 기록은 무시
+
+            // 쿠폰 수령으로 인한 장기 억제인데 보유 기록이 없으면(구버전에서 받은 경우)
+            // 쿠폰도 팝업도 못 받는 상태가 되므로 억제를 무시하고 다시 노출한다.
+            const remainHours = (Number(until) - Date.now()) / (60 * 60 * 1000);
+            if (remainHours > CHANNEL_POPUP_MUTE_HOURS + 1 && localStorage.getItem(CHANNEL_COUPON_OWNED_KEY) !== "1") {
+                localStorage.removeItem(CHANNEL_POPUP_SEEN_KEY);
+                return false;
+            }
+
             return Date.now() < Number(until);
         }
 
