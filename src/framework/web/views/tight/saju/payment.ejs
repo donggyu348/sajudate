@@ -6,12 +6,11 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
 <!--
-  카카오톡 채널 추가 팝업용 JS SDK.
-  ⚠️ Kakao Developers 콘솔 > 내 애플리케이션 > 앱 설정 > 플랫폼 > Web 에
-     개발 서버(예: http://localhost:3000)와 프로덕션 도메인이 모두 등록돼 있어야 한다.
-     등록이 빠지면 Kakao.init / followChannel 호출이 CORS 에러로 실패한다.
+  카카오톡 채널 추가 팝업은 채널 추가 페이지(pf.kakao.com/{채널ID}/friend)를 새 창으로 여는 방식이라
+  Kakao JS SDK를 싣지 않는다. 비즈 앱 전환 후 followChannel() 방식으로 되돌릴 경우
+  https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js 를 다시 추가하고
+  Kakao Developers 콘솔 > 앱 설정 > 플랫폼 > Web 에 개발/프로덕션 도메인을 등록해야 한다.
 -->
-<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 
 <body class="bg-gray-100">
 
@@ -501,8 +500,8 @@
         const COUNTDOWN_DURATION_MS = 20 * 60 * 60 * 1000;
 
         /* ── 카카오톡 채널 추가 쿠폰 ── */
-        const KAKAO_JS_KEY = "<%= kakaoJsKey %>";
         const KAKAO_CHANNEL_PUBLIC_ID = "<%= kakaoChannelPublicId %>";
+        const KAKAO_CHANNEL_ADD_URL = `https://pf.kakao.com/${KAKAO_CHANNEL_PUBLIC_ID}/friend`;
         const CHANNEL_COUPON_CODE = "<%= channelCouponCode %>";
         const CHANNEL_COUPON_DISCOUNT = <%= channelCouponDiscount %>;
         const CHANNEL_POPUP_SEEN_KEY = "kakaoChannelPopupSeen";
@@ -613,16 +612,16 @@
 
         /* =========================================================
          * 카카오톡 채널 추가 팝업 + 4,000원 쿠폰
-         * ⚠️ Kakao Developers 콘솔의 [플랫폼 > Web] 사이트 도메인에
-         *    개발 서버 주소와 프로덕션 도메인이 모두 등록돼 있어야 한다.
-         *    누락 시 Kakao.init / followChannel 이 CORS 에러로 실패한다.
+         *
+         * Kakao JS SDK의 Kakao.Channel.followChannel()은 '비즈 앱'으로 전환된
+         * 애플리케이션에서만 동작하므로, 채널 추가 페이지를 새 창으로 여는 방식을 쓴다.
+         * 이 방식은 실제 추가 여부를 콜백으로 확인할 수 없어, 창을 연 시점에 쿠폰을 발급한다.
+         * (중복 수령은 서버에서 전화번호 기준 1회로 제한한다)
+         *
+         * 비즈 앱 전환이 완료되면 SDK 방식으로 되돌리는 편이 정확하다.
+         * 그 경우 Kakao Developers 콘솔의 [플랫폼 > Web] 사이트 도메인에
+         * 개발 서버 주소와 프로덕션 도메인이 모두 등록돼 있어야 한다(누락 시 CORS 에러).
          * ========================================================= */
-        function initKakaoSdk() {
-            if (typeof Kakao === "undefined" || !KAKAO_JS_KEY) return false;
-            if (!Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
-            return true;
-        }
-
         function showChannelModal() {
             channelModal.classList.remove("hidden");
             channelModal.setAttribute("aria-hidden", "false");
@@ -663,26 +662,19 @@
         }
 
         function followKakaoChannel() {
-            if (!initKakaoSdk()) {
-                console.warn("[ChannelCoupon] Kakao SDK 초기화 실패 (JS 키 또는 도메인 등록 확인)");
+            if (!KAKAO_CHANNEL_PUBLIC_ID) {
+                console.warn("[ChannelCoupon] KAKAO_CHANNEL_PUBLIC_ID 미설정");
                 hideChannelModal();
                 return;
             }
 
-            Kakao.Channel.followChannel({ channelPublicId: KAKAO_CHANNEL_PUBLIC_ID })
-                .then(() => {
-                    hideChannelModal();
-                    requestChannelCoupon();
-                })
-                .catch((err) => {
-                    // 사용자가 취소했거나 실패한 경우 — 화면에는 조용히 무시하고 콘솔에만 남긴다.
-                    console.warn("[ChannelCoupon] followChannel 실패", err);
-                    hideChannelModal();
-                });
+            // 클릭 핸들러 안에서 바로 열어야 팝업 차단에 걸리지 않는다.
+            window.open(KAKAO_CHANNEL_ADD_URL, "_blank");
+            hideChannelModal();
+            requestChannelCoupon();
         }
 
         function setupChannelPopup() {
-            initKakaoSdk();
             renderChannelCoupon();
 
             document.getElementById("channel-follow-btn").addEventListener("click", followKakaoChannel);

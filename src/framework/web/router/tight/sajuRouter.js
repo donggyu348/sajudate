@@ -674,8 +674,8 @@ router.get("/payment", async (req, res) => {
       goodsInfo,
       bundles: buildBundlesForBase(baseGoodsCode),
       goodsTypeMap: GoodsType,
-      // 카카오톡 채널 추가 팝업 (JS 키/채널 ID는 .env 로 분리)
-      kakaoJsKey: process.env.KAKAO_JS_KEY || "",
+      // 카카오톡 채널 추가 팝업 (채널 ID는 .env 로 분리)
+      // KAKAO_JS_KEY는 비즈 앱 전환 후 SDK(followChannel) 방식으로 되돌릴 때 쓰므로 .env에 그대로 둔다.
       kakaoChannelPublicId: process.env.KAKAO_CHANNEL_PUBLIC_ID || "",
       channelCouponCode: CHANNEL_COUPON_CODE,
       channelCouponDiscount: CHANNEL_COUPON_DISCOUNT,
