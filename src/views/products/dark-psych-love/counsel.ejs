@@ -528,9 +528,20 @@
     const loadingTrack = document.getElementById('reportLoadingTrack');
     const loadingDots = document.getElementById('reportLoadingDots');
     let loadingTimer = null;
+    let loadingStartedAt = 0;
+
+    // 생성이 빨리 끝나도 대기 화면이 깜빡하고 사라지지 않게 최소 시간은 붙잡아 둔다 —
+    // 그동안 후기가 최소 몇 장은 넘어간다.
+    const MIN_LOADING_MS = 15000;
+
+    function holdLoading() {
+      const left = MIN_LOADING_MS - (Date.now() - loadingStartedAt);
+      return left > 0 ? new Promise(function (r) { setTimeout(r, left); }) : Promise.resolve();
+    }
 
     function showReportLoading() {
       if (!loadingEl) return;
+      loadingStartedAt = Date.now();
       loadingEl.classList.remove('hidden');
       loadingEl.classList.add('flex');
       const total = loadingTrack ? loadingTrack.children.length : 0;
@@ -542,7 +553,7 @@
         Array.prototype.forEach.call(loadingDots.children, function (dot, di) {
           dot.className = 'h-1.5 rounded-full transition-all duration-300 ' + (di === i ? 'w-5 bg-white/60' : 'w-1.5 bg-white/20');
         });
-      }, 3500);
+      }, 2200);
     }
 
     function hideReportLoading() {
@@ -566,6 +577,7 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || '리포트 생성에 실패했습니다.');
+        await holdLoading();
         location.href = base + '/report/' + data.reportId;
       } catch (err) {
         hideReportLoading();
@@ -648,6 +660,7 @@
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || '리포트 생성에 실패했습니다.');
+          await holdLoading();
           location.href = base + '/report/' + data.reportId;
         } catch (err) {
           // 실패하면 대기 화면을 걷고, 에러를 보여주기 위해 모달을 다시 연다

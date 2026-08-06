@@ -438,7 +438,7 @@ router.get('/counsel', async (req, res, next) => {
       hasChatContext: Boolean(req.session.dpl?.chatContext),
       maxUserTurns: effectiveMaxTurns(req),
       // 결과지 만드는 동안 띄우는 로딩 화면에서 한 장씩 넘겨 보여줄 후기
-      reviews: pickReviews(6),
+      reviews: pickReviews(14),
       extendTurns: EXTEND_TURNS,
       canExtend: !req.session.counselExtended,
     });
@@ -742,6 +742,8 @@ router.get('/report/:publicId', async (req, res, next) => {
         patterns,
       }),
       premium: report.premiumReport || null,
+      // 미리보기(결제 전) 하단 세일즈 구간에서 옆으로 넘겨 보여줄 후기
+      reviews: pickReviews(10),
       purchaseEvent,
       disclaimer: REPORT_DISCLAIMER,
       reportUnlockPrice: REPORT_UNLOCK_PRICE,

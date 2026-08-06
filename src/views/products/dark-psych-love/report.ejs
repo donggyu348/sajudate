@@ -160,6 +160,22 @@
     opacity: 1;
     pointer-events: auto;
   }
+
+  /* 후기 카드 — 옆으로 넘긴다 */
+  .rv-rail {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-inline: 24px;
+  }
+  .rv-rail::-webkit-scrollbar { display: none; }
+  .rv-card {
+    flex: 0 0 78%;
+    scroll-snap-align: center;
+  }
 </style>
 
 <% var unlocked = report.paid && premium; %>
@@ -578,6 +594,25 @@
             — 상대가 어떤 사람인지, 내가 왜 흔들렸는지, 앞으로 무엇을 해야 하는지까지 답이 나옵니다
           </p>
         </div>
+      </div>
+    </section>
+
+    <!-- 3-1. 후기 — 옆으로 넘기는 카드 -->
+    <section class="reveal border-t border-white/[0.06] bg-[#0e1420] py-14">
+      <div class="px-6">
+        <p class="rp-eyebrow">REVIEWS</p>
+        <h2 class="mt-3 font-serif text-[21px] font-bold leading-[1.5] text-white">
+          전체 리포트를 받아본<br /><span class="kw-strong">사람들의 반응</span>
+        </h2>
+      </div>
+
+      <div class="rv-rail mt-6">
+        <% reviews.forEach(function (r) { %>
+          <article class="rv-card rounded-2xl border border-white/[0.09] bg-white/[0.03] px-5 py-5">
+            <p class="font-serif text-[13.5px] leading-[1.75] text-white/85">&ldquo;<%= r.text %>&rdquo;</p>
+            <p class="mt-4 text-[11px] text-white/30"><%= r.nick %> · <%= r.days %>일 전</p>
+          </article>
+        <% }); %>
       </div>
     </section>
 
