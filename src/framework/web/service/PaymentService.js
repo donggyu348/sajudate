@@ -13,7 +13,8 @@
   import { Op } from "sequelize";
   import EasyPayClient from "../api/EasyPayClient.js";
   import KakaoPayClient from "../api/KakaoPayClient.js";
-  import TossPaymentsClient from "../api/TossPaymentsClient.js"; 
+  import TossPaymentsClient from "../api/TossPaymentsClient.js";
+  import ChannelCouponService from "./ChannelCouponService.js";
 
 
   class PaymentService {
@@ -105,8 +106,12 @@ console.log(`[LOG 4][Service_Approve] 시작 - orderId: ${orderId}, goodsType: $
     approvalDate: new Date()
   });
 
+  // 채널 쿠폰을 쓴 주문이면 이 시점에 소진 처리한다.
+  // (결제를 끝내지 않은 사용자의 쿠폰은 남아 있어 다음 방문에도 그대로 쓸 수 있다)
+  await ChannelCouponService.markUsedByOrder(orderId);
+
 const tx = await PaymentTransactionRepository.findByShopOrderNoWithReportHistory(orderId);
-  
+
   if (tx) {
       let reportHistory = tx.reportHistory;
       if (!reportHistory) {

@@ -729,6 +729,8 @@
         const channelDiscountFor = (code) => (String(code).includes("_BUNDLE") ? CHANNEL_COUPON_DISCOUNT : 0);
         // 값에 "다시 노출 가능 시각(ms)"을 저장한다. (구버전의 "1" 기록은 무시)
         const CHANNEL_POPUP_SEEN_KEY = "kakaoChannelPopupSeen";
+        // 채널을 추가해 쿠폰을 받은 적이 있는지 (결제 없이 나갔다 돌아와도 쿠폰을 되살리는 근거)
+        const CHANNEL_COUPON_OWNED_KEY = "kakaoChannelCouponOwned";
         const CHANNEL_POPUP_MUTE_HOURS = 24;
         const CHANNEL_POPUP_MUTE_FOREVER_HOURS = 24 * 365;
         // 서버 세션에 이미 발급 기록이 있으면 새로고침 후에도 할인 표기를 유지한다.
@@ -901,14 +903,15 @@
             selectOption(finalGoodsCode === "<%= goodsInfo.code %>" ? "single" : finalGoodsCode);
         }
 
-        async function requestChannelCoupon() {
+        async function requestChannelCoupon({ silent = false } = {}) {
             try {
                 const response = await axios.post("/api/payments/channel-coupon", { reportHistoryId });
                 if (response.data.code !== 200) return;
                 channelCouponApplied = true;
+                localStorage.setItem(CHANNEL_COUPON_OWNED_KEY, "1");
                 muteChannelPopup(CHANNEL_POPUP_MUTE_FOREVER_HOURS);
                 renderChannelCoupon();
-                showChannelToast();
+                if (!silent) showChannelToast();
             } catch (error) {
                 console.error("[ChannelCoupon] 발급 실패", error);
             }
@@ -927,8 +930,18 @@
             requestChannelCoupon();
         }
 
+        // 채널을 이미 추가한 사용자가 결제 없이 나갔다가 다시 들어온 경우,
+        // 세션이 끊겼어도 브라우저 기록을 근거로 쿠폰을 되살린다. (실제 1회 제한은 서버가 전화번호로 판단)
+        async function restoreChannelCoupon() {
+            if (channelCouponApplied) return;
+            if (localStorage.getItem(CHANNEL_COUPON_OWNED_KEY) !== "1") return;
+
+            await requestChannelCoupon({ silent: true });
+        }
+
         function setupChannelPopup() {
             renderChannelCoupon();
+            restoreChannelCoupon();
 
             document.getElementById("channel-follow-btn").addEventListener("click", followKakaoChannel);
             document.getElementById("channel-close-btn").addEventListener("click", hideChannelModal); // X는 이번 방문만 닫기

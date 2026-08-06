@@ -277,6 +277,8 @@ const PaymentController = {
 
 // 프론트에서 넘겨준 goodsType이 있으면 그것을 쓰고, 없으면 DB 값을 씁니다.
 const currentGoodsType = req.body.goodsType || reportHistory.goodsType;
+// 쿠폰 예약 기록을 주문번호로 남겨야 해서 미리 생성해 둔다(TOSS 분기에서 그대로 사용).
+const tossShopOrderNo = `TOSS-${Date.now()}`;
 let finalAmount = GoodsType[currentGoodsType].price;      if (TEST_PHONE_NUMBER.includes(userTelNo)) {
         console.log(`[TEST MODE] ${userTelNo} → 금액 ${TEST_AMOUNT}원`);
         finalAmount = TEST_AMOUNT;
@@ -287,7 +289,8 @@ let finalAmount = GoodsType[currentGoodsType].price;      if (TEST_PHONE_NUMBER.
             session: req.session,
             userTelNo,
             goodsType: currentGoodsType,
-            reportHistoryId
+            reportHistoryId,
+            shopOrderNo: tossShopOrderNo
           });
           if (channelDiscount > 0) {
             finalAmount = Math.max(1000, finalAmount - channelDiscount);
@@ -348,8 +351,8 @@ let finalAmount = GoodsType[currentGoodsType].price;      if (TEST_PHONE_NUMBER.
  * 🟢 TossPayments 분기 추가
  * ----------------------------------------------------- */
 if (payMethod === "TOSS") {
-  // 1. 주문번호 생성 (finalAmount는 이미 위에서 100원으로 계산됨)
-  const shopOrderNo = `TOSS-${Date.now()}`; 
+  // 1. 주문번호 (쿠폰 예약 기록과 맞추기 위해 위에서 미리 만든 값을 사용)
+  const shopOrderNo = tossShopOrderNo;
 console.log(`[LOG 2][TOSS_REGISTER] DB 저장 시도 - shopOrderNo: ${shopOrderNo}, goodsType: ${goodsType}`);  // 2. DB에 결제 대기 데이터 생성
   await PaymentTransactionRepository.createPayment({
     ...basePayload,
