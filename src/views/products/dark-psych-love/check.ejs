@@ -22,103 +22,138 @@
   }
   .kw { color: #f87171; font-weight: 600; }
 
-  /* 문항 카드 — 체크되면 붉은 톤으로 확실히 반응해, 누르는 재미로 끝까지 가게 한다 */
-  .q-card {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.028);
-    border-radius: 16px;
-    transition: border-color 0.18s ease, background 0.18s ease;
-  }
-  .q-card:has(input:checked) {
-    border-color: rgba(239, 68, 68, 0.45);
-    background: rgba(239, 68, 68, 0.07);
-  }
-  .q-box {
-    border: 1.5px solid rgba(255, 255, 255, 0.18);
-    border-radius: 8px;
-    transition: border-color 0.18s ease, background 0.18s ease;
-  }
-  /* 체크박스 자체의 반응은 :has() 없이도 동작해야 한다 —
-     카드 배경만 :has()로 얹고, 핵심 피드백은 인접 형제 선택자로 준다 */
-  input:checked ~ .q-box {
-    border-color: #ef4444;
-    background: #ef4444;
-  }
-  .q-check { opacity: 0; transition: opacity 0.18s ease; }
-  input:checked ~ .q-box .q-check { opacity: 1; }
+  /* 한 문항씩 넘기는 모드는 스크립트가 켜졌을 때만 적용한다.
+     스크립트가 없으면 7문항이 모두 보이는 평범한 폼으로 남아 그대로 제출된다. */
+  .stepped .step { display: none; }
+  .stepped .step.is-current { display: block; }
+  .stepped #fallbackSubmit { display: none; }
 
-  .progress-fill { transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes stepIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+  .stepped .step.is-current { animation: stepIn 0.32s cubic-bezier(0.16, 1, 0.3, 1); }
+  @media (prefers-reduced-motion: reduce) {
+    .stepped .step.is-current { animation: none; }
+  }
+
+  /* 예/아니오 — 라디오를 감춘 라벨 버튼 */
+  .opt {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 14px;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+  }
+  .opt:active { transform: scale(0.99); }
+  input:checked ~ .opt-yes {
+    border-color: rgba(239, 68, 68, 0.55);
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+  }
+  input:checked ~ .opt-no {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+  }
+  .progress-fill { transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
 </style>
 
-<div class="px-5 py-7 pb-32">
-  <p class="rp-eyebrow">30초 자가 체크</p>
-  <h1 class="mt-2.5 font-serif text-[23px] font-bold leading-[1.45] text-white">
-    지금 그 관계,<br /><span class="kw">확인해봐야 할 신호</span>가 있나요?
-  </h1>
-  <p class="mt-3 text-[13px] leading-relaxed text-white/45">
-    해당하는 항목만 눌러주세요. 업로드도, 회원가입도 필요 없어요.
-  </p>
-
-  <form id="checkForm" method="post" action="<%= base %>/check" class="mt-7">
-    <div class="space-y-2.5">
-      <% checklist.forEach(function (q, i) { %>
-        <label class="q-card flex cursor-pointer items-start gap-3.5 p-4">
-          <input type="checkbox" name="answers" value="<%= q.key %>" class="peer sr-only" />
-          <span class="q-box mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
-            <svg class="q-check" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10" /></svg>
-          </span>
-          <span class="min-w-0 flex-1">
-            <span class="block text-[10px] font-semibold tracking-wider text-white/25"><%= String(i + 1).padStart(2, '0') %></span>
-            <span class="mt-1 block text-[14px] font-medium leading-relaxed text-white/85"><%= q.text %></span>
-          </span>
-        </label>
-      <% }); %>
-    </div>
-
-    <p class="mt-6 text-[11px] leading-relaxed text-white/25">
-      체크한 내용은 결과를 계산하는 데만 쓰이며, 따로 저장하지 않습니다.
+<div class="px-5 py-6">
+  <!-- 진행 표시 -->
+  <div class="flex items-center justify-between">
+    <p class="rp-eyebrow">30초 자가 체크</p>
+    <p class="text-[11.5px] font-semibold text-white/50">
+      <span id="stepNow">1</span> / <%= checklist.length %>
     </p>
+  </div>
+  <div class="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-white/[0.08]">
+    <div id="progressFill" class="progress-fill h-full rounded-full" style="width: 0%; background: linear-gradient(90deg, #b91c1c, #ef4444);"></div>
+  </div>
+
+  <form id="checkForm" method="post" action="<%= base %>/check" class="mt-8">
+    <% checklist.forEach(function (q, i) { %>
+      <section class="step" data-index="<%= i %>">
+        <p class="font-serif text-[13px] font-bold text-white/25"><%= String(i + 1).padStart(2, '0') %></p>
+        <h2 class="mt-2 font-serif text-[21px] font-bold leading-[1.5] text-white"><%= q.text %></h2>
+
+        <div class="mt-7 space-y-2.5">
+          <label class="block cursor-pointer">
+            <input type="radio" name="q_<%= q.key %>" value="yes" class="peer sr-only" />
+            <span class="opt opt-yes flex items-center justify-center px-4 py-4 text-[15px] font-semibold text-white/70">그렇다</span>
+          </label>
+          <label class="block cursor-pointer">
+            <input type="radio" name="q_<%= q.key %>" value="no" class="peer sr-only" />
+            <span class="opt opt-no flex items-center justify-center px-4 py-4 text-[15px] font-semibold text-white/70">아니다</span>
+          </label>
+        </div>
+      </section>
+    <% }); %>
+
+    <button type="submit" id="fallbackSubmit"
+      class="mt-8 flex w-full items-center justify-center rounded-xl bg-red-600 py-3.5 text-[15px] font-bold text-white">
+      결과 확인하기
+    </button>
   </form>
 
-  <%# 이미 캡처를 준비해 온 사람까지 체크리스트에 붙잡아 둘 이유는 없다 %>
-  <a href="<%= base %>/upload" class="mt-5 block text-center text-[11.5px] text-white/30 underline">
-    대화 캡처가 이미 있다면 바로 분석하기
-  </a>
-</div>
+  <!-- 스텝 모드에서만 쓰는 이전 버튼 -->
+  <button type="button" id="prevBtn" class="mt-8 hidden text-[12px] text-white/30 underline underline-offset-2">← 이전 질문</button>
 
-<!-- 하단 고정 CTA — 체크 개수를 실시간으로 보여줘 끝까지 훑게 만든다 -->
-<div class="fixed inset-x-0 bottom-14 z-20 mx-auto max-w-app px-4 pb-3">
-  <div class="rounded-xl border border-white/10 bg-[#0e1420]/95 p-3 backdrop-blur-md">
-    <div class="flex items-center justify-between px-1 text-[11.5px]">
-      <span class="text-white/45">해당 항목</span>
-      <span class="font-semibold text-white/80"><span id="checkedCount">0</span> / <%= checklist.length %></span>
-    </div>
-    <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/[0.08]">
-      <div id="progressFill" class="progress-fill h-full rounded-full" style="width: 0%; background: linear-gradient(90deg, #b91c1c, #ef4444);"></div>
-    </div>
-    <button type="submit" form="checkForm" id="submitBtn"
-      class="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-red-600 py-3.5 text-[15px] font-bold text-white shadow-[0_12px_28px_-8px_rgba(239,68,68,0.55)] active:bg-red-700">
-      결과 확인하기
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14 0" /><path d="M13 18l6 -6" /></svg>
-    </button>
-  </div>
+  <p class="mt-10 text-[11px] leading-relaxed text-white/25">
+    체크한 내용은 결과를 계산하는 데만 쓰이며, 따로 저장하지 않습니다.
+  </p>
 </div>
 
 <script>
   (function () {
-    var boxes = document.querySelectorAll('#checkForm input[name="answers"]');
-    var countEl = document.getElementById('checkedCount');
+    var form = document.getElementById('checkForm');
+    var steps = [].slice.call(form.querySelectorAll('.step'));
+    var stepNow = document.getElementById('stepNow');
     var fill = document.getElementById('progressFill');
-    var total = boxes.length;
+    var prevBtn = document.getElementById('prevBtn');
+    if (!steps.length) return;
 
-    function sync() {
-      var n = document.querySelectorAll('#checkForm input[name="answers"]:checked').length;
-      countEl.textContent = n;
-      fill.style.width = (total ? (n / total) * 100 : 0) + '%';
+    // 여기서부터 한 문항씩 보여주는 모드 — 스크립트가 죽으면 위 CSS가 적용되지 않아
+    // 7문항이 전부 보이는 일반 폼으로 남는다.
+    document.body.classList.add('stepped');
+
+    var current = 0;
+
+    function render() {
+      steps.forEach(function (s, i) {
+        s.classList.toggle('is-current', i === current);
+      });
+      stepNow.textContent = current + 1;
+      fill.style.width = (current / steps.length) * 100 + '%';
+      prevBtn.classList.toggle('hidden', current === 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    Array.prototype.forEach.call(boxes, function (b) {
-      b.addEventListener('change', sync);
+
+    function next() {
+      if (current < steps.length - 1) {
+        current += 1;
+        render();
+      } else {
+        fill.style.width = '100%';
+        form.submit();
+      }
+    }
+
+    steps.forEach(function (step) {
+      step.addEventListener('change', function (e) {
+        if (e.target.name && e.target.name.indexOf('q_') === 0) {
+          // 고른 게 바로 사라지면 눌렀는지 확신이 안 든다 — 선택 표시를 잠깐 보여주고 넘긴다
+          setTimeout(next, 180);
+        }
+      });
     });
-    sync();
+
+    prevBtn.addEventListener('click', function () {
+      if (current > 0) {
+        current -= 1;
+        render();
+      }
+    });
+
+    render();
   })();
 </script>

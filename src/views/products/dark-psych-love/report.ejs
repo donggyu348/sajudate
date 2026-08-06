@@ -192,13 +192,13 @@
   <div id="key-findings" class="reveal mt-8">
     <h2 class="font-serif text-[17px] font-bold text-white">핵심 관찰</h2>
     <p class="mt-1.5 text-[11.5px] text-white/35">상담 대화에서 반복적으로 확인된 상호작용 패턴이에요.</p>
+    <%# 미리보기에서는 관찰 '제목'까지만 — 무엇을 봤는지는 알리되 해설은 열지 않는다 %>
+    <% var shownFindings = locked ? keyFindings.slice(0, 1) : keyFindings; %>
     <div class="mt-4 space-y-2.5">
-      <%# 첫 카드는 그대로 보여줘 관찰이 진짜라는 걸 납득시키고, 나머지 해설만 가린다 %>
-      <% keyFindings.forEach(function (f, i) { %>
-        <% var hide = locked && i > 0; %>
-        <div class="rp-card p-4 <%= hide ? 'rp-lock-zone' : '' %>">
+      <% shownFindings.forEach(function (f) { %>
+        <div class="rp-card p-4 <%= locked ? 'rp-lock-zone' : '' %>">
           <p class="text-[14px] font-semibold text-white/90"><%= f.title %></p>
-          <% if (hide) { %>
+          <% if (locked) { %>
             <p class="rp-blur mt-2 text-[12.5px] leading-relaxed text-white/45"><%= mask(f.description) %></p>
             <%- LOCK_HINT %>
           <% } else { %>
@@ -206,6 +206,12 @@
           <% } %>
         </div>
       <% }); %>
+      <% if (locked && keyFindings.length > 1) { %>
+        <div class="rp-lock-zone rp-card flex items-center justify-between px-4 py-3.5">
+          <span class="text-[12.5px] text-white/45">이 대화에서 관찰된 패턴 <span class="kw"><%= keyFindings.length - 1 %>가지</span>가 더 있어요</span>
+          <span class="text-[11px] font-semibold text-red-400">전체 리포트에서 →</span>
+        </div>
+      <% } %>
     </div>
   </div>
   <% } %>
@@ -259,24 +265,21 @@
           <div class="bar-fill h-full rounded-full" style="width: <%= r.score100 %>%; animation-delay: <%= i * 90 %>ms; background: linear-gradient(90deg, #b91c1c, #ef4444);"></div>
         </div>
         <p class="mt-2.5 text-[12px] text-white/50"><%= r.band.label %>.</p>
-        <p class="mt-1.5 text-[11.5px] leading-relaxed text-white/35"><%= r.description %></p>
 
-        <details class="group mt-3 rounded-lg border border-white/[0.07] bg-white/[0.02] p-3">
-          <summary class="flex cursor-pointer list-none items-center justify-between text-[11.5px] font-semibold text-white/70 [&::-webkit-details-marker]:hidden">
-            더 알아보기
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-white/35 transition-transform duration-200 group-open:rotate-180"><path d="M6 9l6 6l6 -6" /></svg>
-          </summary>
-          <%# 어떤 모습인지(example)는 보여주고, 그래서 어떻게 해야 하는지(advice)만 가린다 %>
-          <div class="mt-2 space-y-2 text-[11.5px] leading-relaxed text-white/40 <%= locked ? 'rp-lock-zone' : '' %>">
-            <p><%= r.example %></p>
-            <% if (locked) { %>
-              <p class="rp-blur"><%= mask(r.advice) %></p>
-              <%- LOCK_HINT %>
-            <% } else { %>
+        <%# 미리보기는 점수까지만. 축 설명과 대처법은 전체 리포트의 몫이라 아예 싣지 않는다. %>
+        <% if (unlocked) { %>
+          <p class="mt-1.5 text-[11.5px] leading-relaxed text-white/35"><%= r.description %></p>
+          <details class="group mt-3 rounded-lg border border-white/[0.07] bg-white/[0.02] p-3">
+            <summary class="flex cursor-pointer list-none items-center justify-between text-[11.5px] font-semibold text-white/70 [&::-webkit-details-marker]:hidden">
+              더 알아보기
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-white/35 transition-transform duration-200 group-open:rotate-180"><path d="M6 9l6 6l6 -6" /></svg>
+            </summary>
+            <div class="mt-2 space-y-2 text-[11.5px] leading-relaxed text-white/40">
+              <p><%= r.example %></p>
               <p><%= r.advice %></p>
-            <% } %>
-          </div>
-        </details>
+            </div>
+          </details>
+        <% } %>
       </div>
     <% }); %>
   </div>
@@ -452,6 +455,21 @@
           </article>
         <% }); %>
       </div>
+
+      <%# 목차를 끝까지 훑은 직후가 가장 사고 싶은 지점 — 여기서 바로 결제로 갈 수 있게 한다 %>
+      <% if (!report.paid) { %>
+        <div class="mt-6 rounded-2xl border border-red-500/25 bg-red-500/[0.06] p-5 text-center">
+          <p class="text-[13px] leading-relaxed text-white/70">
+            위 <span class="kw-strong"><%= reportToc.length %>개 챕터</span>가 모두 열립니다
+          </p>
+          <p class="mt-1.5 font-serif text-[26px] font-bold leading-none text-white"><%= reportUnlockPrice.toLocaleString('ko-KR') %><span class="text-[15px] text-white/40">원</span></p>
+          <button id="tocPurchaseBtn" type="button" class="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-red-600 py-3.5 text-[15px] font-bold text-white shadow-[0_12px_28px_-8px_rgba(239,68,68,0.55)] active:bg-red-700">
+            전체 리포트 결제하기
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14 0" /><path d="M13 18l6 -6" /></svg>
+          </button>
+          <p class="mt-2.5 text-[11px] text-white/30">결제 후 결과지 링크를 문자로 보내드려요</p>
+        </div>
+      <% } %>
     <% } %>
   </div>
 
@@ -769,7 +787,9 @@
     // 가려진 부분을 눌렀을 때도 바로 구매 시트가 열리게 한다 —
     // 궁금해서 누른 그 순간이 가장 전환이 잘 되는 지점이다.
     document.addEventListener('click', function (e) {
-      if (!e.target.closest || !e.target.closest('.rp-lock-zone')) return;
+      if (!e.target.closest) return;
+      // 가려진 부분과 목차 아래 결제 버튼 모두 같은 구매 시트로 연결한다
+      if (!e.target.closest('.rp-lock-zone') && !e.target.closest('#tocPurchaseBtn')) return;
       openBtn.click(); // 시트 열기 + 결제위젯 준비(ensureWidget)를 한 번에 태운다
     });
   })();

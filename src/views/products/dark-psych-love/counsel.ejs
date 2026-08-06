@@ -51,12 +51,16 @@
         <button id="headerReportBtn" type="button" class="hidden shrink-0 rounded-full bg-red-600 px-3 py-1.5 text-[11px] font-semibold text-white active:bg-red-700">리포트 받기</button>
       </div>
     </div>
-    <% if (hasChatContext) { %>
-      <div class="mt-2.5 flex items-center gap-1.5 rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1.5 text-[11px] text-red-300">
+    <%# 첨부 상태 배지 — 첨부 전에는 첨부를 권하고, 첨부 후에는 반영됐다고 알린다 %>
+    <div id="attachBadge" class="mt-2.5 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] <%= hasChatContext ? 'border-red-500/25 bg-red-500/10 text-red-300' : 'border-white/10 bg-white/[0.04] text-white/45' %>">
+      <% if (hasChatContext) { %>
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M5 12l5 5l10 -10" /></svg>
-        업로드한 카카오톡 대화의 의심스러운 구간을 참고해서 상담합니다
-      </div>
-    <% } %>
+        첨부한 카카오톡 대화의 의심스러운 구간을 참고해서 상담합니다
+      <% } else { %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg>
+        아래 클립 버튼으로 카톡 대화 캡처를 첨부하면 더 정확해져요
+      <% } %>
+    </div>
     <% if (!enabled) { %>
       <div class="mt-2.5 rounded-lg border border-amber-500/25 bg-amber-500/10 p-2 text-[11px] text-amber-300">
         현재 상담 봇이 설정되지 않았습니다(API 키 미설정). 화면 구성은 확인할 수 있으나 실제 응답은 나오지 않습니다.
@@ -104,6 +108,12 @@
   <!-- 입력 -->
   <form id="chatForm" class="bg-[#0e1420] px-3 py-3">
     <div class="flex items-end gap-2">
+      <%# 카톡 캡처 첨부 — 퍼널 앞단에서 요구하지 않고, 상담 중 필요할 때 올리게 한다 %>
+      <input id="attachInput" type="file" accept="image/png,image/jpeg,image/webp" multiple class="hidden" />
+      <button id="attachBtn" type="button" aria-label="카톡 대화 캡처 첨부"
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-white/50 transition-colors active:bg-white/[0.12] disabled:opacity-40">
+        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5" /></svg>
+      </button>
       <textarea id="chatInput" rows="1" placeholder="메시지를 입력하세요…"
         class="max-h-32 flex-1 resize-none rounded-3xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:border-red-500/40 focus:outline-none"></textarea>
       <button id="sendBtn" type="submit" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-600 text-white transition-transform active:scale-90 active:bg-red-700 disabled:opacity-40" aria-label="보내기">
@@ -315,6 +325,75 @@
     });
 
     let busy = false;
+
+    // ── 카톡 캡처 첨부 ────────────────────────────────
+    // 판독은 비전 OCR + 흐름 판정이라 수십 초까지 걸린다. 그동안 대화가 멈춘 것처럼
+    // 보이지 않도록 대화창 안에 진행 상태를 두고, 끝나면 상담사가 바로 짚어주며 이어간다.
+    (function () {
+      const attachBtn = document.getElementById('attachBtn');
+      const attachInput = document.getElementById('attachInput');
+      const attachBadge = document.getElementById('attachBadge');
+      if (!attachBtn || !attachInput) return;
+
+      attachBtn.addEventListener('click', function () {
+        if (!busy) attachInput.click();
+      });
+
+      attachInput.addEventListener('change', async function () {
+        const files = attachInput.files;
+        if (!files || !files.length || busy) return;
+
+        busy = true;
+        sendBtn.disabled = true;
+        attachBtn.disabled = true;
+
+        const notice = document.createElement('div');
+        notice.className = 'mx-auto w-fit rounded-full bg-white/[0.06] px-3 py-1 text-[10.5px] text-white/45';
+        notice.textContent = '대화 캡처 ' + files.length + '장 첨부됨';
+        log.appendChild(notice);
+
+        const answer = bubble('assistant');
+        answer.appendChild(typingDots());
+        const status = document.createElement('p');
+        status.className = 'mt-1.5 text-[11px] text-white/35';
+        status.textContent = '대화를 읽는 중이에요… 30초쯤 걸려요';
+        answer.appendChild(status);
+        log.scrollTop = log.scrollHeight;
+
+        const data = new FormData();
+        for (let i = 0; i < files.length; i++) data.append('chatImages', files[i]);
+
+        try {
+          const res = await fetch(base + '/counsel/attach', { method: 'POST', body: data });
+          const json = await res.json();
+          if (!res.ok || !json.ok) throw new Error(json.error || '분석에 실패했어요.');
+
+          answer.innerHTML = '';
+          const typer = typeToward(answer, function () { return json.message; });
+          await typer.finish(json.message);
+          // 첨부 후 상담사가 한 말도 대화 기록에 넣어야 다음 응답이 맥락을 잃지 않는다
+          history.push({ role: 'assistant', content: json.message });
+
+          if (attachBadge) {
+            attachBadge.className = 'mt-2.5 flex items-center gap-1.5 rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1.5 text-[11px] text-red-300';
+            attachBadge.textContent = json.empty
+              ? '첨부한 대화를 읽었지만 뚜렷한 신호는 없었어요'
+              : '첨부한 카카오톡 대화의 의심스러운 구간을 참고해서 상담합니다';
+          }
+        } catch (err) {
+          console.error('[counsel/attach]', err);
+          answer.innerHTML = '';
+          answer.textContent = err.message || '대화 분석에 실패했어요. 잠시 후 다시 시도해 주세요.';
+        } finally {
+          attachInput.value = ''; // 같은 파일을 다시 골라도 change가 뜨게 한다
+          busy = false;
+          sendBtn.disabled = false;
+          attachBtn.disabled = false;
+          log.scrollTop = log.scrollHeight;
+        }
+      });
+    })();
+
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       const text = input.value.trim();

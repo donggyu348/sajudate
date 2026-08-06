@@ -220,11 +220,10 @@ router.get('/check', (req, res) => {
 });
 
 router.post('/check', (req, res) => {
-  // 체크박스는 1개만 고르면 문자열, 여러 개면 배열로 온다
-  const raw = req.body?.answers;
-  const answers = (Array.isArray(raw) ? raw : raw ? [raw] : []).map(String);
-  // 문항 key만 남긴다 — 임의 값이 세션에 그대로 들어가지 않게 한다
-  const valid = answers.filter((key) => CHECKLIST.some((q) => q.key === key));
+  // 문항마다 q_<key>=yes|no 로 받는다 — 한 문항씩 넘기는 화면이지만,
+  // 스크립트가 없어도 네이티브 라디오 폼으로 그대로 제출된다.
+  const body = req.body || {};
+  const valid = CHECKLIST.filter((q) => body[`q_${q.key}`] === 'yes').map((q) => q.key);
 
   req.session.dpl = { ...(req.session.dpl || {}), checklist: valid };
   // 세션 저장이 끝나기 전에 리다이렉트하면 결과 화면에서 답이 비어 보인다
@@ -301,6 +300,62 @@ router.get('/analyzing', (req, res) => {
   });
 });
 
+/**
+ * 캡처 이미지 → 조종 발화 확정까지의 판독 파이프라인.
+ * '분석 중' 화면과 상담 중 첨부, 두 곳에서 같은 처리를 쓰기 위해 분리했다.
+ */
+async function runCaptureAnalysis(preparedImages) {
+  const { messages } = await transcribeKakaoImages(preparedImages);
+  if (messages.length === 0) return { empty: true, chatContext: null, highlights: [], confirmedQuotes: [], partnerName: null };
+
+  const { stats, candidateIndexes } = computeStatPatterns(messages);
+  const segments = buildCandidateSegments(messages, candidateIndexes);
+
+  // 통계(키워드)는 후보 구간을 좁히는 용도로만 쓰고, 실제 조종 발화 판정은 대화 흐름을 본 LLM이 확정
+  const flowFlags = await analyzeChatFlow(segments);
+  // 상담봇에 넘길 컨텍스트도 키워드 후보가 아니라 LLM이 확정한 flowFlags만 사용 —
+  // 확정되지 않은 후보를 넘기면 상담봇이 근거 없는 의심을 앞세우게 되므로 제외한다.
+  const chatContext = formatConfirmedContext(messages, flowFlags);
+
+  // '분석 중' 화면에서 실제 캡처 이미지 위에 겹쳐 보여줄 라벨 — 확정된 조종 발화가
+  // 몇 번째 이미지, 세로 몇 % 지점에 있는지를 transcribeKakaoImages가 태깅한 값으로 만든다.
+  const highlights = flowFlags
+    .map((f) => {
+      const msg = messages[f.idx];
+      if (!msg) return null;
+      return {
+        imageIndex: msg.imageIndex ?? 0,
+        positionPercent: msg.positionPercent ?? 50,
+        category: f.category,
+        label: CATEGORY_LABELS[f.category] || f.category,
+      };
+    })
+    .filter(Boolean);
+
+  // 상담 인사말에서 "이 부분이 문제다"처럼 실제 발화를 바로 짚어주기 위해 보관 —
+  // 리포트에는 원문을 인용하지 않지만, 이건 본인이 방금 올린 내용을 본인에게 보여주는 것뿐이라 괜찮다.
+  const confirmedQuotes = flowFlags
+    .map((f) => {
+      const msg = messages[f.idx];
+      if (!msg) return null;
+      return { label: CATEGORY_LABELS[f.category] || f.category, text: msg.text };
+    })
+    .filter(Boolean);
+
+  return { empty: false, chatContext: chatContext || null, highlights, confirmedQuotes, partnerName: stats.partnerName || null };
+}
+
+/** 캡처 판독 결과를 상담사가 첫 마디로 짚어주는 문장. 인사말과 첨부 응답이 같은 말투를 쓰게 한다. */
+function captureFindingMessage(confirmedQuotes) {
+  const quotes = confirmedQuotes || [];
+  if (quotes.length === 0) {
+    return '대화 내용을 확인해봤는데, 특별히 의심되는 부분은 눈에 띄지 않았어요. 혹시 다른 힘드셨던 경험이 있으신가요?';
+  }
+  const first = quotes[0];
+  const more = quotes.length > 1 ? ` 이 부분 말고도 비슷한 부분이 ${quotes.length - 1}군데 더 있었는데, 일단 여기부터 여쭤볼게요.` : '';
+  return `대화 내용을 확인해봤는데, "${first.text}"라고 한 부분이 ${first.label}(으)로 보여요. 이 부분이 문제예요.${more} 그때 어떤 상황이었는지 편하게 말씀해 주세요.`;
+}
+
 // 실제 AI 판독(비전 OCR + 통계 후보 좁히기 + 대화 흐름 판정) — '분석 중' 화면이 뜬 뒤 클라이언트가 호출.
 // 새로고침 등으로 다시 호출되면 이미 만들어둔 결과를 그대로 재사용한다.
 router.post('/analyzing/analyze', uploadAnalyzeLimiter, async (req, res) => {
@@ -318,52 +373,14 @@ router.post('/analyzing/analyze', uploadAnalyzeLimiter, async (req, res) => {
       mimetype: img.mimetype,
     }));
 
-    const { messages } = await transcribeKakaoImages(preparedImages);
-    if (messages.length === 0) {
-      dpl.analyzed = true;
-      dpl.highlights = [];
-      return res.json({ highlights: [], empty: true });
-    }
-
-    const { stats, candidateIndexes } = computeStatPatterns(messages);
-    const segments = buildCandidateSegments(messages, candidateIndexes);
-
-    // 통계(키워드)는 후보 구간을 좁히는 용도로만 쓰고, 실제 조종 발화 판정은 대화 흐름을 본 LLM이 확정
-    const flowFlags = await analyzeChatFlow(segments);
-    // 상담봇에 넘길 컨텍스트도 키워드 후보가 아니라 LLM이 확정한 flowFlags만 사용 —
-    // 확정되지 않은 후보를 넘기면 상담봇이 근거 없는 의심을 앞세우게 되므로 제외한다.
-    const chatContext = formatConfirmedContext(messages, flowFlags);
-
-    // '분석 중' 화면에서 실제 캡처 이미지 위에 겹쳐 보여줄 라벨 — 확정된 조종 발화가
-    // 몇 번째 이미지, 세로 몇 % 지점에 있는지를 transcribeKakaoImages가 태깅한 값으로 만든다.
-    const highlights = flowFlags
-      .map((f) => {
-        const msg = messages[f.idx];
-        if (!msg) return null;
-        return {
-          imageIndex: msg.imageIndex ?? 0,
-          positionPercent: msg.positionPercent ?? 50,
-          category: f.category,
-          label: CATEGORY_LABELS[f.category] || f.category,
-        };
-      })
-      .filter(Boolean);
-
-    dpl.chatContext = chatContext || null;
-    dpl.partnerName = stats.partnerName || null;
-    dpl.highlights = highlights;
-    // 상담 시작 인사말에서 "이 부분이 문제다"처럼 실제 발화를 바로 짚어주기 위해 보관 —
-    // 리포트에는 원문을 인용하지 않지만, 이건 본인이 방금 업로드한 내용을 본인에게 그대로 보여주는 것뿐이라 괜찮다.
-    dpl.confirmedQuotes = flowFlags
-      .map((f) => {
-        const msg = messages[f.idx];
-        if (!msg) return null;
-        return { label: CATEGORY_LABELS[f.category] || f.category, text: msg.text };
-      })
-      .filter(Boolean);
+    const result = await runCaptureAnalysis(preparedImages);
+    dpl.chatContext = result.chatContext;
+    dpl.partnerName = result.partnerName;
+    dpl.highlights = result.highlights;
+    dpl.confirmedQuotes = result.confirmedQuotes;
     dpl.analyzed = true;
 
-    res.json({ highlights });
+    res.json({ highlights: result.highlights, empty: result.empty || undefined });
   } catch (err) {
     console.error('[analyzing/analyze]', err);
     res.status(500).json({ error: '분석 중 오류가 발생했습니다.' });
@@ -395,14 +412,7 @@ router.get('/counsel', async (req, res, next) => {
     const defaultGreeting = current?.greeting || '안녕하세요. 어떤 이야기가 있으신가요? 편하게 말씀해 주세요.';
     let greeting = defaultGreeting;
     if (req.session.dpl?.analyzed) {
-      const quotes = req.session.dpl.confirmedQuotes || [];
-      if (quotes.length > 0) {
-        const first = quotes[0];
-        const more = quotes.length > 1 ? ` 이 부분 말고도 비슷한 부분이 ${quotes.length - 1}군데 더 있었는데, 일단 여기부터 여쭤볼게요.` : '';
-        greeting = `대화 내용을 확인해봤는데, "${first.text}"라고 한 부분이 ${first.label}(으)로 보여요. 이 부분이 문제예요.${more} 그때 어떤 상황이었는지 편하게 말씀해 주세요.`;
-      } else {
-        greeting = '대화 내용을 확인해봤는데, 특별히 의심되는 부분은 눈에 띄지 않았어요. 혹시 다른 힘드셨던 경험이 있으신가요?';
-      }
+      greeting = captureFindingMessage(req.session.dpl.confirmedQuotes);
     } else if (req.session.dpl?.checklist?.length) {
       // 업로드를 건너뛰고 체크리스트에서 바로 넘어온 경우 —
       // 방금 체크한 항목을 그대로 이어받아야 "처음부터 다시 설명하는" 느낌이 안 든다.
@@ -430,6 +440,43 @@ router.get('/counsel', async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+});
+
+/**
+ * 상담 도중 카카오톡 캡처 첨부.
+ * 업로드를 퍼널 앞단의 관문으로 두지 않고, 상담이 시작된 뒤 "필요하면 그때" 올리게 한다.
+ * 이미지는 판독 즉시 버리고 확정된 구간만 세션에 남긴다.
+ */
+router.post('/counsel/attach', uploadAnalyzeLimiter, upload.array('chatImages', 10), async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: '대화 캡처 이미지를 1장 이상 선택해 주세요.' });
+    }
+
+    const preparedLists = await Promise.all(req.files.map(prepareImageForVision));
+    const result = await runCaptureAnalysis(preparedLists.flat());
+
+    req.session.dpl = {
+      ...(req.session.dpl || {}),
+      chatContext: result.chatContext,
+      partnerName: result.partnerName,
+      confirmedQuotes: result.confirmedQuotes,
+      analyzed: true,
+    };
+    // 이 응답 직후 클라이언트가 곧바로 대화를 이어가므로, 세션이 확실히 커밋된 뒤에 응답한다
+    req.session.save((err) => {
+      if (err) console.error('[counsel/attach] 세션 저장 실패:', err.message);
+      res.json({
+        ok: true,
+        empty: result.empty,
+        found: result.confirmedQuotes.length,
+        message: captureFindingMessage(result.confirmedQuotes),
+      });
+    });
+  } catch (err) {
+    console.error('[counsel/attach]', err);
+    res.status(500).json({ error: '대화 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.' });
   }
 });
 
