@@ -933,7 +933,11 @@
         // 채널을 이미 추가한 사용자가 결제 없이 나갔다가 다시 들어온 경우,
         // 세션이 끊겼어도 브라우저 기록을 근거로 쿠폰을 되살린다. (실제 1회 제한은 서버가 전화번호로 판단)
         async function restoreChannelCoupon() {
-            if (channelCouponApplied) return;
+            // 서버가 이미 쿠폰을 인정한 상태면 그 사실을 브라우저에도 남겨, 다음 방문에서 복구가 가능하게 한다.
+            if (channelCouponApplied) {
+                localStorage.setItem(CHANNEL_COUPON_OWNED_KEY, "1");
+                return;
+            }
             if (localStorage.getItem(CHANNEL_COUPON_OWNED_KEY) !== "1") return;
 
             await requestChannelCoupon({ silent: true });
