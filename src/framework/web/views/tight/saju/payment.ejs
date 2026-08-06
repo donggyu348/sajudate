@@ -629,6 +629,13 @@
             document.body.style.overflow = "";
         }
 
+        // 사용자가 직접 닫았거나 쿠폰을 받은 경우에만 "봤음"으로 기록한다.
+        // 그냥 페이지를 떠난 경우엔 기록하지 않아 다시 들어오면 한 번 더 노출된다.
+        function dismissChannelModal() {
+            localStorage.setItem(CHANNEL_POPUP_SEEN_KEY, "1");
+            hideChannelModal();
+        }
+
         // 쿠폰 적용 상태를 결제 상세 UI에 반영 (금액 계산은 selectOption에서 함께 처리)
         function renderChannelCoupon() {
             if (!channelCouponRow) return;
@@ -641,6 +648,7 @@
                 const response = await axios.post("/api/payments/channel-coupon", {});
                 if (response.data.code !== 200) return;
                 channelCouponApplied = true;
+                localStorage.setItem(CHANNEL_POPUP_SEEN_KEY, "1");
                 renderChannelCoupon();
                 alert(`쿠폰(${CHANNEL_COUPON_CODE})이 발급되어 ${CHANNEL_COUPON_DISCOUNT.toLocaleString()}원 할인이 적용되었습니다.`);
             } catch (error) {
@@ -660,8 +668,9 @@
                     hideChannelModal();
                     requestChannelCoupon();
                 })
-                .catch(() => {
-                    // 사용자가 취소했거나 실패한 경우 — 조용히 무시
+                .catch((err) => {
+                    // 사용자가 취소했거나 실패한 경우 — 화면에는 조용히 무시하고 콘솔에만 남긴다.
+                    console.warn("[ChannelCoupon] followChannel 실패", err);
                     hideChannelModal();
                 });
         }
@@ -671,15 +680,15 @@
             renderChannelCoupon();
 
             document.getElementById("channel-follow-btn").addEventListener("click", followKakaoChannel);
-            document.getElementById("channel-close-btn").addEventListener("click", hideChannelModal);
-            document.getElementById("channel-later-btn").addEventListener("click", hideChannelModal);
-            channelModal.querySelector(".exit-modal__backdrop").addEventListener("click", hideChannelModal);
+            document.getElementById("channel-close-btn").addEventListener("click", dismissChannelModal);
+            document.getElementById("channel-later-btn").addEventListener("click", dismissChannelModal);
+            channelModal.querySelector(".exit-modal__backdrop").addEventListener("click", dismissChannelModal);
 
-            // 이미 본 사용자 / 이미 쿠폰을 받은 사용자에게는 다시 노출하지 않는다.
+            // 이미 직접 닫았거나 쿠폰을 받은 사용자에게는 다시 노출하지 않는다.
+            // (그냥 페이지를 떠난 경우에는 기록이 남지 않으므로 다시 들어오면 또 노출된다)
             if (channelCouponApplied) return;
             if (localStorage.getItem(CHANNEL_POPUP_SEEN_KEY)) return;
 
-            localStorage.setItem(CHANNEL_POPUP_SEEN_KEY, "1");
             showChannelModal();
         }
 
