@@ -30,15 +30,21 @@ class ChannelCouponService {
     if (session) session.channelCouponIssued = true;
 
     if (reportHistoryId) {
-      await Coupons.findOrCreate({
-        where: { code: pendingCodeFor(reportHistoryId) },
-        defaults: {
-          code: pendingCodeFor(reportHistoryId),
-          isUsed: false,
-          type: COUPON_TYPE,
-          goodsType: "PENDING"
-        }
-      });
+      // coupons 테이블 스키마가 모델과 어긋난 환경에서도 쿠폰 발급 자체는 막지 않는다.
+      // (이 경우 세션에만 기록되어 서버 재시작 시 유실될 수 있다)
+      try {
+        await Coupons.findOrCreate({
+          where: { code: pendingCodeFor(reportHistoryId) },
+          defaults: {
+            code: pendingCodeFor(reportHistoryId),
+            isUsed: false,
+            type: COUPON_TYPE,
+            goodsType: "PENDING"
+          }
+        });
+      } catch (err) {
+        console.error("[ChannelCoupon] 발급 기록 저장 실패:", err.message);
+      }
     }
 
     return {
@@ -57,8 +63,14 @@ class ChannelCouponService {
     if (this.isIssued(session)) return true;
     if (!reportHistoryId) return false;
 
-    const pending = await Coupons.findOne({ where: { code: pendingCodeFor(reportHistoryId) } });
-    return Boolean(pending);
+    try {
+      const pending = await Coupons.findOne({ where: { code: pendingCodeFor(reportHistoryId) } });
+      return Boolean(pending);
+    } catch (err) {
+      // 스키마 불일치 등으로 조회가 실패해도 결제 페이지 자체는 뜨게 한다.
+      console.error("[ChannelCoupon] 발급 기록 조회 실패:", err.message);
+      return false;
+    }
   }
 
   /**
