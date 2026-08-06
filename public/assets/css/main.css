@@ -11316,10 +11316,6 @@ button,
   background-color: rgb(252 231 243 / var(--tw-bg-opacity))
 }
 
-.bg-pink-50\/30 {
-  background-color: rgb(253 242 248 / 0.3)
-}
-
 .bg-red-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(220 38 38 / var(--tw-bg-opacity))
@@ -11337,6 +11333,11 @@ button,
 
 .bg-white\/40 {
   background-color: rgb(255 255 255 / 0.4)
+}
+
+.bg-yellow-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(250 204 21 / var(--tw-bg-opacity))
 }
 
 .bg-zinc-600 {
@@ -12254,6 +12255,11 @@ button,
 
 .text-white\/90 {
   color: rgb(255 255 255 / 0.9)
+}
+
+.text-yellow-900 {
+  --tw-text-opacity: 1;
+  color: rgb(113 63 18 / var(--tw-text-opacity))
 }
 
 .text-zinc-300 {
