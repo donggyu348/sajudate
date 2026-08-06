@@ -573,13 +573,19 @@
         }
 
         function confirmLeave() {
+            // hideExitModal()이 pendingLeaveUrl을 비우므로 먼저 목적지를 확보한다.
+            // 뒤로가기로 진입한 경우엔 목적지가 없으므로 상단 뒤로가기 링크(결과 페이지)로 보낸다.
+            const leaveUrl = pendingLeaveUrl || (backLink ? backLink.getAttribute("href") : null);
+
             allowLeave = true;
             hideExitModal();
-            if (pendingLeaveUrl) {
-                window.location.href = pendingLeaveUrl;
+
+            if (leaveUrl) {
+                window.location.href = leaveUrl;
                 return;
             }
-            history.back();
+            // 최후 수단: 이탈 가드가 push한 항목까지 건너뛰어야 실제로 이전 페이지로 나간다.
+            history.go(-2);
         }
 
         function setupExitGuard() {
