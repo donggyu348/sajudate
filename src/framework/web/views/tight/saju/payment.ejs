@@ -926,17 +926,25 @@
             }
         }
 
-        function followKakaoChannel() {
+        async function followKakaoChannel() {
             if (!KAKAO_CHANNEL_PUBLIC_ID) {
                 console.warn("[ChannelCoupon] KAKAO_CHANNEL_PUBLIC_ID 미설정");
                 hideChannelModal();
                 return;
             }
 
-            // 클릭 핸들러 안에서 바로 열어야 팝업 차단에 걸리지 않는다.
-            window.open(KAKAO_CHANNEL_ADD_URL, "_blank");
+            // 클릭 핸들러 안에서 바로 열어야 팝업 차단에 걸릴 확률이 낮다.
+            const opened = window.open(KAKAO_CHANNEL_ADD_URL, "_blank");
             hideChannelModal();
-            requestChannelCoupon();
+
+            // 쿠폰을 먼저 확정한 뒤에 이동해야 요청이 중간에 끊기지 않는다.
+            await requestChannelCoupon();
+
+            // 새 창이 막힌 경우(모바일 인앱 브라우저·팝업 차단) 현재 탭에서 이동한다.
+            if (!opened || opened.closed) {
+                console.warn("[ChannelCoupon] 새 창이 차단되어 현재 탭에서 이동합니다.");
+                window.location.href = KAKAO_CHANNEL_ADD_URL;
+            }
         }
 
         // 채널을 이미 추가한 사용자가 결제 없이 나갔다가 다시 들어온 경우,
