@@ -215,22 +215,36 @@
         </div>
     </div>
 
-    <!-- 카카오톡 채널 추가 유도 팝업 -->
-    <div id="channel-modal" class="exit-modal hidden" aria-hidden="true">
-        <div class="exit-modal__backdrop"></div>
-        <div class="exit-modal__sheet" role="dialog" aria-modal="true" aria-labelledby="channel-modal-title">
-            <button type="button" id="channel-close-btn" class="channel-modal__close" aria-label="닫기">&times;</button>
-            <div class="exit-modal__handle" aria-hidden="true"></div>
+    <!-- 카카오톡 채널 추가 유도 팝업 (상품 키아트를 배경으로 쓰는 전면형) -->
+    <div id="channel-modal" class="channel-modal hidden" aria-hidden="true">
+        <div class="channel-modal__panel" role="dialog" aria-modal="true" aria-labelledby="channel-modal-title"
+             <% if (channelPopupImage) { %>style="background-image: url('<%= channelPopupImage %>');"<% } %>>
+            <button type="button" id="channel-close-btn" class="channel-modal__close" aria-label="닫기">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
 
-            <div class="channel-modal__badge">채널 추가 혜택</div>
-            <h3 id="channel-modal-title" class="exit-modal__title">
-                카카오톡 채널 추가하고<br><span style="color:#f59e0b;"><%= channelCouponDiscount.toLocaleString() %>원 할인쿠폰</span> 받기
-            </h3>
-            <p class="exit-modal__subtitle">채널을 추가하면 즉시 쿠폰이 적용됩니다</p>
+            <div class="channel-modal__scrim" aria-hidden="true"></div>
 
-            <div class="exit-modal__actions">
-                <button type="button" id="channel-follow-btn" class="exit-modal__btn channel-modal__btn--kakao">채널 추가하기</button>
-                <button type="button" id="channel-later-btn" class="exit-modal__btn exit-modal__btn--ghost">다음에 할게요</button>
+            <div class="channel-modal__content">
+                <p class="channel-modal__badge">카카오톡 채널 추가 혜택</p>
+                <h3 id="channel-modal-title" class="channel-modal__title">
+                    지금 채널 추가만 해도<br>
+                    <em><%= channelCouponDiscount.toLocaleString() %>원 할인!</em>
+                </h3>
+                <p class="channel-modal__desc">
+                    채널 추가 안 하면 혜택을 놓쳐요<br>
+                    지금 추가하고 결제할 때 바로 쓰세요
+                </p>
+
+                <button type="button" id="channel-follow-btn" class="channel-modal__cta">
+                    <svg class="channel-modal__cta-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 3C6.9 3 2.8 6.3 2.8 10.3c0 2.6 1.7 4.9 4.3 6.2-.2.7-.7 2.5-.8 2.9-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.5.1 1.1.1 1.6.1 5.1 0 9.2-3.3 9.2-7.1S17.1 3 12 3z" />
+                    </svg>
+                    3초만에 채널 추가하고 쿠폰 받기
+                </button>
+                <button type="button" id="channel-later-btn" class="channel-modal__later">24시간 동안 안 보기</button>
             </div>
         </div>
     </div>
@@ -471,21 +485,124 @@
   font-weight: 500;
 }
 
-/* 카카오톡 채널 추가 팝업 — 이탈 방지 모달의 바텀시트 스타일 재사용 */
+/* ── 카카오톡 채널 추가 팝업 (전면형) ──
+   상품 키아트를 배경으로 깔고 하단을 어둡게 덮어 문구·CTA를 얹는다. */
+.channel-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  animation: channel-fade-in 0.25s ease-out;
+}
+.channel-modal.hidden {
+  display: none;
+}
+@keyframes channel-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.channel-modal__panel {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  max-height: 760px;
+  overflow: hidden;
+  border-radius: 20px;
+  background-color: #14100f;
+  background-size: cover;
+  background-position: center top;
+  animation: channel-panel-up 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes channel-panel-up {
+  from { transform: translateY(18px) scale(0.98); opacity: 0.5; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+@media (max-width: 480px) {
+  .channel-modal__panel { border-radius: 0; max-height: none; }
+}
+.channel-modal__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 8, 8, 0.55) 0%,
+    rgba(10, 8, 8, 0.15) 28%,
+    rgba(10, 8, 8, 0.82) 62%,
+    rgba(10, 8, 8, 0.97) 100%
+  );
+}
+.channel-modal__content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 24px calc(28px + env(safe-area-inset-bottom));
+  text-align: center;
+}
 .channel-modal__badge {
   display: inline-block;
-  padding: 6px 12px;
+  margin-bottom: 12px;
+  padding: 5px 12px;
   border-radius: 999px;
-  background: #fef3c7;
-  color: #b45309;
-  font-size: 12px;
+  border: 1px solid rgba(254, 229, 0, 0.45);
+  background: rgba(254, 229, 0, 0.12);
+  color: #fee500;
+  font-size: 11px;
   font-weight: 700;
-  margin-bottom: 14px;
+  letter-spacing: 0.02em;
 }
-.channel-modal__btn--kakao {
+.channel-modal__title {
+  color: #fff;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+.channel-modal__title em {
+  font-style: normal;
+  color: #fee500;
+}
+.channel-modal__desc {
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.channel-modal__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 22px;
+  padding: 16px 12px;
+  border: none;
+  border-radius: 14px;
   background: #fee500;
   color: #191600;
-  box-shadow: 0 8px 20px rgba(254, 229, 0, 0.35);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(254, 229, 0, 0.28);
+}
+.channel-modal__cta-icon {
+  width: 20px;
+  height: 20px;
+}
+.channel-modal__later {
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  cursor: pointer;
 }
 /* 쿠폰 적용 안내 토스트 */
 .channel-toast {
@@ -566,16 +683,23 @@
 
 .channel-modal__close {
   position: absolute;
-  top: 10px;
+  top: 14px;
   right: 14px;
-  width: 32px;
-  height: 32px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: none;
-  background: transparent;
-  color: #9ca3af;
-  font-size: 26px;
-  line-height: 1;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
+}
+.channel-modal__close svg {
+  width: 18px;
+  height: 18px;
 }
 
 
@@ -597,7 +721,10 @@
         const KAKAO_CHANNEL_ADD_URL = `https://pf.kakao.com/${KAKAO_CHANNEL_PUBLIC_ID}/friend`;
         const CHANNEL_COUPON_CODE = "<%= channelCouponCode %>";
         const CHANNEL_COUPON_DISCOUNT = <%= channelCouponDiscount %>;
+        // 값에 "다시 노출 가능 시각(ms)"을 저장한다. (구버전의 "1" 기록은 무시)
         const CHANNEL_POPUP_SEEN_KEY = "kakaoChannelPopupSeen";
+        const CHANNEL_POPUP_MUTE_HOURS = 24;
+        const CHANNEL_POPUP_MUTE_FOREVER_HOURS = 24 * 365;
         // 서버 세션에 이미 발급 기록이 있으면 새로고침 후에도 할인 표기를 유지한다.
         let channelCouponApplied = <%= channelCouponIssued ? "true" : "false" %>;
 
@@ -728,10 +855,20 @@
             document.body.style.overflow = "";
         }
 
-        // 사용자가 직접 닫았거나 쿠폰을 받은 경우에만 "봤음"으로 기록한다.
-        // 그냥 페이지를 떠난 경우엔 기록하지 않아 다시 들어오면 한 번 더 노출된다.
+        // "24시간 동안 안 보기" / 쿠폰 수령 시에만 재노출을 막는다.
+        // X로 닫거나 그냥 떠난 경우엔 기록하지 않아 다시 들어오면 한 번 더 노출된다.
+        function muteChannelPopup(hours) {
+            localStorage.setItem(CHANNEL_POPUP_SEEN_KEY, String(Date.now() + hours * 60 * 60 * 1000));
+        }
+
+        function isChannelPopupMuted() {
+            const until = localStorage.getItem(CHANNEL_POPUP_SEEN_KEY);
+            if (!until || until === "1") return false; // 구버전 기록은 무시
+            return Date.now() < Number(until);
+        }
+
         function dismissChannelModal() {
-            localStorage.setItem(CHANNEL_POPUP_SEEN_KEY, "1");
+            muteChannelPopup(CHANNEL_POPUP_MUTE_HOURS);
             hideChannelModal();
         }
 
@@ -763,7 +900,7 @@
                 const response = await axios.post("/api/payments/channel-coupon", {});
                 if (response.data.code !== 200) return;
                 channelCouponApplied = true;
-                localStorage.setItem(CHANNEL_POPUP_SEEN_KEY, "1");
+                muteChannelPopup(CHANNEL_POPUP_MUTE_FOREVER_HOURS);
                 renderChannelCoupon();
                 showChannelToast();
             } catch (error) {
@@ -788,14 +925,12 @@
             renderChannelCoupon();
 
             document.getElementById("channel-follow-btn").addEventListener("click", followKakaoChannel);
-            document.getElementById("channel-close-btn").addEventListener("click", dismissChannelModal);
-            document.getElementById("channel-later-btn").addEventListener("click", dismissChannelModal);
-            channelModal.querySelector(".exit-modal__backdrop").addEventListener("click", dismissChannelModal);
+            document.getElementById("channel-close-btn").addEventListener("click", hideChannelModal); // X는 이번 방문만 닫기
+            document.getElementById("channel-later-btn").addEventListener("click", dismissChannelModal); // 24시간 동안 안 보기
 
-            // 이미 직접 닫았거나 쿠폰을 받은 사용자에게는 다시 노출하지 않는다.
-            // (그냥 페이지를 떠난 경우에는 기록이 남지 않으므로 다시 들어오면 또 노출된다)
+            // 쿠폰을 받았거나 "24시간 동안 안 보기"를 누른 사용자에게는 노출하지 않는다.
             if (channelCouponApplied) return;
-            if (localStorage.getItem(CHANNEL_POPUP_SEEN_KEY)) return;
+            if (isChannelPopupMuted()) return;
 
             showChannelModal();
         }

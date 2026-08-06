@@ -641,6 +641,14 @@ router.post("/payment", async (req, res) => {
 });
 
 /* 결제창 GET — 새로고침/뒤로가기/직접진입 대응 (reportHistoryId 기반 재렌더) */
+/* 채널 추가 팝업 배경 — 상품별 키아트. 없는 상품은 어두운 배경만 사용한다. */
+const CHANNEL_POPUP_IMAGES = {
+  REAPER: "/assets/images/tight/reaper/scenes/closing.png",
+  ROMANTIC: "/assets/images/tight/romantic/landing/hero.png",
+  ADULT: "/assets/images/tight/products/product_adult.png",
+  CLASSIC: "/assets/images/tight/classic/index_banner.png"
+};
+
 function buildBundlesForBase(baseGoodsCode) {
   return Object.values(GoodsType)
     .filter((g) => g && typeof g.code === "string" && g.code.endsWith("_BUNDLE") && g.reportCode === baseGoodsCode && !g.hideInBundleList)
@@ -677,6 +685,7 @@ router.get("/payment", async (req, res) => {
       // 카카오톡 채널 추가 팝업 (채널 ID는 .env 로 분리)
       // KAKAO_JS_KEY는 비즈 앱 전환 후 SDK(followChannel) 방식으로 되돌릴 때 쓰므로 .env에 그대로 둔다.
       kakaoChannelPublicId: process.env.KAKAO_CHANNEL_PUBLIC_ID || "",
+      channelPopupImage: CHANNEL_POPUP_IMAGES[baseGoodsCode] || "",
       channelCouponCode: CHANNEL_COUPON_CODE,
       channelCouponDiscount: CHANNEL_COUPON_DISCOUNT,
       // 이미 쿠폰을 받은 세션이면 새로고침 후에도 할인 표기를 유지한다.
