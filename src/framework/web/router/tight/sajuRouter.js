@@ -16,6 +16,7 @@ import reportGenerationService from "../../service/reportGenerationService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
 import { buildMetaAdvancedMatching } from "../../utils/metaAdvancedMatching.js";
+import { sendPurchaseEvent, sendInitiateCheckoutEvent } from "../../service/MetaCapiService.js";
 import Coupons from "../../orm/models/coupons.js";
 import PaymentTransactionRepository from "../../repository/PaymentTransactionRepository.js";
 import ChannelCouponService, { CHANNEL_COUPON_CODE, CHANNEL_COUPON_DISCOUNT } from "../../service/ChannelCouponService.js";
@@ -677,6 +678,22 @@ router.get("/payment", async (req, res) => {
     const goodsInfo = GoodsType[baseGoodsCode];
     if (!goodsInfo) return res.redirect("/saju");
 
+    // [전환 추적] 결제창 진입 = InitiateCheckout. 픽셀(payment.ejs)과 event_id `ic_<historyId>`를 공유한다.
+    // 새로고침/뒤로가기로 이 라우트가 여러 번 타도 event_id가 같아 Meta가 한 건으로 합친다.
+    sendInitiateCheckoutEvent({
+      req,
+      reportHistoryId: reportHistory.id,
+      value: goodsInfo.price,
+      contentId: baseGoodsCode,
+      // 전화번호는 결제창에서 입력받으므로 이 시점엔 대개 없다. 사주 입력값으로 매칭 품질을 보완한다.
+      advancedMatching: buildMetaAdvancedMatching({
+        userTelNo: reportHistory.userInfo?.phone || reportHistory.userInfo?.tel,
+        name: reportHistory.userInfo?.name,
+        gender: reportHistory.userInfo?.gender,
+        birthDate: reportHistory.userInfo?.birthDate || reportHistory.userInfo?.birthdate,
+      }),
+    });
+
     return res.render("tight/saju/payment", {
       reportHistoryId: reportHistory.id,
       goodsInfo,
@@ -780,9 +797,21 @@ let fileDir = 'tight';
     
     console.log(`🚀 [DEBUG] 최종 렌더링 경로: ${renderPath}`);
 
-    // [전환 추적] tight는 브라우저 픽셀(payment_success.ejs의 fbq Purchase)만 사용한다.
-    // 서버 CAPI는 브라우저 픽셀과 서로 다른 픽셀 ID로 발사돼 전환이 분산/누락되므로 제거함.
     const finalPayment = await PaymentService.getPaymentTransaction(shopOrderNo);
+
+    const metaAdvancedMatching = buildMetaAdvancedMatching({
+      userTelNo: finalPayment?.userTelNo,
+    });
+
+    // [전환 추적] 브라우저 픽셀(payment_success.ejs)과 같은 event_id(shopOrderNo)로 서버 이벤트도 보낸다.
+    // 광고 차단/이탈로 픽셀이 못 뜬 구매를 메우고, 둘 다 도착하면 Meta가 event_id로 중복 제거한다.
+    // 렌더링을 막지 않도록 await 하지 않는다.
+    sendPurchaseEvent({
+      req,
+      shopOrderNo,
+      value: goodsConfig ? goodsConfig.price : 0,
+      advancedMatching: metaAdvancedMatching,
+    });
 
     // 로딩 화면 진행 단계(장) 라벨
     const stepInfo = getReportStepInfo(goodsConfig);
@@ -794,9 +823,7 @@ let fileDir = 'tight';
       goodsType: String(targetGoodsType || ""),
       stepLabels: stepInfo.labels,
       stepTotal: stepInfo.total,
-      metaAdvancedMatching: buildMetaAdvancedMatching({
-        userTelNo: finalPayment?.userTelNo,
-      }),
+      metaAdvancedMatching,
     });
 
   } catch (error) {

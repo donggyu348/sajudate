@@ -725,6 +725,18 @@
         const COUNTDOWN_STORAGE_KEY = "payment_exit_countdown_end";
         const COUNTDOWN_DURATION_MS = 20 * 60 * 60 * 1000;
 
+        /* ── 결제 시작 픽셀 ── 서버 CAPI(GET /payment)와 eventID를 맞춰 중복 제거한다. */
+        try {
+            if (typeof fbq === "function") {
+                fbq("track", "InitiateCheckout", {
+                    value: Number("<%= goodsInfo.price %>") || 0,
+                    currency: "KRW",
+                    content_type: "product",
+                    contents: [{ id: "<%= goodsInfo.code %>", quantity: 1 }]
+                }, { eventID: "ic_" + reportHistoryId });
+            }
+        } catch (e) {}
+
         /* ── 카카오톡 채널 추가 쿠폰 ── */
         const KAKAO_CHANNEL_PUBLIC_ID = "<%= kakaoChannelPublicId %>";
         // 채널 주소는 CTA 링크(a[href])에 직접 박혀 있다. 아래 값은 참고용.

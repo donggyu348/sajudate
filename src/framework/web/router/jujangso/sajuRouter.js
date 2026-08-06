@@ -6,7 +6,6 @@
   import { sendReportLink } from "../../service/SmsService.js";
   import { GoodsType } from "../../enums/Goods.js";
   import { PaymentStatus } from "../../enums/Payment.js";
-  import { sendPurchaseEvent } from "../../service/MetaCapiService.js";
   import PaymentTransactionRepository from "../../repository/PaymentTransactionRepository.js";
 
   const router = express.Router();
@@ -166,12 +165,7 @@
       const goodsPrice = GoodsType[repostHistory.goodsType].price;
       const goodsTypeRaw = repostHistory.goodsType; // ✅ goodsType 추가
 
-      sendPurchaseEvent({
-        req,
-        fileDir,
-        shopOrderNo,
-        value: goodsPrice,
-      });
+      // jujangso 는 브라우저 픽셀(payment_success.ejs)만 사용한다. 서버 CAPI는 tight 전용.
 
       // 기존과 동일한 템플릿 렌더링 (단, URL은 /saju/payment_success 로 노출됨)
       return res.render(`${fileDir}/saju/payment_success`, {
