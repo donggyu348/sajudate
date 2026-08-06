@@ -9,6 +9,35 @@
   const gridLevels = [0.25, 0.5, 0.75, 1];
   const dataPoly = rows.map((r, i) => pt(i, Math.max(0.02, (r.score100 || 0) / 100)).join(',')).join(' ');
   const axisEnds = rows.map((r, i) => pt(i, 1));
+
+  // ── 미리보기 잠금 ──────────────────────────────────
+  // 결제 전에는 해석 문장 일부를 블러로 가린다.
+  const locked = !report.paid;
+  // 블러는 CSS라 원문이 그대로 HTML에 실린다 — 소스만 열면 다 읽힌다.
+  // 그래서 가릴 문장은 아예 같은 길이의 더미 텍스트로 바꿔서 내려보낸다.
+  const FILLER = '이 부분은 전체 리포트에서 확인할 수 있는 상세한 해석 내용이 들어가는 자리입니다. ';
+  function mask(text) {
+    const len = String(text || '').length;
+    if (!len) return '';
+    return FILLER.repeat(Math.ceil(len / FILLER.length)).slice(0, len);
+  }
+  // 문장 단위로 앞부분만 남기고 나머지는 가린다. [보이는 부분, 가릴 부분]
+  function splitTease(text, keepRatio) {
+    const s = String(text || '').trim();
+    const parts = s.split(/(?<=[.!?])\s+/).filter(Boolean);
+    if (parts.length < 2) {
+      // 한 문장뿐이면 문장 중간에서 자른다 — 가릴 게 없으면 티저가 성립하지 않는다
+      const cut = Math.max(12, Math.floor(s.length * keepRatio));
+      return [s.slice(0, cut), s.slice(cut)];
+    }
+    const keep = Math.max(1, Math.round(parts.length * keepRatio));
+    return [parts.slice(0, keep).join(' '), parts.slice(keep).join(' ')];
+  }
+  const LOCK_HINT =
+    '<span class="rp-lock-hint">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>' +
+    '전체 리포트에서 공개' +
+    '</span>';
 %>
 
 <style>
@@ -102,6 +131,26 @@
     transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .report-sheet.is-open { transform: translateY(0); }
+
+  /* ── 잠금(블러) 영역 ────────────────────────────────
+     결제 전 미리보기에서 "결론에 가장 가까운 문장"만 가려, 수치는 믿게 하되
+     해석은 궁금하게 남긴다. 가려진 곳을 누르면 바로 구매 시트가 열린다. */
+  .rp-lock-zone { cursor: pointer; }
+  .rp-blur {
+    filter: blur(5px);
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+  }
+  .rp-lock-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #f87171;
+  }
   .report-sheet-overlay {
     opacity: 0;
     pointer-events: none;
@@ -119,7 +168,10 @@
 <div class="p-4 <%= (!report.paid || unlocked) ? 'pb-24' : '' %>">
   <p class="rp-eyebrow">DIAGNOSIS REPORT</p>
   <h1 class="mt-2 font-serif text-[24px] font-bold leading-[1.45] text-white"><%= report.paid ? '전체 리포트' : '미리보는 리포트' %></h1>
-  <p class="mt-2 text-[13px] leading-relaxed text-white/45">AI 상담 대화를 바탕으로 결과를 정리했습니다.</p>
+  <p class="mt-2 text-[13px] leading-relaxed text-white/45">
+    AI 상담 대화를 바탕으로 결과를 정리했습니다.<% if (locked) { %>
+      <br />수치는 모두 열려 있고, <span class="kw">해석과 대처 방법</span>은 전체 리포트에서 공개됩니다.<% } %>
+  </p>
 
   <!-- 헤드라인: 가스라이팅 확률 -->
   <div id="gaslightCard" class="relative mt-5 overflow-hidden rounded-2xl border border-red-500/25 bg-[#140b12] p-6 text-center">
@@ -141,10 +193,17 @@
     <h2 class="font-serif text-[17px] font-bold text-white">핵심 관찰</h2>
     <p class="mt-1.5 text-[11.5px] text-white/35">상담 대화에서 반복적으로 확인된 상호작용 패턴이에요.</p>
     <div class="mt-4 space-y-2.5">
-      <% keyFindings.forEach(function (f) { %>
-        <div class="rp-card p-4">
+      <%# 첫 카드는 그대로 보여줘 관찰이 진짜라는 걸 납득시키고, 나머지 해설만 가린다 %>
+      <% keyFindings.forEach(function (f, i) { %>
+        <% var hide = locked && i > 0; %>
+        <div class="rp-card p-4 <%= hide ? 'rp-lock-zone' : '' %>">
           <p class="text-[14px] font-semibold text-white/90"><%= f.title %></p>
-          <p class="mt-2 text-[12.5px] leading-relaxed text-white/45"><%= f.description %></p>
+          <% if (hide) { %>
+            <p class="rp-blur mt-2 text-[12.5px] leading-relaxed text-white/45"><%= mask(f.description) %></p>
+            <%- LOCK_HINT %>
+          <% } else { %>
+            <p class="mt-2 text-[12.5px] leading-relaxed text-white/45"><%= f.description %></p>
+          <% } %>
         </div>
       <% }); %>
     </div>
@@ -207,9 +266,15 @@
             더 알아보기
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-white/35 transition-transform duration-200 group-open:rotate-180"><path d="M6 9l6 6l6 -6" /></svg>
           </summary>
-          <div class="mt-2 space-y-2 text-[11.5px] leading-relaxed text-white/40">
+          <%# 어떤 모습인지(example)는 보여주고, 그래서 어떻게 해야 하는지(advice)만 가린다 %>
+          <div class="mt-2 space-y-2 text-[11.5px] leading-relaxed text-white/40 <%= locked ? 'rp-lock-zone' : '' %>">
             <p><%= r.example %></p>
-            <p><%= r.advice %></p>
+            <% if (locked) { %>
+              <p class="rp-blur"><%= mask(r.advice) %></p>
+              <%- LOCK_HINT %>
+            <% } else { %>
+              <p><%= r.advice %></p>
+            <% } %>
           </div>
         </details>
       </div>
@@ -248,14 +313,38 @@
     <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
       <div class="bar-fill h-full rounded-full" style="width: <%= selfPattern.score100 %>%; background: linear-gradient(90deg, #b91c1c, #ef4444);"></div>
     </div>
-    <p class="mt-4 text-[13px] leading-relaxed text-white/65"><%= selfPattern.note %></p>
+    <%# 점수는 보여주되 "왜 그런지"에 해당하는 소견은 가린다 — 가장 궁금해하는 대목 %>
+    <% if (locked) { %>
+      <% var selfTease = splitTease(selfPattern.note, 0.35); %>
+      <div class="rp-lock-zone mt-4">
+        <p class="text-[13px] leading-relaxed text-white/65"><%= selfTease[0] %></p>
+        <% if (selfTease[1]) { %>
+          <p class="rp-blur mt-1.5 text-[13px] leading-relaxed text-white/65"><%= mask(selfTease[1]) %></p>
+        <% } %>
+        <%- LOCK_HINT %>
+      </div>
+    <% } else { %>
+      <p class="mt-4 text-[13px] leading-relaxed text-white/65"><%= selfPattern.note %></p>
+    <% } %>
   </div>
   <% } %>
 
   <!-- 종합 소견 -->
   <div id="summary" class="reveal mt-8 rounded-2xl border-l-2 border-red-500/45 bg-white/[0.025] py-5 pl-5 pr-4">
     <p class="rp-eyebrow">종합 소견</p>
-    <p class="mt-3 text-[13.5px] leading-relaxed text-white/80"><%= report.summaryText %></p>
+    <%# 도입부만 열어두고 결론에 해당하는 뒷문장을 가린다 %>
+    <% if (locked) { %>
+      <% var sumTease = splitTease(report.summaryText, 0.4); %>
+      <div class="rp-lock-zone">
+        <p class="mt-3 text-[13.5px] leading-relaxed text-white/80"><%= sumTease[0] %></p>
+        <% if (sumTease[1]) { %>
+          <p class="rp-blur mt-2 text-[13.5px] leading-relaxed text-white/80"><%= mask(sumTease[1]) %></p>
+        <% } %>
+        <%- LOCK_HINT %>
+      </div>
+    <% } else { %>
+      <p class="mt-3 text-[13.5px] leading-relaxed text-white/80"><%= report.summaryText %></p>
+    <% } %>
   </div>
 
   <!-- ── 전체 리포트 목차 ─────────────────────────── -->
@@ -676,6 +765,13 @@
 
     openBtn.addEventListener('click', openSheet);
     overlay.addEventListener('click', closeSheet);
+
+    // 가려진 부분을 눌렀을 때도 바로 구매 시트가 열리게 한다 —
+    // 궁금해서 누른 그 순간이 가장 전환이 잘 되는 지점이다.
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest || !e.target.closest('.rp-lock-zone')) return;
+      openBtn.click(); // 시트 열기 + 결제위젯 준비(ensureWidget)를 한 번에 태운다
+    });
   })();
 
   <% if (unlocked) { %>
