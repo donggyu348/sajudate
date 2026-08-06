@@ -5,6 +5,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
+<!--
+  카카오톡 채널 추가 팝업용 JS SDK.
+  ⚠️ Kakao Developers 콘솔 > 내 애플리케이션 > 앱 설정 > 플랫폼 > Web 에
+     개발 서버(예: http://localhost:3000)와 프로덕션 도메인이 모두 등록돼 있어야 한다.
+     등록이 빠지면 Kakao.init / followChannel 호출이 CORS 에러로 실패한다.
+-->
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 
 <body class="bg-gray-100">
 
@@ -127,6 +134,14 @@
                             </div>
                         </div>
 
+                        <div id="channel-coupon-row" class="hidden flex justify-between text-sm" style="color:#f59e0b;">
+                            <p class="flex items-center gap-1">
+                                카카오톡 채널 쿠폰
+                                <span id="channel-coupon-code" class="text-[10px] bg-yellow-400 text-yellow-900 rounded-full px-2 h-4 flex items-center font-bold"><%= channelCouponCode %></span>
+                            </p>
+                            <span>-<%= channelCouponDiscount.toLocaleString() %>원</span>
+                        </div>
+
                         <div class="flex justify-between items-center bg-white rounded-lg px-4 py-3 mt-3 font-bold">
                             <p>최종 결제금액</p>
                             <p id="final-price-display" class="text-xl text-blue-600">
@@ -181,6 +196,26 @@
             <div class="exit-modal__actions">
                 <button type="button" id="exit-stay-btn" class="exit-modal__btn exit-modal__btn--primary">할인 받고 계속하기</button>
                 <button type="button" id="exit-leave-btn" class="exit-modal__btn exit-modal__btn--ghost">그냥 나갈래요</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 카카오톡 채널 추가 유도 팝업 -->
+    <div id="channel-modal" class="exit-modal hidden" aria-hidden="true">
+        <div class="exit-modal__backdrop"></div>
+        <div class="exit-modal__sheet" role="dialog" aria-modal="true" aria-labelledby="channel-modal-title">
+            <button type="button" id="channel-close-btn" class="channel-modal__close" aria-label="닫기">&times;</button>
+            <div class="exit-modal__handle" aria-hidden="true"></div>
+
+            <div class="channel-modal__badge">채널 추가 혜택</div>
+            <h3 id="channel-modal-title" class="exit-modal__title">
+                카카오톡 채널 추가하고<br><span style="color:#f59e0b;"><%= channelCouponDiscount.toLocaleString() %>원 할인쿠폰</span> 받기
+            </h3>
+            <p class="exit-modal__subtitle">채널을 추가하면 즉시 쿠폰이 적용됩니다</p>
+
+            <div class="exit-modal__actions">
+                <button type="button" id="channel-follow-btn" class="exit-modal__btn channel-modal__btn--kakao">채널 추가하기</button>
+                <button type="button" id="channel-later-btn" class="exit-modal__btn exit-modal__btn--ghost">다음에 할게요</button>
             </div>
         </div>
     </div>
@@ -421,6 +456,36 @@
   font-weight: 500;
 }
 
+/* 카카오톡 채널 추가 팝업 — 이탈 방지 모달의 바텀시트 스타일 재사용 */
+.channel-modal__badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.channel-modal__btn--kakao {
+  background: #fee500;
+  color: #191600;
+  box-shadow: 0 8px 20px rgba(254, 229, 0, 0.35);
+}
+.channel-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
 
     </style>
 
@@ -434,6 +499,18 @@
         let countdownTimerId = null;
         const COUNTDOWN_STORAGE_KEY = "payment_exit_countdown_end";
         const COUNTDOWN_DURATION_MS = 20 * 60 * 60 * 1000;
+
+        /* ── 카카오톡 채널 추가 쿠폰 ── */
+        const KAKAO_JS_KEY = "<%= kakaoJsKey %>";
+        const KAKAO_CHANNEL_PUBLIC_ID = "<%= kakaoChannelPublicId %>";
+        const CHANNEL_COUPON_CODE = "<%= channelCouponCode %>";
+        const CHANNEL_COUPON_DISCOUNT = <%= channelCouponDiscount %>;
+        const CHANNEL_POPUP_SEEN_KEY = "kakaoChannelPopupSeen";
+        // 서버 세션에 이미 발급 기록이 있으면 새로고침 후에도 할인 표기를 유지한다.
+        let channelCouponApplied = <%= channelCouponIssued ? "true" : "false" %>;
+
+        const channelModal = document.getElementById("channel-modal");
+        const channelCouponRow = document.getElementById("channel-coupon-row");
 
         const exitModal = document.getElementById("exit-modal");
         const exitHoursEl = document.getElementById("exit-hours");
@@ -528,6 +605,84 @@
             startExitCountdown();
         }
 
+        /* =========================================================
+         * 카카오톡 채널 추가 팝업 + 4,000원 쿠폰
+         * ⚠️ Kakao Developers 콘솔의 [플랫폼 > Web] 사이트 도메인에
+         *    개발 서버 주소와 프로덕션 도메인이 모두 등록돼 있어야 한다.
+         *    누락 시 Kakao.init / followChannel 이 CORS 에러로 실패한다.
+         * ========================================================= */
+        function initKakaoSdk() {
+            if (typeof Kakao === "undefined" || !KAKAO_JS_KEY) return false;
+            if (!Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
+            return true;
+        }
+
+        function showChannelModal() {
+            channelModal.classList.remove("hidden");
+            channelModal.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+        }
+
+        function hideChannelModal() {
+            channelModal.classList.add("hidden");
+            channelModal.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+        }
+
+        // 쿠폰 적용 상태를 결제 상세 UI에 반영 (금액 계산은 selectOption에서 함께 처리)
+        function renderChannelCoupon() {
+            if (!channelCouponRow) return;
+            channelCouponRow.classList.toggle("hidden", !channelCouponApplied);
+            selectOption(finalGoodsCode === "<%= goodsInfo.code %>" ? "single" : finalGoodsCode);
+        }
+
+        async function requestChannelCoupon() {
+            try {
+                const response = await axios.post("/api/payments/channel-coupon", {});
+                if (response.data.code !== 200) return;
+                channelCouponApplied = true;
+                renderChannelCoupon();
+                alert(`쿠폰(${CHANNEL_COUPON_CODE})이 발급되어 ${CHANNEL_COUPON_DISCOUNT.toLocaleString()}원 할인이 적용되었습니다.`);
+            } catch (error) {
+                console.error("[ChannelCoupon] 발급 실패", error);
+            }
+        }
+
+        function followKakaoChannel() {
+            if (!initKakaoSdk()) {
+                console.warn("[ChannelCoupon] Kakao SDK 초기화 실패 (JS 키 또는 도메인 등록 확인)");
+                hideChannelModal();
+                return;
+            }
+
+            Kakao.Channel.followChannel({ channelPublicId: KAKAO_CHANNEL_PUBLIC_ID })
+                .then(() => {
+                    hideChannelModal();
+                    requestChannelCoupon();
+                })
+                .catch(() => {
+                    // 사용자가 취소했거나 실패한 경우 — 조용히 무시
+                    hideChannelModal();
+                });
+        }
+
+        function setupChannelPopup() {
+            initKakaoSdk();
+            renderChannelCoupon();
+
+            document.getElementById("channel-follow-btn").addEventListener("click", followKakaoChannel);
+            document.getElementById("channel-close-btn").addEventListener("click", hideChannelModal);
+            document.getElementById("channel-later-btn").addEventListener("click", hideChannelModal);
+            channelModal.querySelector(".exit-modal__backdrop").addEventListener("click", hideChannelModal);
+
+            // 이미 본 사용자 / 이미 쿠폰을 받은 사용자에게는 다시 노출하지 않는다.
+            if (channelCouponApplied) return;
+            if (localStorage.getItem(CHANNEL_POPUP_SEEN_KEY)) return;
+
+            localStorage.setItem(CHANNEL_POPUP_SEEN_KEY, "1");
+            showChannelModal();
+        }
+
         const tossPayments = TossPayments("live_ck_yZqmkKeP8gB9OlXz5ggnrbQRxB9l");
         const payment = tossPayments.payment({ customerKey: "USER_" + reportHistoryId });
 
@@ -574,7 +729,10 @@
 
             const data = GOODS_MAP[finalGoodsCode];
             if (data) {
-                finalPriceDisplay.innerText = data.price.toLocaleString() + "원";
+                // 카카오톡 채널 쿠폰이 적용됐다면 최종 결제금액에서 추가 차감 (서버 register와 동일 계산)
+                const channelDiscount = channelCouponApplied ? CHANNEL_COUPON_DISCOUNT : 0;
+                if (channelCouponRow) channelCouponRow.classList.toggle("hidden", !channelCouponApplied);
+                finalPriceDisplay.innerText = Math.max(1000, data.price - channelDiscount).toLocaleString() + "원";
                 dTitle.innerText = data.title;
                 dOriginal.innerText = data.originalPrice.toLocaleString() + "원";
                 
@@ -609,7 +767,8 @@ console.log(" [FRONT] 전송 데이터 확인:", {
             try {
                 const response = await axios.post("/api/payments/register", {
                     userTelNo: fullTel, userPw: pw, payMethod: "TOSS",
-                    reportHistoryId: reportHistoryId, goodsCode: finalGoodsCode,goodsType: finalGoodsCode  // 서버 DB 업데이트용
+                    reportHistoryId: reportHistoryId, goodsCode: finalGoodsCode,goodsType: finalGoodsCode,  // 서버 DB 업데이트용
+                    couponCode: channelCouponApplied ? CHANNEL_COUPON_CODE : null  // 실제 할인 적용 여부는 서버 세션 기준
                 });
 
                 if (response.data.code !== 200) throw new Error(response.data.message);
@@ -640,6 +799,7 @@ console.log(" [FRONT] 전송 데이터 확인:", {
     updateExitBenefitText();
   }
   setupExitGuard();
+  setupChannelPopup();
 });
     </script>
 </body>

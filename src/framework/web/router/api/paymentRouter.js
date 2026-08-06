@@ -6,6 +6,9 @@ const router = express.Router();
 // 거래 등록 API
 router.post("/register", PaymentController.register);
 
+// 카카오톡 채널 추가 쿠폰 발급 API
+router.post("/channel-coupon", PaymentController.issueChannelCoupon);
+
 // 결제 인증 콜백 처리 API
 router.post("/callback", PaymentController.callback);
 

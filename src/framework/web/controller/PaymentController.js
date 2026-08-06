@@ -8,7 +8,31 @@ import StatusCode from "../enums/StatusCode.js"; // StatusCode import 추가
 import PaymentTransactionRepository from "../repository/PaymentTransactionRepository.js";
 import { PaymentStatus } from "../enums/Payment.js";
 import GptService from "../service/GptService.js"; // 치트키 로직에서 사용하므로 필요
+import ChannelCouponService from "../service/ChannelCouponService.js";
 const PaymentController = {
+
+  /**
+   * [0] 카카오톡 채널 추가 쿠폰 발급
+   * - 결제 페이지 팝업에서 채널 추가에 성공하면 호출된다.
+   * - 이 시점엔 전화번호를 모르므로 세션에만 기록하고, 실제 중복 차단은 register에서 전화번호로 한다.
+   */
+  async issueChannelCoupon(req, res) {
+    try {
+      const result = ChannelCouponService.issue(req.session);
+      return res.status(StatusCode.SUCCESS).json({
+        code: 200,
+        message: "채널 추가 쿠폰 발급 성공",
+        data: result
+      });
+    } catch (error) {
+      console.error("[ChannelCoupon] 발급 실패:", error);
+      return res.status(500).json({
+        code: 500,
+        message: "채널 추가 쿠폰 발급 실패",
+        error: error.message
+      });
+    }
+  },
   /**
    * [1] 결제 등록 처리
    * - shopOrderNo 생성
@@ -253,6 +277,21 @@ const currentGoodsType = req.body.goodsType || reportHistory.goodsType;
 let finalAmount = GoodsType[currentGoodsType].price;      if (TEST_PHONE_NUMBER.includes(userTelNo)) {
         console.log(`[TEST MODE] ${userTelNo} → 금액 ${TEST_AMOUNT}원`);
         finalAmount = TEST_AMOUNT;
+      } else {
+        // 카카오톡 채널 추가 쿠폰(-4,000원). 화면 표기 금액과 실제 승인 금액을 맞추기 위해 서버에서도 차감한다.
+        try {
+          const channelDiscount = await ChannelCouponService.consume({
+            session: req.session,
+            userTelNo
+          });
+          if (channelDiscount > 0) {
+            finalAmount = Math.max(1000, finalAmount - channelDiscount);
+            console.log(`[ChannelCoupon] ${userTelNo} → -${channelDiscount}원 적용 (최종 ${finalAmount}원)`);
+          }
+        } catch (couponErr) {
+          // 쿠폰 처리 실패가 결제 자체를 막지 않도록 정가로 진행한다.
+          console.error("[ChannelCoupon] 적용 실패:", couponErr.message);
+        }
       }
 
       const platformInfo = Platform[reportHistory.platform];

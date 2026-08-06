@@ -18,6 +18,7 @@ import { GoodsType } from "../../enums/Goods.js";
 import { buildMetaAdvancedMatching } from "../../utils/metaAdvancedMatching.js";
 import Coupons from "../../orm/models/coupons.js";
 import PaymentTransactionRepository from "../../repository/PaymentTransactionRepository.js";
+import ChannelCouponService, { CHANNEL_COUPON_CODE, CHANNEL_COUPON_DISCOUNT } from "../../service/ChannelCouponService.js";
 const router = express.Router();
 const CouponsModel = Coupons;
 
@@ -672,7 +673,14 @@ router.get("/payment", async (req, res) => {
       reportHistoryId: reportHistory.id,
       goodsInfo,
       bundles: buildBundlesForBase(baseGoodsCode),
-      goodsTypeMap: GoodsType
+      goodsTypeMap: GoodsType,
+      // 카카오톡 채널 추가 팝업 (JS 키/채널 ID는 .env 로 분리)
+      kakaoJsKey: process.env.KAKAO_JS_KEY || "",
+      kakaoChannelPublicId: process.env.KAKAO_CHANNEL_PUBLIC_ID || "",
+      channelCouponCode: CHANNEL_COUPON_CODE,
+      channelCouponDiscount: CHANNEL_COUPON_DISCOUNT,
+      // 이미 쿠폰을 받은 세션이면 새로고침 후에도 할인 표기를 유지한다.
+      channelCouponIssued: ChannelCouponService.isIssued(req.session)
     });
   } catch (err) {
     console.error("❌ /payment GET 처리 실패:", err);
