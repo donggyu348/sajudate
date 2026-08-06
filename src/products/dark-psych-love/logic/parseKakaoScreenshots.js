@@ -6,6 +6,27 @@ import { safeJsonParse } from './jsonUtil.js';
 // 세로로 아주 긴 스크롤 캡처를 대비해, 넘치면 세로로 잘라 여러 장으로 나눈다.
 const MAX_DIM = 7900;
 
+// 비전 API는 이미지 1장이 5MB를 넘으면 거부한다. 요즘 폰 카메라·고해상도 캡처는
+// 크기 제한(7900px)에 안 걸리면서도 용량만 5MB를 넘기는 경우가 있어, 픽셀 크기와 별개로
+// 용량도 맞춰준다. (여유를 두고 3.5MB)
+const MAX_BYTES = 3.5 * 1024 * 1024;
+
+/** 용량이 넘치는 이미지를 한도 안으로 다시 인코딩한다. 한도 안이면 그대로 돌려준다. */
+async function fitBytes(part) {
+  let out = part;
+  for (let i = 0; i < 5 && out.buffer.length > MAX_BYTES; i += 1) {
+    const meta = await sharp(out.buffer).metadata();
+    // 넘치는 비율만큼 변 길이를 줄인다 (용량은 넓이의 제곱에 비례) — 0.9는 한 번에 들어가게 하는 여유분
+    const scale = Math.sqrt(MAX_BYTES / out.buffer.length) * 0.9;
+    const width = Math.max(800, Math.round((meta.width || MAX_DIM) * scale));
+    out = {
+      buffer: await sharp(out.buffer).resize({ width, withoutEnlargement: true }).jpeg({ quality: 82 }).toBuffer(),
+      mimetype: 'image/jpeg',
+    };
+  }
+  return out;
+}
+
 // 캡처 판독은 상담봇 기본 모델(비용 절감용 Haiku)과 분리 — Haiku는 작은 글자 OCR을
 // 이상하게 읽는 문제가 있었고, Opus는 정확하지만 비용이 너무 큼. Sonnet 5가 비용/정확도 균형점.
 const VISION_MODEL = process.env.KAKAO_VISION_MODEL || 'claude-sonnet-5';
@@ -23,7 +44,7 @@ export async function prepareImageForVision(file) {
   const height = meta.height || 0;
 
   if (width <= MAX_DIM && height <= MAX_DIM) {
-    return [file];
+    return [await fitBytes(file)];
   }
 
   // 세로로 긴 스크롤 캡처: 가로 폭은 그대로 두고 세로만 MAX_DIM 이하 조각으로 분할
@@ -36,7 +57,7 @@ export async function prepareImageForVision(file) {
         .extract({ left: 0, top, width, height: h })
         .jpeg({ quality: 90 })
         .toBuffer();
-      parts.push({ buffer, mimetype: 'image/jpeg' });
+      parts.push(await fitBytes({ buffer, mimetype: 'image/jpeg' }));
       top += h;
     }
     return parts;
@@ -47,7 +68,7 @@ export async function prepareImageForVision(file) {
     .resize({ width: MAX_DIM, height: MAX_DIM, fit: 'inside' })
     .jpeg({ quality: 90 })
     .toBuffer();
-  return [{ buffer, mimetype: 'image/jpeg' }];
+  return [await fitBytes({ buffer, mimetype: 'image/jpeg' })];
 }
 
 /**

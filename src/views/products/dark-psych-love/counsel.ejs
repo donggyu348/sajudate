@@ -428,10 +428,27 @@
         const data = new FormData();
         for (let i = 0; i < files.length; i++) data.append('chatImages', files[i]);
 
-        try {
-          const res = await fetch(base + '/counsel/attach', { method: 'POST', body: data });
-          const json = await res.json();
+        // 업로드는 수십 초가 걸려, 그동안 서버가 재시작되거나 모바일 네트워크가 잠깐 끊기면
+        // fetch가 통째로 실패한다(TypeError). 그 경우는 한 번 조용히 다시 보낸다.
+        async function postAttach(retrying) {
+          let res;
+          try {
+            res = await fetch(base + '/counsel/attach', { method: 'POST', body: data });
+          } catch (netErr) {
+            if (retrying) throw new Error('연결이 끊겨 캡처를 보내지 못했어요. 잠시 후 다시 첨부해 주세요.');
+            status.textContent = '연결이 잠시 끊겼어요. 다시 보내는 중이에요…';
+            await new Promise(function (r) { setTimeout(r, 1500); });
+            return postAttach(true);
+          }
+          // 서버가 JSON이 아닌 에러 페이지를 돌려주는 경우(프록시 오류 등)도 안내 문구로 바꾼다
+          const json = await res.json().catch(function () { return null; });
+          if (!json) throw new Error('대화 분석에 실패했어요. 잠시 후 다시 시도해 주세요.');
           if (!res.ok || !json.ok) throw new Error(json.error || '분석에 실패했어요.');
+          return json;
+        }
+
+        try {
+          const json = await postAttach(false);
 
           answer.innerHTML = '';
           const typer = typeToward(answer, function () { return json.message; });
