@@ -24,6 +24,24 @@ export function tightPixelId() {
   return process.env.META_PIXEL_ID_TIGHT || DEFAULT_TIGHT_PIXEL_ID;
 }
 
+/**
+ * 이벤트 관리자 → 테스트 이벤트 탭의 코드(TEST12345). 값이 있으면 실이벤트로 집계되지 않고
+ * 테스트 탭에만 뜨므로, 검증이 끝나면 .env 에서 반드시 지운다.
+ */
+function testEventCode() {
+  return process.env.META_CAPI_TEST_EVENT_CODE || null;
+}
+
+/** 토큰 누락은 조용한 무전송으로 이어지므로 기동 후 한 번은 반드시 남긴다. */
+let missingTokenWarned = false;
+function warnMissingTokenOnce() {
+  if (missingTokenWarned) return;
+  missingTokenWarned = true;
+  console.warn(
+    "[Meta CAPI] META_CAPI_ACCESS_TOKEN_TIGHT 가 없어 서버 이벤트를 보내지 않습니다."
+  );
+}
+
 /** Parameter Builder 미들웨어가 채운 req.metaCapi 우선, 없으면 세션 백업. */
 function resolveMetaClickIds(req) {
   const fromBuilder = req.metaCapi || {};
@@ -80,7 +98,11 @@ function buildEventSourceUrl(req) {
  */
 async function sendEvent({ req, eventName, eventId, customData, advancedMatching }) {
   const token = accessToken();
-  if (!token || !eventId) return;
+  if (!token) {
+    warnMissingTokenOnce();
+    return;
+  }
+  if (!eventId) return;
 
   const user_data = buildUserData(req, advancedMatching);
   const event_source_url = buildEventSourceUrl(req);
@@ -98,12 +120,18 @@ async function sendEvent({ req, eventName, eventId, customData, advancedMatching
       },
     ],
     access_token: token,
+    ...(testEventCode() ? { test_event_code: testEventCode() } : {}),
   };
 
   const url = `https://graph.facebook.com/${API_VERSION}/${tightPixelId()}/events`;
 
   try {
-    await axios.post(url, payload, { headers: { "Content-Type": "application/json" } });
+    const { data } = await axios.post(url, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+    console.log(
+      `[Meta CAPI ${eventName}] sent event_id=${eventId} received=${data?.events_received ?? "?"}`
+    );
   } catch (err) {
     const detail = err.response?.data
       ? JSON.stringify(err.response.data)
