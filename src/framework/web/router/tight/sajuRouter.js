@@ -16,7 +16,7 @@ import reportGenerationService from "../../service/reportGenerationService.js";
 import { generateShopOrderNo } from "../../utils/CommonUtils.js"; // 이 줄을 추가하세요!
 import { GoodsType } from "../../enums/Goods.js";
 import { buildMetaAdvancedMatching } from "../../utils/metaAdvancedMatching.js";
-import { sendPurchaseEvent, sendInitiateCheckoutEvent } from "../../service/MetaCapiService.js";
+import { sendPurchaseEvent, shouldSkipPurchaseTracking } from "../../service/MetaCapiService.js";
 import Coupons from "../../orm/models/coupons.js";
 import PaymentTransactionRepository from "../../repository/PaymentTransactionRepository.js";
 import ChannelCouponService, { CHANNEL_COUPON_CODE, CHANNEL_COUPON_DISCOUNT } from "../../service/ChannelCouponService.js";
@@ -678,22 +678,6 @@ router.get("/payment", async (req, res) => {
     const goodsInfo = GoodsType[baseGoodsCode];
     if (!goodsInfo) return res.redirect("/saju");
 
-    // [전환 추적] 결제창 진입 = InitiateCheckout. 픽셀(payment.ejs)과 event_id `ic_<historyId>`를 공유한다.
-    // 새로고침/뒤로가기로 이 라우트가 여러 번 타도 event_id가 같아 Meta가 한 건으로 합친다.
-    sendInitiateCheckoutEvent({
-      req,
-      reportHistoryId: reportHistory.id,
-      value: goodsInfo.price,
-      contentId: baseGoodsCode,
-      // 전화번호는 결제창에서 입력받으므로 이 시점엔 대개 없다. 사주 입력값으로 매칭 품질을 보완한다.
-      advancedMatching: buildMetaAdvancedMatching({
-        userTelNo: reportHistory.userInfo?.phone || reportHistory.userInfo?.tel,
-        name: reportHistory.userInfo?.name,
-        gender: reportHistory.userInfo?.gender,
-        birthDate: reportHistory.userInfo?.birthDate || reportHistory.userInfo?.birthdate,
-      }),
-    });
-
     return res.render("tight/saju/payment", {
       reportHistoryId: reportHistory.id,
       goodsInfo,
@@ -803,15 +787,26 @@ let fileDir = 'tight';
       userTelNo: finalPayment?.userTelNo,
     });
 
+    // 쿠폰·번들 할인이 반영된 실결제액. 정가로 보내면 테스트 결제(1원)도 정가로 찍힌다.
+    const paidAmount = Number(finalPayment?.amount) || (goodsConfig ? goodsConfig.price : 0);
+    const skipPurchaseTracking = shouldSkipPurchaseTracking({
+      value: paidAmount,
+      name: reportHistory.userInfo?.name,
+    });
+
     // [전환 추적] 브라우저 픽셀(payment_success.ejs)과 같은 event_id(shopOrderNo)로 서버 이벤트도 보낸다.
     // 광고 차단/이탈로 픽셀이 못 뜬 구매를 메우고, 둘 다 도착하면 Meta가 event_id로 중복 제거한다.
     // 렌더링을 막지 않도록 await 하지 않는다.
-    sendPurchaseEvent({
-      req,
-      shopOrderNo,
-      value: goodsConfig ? goodsConfig.price : 0,
-      advancedMatching: metaAdvancedMatching,
-    });
+    if (skipPurchaseTracking) {
+      console.log(`[Meta CAPI Purchase] 테스트 결제로 판단해 전송 생략 (${shopOrderNo}, ${paidAmount}원)`);
+    } else {
+      sendPurchaseEvent({
+        req,
+        shopOrderNo,
+        value: paidAmount,
+        advancedMatching: metaAdvancedMatching,
+      });
+    }
 
     // 로딩 화면 진행 단계(장) 라벨
     const stepInfo = getReportStepInfo(goodsConfig);
@@ -819,11 +814,13 @@ let fileDir = 'tight';
     // 4. 렌더링 실행
     return res.render(renderPath, {
       shopOrderNo: String(shopOrderNo || ""),
-      goodsPrice: goodsConfig ? goodsConfig.price : 0,
+      goodsPrice: paidAmount,
       goodsType: String(targetGoodsType || ""),
       stepLabels: stepInfo.labels,
       stepTotal: stepInfo.total,
       metaAdvancedMatching,
+      // 테스트 결제는 브라우저 픽셀도 함께 막아야 한다. 서버만 막으면 픽셀이 그대로 찍힌다.
+      trackPurchase: !skipPurchaseTracking,
     });
 
   } catch (error) {

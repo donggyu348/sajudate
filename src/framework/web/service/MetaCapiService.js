@@ -42,6 +42,21 @@ function warnMissingTokenOnce() {
   );
 }
 
+/**
+ * 테스트 결제를 광고 학습에서 제외한다.
+ * Meta는 구매 금액까지 학습하므로 1원 결제가 쌓이면 가치 기반 최적화가 왜곡되고,
+ * 한 번 들어간 이벤트는 소급 삭제할 수 없다.
+ */
+const DEFAULT_MIN_PURCHASE_VALUE = 1000;
+const TEST_BUYER_NAMES = ["테스트", "관리자"];
+
+export function shouldSkipPurchaseTracking({ value, name } = {}) {
+  const threshold = Number(process.env.META_CAPI_MIN_PURCHASE_VALUE);
+  const minValue = Number.isFinite(threshold) ? threshold : DEFAULT_MIN_PURCHASE_VALUE;
+  if (Number(value) < minValue) return true;
+  return TEST_BUYER_NAMES.includes(String(name || "").trim());
+}
+
 /** Parameter Builder 미들웨어가 채운 req.metaCapi 우선, 없으면 세션 백업. */
 function resolveMetaClickIds(req) {
   const fromBuilder = req.metaCapi || {};
@@ -158,30 +173,6 @@ export async function sendPurchaseEvent({
       value: Number(value) || 0,
       content_type: "product",
       contents: [{ id: String(shopOrderNo), quantity: 1 }],
-    },
-  });
-}
-
-/** 픽셀 쪽 eventID 는 `ic_${reportHistoryId}` (payment.ejs). */
-export async function sendInitiateCheckoutEvent({
-  req,
-  reportHistoryId,
-  value,
-  contentId,
-  currency = "KRW",
-  advancedMatching,
-}) {
-  if (!reportHistoryId) return;
-  await sendEvent({
-    req,
-    eventName: "InitiateCheckout",
-    eventId: `ic_${reportHistoryId}`,
-    advancedMatching,
-    customData: {
-      currency,
-      value: Number(value) || 0,
-      content_type: "product",
-      contents: [{ id: String(contentId || reportHistoryId), quantity: 1 }],
     },
   });
 }

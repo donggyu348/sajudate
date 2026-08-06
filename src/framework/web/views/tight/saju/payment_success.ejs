@@ -150,9 +150,10 @@ $(document).ready(function () {
   const goodsType = "<%= goodsType %>";
   const nowInit = "<%= nowInit %>";
 
-  /* ── 구매 픽셀 (최초 1회) ── */
+  /* ── 구매 픽셀 (최초 1회) ── 테스트 결제는 서버가 trackPurchase=false 로 막는다. */
+  const trackPurchase = <%- locals.trackPurchase === false ? "false" : "true" %>;
   const purchaseKey = "purchase_done_" + shopOrderNo;
-  if (!localStorage.getItem(purchaseKey)) {
+  if (trackPurchase && !localStorage.getItem(purchaseKey)) {
     localStorage.setItem(purchaseKey, "1");
     try {
       fbq('track', 'Purchase', {
