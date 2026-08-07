@@ -620,7 +620,7 @@
 </div>
 
 <!-- 스크롤 후 따라붙는 하단 고정 CTA (히어로를 지나면 등장) -->
-<div id="stickyCta" class="pointer-events-none fixed inset-x-0 bottom-14 z-20 mx-auto max-w-app px-4 pb-3 opacity-0 transition-opacity duration-300">
+<div id="stickyCta" class="fixed inset-x-0 bottom-14 z-20 mx-auto max-w-app px-4 pb-3">
   <%# 첫 관문은 업로드가 아니라 체크리스트 — 광고 클릭 직후의 공수를 최대한 낮춘다 %>
   <a href="<%= base %>/check" class="flex w-full items-center justify-center gap-1.5 rounded-xl bg-red-600 py-3.5 text-[14px] font-bold text-white shadow-[0_12px_28px_-10px_rgba(220,38,38,0.85)]">
     30초 무료 자가 진단
@@ -784,16 +784,5 @@
         sync();
       });
     })();
-
-    // ── 히어로를 지나면 하단 고정 CTA 노출 ──
-    const sticky = document.getElementById('stickyCta');
-    const hero = document.querySelector('section');
-    if (sticky && hero && 'IntersectionObserver' in window) {
-      new IntersectionObserver(function (entries) {
-        const past = !entries[0].isIntersecting;
-        sticky.style.opacity = past ? '1' : '0';
-        sticky.style.pointerEvents = past ? 'auto' : 'none';
-      }, { threshold: 0 }).observe(hero);
-    }
   })();
 </script>
