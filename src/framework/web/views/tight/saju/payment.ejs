@@ -6,11 +6,13 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://js.tosspayments.com/v2/standard"></script>
 <!--
-  카카오톡 채널 추가 팝업은 채널 추가 페이지(pf.kakao.com/{채널ID}/friend)를 새 창으로 여는 방식이라
-  Kakao JS SDK를 싣지 않는다. 비즈 앱 전환 후 followChannel() 방식으로 되돌릴 경우
-  https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js 를 다시 추가하고
-  Kakao Developers 콘솔 > 앱 설정 > 플랫폼 > Web 에 개발/프로덕션 도메인을 등록해야 한다.
+  카카오톡 채널 추가는 Kakao.Channel.addChannel()(브릿지 페이지 방식)을 사용한다.
+  필요한 사전 설정은 JavaScript 키와 [플랫폼 > Web] 사이트 도메인 등록뿐이며,
+  비즈 앱 전환이나 카카오 로그인은 필요 없다. (도메인 미등록 시 SDK 호출이 실패한다)
+  SDK를 못 쓰는 경우엔 CTA의 href(채널 홈)로 그대로 이동한다.
+  비즈 앱 승인 후에는 Kakao.Channel.followChannel()로 바꾸면 추가 여부까지 확인할 수 있다.
 -->
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
 
 <body class="bg-gray-100">
 
@@ -727,7 +729,8 @@
 
         /* ── 카카오톡 채널 추가 쿠폰 ── */
         const KAKAO_CHANNEL_PUBLIC_ID = "<%= kakaoChannelPublicId %>";
-        // 채널 주소는 CTA 링크(a[href])에 직접 박혀 있다. 아래 값은 참고용.
+        const KAKAO_JS_KEY = "<%= kakaoJsKey %>";
+        // SDK를 못 쓸 때 사용할 대체 주소. CTA 링크(a[href])에도 같은 값이 박혀 있다.
         const KAKAO_CHANNEL_ADD_URL = `https://pf.kakao.com/${KAKAO_CHANNEL_PUBLIC_ID}`;
         const CHANNEL_COUPON_CODE = "<%= channelCouponCode %>";
         const CHANNEL_COUPON_DISCOUNT = <%= channelCouponDiscount %>;
@@ -907,13 +910,36 @@
             }
         }
 
-        // 채널 페이지 이동은 a[target=_blank]가 처리한다. 여기서는 쿠폰 발급만 담당.
+        // SDK가 준비돼 있으면 카카오 채널 추가 페이지를 SDK로 띄우고,
+        // 그렇지 않으면 CTA 링크(a[href] = 채널 홈)가 그대로 동작하게 둔다.
+        function initKakaoSdk() {
+            if (typeof Kakao === "undefined" || !KAKAO_JS_KEY) return false;
+            try {
+                if (!Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
+                return Boolean(Kakao.Channel);
+            } catch (err) {
+                console.warn("[ChannelCoupon] Kakao SDK 초기화 실패", err);
+                return false;
+            }
+        }
+
         function followKakaoChannel(e) {
             if (!KAKAO_CHANNEL_PUBLIC_ID) {
                 e.preventDefault();
                 console.warn("[ChannelCoupon] KAKAO_CHANNEL_PUBLIC_ID 미설정");
                 hideChannelModal();
                 return;
+            }
+
+            if (initKakaoSdk()) {
+                e.preventDefault(); // 채널 홈으로의 이동 대신 SDK 브릿지 페이지 사용
+                try {
+                    Kakao.Channel.addChannel({ channelPublicId: KAKAO_CHANNEL_PUBLIC_ID });
+                } catch (err) {
+                    // SDK 호출이 실패하면 대체 주소로 이동시킨다.
+                    console.warn("[ChannelCoupon] addChannel 실패, 채널 홈으로 이동", err);
+                    window.open(KAKAO_CHANNEL_ADD_URL, "_blank", "noopener");
+                }
             }
 
             hideChannelModal();
