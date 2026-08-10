@@ -1,0 +1,44 @@
+<%# 이탈률이 가장 높은 지점이라 한 화면에서 3초 안에 끝나야 한다. 진행 표시 필수. %>
+<div class="px-6 py-10">
+  <div class="flex items-center gap-2 text-[11px] font-medium text-ink-soft">
+    <span>1 / 3</span>
+    <span class="h-1 flex-1 overflow-hidden rounded-full bg-line">
+      <span class="block h-full w-1/3 rounded-full bg-accent"></span>
+    </span>
+  </div>
+
+  <h1 class="mt-7 font-serif text-[22px] font-bold leading-[1.5] text-ink">
+    상대는 어떤 사람인가요?
+  </h1>
+  <p class="mt-2 text-[13px] leading-relaxed text-ink-soft">
+    나이와 성별만 받습니다. 외모·스펙은 묻지 않습니다.
+  </p>
+
+  <form method="post" action="<%= base %>/input" class="mt-8">
+    <label class="block text-[13px] font-semibold text-ink" for="targetAge">상대 나이</label>
+    <div class="mt-2 flex items-center gap-2">
+      <input id="targetAge" name="targetAge" type="number" inputmode="numeric" min="19" max="99" required
+             class="w-28 rounded-lg border border-line bg-gray-50 px-3 py-2.5 text-sm focus:border-accent focus:bg-white focus:outline-none" />
+      <span class="text-sm text-ink-soft">세</span>
+    </div>
+
+    <p class="mt-6 text-[13px] font-semibold text-ink">상대 성별</p>
+    <div class="mt-2 grid grid-cols-2 gap-2">
+      <% [['female', '여성'], ['male', '남성']].forEach(function (g) { %>
+        <label class="cursor-pointer">
+          <input type="radio" name="targetGender" value="<%= g[0] %>" class="peer sr-only" required />
+          <span class="block rounded-xl border border-line px-4 py-3 text-center text-sm font-medium text-ink peer-checked:border-accent peer-checked:bg-accent-soft peer-checked:text-accent">
+            <%= g[1] %>
+          </span>
+        </label>
+      <% }); %>
+    </div>
+
+    <% if (error) { %>
+      <p class="mt-4 text-[12px] text-red-600"><%= error %></p>
+    <% } %>
+
+    <button type="submit" class="btn-primary mt-8 w-full py-3.5">다음</button>
+    <p class="mt-3 text-center text-[11px] text-ink-soft">만 19세 이상 이용 가능합니다</p>
+  </form>
+</div>

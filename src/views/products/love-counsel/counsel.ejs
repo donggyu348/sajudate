@@ -1,0 +1,132 @@
+<div class="flex h-[calc(100vh-3.5rem-5rem)] flex-col">
+  <div class="border-b border-line px-4 py-3">
+    <p class="text-[13px] font-semibold text-ink">연애 상담</p>
+    <p class="mt-0.5 truncate text-[11px] text-ink-soft">썸 단계 전문 · 체크리스트 응답을 근거로 판정합니다</p>
+  </div>
+
+  <div id="log" class="flex-1 space-y-3 overflow-y-auto px-4 py-4"></div>
+
+  <%# 페이월은 턴 수가 아니라 "그래서 어떻게 해야 되나요"가 나오는 순간 열린다 %>
+  <div id="paywall" class="hidden border-t border-line bg-accent-soft px-4 py-4">
+    <p class="text-[13px] font-semibold leading-relaxed text-accent">
+      지금부터가 실제 처방입니다.
+    </p>
+    <p class="mt-1.5 text-[12px] leading-relaxed text-ink-soft">
+      앞으로 7일 동안 뭘 하고, 다음 연락을 정확히 뭐라고 할지 — 여기부터 이어갑니다.
+    </p>
+    <button type="button" class="btn-primary mt-3 w-full py-3" disabled>결제 연동 준비 중</button>
+  </div>
+
+  <form id="chatForm" class="border-t border-line px-4 py-3">
+    <div class="flex items-end gap-2">
+      <textarea id="chatInput" rows="1" placeholder="메시지를 입력하세요…"
+                class="max-h-32 flex-1 resize-none rounded-3xl border border-line bg-gray-50 px-4 py-2.5 text-sm focus:border-accent focus:bg-white focus:outline-none"></textarea>
+      <button id="sendBtn" type="submit" class="btn-primary shrink-0 rounded-full px-4 py-2.5 text-sm">보내기</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  (function () {
+    var base = <%- JSON.stringify(base) %>;
+    var enabled = <%- JSON.stringify(Boolean(enabled)) %>;
+    var log = document.getElementById('log');
+    var form = document.getElementById('chatForm');
+    var input = document.getElementById('chatInput');
+    var sendBtn = document.getElementById('sendBtn');
+    var paywall = document.getElementById('paywall');
+
+    var history = [];
+    var busy = false;
+    var stopped = false;
+
+    function bubble(role) {
+      var wrap = document.createElement('div');
+      wrap.className = 'flex ' + (role === 'user' ? 'justify-end' : '');
+      var b = document.createElement('div');
+      b.className = role === 'user'
+        ? 'max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-accent px-3.5 py-2.5 text-sm leading-relaxed text-white'
+        : 'max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-bl-md border border-line bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink';
+      wrap.appendChild(b);
+      log.appendChild(wrap);
+      log.scrollTop = log.scrollHeight;
+      return b;
+    }
+
+    function lock(message) {
+      stopped = true;
+      input.disabled = true;
+      sendBtn.disabled = true;
+      input.placeholder = message;
+    }
+
+    // 상담을 한 턴 진행한다. 1턴은 사용자 입력 없이 화면 진입 즉시 시작한다 —
+    // 체크리스트가 끝나면 기다리지 않고 바로 답이 나와야 한다.
+    async function turn() {
+      busy = true;
+      sendBtn.disabled = true;
+      var answer = bubble('assistant');
+      answer.textContent = '…';
+
+      try {
+        var res = await fetch(base + '/counsel/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: history }),
+        });
+
+        var acc = '';
+        var reader = res.body.getReader();
+        var decoder = new TextDecoder();
+        answer.textContent = '';
+        for (;;) {
+          var chunk = await reader.read();
+          if (chunk.done) break;
+          acc += decoder.decode(chunk.value, { stream: true });
+          answer.textContent = acc;
+          log.scrollTop = log.scrollHeight;
+        }
+
+        history.push({ role: 'assistant', content: acc });
+
+        if (res.headers.get('X-LC-Stop')) {
+          lock('상담이 종료됐습니다');
+        } else if (res.headers.get('X-LC-Paywall')) {
+          paywall.classList.remove('hidden');
+          lock('여기부터는 유료 구간입니다');
+        }
+      } catch (err) {
+        answer.textContent = '연결이 끊겼어요. 잠시 후 다시 시도해 주세요.';
+      } finally {
+        busy = false;
+        if (!stopped) { sendBtn.disabled = false; input.focus(); }
+      }
+    }
+
+    input.addEventListener('input', function () {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 128) + 'px';
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var text = input.value.trim();
+      if (!text || busy || stopped) return;
+      input.value = '';
+      input.style.height = 'auto';
+      bubble('user').textContent = text;
+      history.push({ role: 'user', content: text });
+      turn();
+    });
+
+    if (!enabled) {
+      bubble('assistant').textContent = '상담이 아직 설정되지 않았습니다(API 키 미설정).';
+      lock('상담을 이용할 수 없습니다');
+    } else {
+      turn(); // 1턴 자동 시작
+    }
+  })();
+</script>

@@ -1,0 +1,28 @@
+<%# 규칙집이 썸 구간만 완성돼 있다. 다른 단계를 어설프게 열면 상담 품질이 무너지므로
+    준비 중임을 밝히고 출시 알림만 받는다. %>
+<div class="px-6 py-16 text-center">
+  <h1 class="font-serif text-[21px] font-bold leading-[1.5] text-ink">
+    <%= stage === 'dating' ? '연애 중' : '이별' %> 상담은<br />아직 준비 중입니다
+  </h1>
+  <p class="mt-4 text-[13px] leading-relaxed text-ink-soft">
+    지금 열려 있는 건 <span class="font-semibold text-ink">썸 단계</span>뿐입니다.<br />
+    판정 기준이 완성된 구간만 열고 있습니다.
+  </p>
+
+  <% if (saved) { %>
+    <p class="mt-8 rounded-xl border border-accent-ring bg-accent-soft px-4 py-4 text-[13px] text-accent">
+      알림 신청이 접수됐습니다. 준비되면 알려드릴게요.
+    </p>
+  <% } else { %>
+    <form method="post" action="<%= base %>/waitlist" class="mt-8 text-left">
+      <label class="block text-[13px] font-semibold text-ink" for="email">출시하면 알려드릴까요?</label>
+      <input id="email" name="email" type="email" required placeholder="이메일 주소"
+             class="mt-2 w-full rounded-lg border border-line bg-gray-50 px-3 py-2.5 text-sm focus:border-accent focus:bg-white focus:outline-none" />
+      <button type="submit" class="btn-primary mt-4 w-full py-3.5">알림 받기</button>
+    </form>
+  <% } %>
+
+  <a href="<%= base %>/input" class="mt-6 inline-block text-[12px] text-ink-soft underline underline-offset-2">
+    처음으로
+  </a>
+</div>

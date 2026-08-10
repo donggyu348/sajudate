@@ -1,4 +1,5 @@
 import darkPsychLoveRouter, { SLUG as DPL_SLUG } from './dark-psych-love/router.js';
+import loveCounselRouter, { SLUG as LC_SLUG } from './love-counsel/router.js';
 
 /**
  * 상품 모듈 레지스트리.
@@ -7,6 +8,7 @@ import darkPsychLoveRouter, { SLUG as DPL_SLUG } from './dark-psych-love/router.
  */
 export const PRODUCT_MODULES = [
   { slug: DPL_SLUG, router: darkPsychLoveRouter },
+  { slug: LC_SLUG, router: loveCounselRouter },
 ];
 
 export function mountProductModules(app) {

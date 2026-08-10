@@ -22,6 +22,18 @@ const PRODUCTS = [
     isActive: true,
     sortOrder: 1,
   },
+  {
+    slug: 'love-counsel',
+    name: '연애 상담 AI',
+    description:
+      '체크리스트 10문항으로 관계 구조를 판정하고, 지금 해야 할 행동 하나를 알려드립니다. 현재는 썸 단계만 열려 있습니다.',
+    category: '연애 상담',
+    isFeatured: false,
+    headline: '이 사람, 나한테 관심 있나요?',
+    subcopy: '답장 속도 말고 행동으로 판정합니다',
+    isActive: true,
+    sortOrder: 2,
+  },
 ];
 
 /** 기본 상담 에이전트 (관리자 UI에서 이후 자유롭게 수정/추가) */
