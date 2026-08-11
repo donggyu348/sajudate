@@ -301,11 +301,12 @@
     position: absolute;
     margin: 0;
     padding: 0;
-    border: 6px solid #f4ece0;
-    border-bottom-width: 20px;
+    /* 사진이 작아졌으므로 폴라로이드 테두리도 함께 얇게 */
+    border: 4px solid #f4ece0;
+    border-bottom-width: 13px;
     border-radius: 2px;
     background: #f4ece0;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.6);
 
     /* --gone 임계값에 다다르면 그 기억부터 색이 빠지며 위로 흩어진다 */
     opacity: clamp(0, calc((var(--gone) - var(--p)) / 0.16), 1);
