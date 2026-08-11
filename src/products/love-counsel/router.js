@@ -223,6 +223,13 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
       turn,
     });
 
+    // 1턴은 사용자가 아무것도 입력하지 않은 상태에서 시작한다. 그런데 API는 메시지가
+    // 최소 하나 있어야 하므로, 체크리스트 Q10(가장 알고 싶은 것)을 첫 발화로 넣는다 —
+    // 1턴이 이 문장을 정면으로 받아야 하니 내용상으로도 맞다.
+    const messages = history.length
+      ? history
+      : [{ role: 'user', content: s.intake.question }];
+
     // 스트리밍은 HTTP 200으로 열린 뒤 본문 안에서 오류가 오기 때문에 SDK 재시도 범위 밖이다.
     // 아직 한 글자도 내보내지 않았을 때만 직접 다시 시도한다 — 이미 나가기 시작한 뒤 재시도하면
     // 같은 말이 두 번 이어붙는다.
@@ -233,7 +240,7 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
     req.on('close', () => { aborted = true; current?.abort?.(); });
 
     for (let attempt = 0; ; attempt++) {
-      const stream = streamCounsel({ history, systemPrompt, model: MODEL, maxTokens: 900 });
+      const stream = streamCounsel({ history: messages, systemPrompt, model: MODEL, maxTokens: 900 });
       current = stream;
       stream.on('text', (delta) => { wroteAny = true; res.write(delta); });
 
