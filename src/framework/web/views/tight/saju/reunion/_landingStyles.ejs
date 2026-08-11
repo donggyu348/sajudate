@@ -104,9 +104,10 @@
 
   /* ── #1 훅 — 위(확률) · 아래(카톡) · 맨아래(스크롤) 3단 ── */
   .rs--hook {
-    min-height: 94vh;
+    min-height: 76vh;
     justify-content: stretch;
-    padding-top: 54px;
+    padding-top: 34px;
+    padding-bottom: 22px;
   }
   .rs-hook {
     display: flex;
@@ -116,13 +117,22 @@
   }
   .rs-hook__top { text-align: center; }
 
+  /* "{나}님과 {상대}님의" */
+  .rs-hook__who {
+    margin: 0 0 9px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.72);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+  }
   .rs-hook__label {
-    margin: 0 0 6px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.22em;
-    text-indent: 0.22em;
-    color: #e37fb0;
+    margin: 0 0 10px;
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #fff;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.8);
   }
   .rs-hook__num {
     display: flex;
@@ -130,7 +140,7 @@
     justify-content: center;
     gap: 2px;
     margin: 0;
-    font-size: 92px;
+    font-size: clamp(92px, 28vw, 126px);
     font-weight: 900;
     line-height: 1;
     letter-spacing: -0.05em;
@@ -138,16 +148,19 @@
     text-shadow: 0 0 34px rgba(233, 30, 122, 0.55), 0 6px 24px rgba(0, 0, 0, 0.7);
   }
   .rs-hook__num small {
-    font-size: 34px;
+    font-size: clamp(34px, 10vw, 46px);
     font-weight: 800;
     color: #f18ab8;
   }
 
-  /* 카톡은 아래쪽으로 밀어 확률과 떨어뜨린다 */
-  .rs-hook .kt { margin-top: auto; }
+  /* 위아래 auto — 카톡은 확률과 스크롤 사이 중간쯤에, 스크롤은 맨 아래로 */
+  .rs-hook .kt {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
 
   .rs-hook__scroll {
-    margin: 26px auto 0;
+    margin: 0 auto;
     width: 22px;
     height: 34px;
     border: 1.5px solid rgba(255,255,255,0.35);
