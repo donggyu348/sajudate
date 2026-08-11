@@ -1,120 +1,204 @@
 <%
 /*
- * 재회사주 말풍선 컴포넌트 스타일 — <head> 안에서 한 번만 include 한다.
- * 마크업은 ./_chatBubble.ejs 참고.
+ * 재회사주 말풍선 스타일 — <head>에서 한 번만 include.
+ *
+ *  1) .rb-*  웹툰 말풍선 (본문 섹션용). 흰 배경 + 굵은 검은 테두리 + 뾰족한 꼬리.
+ *  2) .kt-*  카카오톡 대화 (히어로 #1 전용). 실시간으로 메시지가 하나씩 뜬다.
  */
 %>
 <style>
-  /* ── 말풍선 공통 ── */
+  /* ══════════════ 1) 웹툰 말풍선 ══════════════ */
   .rb-thread {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
     width: 100%;
   }
 
-  .rb-row {
-    display: flex;
-    width: 100%;
-  }
+  .rb-row { display: flex; width: 100%; }
   .rb-row--left  { justify-content: flex-start; }
   .rb-row--right { justify-content: flex-end; }
 
   .rb-bubble {
-    position: relative;
-    max-width: 78%;
-    padding: 12px 15px;
-    border-radius: 16px;
-    font-size: 15px;
-    line-height: 1.55;
-    letter-spacing: -0.02em;
-    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
-    word-break: keep-all;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-    /* 등장 애니메이션 기본 상태 */
-    opacity: 0;
-    transform: translateY(14px);
-    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .rb-bubble.is-in {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    --wb-bg: #fdfbf7;
+    --wb-ink: #17131c;
+    --wb-line: #17131c;
 
-  /* 꼬리 */
+    position: relative;
+    max-width: 80%;
+    padding: 15px 20px;
+    border: 2.5px solid var(--wb-line);
+    border-radius: 30px;
+    background: var(--wb-bg);
+    color: var(--wb-ink);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-size: 15.5px;
+    font-weight: 700;
+    line-height: 1.55;
+    letter-spacing: -0.03em;
+    word-break: keep-all;
+    box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.45);
+
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+    transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.34, 1.4, 0.5, 1);
+  }
+  .rb-bubble.is-in { opacity: 1; transform: translateY(0) scale(1); }
+
+  /* 꼬리 — 바깥(테두리색) 삼각형 위에 안쪽(배경색) 삼각형을 덮어 테두리를 만든다 */
+  .rb-bubble::before,
   .rb-bubble::after {
     content: "";
     position: absolute;
-    bottom: 10px;
     width: 0;
     height: 0;
     border-style: solid;
   }
+
+  .rb-row--left .rb-bubble::before {
+    left: -17px; bottom: 13px;
+    border-width: 9px 18px 9px 0;
+    border-color: transparent var(--wb-line) transparent transparent;
+  }
   .rb-row--left .rb-bubble::after {
-    left: -7px;
-    border-width: 6px 8px 6px 0;
+    left: -11px; bottom: 16px;
+    border-width: 6px 12px 6px 0;
+    border-color: transparent var(--wb-bg) transparent transparent;
+  }
+
+  .rb-row--right .rb-bubble::before {
+    right: -17px; bottom: 13px;
+    border-width: 9px 0 9px 18px;
+    border-color: transparent transparent transparent var(--wb-line);
   }
   .rb-row--right .rb-bubble::after {
-    right: -7px;
-    border-width: 6px 0 6px 8px;
+    right: -11px; bottom: 16px;
+    border-width: 6px 0 6px 12px;
+    border-color: transparent transparent transparent var(--wb-bg);
   }
 
   /* ── 톤 ── */
-  /* gray = 상대방/내레이션 */
-  .rb-bubble--gray {
-    background: #2a2730;
-    color: #e8e4ec;
-    border-bottom-left-radius: 5px;
-  }
-  .rb-row--left .rb-bubble--gray::after { border-color: transparent #2a2730 transparent transparent; }
-  .rb-row--right .rb-bubble--gray::after { border-color: transparent transparent transparent #2a2730; }
+  /* gray(기본) = 일반 대사 */
+  .rb-bubble--gray { --wb-bg: #fdfbf7; --wb-ink: #17131c; --wb-line: #17131c; }
 
-  /* pink = 나/시스템 */
+  /* pink = 서비스/화자 대사 */
   .rb-bubble--pink {
-    background: linear-gradient(135deg, #e91e7a 0%, #c9186a 100%);
-    color: #fff;
-    border-bottom-right-radius: 5px;
-    box-shadow: 0 6px 18px rgba(233, 30, 122, 0.32), 0 2px 10px rgba(0, 0, 0, 0.4);
+    --wb-bg: #ffe3ef;
+    --wb-ink: #66102f;
+    --wb-line: #c9186a;
+    box-shadow: 3px 4px 0 rgba(201, 24, 106, 0.4);
   }
-  .rb-row--right .rb-bubble--pink::after { border-color: transparent transparent transparent #d51b71; }
-  .rb-row--left .rb-bubble--pink::after { border-color: transparent #e91e7a transparent transparent; }
 
-  /* warn = 경고 톤 (#3 금기) */
+  /* warn = 경고 대사 (#3 금기) */
   .rb-bubble--warn {
-    background: rgba(58, 20, 24, 0.94);
-    color: #ffd9d2;
-    border: 1px solid rgba(255, 92, 92, 0.42);
-    border-bottom-left-radius: 5px;
+    --wb-bg: #2a1116;
+    --wb-ink: #ffd9d2;
+    --wb-line: #ff5c5c;
+    box-shadow: 3px 4px 0 rgba(255, 92, 92, 0.32);
   }
-  .rb-row--left .rb-bubble--warn::after { border-color: transparent rgba(58,20,24,0.94) transparent transparent; }
-  .rb-row--right .rb-bubble--warn::after { border-color: transparent transparent transparent rgba(58,20,24,0.94); }
 
-  /* ── 보조 요소 ── */
   .rb-bubble__name {
     display: block;
     margin-bottom: 4px;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 0.02em;
-    opacity: 0.6;
+    opacity: 0.55;
   }
 
-  .rb-bubble strong { font-weight: 800; }
-
-  .rb-bubble--lg { font-size: 17px; font-weight: 700; }
+  .rb-bubble strong { font-weight: 900; }
+  .rb-bubble--lg { font-size: 18px; font-weight: 800; }
 
   /* 블러 키워드 (#3) */
   .rb-blur {
     display: inline-block;
-    padding: 1px 8px;
+    padding: 1px 10px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.16);
     color: transparent;
     text-shadow: 0 0 11px rgba(255, 236, 236, 0.95);
     user-select: none;
   }
 
+  /* ══════════════ 2) 카카오톡 실시간 대화 (히어로) ══════════════ */
+  .kt {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    width: 100%;
+  }
+
+  .kt-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .kt-row.is-in { opacity: 1; transform: translateY(0); }
+  .kt-row--left  { justify-content: flex-start; }
+  .kt-row--right { justify-content: flex-end; }
+
+  .kt-msg {
+    max-width: 74%;
+    padding: 10px 13px;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.03em;
+    word-break: keep-all;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  /* 상대 = 흰 말풍선, 왼쪽 위 모서리만 각짐 */
+  .kt-msg--them {
+    background: #fff;
+    color: #1b1b1b;
+    border-radius: 3px 16px 16px 16px;
+  }
+
+  /* 나 = 카카오 노랑, 오른쪽 위 모서리만 각짐 */
+  .kt-msg--me {
+    background: #fee500;
+    color: #191600;
+    border-radius: 16px 3px 16px 16px;
+  }
+
+  .kt-time {
+    flex: none;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    padding-bottom: 2px;
+  }
+
+  /* 입력 중… 점 세 개 */
+  .kt-typing .kt-msg {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 13px 14px;
+  }
+  .kt-typing .kt-msg i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #b6b2ae;
+    animation: ktDot 1.25s infinite ease-in-out;
+  }
+  .kt-typing .kt-msg i:nth-child(2) { animation-delay: 0.16s; }
+  .kt-typing .kt-msg i:nth-child(3) { animation-delay: 0.32s; }
+
+  @keyframes ktDot {
+    0%, 60%, 100% { transform: translateY(0);    opacity: 0.45; }
+    30%           { transform: translateY(-4px); opacity: 1; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .rb-bubble { transition: none; opacity: 1; transform: none; }
+    .rb-bubble, .kt-row { transition: none; opacity: 1; transform: none; }
+    .kt-typing { display: none; }
   }
 </style>

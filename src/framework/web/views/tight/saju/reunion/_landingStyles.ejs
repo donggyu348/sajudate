@@ -102,20 +102,34 @@
     word-break: keep-all;
   }
 
-  /* ── #1 훅 ── */
+  /* ── #1 훅 — 위(확률) · 아래(카톡) · 맨아래(스크롤) 3단 ── */
+  .rs--hook {
+    min-height: 94vh;
+    justify-content: stretch;
+    padding-top: 54px;
+  }
+  .rs-hook {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: inherit;
+  }
+  .rs-hook__top { text-align: center; }
+
   .rs-hook__label {
     margin: 0 0 6px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #d9cfe2;
-    letter-spacing: -0.02em;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-indent: 0.22em;
+    color: #e37fb0;
   }
   .rs-hook__num {
     display: flex;
     align-items: baseline;
     justify-content: center;
     gap: 2px;
-    margin: 0 0 20px;
+    margin: 0;
     font-size: 92px;
     font-weight: 900;
     line-height: 1;
@@ -128,13 +142,18 @@
     font-weight: 800;
     color: #f18ab8;
   }
+
+  /* 카톡은 아래쪽으로 밀어 확률과 떨어뜨린다 */
+  .rs-hook .kt { margin-top: auto; }
+
   .rs-hook__scroll {
-    margin: 14px auto 0;
+    margin: 26px auto 0;
     width: 22px;
     height: 34px;
     border: 1.5px solid rgba(255,255,255,0.35);
     border-radius: 12px;
     position: relative;
+    flex: none;
   }
   .rs-hook__scroll::after {
     content: "";
