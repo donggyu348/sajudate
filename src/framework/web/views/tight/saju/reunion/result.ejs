@@ -54,20 +54,25 @@
           <p class="rs-hook__num"><%= reunion.probability %><small>%</small></p>
         </div>
 
-        <!-- 하단: 실시간으로 오가는 카톡 -->
+        <!-- 하단: 답장 없는 카톡. 내 메시지는 하나씩 뜨고, 상대는 썼다 지웠다만 반복한다 -->
         <div class="kt" id="ktHero">
-          <div class="kt-row kt-row--left" data-kt="0">
-            <div class="kt-msg kt-msg--them">아직도... 그 사람 생각나</div>
+          <div class="kt-row kt-row--right" data-kt="0">
             <span class="kt-time">오후 11:47</span>
+            <div class="kt-msg kt-msg--me">뭐해...?</div>
+          </div>
+
+          <div class="kt-row kt-row--right" data-kt="1">
+            <span class="kt-time">오후 11:52</span>
+            <div class="kt-msg kt-msg--me">자...?</div>
+          </div>
+
+          <div class="kt-row kt-row--right" data-kt="2">
+            <span class="kt-time">오전 12:14</span>
+            <div class="kt-msg kt-msg--me">아직도 네 생각 나</div>
           </div>
 
           <div class="kt-row kt-row--left kt-typing" data-kt-typing>
             <div class="kt-msg kt-msg--them"><i></i><i></i><i></i></div>
-          </div>
-
-          <div class="kt-row kt-row--right" data-kt="1">
-            <span class="kt-time">오후 11:48</span>
-            <div class="kt-msg kt-msg--me">두 사람이 다시 만날 확률, 지금 계산됐어요</div>
           </div>
         </div>
 
@@ -301,33 +306,42 @@
 
       document.querySelectorAll('[data-bubble], [data-reveal]').forEach(function (el) { io.observe(el); });
 
-      /* ── 히어로 카톡: 실시간으로 오가는 것처럼 순차 재생 ── */
+      /* ── 히어로 카톡 ──
+         내가 보낸 메시지는 하나씩 차례로 뜨고,
+         상대는 끝내 답장 없이 '입력 중…'만 켜졌다 꺼졌다(썼다 지웠다) 반복한다. */
       (function playHeroChat() {
         var wrap = document.getElementById('ktHero');
         if (!wrap) return;
 
         var msgs = wrap.querySelectorAll('[data-kt]');
         var typing = wrap.querySelector('[data-kt-typing]');
-        if (typing) typing.style.display = 'none';
 
-        var t = 700;
-        // 첫 메시지
-        setTimeout(function () { if (msgs[0]) msgs[0].classList.add('is-in'); }, t);
+        var t = 600;
+        msgs.forEach(function (msg) {
+          setTimeout(function () { msg.classList.add('is-in'); }, t);
+          t += 1100;
+        });
 
-        // 입력 중…
-        t += 900;
-        setTimeout(function () {
-          if (!typing) return;
-          typing.style.display = '';
-          typing.classList.add('is-in');
-        }, t);
+        if (!typing) return;
 
-        // 답장
-        t += 1600;
-        setTimeout(function () {
-          if (typing) typing.style.display = 'none';
-          if (msgs[1]) msgs[1].classList.add('is-in');
-        }, t);
+        // 썼다 지웠다 — 켜져 있는 시간과 꺼져 있는 시간을 조금씩 다르게 줘 망설이는 느낌을 낸다
+        var onMs  = [1700, 1100, 2300, 900];
+        var offMs = [1200, 1900, 900, 1500];
+        var i = 0;
+
+        function loop() {
+          setTimeout(function () {
+            typing.classList.add('is-in');
+            setTimeout(function () {
+              typing.classList.remove('is-in');
+              i++;
+              loop();
+            }, onMs[i % onMs.length]);
+          }, offMs[i % offMs.length]);
+        }
+
+        // 내 메시지가 다 뜬 뒤부터 시작
+        setTimeout(loop, t);
       })();
 
       /* ── 카운트다운 (#2 상단바 · #6 할인) ── */
