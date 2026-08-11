@@ -280,7 +280,8 @@
     border-radius: 2px;
     background: #f4ece0;
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
-    filter: sepia(0.5) saturate(0.8) contrast(0.95) brightness(1.06);
+    /* 원본이 이미 따뜻한 톤이라 세피아는 아주 옅게만 */
+    filter: sepia(0.18) saturate(0.92) brightness(1.04);
     opacity: 0;
     transform: rotate(var(--rot)) scale(0.93);
     animation: memRecall 7.8s ease-in-out infinite;
@@ -289,15 +290,15 @@
 
   /* 떠올랐다가 — 붙잡으려는 순간 흐려진다 */
   @keyframes memRecall {
-    0%   { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px); filter: sepia(0.5) blur(6px) brightness(1.2); }
-    16%  { opacity: 0.96; transform: rotate(var(--rot)) scale(1)    translateY(0);    filter: sepia(0.5) blur(0)   brightness(1.06); }
-    58%  { opacity: 0.96; transform: rotate(var(--rot)) scale(1.02) translateY(-8px); filter: sepia(0.5) blur(0)   brightness(1.06); }
-    82%  { opacity: 0;    transform: rotate(var(--rot)) scale(1.05) translateY(-16px); filter: sepia(0.5) blur(7px) brightness(1.25); }
-    100% { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px); filter: sepia(0.5) blur(6px) brightness(1.2); }
+    0%   { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px);  filter: sepia(0.18) blur(6px) brightness(1.18); }
+    16%  { opacity: 0.97; transform: rotate(var(--rot)) scale(1)    translateY(0);     filter: sepia(0.18) blur(0)   brightness(1.04); }
+    58%  { opacity: 0.97; transform: rotate(var(--rot)) scale(1.02) translateY(-8px);  filter: sepia(0.18) blur(0)   brightness(1.04); }
+    82%  { opacity: 0;    transform: rotate(var(--rot)) scale(1.05) translateY(-16px); filter: sepia(0.18) blur(7px) brightness(1.22); }
+    100% { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px);  filter: sepia(0.18) blur(6px) brightness(1.18); }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .rs-mem { animation: none; opacity: 0.9; transform: rotate(var(--rot)); filter: sepia(0.5) saturate(0.8); }
+    .rs-mem { animation: none; opacity: 0.9; transform: rotate(var(--rot)); filter: sepia(0.18) saturate(0.92); }
     .rs-memories::after { animation: none; opacity: 0.5; }
   }
 
