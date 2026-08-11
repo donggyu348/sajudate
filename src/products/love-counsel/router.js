@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { CounselSession } from '../../models/index.js';
-import { QUESTIONS, parseIntake } from './logic/checklist.js';
 import { judge, findRule, isHowToQuestion } from './logic/engine.js';
 import { buildSystemPrompt } from './logic/prompt.js';
 import { checkSafety } from './logic/safety.js';
+import { extractSlots, isReadyForReport, missingSlots, STAGE_LABEL } from './logic/slots.js';
 import { generateReport, SECTIONS } from './logic/report.js';
 import {
   REPORT_PRICE,
@@ -24,12 +24,11 @@ import {
 export const SLUG = 'love-counsel';
 const BASE = `/products/${SLUG}`;
 
-// 이 제품은 판정 품질이 전부라 상담 모델을 따로 둔다 (dark-psych-love는 비용 위주로 Haiku)
+// 이 제품은 판정 품질이 전부라 상담 모델을 따로 둔다
 const MODEL = process.env.LOVE_COUNSEL_MODEL || 'claude-sonnet-5';
 
-// 무료 구간 상한 — 페이월은 원래 "어떻게 해야 하나요" 질문이 트리거지만,
-// 그 질문이 끝내 안 나오는 경우를 위한 안전장치로 턴 상한을 둔다.
-const MAX_FREE_TURNS = 5;
+// 정보가 끝내 안 모여도 여기까지만 대화한다 — 무한정 물으면 사용자가 나간다
+const MAX_FREE_TURNS = 8;
 
 const router = Router();
 
@@ -44,142 +43,30 @@ function view(name) {
   return `products/${SLUG}/${name}`;
 }
 
-/** 세션에서 진행 중인 상담 상태를 꺼낸다. */
 function state(req) {
   return req.session.lc || null;
 }
 
-// ── 1. INPUT — 상대 나이·성별만 ────────────────────────────────
-router.get('/', (req, res) => res.redirect(`${BASE}/input`));
+// ── 1. 광고 유입 → 곧바로 상담 ──────────────────────────────────
+// 설문 화면을 앞에 두지 않는다. 필요한 정보는 상담사가 대화하면서 묻는다.
+router.get('/', (req, res) => res.redirect(`${BASE}/counsel`));
 
-router.get('/input', (req, res) => {
-  res.render(view('input'), {
-    title: '연애 상담',
-    base: BASE,
-    activeTab: 'home',
-    hideFooter: true,
-    error: null,
-  });
-});
-
-router.post('/input', (req, res) => {
-  const targetAge = Number(req.body?.targetAge);
-  const targetGender = req.body?.targetGender;
-  const valid = Number.isInteger(targetAge) && targetAge >= 19 && targetAge <= 99
-    && (targetGender === 'male' || targetGender === 'female');
-
-  if (!valid) {
-    return res.status(400).render(view('input'), {
+router.get('/counsel', async (req, res, next) => {
+  try {
+    if (!state(req)?.sessionId) {
+      const row = await CounselSession.create({ stage: 'unknown', lastStage: 'counsel' });
+      req.session.lc = { sessionId: row.id, publicId: row.publicId, filled: {} };
+    }
+    res.render(view('counsel'), {
       title: '연애 상담',
       base: BASE,
       activeTab: 'home',
       hideFooter: true,
-      error: '나이와 성별을 확인해 주세요. (만 19세 이상)',
-    });
-  }
-
-  req.session.lc = { target: { targetAge, targetGender } };
-  res.redirect(`${BASE}/check`);
-});
-
-// ── 2. 체크리스트 10문항 ───────────────────────────────────────
-router.get('/check', (req, res) => {
-  if (!state(req)?.target) return res.redirect(`${BASE}/input`);
-  res.render(view('check'), {
-    title: '연애 상담',
-    base: BASE,
-    activeTab: 'home',
-    hideFooter: true,
-    questions: QUESTIONS,
-  });
-});
-
-router.post('/check', async (req, res, next) => {
-  try {
-    const target = state(req)?.target;
-    if (!target) return res.redirect(`${BASE}/input`);
-
-    const { intake, error } = parseIntake(req.body, target);
-    if (error) return res.redirect(`${BASE}/check`);
-
-    // MVP는 썸 구간만 연다. 규칙집이 썸만 완성돼 있어서, 다른 단계를 어설프게 열면
-    // 상담 품질이 무너진다. 대신 출시 알림을 받아둔다.
-    if (intake.stage !== 'some') {
-      const row = await CounselSession.create({ stage: intake.stage, intake, lastStage: 'waitlist' });
-      req.session.lc = { ...state(req), sessionId: row.id, stage: intake.stage };
-      return res.render(view('waitlist'), {
-        title: '준비 중',
-        base: BASE,
-        activeTab: 'home',
-        hideFooter: true,
-        stage: intake.stage,
-        saved: false,
-      });
-    }
-
-    // 판정은 여기서 끝난다 — 이후 LLM은 이 결과를 바꾸지 못한다.
-    const { matched, activeRule, signals } = judge(intake);
-
-    const row = await CounselSession.create({
-      stage: intake.stage,
-      intake,
-      signals,
-      matchedRules: matched,
-      activeRule: activeRule.id,
-      lastStage: 'counsel',
-    });
-
-    req.session.lc = {
-      ...state(req),
-      sessionId: row.id,
-      publicId: row.publicId,
-      intake,
-      activeRule: activeRule.id,
-      matched,
-      turns: 0,
-      paywalled: false,
-    };
-
-    res.redirect(`${BASE}/counsel`);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// 썸이 아닌 단계에서 받는 출시 알림 이메일
-router.post('/waitlist', async (req, res, next) => {
-  try {
-    const email = String(req.body?.email || '').trim().slice(0, 255);
-    const s = state(req);
-    if (s?.sessionId && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      await CounselSession.update({ waitlistEmail: email }, { where: { id: s.sessionId } });
-    }
-    res.render(view('waitlist'), {
-      title: '준비 중',
-      base: BASE,
-      activeTab: 'home',
-      hideFooter: true,
-      stage: s?.stage || 'dating',
-      saved: true,
+      enabled: isCounselorEnabled(),
     });
   } catch (err) {
     next(err);
   }
-});
-
-// ── 3. AI 상담 ────────────────────────────────────────────────
-router.get('/counsel', (req, res) => {
-  const s = state(req);
-  if (!s?.intake) return res.redirect(`${BASE}/input`);
-
-  res.render(view('counsel'), {
-    title: '연애 상담',
-    base: BASE,
-    activeTab: 'home',
-    hideFooter: true,
-    enabled: isCounselorEnabled(),
-    question: s.intake.question,
-  });
 });
 
 router.post('/counsel/stream', streamLimiter, async (req, res) => {
@@ -188,10 +75,10 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
   res.setHeader('X-Accel-Buffering', 'no');
 
   const s = state(req);
-  if (!s?.intake) return res.end('상담 정보가 없습니다. 처음부터 다시 시작해 주세요.');
+  if (!s?.sessionId) return res.end('상담 정보가 없습니다. 새로고침해 주세요.');
   if (!isCounselorEnabled()) return res.end('상담이 아직 설정되지 않았습니다(API 키 미설정).');
 
-  const history = Array.isArray(req.body?.messages) ? req.body.messages : [];
+  const history = Array.isArray(req.body?.messages) ? req.body.messages.slice(-24) : [];
   const lastUser = [...history].reverse().find((m) => m?.role === 'user')?.content || '';
   const turn = history.filter((m) => m?.role === 'user').length + 1;
 
@@ -199,40 +86,47 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
     // (1) 안전 검사가 가장 먼저다. 걸리면 LLM을 호출하지 않고 확정 문구로 끝낸다.
     const safety = checkSafety(lastUser);
     if (safety) {
-      s.stopped = safety.id;
-      await logTurn(s, { lastUser, turn, safetyStop: safety.id, lastStage: 'safety' });
+      await save(s, { safetyStop: safety.id, lastStage: 'safety', lastUser, turn });
       res.setHeader('X-LC-Stop', safety.id);
       return res.end(safety.message);
     }
 
-    // (2) 페이월 — 처방을 요구하는 순간이 트리거. 턴 상한은 안전장치일 뿐이다.
+    // (2) 대화에서 정보를 다시 뽑는다. 물어본 걸 또 묻지 않도록 서버가 상태를 들고 있는다.
+    if (history.length) s.filled = await extractSlots(history, s.filled || {});
+    const filled = s.filled || {};
+
+    // (3) 썸 구간은 필요한 값이 모이면 코드가 판정을 확정한다. 그때부터 LLM은 말하기만 한다.
+    //     다른 단계는 규칙집이 없어 원칙 기반으로 상담한다.
+    let rule = null;
+    if (filled.stage === 'some' && !missingSlots(filled).some((x) => x.required)) {
+      const verdict = judge(filled);
+      rule = verdict.activeRule;
+      s.activeRule = rule.id;
+      s.matched = verdict.matched;
+      s.signals = verdict.signals;
+    }
+
+    // (4) 리포트로 넘길 시점 — 정보가 다 모였거나, 사용자가 처방을 요구했거나, 상한에 닿았을 때
+    const ready = isReadyForReport(filled, turn - 1);
     const howTo = isHowToQuestion(lastUser);
     if (howTo && !s.howToTurn) s.howToTurn = turn;
-    if (howTo || turn > MAX_FREE_TURNS) {
-      s.paywalled = true;
-      await logTurn(s, { lastUser, turn, paywalled: true, lastStage: 'paywall' });
-      res.setHeader('X-LC-Paywall', '1');
+    if (ready || (howTo && turn >= 3) || turn > MAX_FREE_TURNS) {
+      await save(s, { paywalled: true, lastStage: 'paywall', lastUser, turn });
+      res.setHeader('X-LC-Report', '1');
       return res.end(
-        '지금부터가 실제 처방입니다. 앞으로 7일 동안 뭘 하고, 다음 연락을 정확히 뭐라고 할지 — 여기부터 이어갑니다.'
+        '여기까지 이야기로 판정에 필요한 건 모였습니다. 지금부터가 실제 처방입니다 — 앞으로 7일 동안 뭘 하고, 다음 연락을 정확히 뭐라고 할지 정리해 드리겠습니다.'
       );
     }
 
-    const systemPrompt = buildSystemPrompt({
-      rule: findRule(s.activeRule),
-      intake: s.intake,
-      turn,
-    });
+    const systemPrompt = buildSystemPrompt({ rule, filled, turn });
 
-    // 1턴은 사용자가 아무것도 입력하지 않은 상태에서 시작한다. 그런데 API는 메시지가
-    // 최소 하나 있어야 하므로, 체크리스트 Q10(가장 알고 싶은 것)을 첫 발화로 넣는다 —
-    // 1턴이 이 문장을 정면으로 받아야 하니 내용상으로도 맞다.
+    // 첫 턴은 사용자 입력이 없다. API는 메시지가 최소 하나 있어야 하므로 시작 발화를 넣는다.
     const messages = history.length
       ? history
-      : [{ role: 'user', content: s.intake.question }];
+      : [{ role: 'user', content: '상담 시작합니다.' }];
 
-    // 스트리밍은 HTTP 200으로 열린 뒤 본문 안에서 오류가 오기 때문에 SDK 재시도 범위 밖이다.
-    // 아직 한 글자도 내보내지 않았을 때만 직접 다시 시도한다 — 이미 나가기 시작한 뒤 재시도하면
-    // 같은 말이 두 번 이어붙는다.
+    // 스트리밍 오류는 SDK 재시도 범위 밖이다(200으로 열린 뒤 본문에서 실패).
+    // 아직 한 글자도 안 나갔을 때만 다시 시도한다 — 이미 나간 뒤 재시도하면 같은 말이 두 번 붙는다.
     const MAX_RETRIES = 2;
     let wroteAny = false;
     let aborted = false;
@@ -243,7 +137,6 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
       const stream = streamCounsel({ history: messages, systemPrompt, model: MODEL, maxTokens: 900 });
       current = stream;
       stream.on('text', (delta) => { wroteAny = true; res.write(delta); });
-
       try {
         await stream.finalMessage();
         break;
@@ -258,7 +151,7 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
       }
     }
 
-    await logTurn(s, { lastUser, turn, lastStage: 'counsel' });
+    await save(s, { lastStage: 'counsel', lastUser, turn });
     res.end();
   } catch (err) {
     console.error('[love-counsel/stream]', err);
@@ -266,10 +159,10 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
   }
 });
 
-// ── 4. 리포트 ─────────────────────────────────────────────────
+// ── 2. 리포트 ─────────────────────────────────────────────────
 /**
- * 상담 대화를 받아 리포트를 만든다. 대화 이력은 클라이언트에만 있으므로 여기서 받는다.
- * 결제 전에 미리 만들어 두고 화면에서 뒷부분을 가린다 — 결제 직후 기다림 없이 바로 열린다.
+ * 상담 대화로 리포트를 만든다. 대화 이력은 클라이언트에만 있으므로 여기서 받는다.
+ * 결제 전에 미리 만들어 두고 화면에서 뒷부분을 가린다 — 결제 직후 기다림 없이 열린다.
  */
 router.post('/report/prepare', async (req, res) => {
   const s = state(req);
@@ -281,9 +174,10 @@ router.post('/report/prepare', async (req, res) => {
 
     if (!row.report) {
       const history = Array.isArray(req.body?.messages) ? req.body.messages.slice(-24) : [];
+      const filled = s.filled || {};
       const report = await generateReport({
-        intake: s.intake,
-        rule: findRule(s.activeRule),
+        filled,
+        rule: s.activeRule ? findRule(s.activeRule) : null,
         history,
       });
       if (!report) return res.status(502).json({ error: '리포트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.' });
@@ -314,7 +208,8 @@ router.get('/report/:publicId', async (req, res, next) => {
       report: row.report,
       sections: SECTIONS,
       paid: row.paid,
-      rule: findRule(row.activeRule),
+      rule: row.activeRule ? findRule(row.activeRule) : null,
+      stageLabel: STAGE_LABEL[row.stage] || '연애 상담',
       price: REPORT_PRICE,
       tossEnabled: isTossEnabled(),
       clientKey: isTossEnabled() ? getTossClientKey() : null,
@@ -334,7 +229,7 @@ router.post('/report/:publicId/checkout/prepare', async (req, res) => {
   if (!row) return res.status(404).json({ error: '리포트를 찾을 수 없습니다.' });
   if (row.paid) return res.status(400).json({ error: '이미 결제된 리포트입니다.' });
 
-  // 결제를 시도할 때마다 새로 발급한다 — 실패 후 다시 누를 때 같은 orderId를 재사용하면 토스가 거부한다.
+  // 시도할 때마다 새로 발급한다 — 실패 후 다시 누를 때 같은 orderId를 재사용하면 토스가 거부한다.
   const orderId = buildOrderId(row.id, REPORT_PRICE);
   res.json({ ok: true, orderId, amount: REPORT_PRICE });
 });
@@ -373,10 +268,10 @@ router.get('/report/:publicId/checkout/fail', (req, res) => {
 });
 
 /**
- * 턴 로그 기록. 대화 원문은 남기지 않고 길이만 남긴다.
+ * 세션 로그. 대화 원문은 남기지 않고 길이만 남긴다.
  * 로깅 실패가 상담을 끊으면 안 되므로 예외는 삼킨다.
  */
-async function logTurn(s, { lastUser, turn, paywalled, safetyStop, lastStage }) {
+async function save(s, { lastUser, turn, paywalled, safetyStop, lastStage }) {
   if (!s?.sessionId) return;
   s.turns = turn;
   s.userMsgLengths = [...(s.userMsgLengths || []), String(lastUser || '').length];
@@ -384,6 +279,11 @@ async function logTurn(s, { lastUser, turn, paywalled, safetyStop, lastStage }) 
   try {
     await CounselSession.update(
       {
+        stage: s.filled?.stage || 'unknown',
+        intake: s.filled || null,
+        signals: s.signals || null,
+        matchedRules: s.matched || null,
+        activeRule: s.activeRule || null,
         userMsgLengths: s.userMsgLengths,
         turnCount: turn,
         howToTurn: s.howToTurn ?? null,

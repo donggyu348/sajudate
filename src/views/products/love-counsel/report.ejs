@@ -25,9 +25,12 @@
     <%= paid ? '전체 리포트' : '미리보는 리포트' %>
   </h1>
 
+  <%# 판정 규칙은 썸 구간에만 있다. 다른 단계는 단계명만 띄운다. %>
   <div class="mt-4 rounded-xl border border-accent-ring bg-accent-soft px-4 py-3.5">
-    <p class="text-[11px] font-semibold text-accent"><%= rule.id %> · <%= rule.name %></p>
-    <p class="mt-1.5 text-[13px] font-semibold leading-relaxed text-ink"><%= rule.diagnosis %></p>
+    <p class="text-[11px] font-semibold text-accent"><%= rule ? rule.id + ' · ' + rule.name : stageLabel %></p>
+    <% if (rule) { %>
+      <p class="mt-1.5 text-[13px] font-semibold leading-relaxed text-ink"><%= rule.diagnosis %></p>
+    <% } %>
   </div>
 
   <% if (purchased) { %>

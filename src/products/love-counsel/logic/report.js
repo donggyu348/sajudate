@@ -1,7 +1,7 @@
 import { getCounselorClient } from '../../dark-psych-love/logic/counselor.js';
 import { safeJsonParse } from '../../dark-psych-love/logic/jsonUtil.js';
 import { wrapUntrusted } from '../../dark-psych-love/logic/untrusted.js';
-import { formatIntake } from './checklist.js';
+import { STAGE_LABEL } from './slots.js';
 
 const MODEL = process.env.LOVE_COUNSEL_MODEL || 'claude-sonnet-5';
 
@@ -43,10 +43,13 @@ const SYSTEM = `당신은 '해답'의 연애 상담 전문가다. 상담을 마�
 }`;
 
 /**
- * @param {{ intake: object, rule: object, history: {role:string,content:string}[] }} params
+ * @param {object} params
+ * @param {object} params.filled          대화로 파악된 정보
+ * @param {object|null} params.rule       확정된 판정 카드 (썸 구간에서만 있다)
+ * @param {{role:string,content:string}[]} params.history
  * @returns {Promise<object|null>} 섹션 키를 가진 객체. 실패하면 null
  */
-export async function generateReport({ intake, rule, history }) {
+export async function generateReport({ filled, rule, history }) {
   const client = getCounselorClient();
   if (!client) return null;
 
@@ -62,19 +65,23 @@ export async function generateReport({ intake, rule, history }) {
     messages: [
       {
         role: 'user',
-        content: `# 확정된 판정 (바꾸지 않는다)
+        content: `${rule ? `# 확정된 판정 (바꾸지 않는다)
 규칙: ${rule.id} — ${rule.name}
 진단: ${rule.diagnosis}
 흔한 오해: ${rule.misdiagnosis}
 처방: ${rule.prescription}
 예측: ${rule.prediction || '(없음. 지어내지 마라.)'}
-이 규칙에서 금지: ${rule.forbid.join(', ')}
+이 규칙에서 금지: ${rule.forbid.join(', ')}`
+  // 썸 외 단계는 아직 규칙집이 없다. 없는 근거를 지어내지 않도록 명시한다.
+  : `# 확정된 판정 없음
+이 단계(${STAGE_LABEL[filled?.stage] || '연애 상담'})는 판정 규칙집이 아직 없다.
+위 원칙과 사용자가 말한 행동 사실만으로 쓴다. 연구나 통계를 지어내지 마라.`}
 
-# 체크리스트 응답
-${formatIntake(intake)}
+# 대화로 파악된 정보
+${Object.entries(filled || {}).filter(([k]) => k !== 'question').map(([k, v]) => `- ${k}: ${v}`).join('\n')}
 
 # 사용자가 가장 알고 싶은 것
-${wrapUntrusted(intake.question, '사용자 질문')}
+${wrapUntrusted(filled?.question || '', '사용자 질문')}
 
 # 상담 대화
 ${wrapUntrusted(transcript, '상담 대화 기록')}
