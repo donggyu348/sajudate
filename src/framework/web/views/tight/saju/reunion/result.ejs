@@ -87,7 +87,8 @@
 
         <!-- 하단: 답장 없는 카톡. 내 메시지는 하나씩 뜨고, 상대는 썼다 지웠다만 반복한다 -->
         <div class="kt" id="ktHero">
-          <div class="kt-row kt-row--right" data-kt="0">
+          <!-- 첫 메시지는 진입 즉시 보이도록 is-in을 처음부터 붙여둔다 -->
+          <div class="kt-row kt-row--right is-in" data-kt="0">
             <span class="kt-time">오후 11:47</span>
             <div class="kt-msg kt-msg--me">뭐해...?</div>
           </div>
@@ -297,8 +298,10 @@
         var msgs = wrap.querySelectorAll('[data-kt]');
         var typing = wrap.querySelector('[data-kt-typing]');
 
-        var t = 600;
-        msgs.forEach(function (msg) {
+        // 첫 메시지는 마크업에서 이미 떠 있으므로 두 번째부터 순차 등장시킨다
+        var t = 1100;
+        msgs.forEach(function (msg, i) {
+          if (i === 0) return;
           setTimeout(function () { msg.classList.add('is-in'); }, t);
           t += 1100;
         });
