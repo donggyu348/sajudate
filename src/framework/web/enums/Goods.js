@@ -96,6 +96,30 @@ export const GoodsType = Object.freeze({
     platform: Platform.TIGHT
   },
 
+  // 재회사주 + S궁합사주 (재회 구매 시 29금 티켓 증정)
+  REUNION_ADULT_BUNDLE: {
+    code: "REUNION_ADULT_BUNDLE",
+    title: "재회사주 + S궁합사주",
+    originalPrice: 75600,   // 37,800 + 37,800
+    discountPrice: 25800,
+    price: 49800,
+    platform: Platform.TIGHT,
+    reportCode: "REUNION",
+    giveTicket: "ADULT"
+  },
+
+  // 재회사주 + 홍연사주(연애사주) (재회 구매 시 연애 티켓 증정)
+  REUNION_ROMANTIC_BUNDLE: {
+    code: "REUNION_ROMANTIC_BUNDLE",
+    title: "재회사주 + 홍연사주(연애사주)",
+    originalPrice: 72700,   // 37,800 + 34,900
+    discountPrice: 22900,
+    price: 49800,
+    platform: Platform.TIGHT,
+    reportCode: "REUNION",
+    giveTicket: "ROMANTIC"
+  },
+
   /* ── 추가 번들: 연애사주 · 29금(S궁합) · 저승사자(리퍼) 교차 묶음 ──
      각 상품 결제창에서 reportCode(본 리포트) 기준으로 2개씩 노출된다. */
 
