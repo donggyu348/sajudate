@@ -100,10 +100,14 @@
       overflow: hidden;
     }
 
+    /* 히어로 영상 — 이미지와 같은 2:3 비율을 잡아둬 로딩 중 레이아웃이 밀리지 않게 한다 */
     .intro-hero__img {
       display: block;
       width: 100%;
       height: auto;
+      aspect-ratio: 2 / 3;
+      object-fit: cover;
+      background: #0b070f;
     }
 
     .intro-hero__gradient {
@@ -352,14 +356,14 @@
     </div>
 
     <div class="intro-hero">
-      <img
+      <video
         class="intro-hero__img"
-        src="/assets/images/tight/return/intro.png"
-        alt="재회사주 — 헤어진 그 사람과 다시 만날 확률"
-        width="584"
-        loading="eager"
-        decoding="async"
+        id="introVideo"
+        autoplay muted loop playsinline preload="auto"
+        aria-label="재회사주 — 헤어진 그 사람과 다시 만날 확률"
       >
+        <source src="/assets/images/tight/return/intro.mp4" type="video/mp4">
+      </video>
       <div class="intro-hero__gradient" aria-hidden="true"></div>
 
       <p class="intro-hero__whisper">우리, 많이 사랑했잖아…</p>
@@ -399,6 +403,23 @@
   </div>
 
   <script>
+    /* 일부 브라우저는 autoplay 속성만으로 재생하지 않는다 — 명시적으로 한 번 더 시도 */
+    (function () {
+      var v = document.getElementById('introVideo');
+      if (!v) return;
+      function tryPlay() {
+        var p = v.play();
+        if (p && p.catch) p.catch(function () {});
+      }
+      tryPlay();
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) tryPlay();
+      });
+      // 자동재생이 막히면 첫 터치/클릭에서 재생
+      document.addEventListener('touchstart', tryPlay, { once: true, passive: true });
+      document.addEventListener('click', tryPlay, { once: true });
+    })();
+
     $(document).ready(function(){
       if(window.karrotPixel) window.karrotPixel.track('ViewContent');
     });
