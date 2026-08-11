@@ -9,6 +9,8 @@ import {
   getPartnerPreviewTitle,
 } from "./prompts/romanticLoveReportPrompt.js";
 import { buildReaperCharts } from "./reaperChartService.js";
+import { REUNION_REPORT_PROMPT_PARTS, REUNION_STEP_LABELS } from "./prompts/reunionReportPrompt.js";
+import { buildReunionAnalysis } from "./reunionSajuService.js";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const GPT_CHAPTER_DELAY_MS = Number(process.env.GPT_CHAPTER_DELAY_MS) || 16000;
@@ -1956,6 +1958,7 @@ const REPORT_VIEW_PATHS = Object.freeze({
   ADULT: "tight/saju/adult/report",
   ROMANTIC: "tight/saju/romantic/report",
   REAPER: "tight/saju/reaper/report",
+  REUNION: "tight/saju/reunion/report",
   CLASSIC: "tight/saju/classic/report",
   PREMIUM_SAJU: "tight/saju/classic/report",
 });
@@ -1971,6 +1974,7 @@ export function getReportStepInfo(goodsType) {
   const reportCode = resolveReportCode(goodsType);
 
   if (reportCode === "REAPER") return { total: REAPER_STEP_LABELS.length, labels: REAPER_STEP_LABELS.slice() };
+  if (reportCode === "REUNION") return { total: REUNION_STEP_LABELS.length, labels: REUNION_STEP_LABELS.slice() };
   if (reportCode === "CLASSIC") return { total: CLASSIC_REPORT_PROMPT_PARTS.length, labels: CLASSIC_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
   if (reportCode === "ADULT") return { total: ADULT_REPORT_PROMPT_PARTS.length, labels: ADULT_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
   if (reportCode === "PREMIUM_SAJU") return { total: PREMIUM_REPORT_PROMPT_PARTS.length, labels: PREMIUM_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
@@ -3891,6 +3895,8 @@ let promtParts;
         promtParts = REAPER_REPORT_PROMPT_PARTS;
     } else if (reportCode === "ADULT") {
         promtParts = ADULT_REPORT_PROMPT_PARTS;
+    } else if (reportCode === "REUNION") {
+        promtParts = REUNION_REPORT_PROMPT_PARTS;
     } else if (reportCode === "PREMIUM_SAJU") {
         promtParts = PREMIUM_REPORT_PROMPT_PARTS;
     } else {
@@ -3929,6 +3935,71 @@ let promtParts;
           partner: partnerSajuJson
             ? { userInfo: { name: partnerInfo.name, gender: partnerInfo.gender }, ...partnerSajuJson }
             : { userInfo: { name: partnerInfo.name, gender: partnerInfo.gender } },
+        };
+      } else if (reportCode === "REUNION") {
+        // 재회사주: 두 사람 원국 + 랜딩에서 이미 계산해 보여준 값(REUNION)을 그대로 넘긴다.
+        // 랜딩에 뜬 확률·날짜와 리포트 본문이 어긋나면 안 되므로 같은 계산 결과를 공유한다.
+        const partnerInfo = {
+          name: userInfo.partnerName || "상대방",
+          gender: userInfo.partnerGender || "",
+          birthDate: userInfo.partnerBirthdate || userInfo.partnerBirthDate || "",
+          birthTime: userInfo.partnerBirthTime || "",
+          birthType: userInfo.partnerBirthType || "양력",
+        };
+        let partnerSajuJson = null;
+        if (partnerInfo.birthDate) {
+          try {
+            partnerSajuJson = buildSajuJsonForReport(partnerInfo);
+          } catch (e) {
+            console.warn("재회사주 파트너 사주 계산 실패:", e.message);
+          }
+        }
+
+        let reunionSnapshot = null;
+        try {
+          const r = buildReunionAnalysis(userInfo);
+          reunionSnapshot = {
+            probability: r.probability,
+            scores: r.scores,
+            keyword: r.keyword,
+            myDayPillar: r.me.dayPillar,
+            partnerDayPillar: r.partner.dayPillar,
+            myStrength: r.me.strength,
+            myYongshin: r.me.yongshin,
+            boost: r.boost,
+            silenceRule: r.silenceRule,
+            calendar: {
+              month: r.calendar.month.label,
+              goldenDays: r.calendar.days
+                .filter((d) => d.label === "golden")
+                .map((d) => ({ date: d.date, ganji: d.ganji, tenGod: d.tenGod })),
+              silenceDays: r.calendar.days
+                .filter((d) => d.label === "silence")
+                .map((d) => ({ date: d.date, ganji: d.ganji, tenGod: d.tenGod })),
+              nextGolden: r.calendar.nextGolden ? r.calendar.nextGolden.date : null,
+            },
+            months: r.months.map((m) => ({
+              label: m.label, ganji: m.ganji, tenGod: m.tenGod, score: m.score,
+            })),
+            peak: { label: r.timeline.peak.label, ganji: r.timeline.peak.ganji, score: r.timeline.peak.score },
+            bottom: { label: r.timeline.bottom.label, score: r.timeline.bottom.score },
+            axes: r.axes.map((a) => ({ label: a.label, value: a.value })),
+            context: {
+              breakupReason: userInfo.breakupReason || "",
+              contactStatus: userInfo.contactStatus || "",
+              mainConcern: userInfo.mainConcern || "",
+            },
+          };
+        } catch (e) {
+          console.warn("재회사주 스냅샷 생성 실패:", e.message);
+        }
+
+        sajuJsonForGPT = {
+          my: { userInfo: { name: userInfo.name, gender: userInfo.gender }, ...mySajuJson },
+          partner: partnerSajuJson
+            ? { userInfo: { name: partnerInfo.name, gender: partnerInfo.gender }, ...partnerSajuJson }
+            : { userInfo: { name: partnerInfo.name, gender: partnerInfo.gender } },
+          REUNION: reunionSnapshot,
         };
       }
 
@@ -3991,7 +4062,8 @@ let promtParts;
         const isAdultReport = reportCode === "ADULT";
         const isReaperReport = reportCode === "REAPER";
         const expectedAdultChapter = isAdultReport ? extractAdultChapterTitleFromPrompt(promtParts[i]) : null;
-        const gptMaxTokens = (isAdultReport || isReaperReport) ? 16384 : 4096;
+        const isReunionReport = reportCode === "REUNION";
+        const gptMaxTokens = (isAdultReport || isReaperReport || isReunionReport) ? 16384 : 4096;
 
 let parsed = null;
 let retryCount = 0;
