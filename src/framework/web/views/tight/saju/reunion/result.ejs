@@ -112,65 +112,57 @@
       </div>
     </section>
 
-    <!-- ═══════════ #2 공감 (2컷) ═══════════ -->
+    <!-- ═══════════ #2 공감 — 이미지를 띄우고, 맞닿는 자리에 대사를 얹는다 ═══════════ -->
     <section class="rs" id="sec2">
-      <div class="rs-cut">
-        <img class="rs__bg" src="<%= scene(2) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
-        <div class="rs__scrim"></div>
+      <div class="rs-scene">
+        <img class="rs-scene__img" src="<%= scene(2) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
+      </div>
 
-        <!-- 상단 — 폰을 든 채 망설이는 속마음 (히어로 카톡과 같은 말줄임 톤) -->
-        <div class="rs__inner rs-cut__top">
-          <div class="rs-lines">
-            <p class="rs-line rs-line--sm rs-line--center" data-line>그냥 연락해볼까...?</p>
-            <p class="rs-line rs-line--sm rs-line--center" data-line>몇 번을 썼다 지웠는지 몰라요</p>
-          </div>
-        </div>
-
-        <div class="rs__inner">
-          <div class="rs-lines">
-            <p class="rs-line rs-line--sm" data-line>자려고 누우면 그 사람 이름부터 떠올라요</p>
-            <p class="rs-line" data-line>이게 진짜<br>마지막이었을까요?</p>
-          </div>
+      <div class="rs-say rs-say--me">
+        <span class="rs-say__who"><%= name %></span>
+        <div class="rs-lines">
+          <p class="rs-line" data-line>그냥 연락해볼까...?</p>
+          <p class="rs-line rs-line--sm" data-line>몇 번을 썼다 지웠는지 몰라요.<br>자려고 누우면 그 사람 이름부터 떠올라요.</p>
+          <p class="rs-line" data-line>이게 진짜 마지막이었을까요?</p>
         </div>
       </div>
 
-      <div class="rs-cut rs-cut--memory" data-memory-cut>
-        <img class="rs__bg" src="<%= scene(3) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
-        <div class="rs__scrim"></div>
+      <div class="rs-scene rs-scene--memory" data-memory-cut>
+        <img class="rs-scene__img" src="<%= scene(3) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
         <%- include('./_memories') %>
+      </div>
 
-        <!-- 상단 — 사라지는 폴라로이드와 같은 자리에서 읽히는 독백 -->
-        <div class="rs__inner rs-cut__top">
-          <div class="rs-lines">
-            <p class="rs-line rs-line--sm rs-line--center" data-line>좋았던 기억만 자꾸 떠올라요</p>
-            <p class="rs-line rs-line--sm rs-line--center" data-line>붙잡으려 할수록 흐려지는데도요</p>
-          </div>
+      <div class="rs-say rs-say--me">
+        <span class="rs-say__who"><%= name %></span>
+        <div class="rs-lines">
+          <p class="rs-line rs-line--sm" data-line>좋았던 기억만 자꾸 떠올라요.<br>붙잡으려 할수록 흐려지는데도요.</p>
+          <p class="rs-line" data-line>이대로 잊는 게<br>맞는 걸까요</p>
         </div>
+      </div>
 
-        <div class="rs__inner">
-          <div class="rs-lines">
-            <p class="rs-line rs-line--sm rs-line--right" data-line>이대로 잊는 게 맞는 걸까요</p>
-            <p class="rs-line rs-line--right" data-line><%= name %>님,<br>잠깐 이야기 좀 할까요</p>
-          </div>
+      <div class="rs-say rs-say--tell">
+        <div class="rs-lines">
+          <p class="rs-line" data-line><%= name %>님,<br>잠깐 이야기 좀 할까요</p>
         </div>
       </div>
     </section>
 
-    <!-- ═══════════ #3 금기 / 호기심 갭 ═══════════ -->
-    <section class="rs rs--scene" id="sec3">
-      <img class="rs__bg" src="<%= scene(4) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
-      <div class="rs__scrim"></div>
+    <!-- ═══════════ #3 금기 — 화자가 상대 쪽으로 넘어간다 ═══════════ -->
+    <section class="rs" id="sec3">
+      <div class="rs-scene">
+        <img class="rs-scene__img" src="<%= scene(4) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
+      </div>
 
-      <!-- 상단 — 화면이 상대 쪽으로 넘어왔다는 걸 알려준다 -->
-      <div class="rs__inner rs-cut__top">
+      <div class="rs-say rs-say--you">
+        <span class="rs-say__who"><%= partnerName %></span>
         <div class="rs-lines">
-          <p class="rs-line rs-line--sm rs-line--center" data-line>같은 밤, <%= partnerName %>님도<br>화면을 들여다보고 있어요</p>
+          <p class="rs-line" data-line>답장, 뭐라고 하지...</p>
+          <p class="rs-line rs-line--sm" data-line>같은 밤, 그 사람도<br>화면을 들여다보고 있어요.</p>
         </div>
       </div>
 
-      <div class="rs__inner">
+      <div class="rs-say rs-say--tell">
         <div class="rs-lines">
-          <p class="rs-line rs-line--sm" data-line>그런데 지금은 때가 아니에요</p>
           <p class="rs-line rs-line--warn" data-line>지금 연락하면,<br>오히려 멀어져요</p>
           <p class="rs-line rs-line--sm" data-line>이 <span class="rs-blur"><%= reunion.silenceRule %></span> 지키면<br>재회할 수 있습니다</p>
         </div>
@@ -260,9 +252,10 @@
     </section>
 
     <!-- ═══════════ #9-2 마무리 씬 ═══════════ -->
-    <section class="rs rs--scene" id="sec9b" style="min-height:auto;padding-top:64px;padding-bottom:44px;">
-      <img class="rs__bg" src="<%= scene(6) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
-      <div class="rs__scrim"></div>
+    <section class="rs" id="sec9b" style="padding-top:26px;">
+      <div class="rs-scene">
+        <img class="rs-scene__img" src="<%= scene(6) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
+      </div>
     </section>
 
     <!-- 스크롤 앵커: 여기 도달하면 플로팅 CTA 숨김 -->
