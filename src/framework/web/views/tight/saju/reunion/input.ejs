@@ -930,10 +930,16 @@
       return true;
     }
 
+    // 직접 작성은 선택 입력 — 비워도 넘어간다
+    if (id === 'qFree') return true;
+
     if (id === 'step0') {
       return validateStep("input[name='name']", birthdateInput, genderInput, 'genderRowMe');
     }
-    return validateStep("input[name='partnerName']", partnerBirthdateInput, partnerGenderInput, 'genderRowPartner');
+    if (id === 'step1') {
+      return validateStep("input[name='partnerName']", partnerBirthdateInput, partnerGenderInput, 'genderRowPartner');
+    }
+    return true;
   }
 
   submitBtn.addEventListener('click', function () {
