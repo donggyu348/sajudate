@@ -93,8 +93,8 @@ export const GoodsType = Object.freeze({
     code: "ROMANTIC_REAPER_BUNDLE",
     title: "홍연사주(연애사주) + 사자록(정통사주)",
     originalPrice: 72400,
-    discountPrice: 20800,
-    price: 51600,
+    discountPrice: 22600,
+    price: 49800,
     platform: Platform.TIGHT,
     reportCode: "ROMANTIC",
     giveTicket: "REAPER"
@@ -105,8 +105,8 @@ export const GoodsType = Object.freeze({
     code: "ADULT_REAPER_BUNDLE",
     title: "S궁합사주 + 사자록(정통사주)",
     originalPrice: 72400,
-    discountPrice: 20800,
-    price: 51600,
+    discountPrice: 22600,
+    price: 49800,
     platform: Platform.TIGHT,
     reportCode: "ADULT",
     giveTicket: "REAPER"
