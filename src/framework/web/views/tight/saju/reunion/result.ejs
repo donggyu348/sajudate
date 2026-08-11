@@ -16,14 +16,51 @@
    */
   const scene = (n) => `/assets/images/tight/return/${n}.png`;
 
-  const TOC = [
-    '두 사람이 왜 어긋났는지 — 사주로 본 이별의 진짜 이유',
-    `${partnerName}님이 지금 마음속으로 하고 있는 생각`,
-    '재회 확률을 끌어올리는 연락 타이밍 전체 일정',
-    '절대 하면 안 되는 행동 7가지',
-    '다시 만났을 때 같은 이유로 헤어지지 않는 법',
-    '두 사람의 궁합·결혼운 종합 풀이',
-    `${partnerName}님 쪽 사주 단독 풀이`,
+  /* 리포트 목차 — 4장 구성 */
+  const CHAPTERS = [
+    {
+      title: '무엇이 우리를 어긋나게 했을까',
+      sub: '두 사람의 사주 원국 정밀 대조',
+      items: [
+        `${name}님과 ${partnerName}님의 원국 전체 풀이`,
+        '두 사람의 오행 균형과 부딪히는 지점',
+        '헤어진 그날의 일진이 말해주는 것',
+        '관계를 무너뜨린 결정적 요인 3가지',
+      ],
+      more: 1,
+    },
+    {
+      title: '그 사람은 지금 무슨 생각을 할까',
+      sub: `${partnerName}님의 속마음 해부`,
+      items: [
+        `이별을 결정하던 순간 ${partnerName}님의 마음`,
+        `지금 이 순간 ${partnerName}님의 감정 상태`,
+        `${partnerName}님 원국에 나를 향한 기운이 남아 있는지`,
+        '앞으로 한 달, 그 마음이 어떻게 움직이는지',
+      ],
+      more: 2,
+    },
+    {
+      title: '정말 다시 만나게 될까',
+      sub: '재회 가능성과 그 시점',
+      items: [
+        '두 사람의 재회 확률과 그렇게 나온 근거',
+        `${partnerName}님이 먼저 연락해올 시기`,
+        '내가 먼저 다가가야 할 정확한 날짜',
+      ],
+      more: 1,
+    },
+    {
+      title: '무엇을 하고, 무엇을 하지 말아야 하나',
+      sub: '재회 실전 전략',
+      items: [
+        '지금부터 지켜야 할 기본 태도',
+        '다시 마주했을 때 통하는 인상과 화법',
+        '연락운을 끌어올리는 개운법과 답장 요령',
+        `[주의] ${partnerName}님이 등을 돌리게 만드는 행동`,
+      ],
+      more: 3,
+    },
   ];
 %>
 
@@ -229,27 +266,40 @@
       </div>
     </section>
 
-    <!-- ═══════════ #9 마무리 / 목차 ═══════════ -->
-    <section class="rs rs--scene" id="sec9" style="min-height:auto;padding-top:44px;padding-bottom:40px;">
+    <!-- ═══════════ #9 리포트 목차 (배경 이미지 없이 단독) ═══════════ -->
+    <section class="rs rs--ui" id="sec9">
+      <div class="rs-lines" style="margin-bottom:26px;">
+        <p class="rs-line" data-line>리포트 안에 뭐가 들어있는지<br>보여드릴게요</p>
+        <p class="rs-line rs-line--sm" data-line>왜 자꾸 어긋났던 걸까요?</p>
+      </div>
+
+      <% CHAPTERS.forEach(function (ch, i) { %>
+      <div class="rs-ch" data-reveal>
+        <p class="rs-ch__no">CHAPTER <%= String(i + 1).padStart(2, '0') %></p>
+        <h3 class="rs-ch__title"><%= ch.title %></h3>
+        <p class="rs-ch__sub"><%= ch.sub %></p>
+
+        <ul class="rs-ch__list">
+          <% ch.items.forEach(function (item, j) { %>
+          <li class="rs-ch__item">
+            <span class="rs-ch__idx">풀이 <%= j + 1 %></span>
+            <span><%= item %></span>
+          </li>
+          <% }); %>
+        </ul>
+
+        <p class="rs-ch__more">그 외 <%= ch.more %>가지 풀이 추가 제공</p>
+      </div>
+      <% }); %>
+    </section>
+
+    <!-- ═══════════ #9-2 마무리 씬 ═══════════ -->
+    <section class="rs rs--scene" id="sec9b" style="min-height:auto;padding-top:64px;padding-bottom:44px;">
       <img class="rs__bg" src="<%= scene(6) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
       <div class="rs__scrim"></div>
       <div class="rs__inner">
-        <div class="rs-lines" style="margin-bottom:24px;">
-          <p class="rs-line" data-line>리포트 안에 뭐가 들어있는지<br>보여드릴게요</p>
-          <p class="rs-line rs-line--sm rs-line--right" data-line>왜 자꾸 어긋났던 걸까요?</p>
-        </div>
-
-        <div class="rs-toc">
-          <% TOC.forEach(function (item, i) { %>
-          <div class="rs-toc__item" data-reveal>
-            <span class="rs-toc__no"><%= String(i + 1).padStart(2, '0') %></span>
-            <span><%= item %></span>
-          </div>
-          <% }); %>
-        </div>
-
-        <div class="rs-lines" style="margin-top:24px;">
-          <p class="rs-line rs-line--sm" data-line>상대방 쪽 풀이도 하나 더 얹어드려요</p>
+        <div class="rs-lines">
+          <p class="rs-line" data-line>상대방 쪽 풀이도<br>하나 더 얹어드려요</p>
         </div>
       </div>
     </section>

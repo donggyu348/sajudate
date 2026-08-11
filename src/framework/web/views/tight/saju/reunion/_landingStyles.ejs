@@ -258,7 +258,7 @@
     filter:
       saturate(calc(1 - var(--p) * 0.4))
       brightness(calc(1.08 - var(--p) * 0.26));
-    transform: scale(calc(1 + var(--p) * 0.035));
+    transform: scale(calc(1 + var(--p) * 0.035));
   }
 
   .rs-memories {
@@ -279,7 +279,7 @@
       radial-gradient(66% 42% at 50% 22%, rgba(255, 198, 132, 0.34) 0%, transparent 72%),
       radial-gradient(40% 30% at 22% 12%, rgba(255, 176, 120, 0.2) 0%, transparent 70%);
     opacity: clamp(0, calc((1 - var(--p)) * 1.15), 1);
-    mix-blend-mode: screen;
+    mix-blend-mode: screen;
   }
 
   /* 기억이 빠져나간 자리를 채우는 냉기 */
@@ -291,7 +291,7 @@
     background:
       radial-gradient(90% 70% at 50% 60%, transparent 0%, rgba(8, 10, 24, 0.72) 100%),
       linear-gradient(180deg, rgba(10, 14, 32, 0.5) 0%, rgba(6, 8, 20, 0.72) 100%);
-    opacity: clamp(0, calc(var(--p) * 1.25 - 0.12), 1);
+    opacity: clamp(0, calc(var(--p) * 1.25 - 0.12), 1);
   }
 
   .rs-mem {
@@ -315,7 +315,7 @@
       sepia(0.18)
       saturate(calc(1 - var(--p) * 0.85))
       brightness(calc(1.04 + var(--p) * 0.16))
-      blur(calc(var(--p) * 5px));
+      blur(calc(var(--p) * 5px));
   }
 
   /* 사진 자체는 아주 느리게 숨 쉰다 (스크롤을 멈춰도 정지 화면이 되지 않게) */
@@ -729,27 +729,78 @@
     letter-spacing: -0.01em;
   }
 
-  /* ── #9 목차 ── */
-  .rs-toc { display: flex; flex-direction: column; gap: 8px; }
-  .rs-toc__item {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    padding: 12px 14px;
-    border-radius: 11px;
-    background: rgba(255,255,255,0.055);
-    border: 1px solid rgba(255,255,255,0.08);
-    font-size: 13.5px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    word-break: keep-all;
+  /* ── #9 리포트 목차 (4개 장) ── */
+  .rs-ch {
+    padding: 20px 17px 16px;
+    margin-bottom: 12px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
-  .rs-toc__no {
-    flex: none;
+  .rs-ch:last-child { margin-bottom: 0; }
+
+  .rs-ch__no {
+    margin: 0 0 9px;
     font-size: 11px;
     font-weight: 800;
+    letter-spacing: 0.16em;
     color: #e37fb0;
-    font-variant-numeric: tabular-nums;
+  }
+  .rs-ch__title {
+    margin: 0 0 5px;
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.38;
+    letter-spacing: -0.035em;
+    word-break: keep-all;
+  }
+  .rs-ch__sub {
+    margin: 0 0 15px;
+    font-size: 12.5px;
+    color: #9d94a6;
+    letter-spacing: -0.02em;
+  }
+
+  .rs-ch__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .rs-ch__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.025em;
+    color: #d7cfdd;
+    word-break: keep-all;
+  }
+  .rs-ch__idx {
+    flex: none;
+    margin-top: 1px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: rgba(233, 30, 122, 0.16);
+    color: #ff9dc6;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  .rs-ch__more {
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.12);
+    font-size: 12px;
+    font-weight: 700;
+    color: #8d8496;
+    letter-spacing: -0.02em;
   }
 
   /* ── 하단 고정 CTA ── */
