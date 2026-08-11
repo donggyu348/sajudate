@@ -16,6 +16,12 @@
     const key = it.chapter || "";
     if (!chapters.includes(key)) chapters.push(key);
   });
+
+  // 덤(후폭풍) 장은 CHAPTER 05가 아니라 BONUS로 표기한다
+  const isBonus = (ch) => /^덤\b|후폭풍/.test(ch || "");
+  const chapterLabel = (ch, i) =>
+    isBonus(ch) ? "BONUS" : `CHAPTER ${String(chapters.filter((c, j) => j <= i && !isBonus(c)).length).padStart(2, "0")}`;
+  const chapterText = (ch) => String(ch || "").replace(/^덤\s*[—-]\s*/, "");
 %>
 <head>
   <style>
@@ -129,6 +135,9 @@
       font-size: 11px; font-weight: 800;
       letter-spacing: 0.2em; color: #e37fb0;
     }
+    .rp-chapter__no--bonus { color: #ffd27a; }
+    .rp-toc__no--bonus { color: #ffd27a; font-size: 10px; font-weight: 800; }
+
     .rp-chapter__t {
       margin: 0;
       font-family: 'RIDIBatangRp', 'Noto Serif KR', serif;
@@ -210,8 +219,8 @@
         <p class="rp-toc__t">CONTENTS</p>
         <% chapters.forEach(function (ch, i) { %>
         <a class="rp-toc__item" href="#ch<%= i %>">
-          <span class="rp-toc__no"><%= String(i + 1).padStart(2, '0') %></span>
-          <span><%= ch %></span>
+          <span class="rp-toc__no<%= isBonus(ch) ? ' rp-toc__no--bonus' : '' %>"><%= isBonus(ch) ? 'BONUS' : String(i + 1).padStart(2, '0') %></span>
+          <span><%= chapterText(ch) %></span>
         </a>
         <% }); %>
       </div>
@@ -222,8 +231,8 @@
         <% if (item.chapter !== currentChapter) { %>
           <% currentChapter = item.chapter; %>
           <div class="rp-chapter" id="ch<%= chapters.indexOf(currentChapter) %>">
-            <p class="rp-chapter__no">CHAPTER <%= String(chapters.indexOf(currentChapter) + 1).padStart(2, '0') %></p>
-            <h2 class="rp-chapter__t"><%= currentChapter %></h2>
+            <p class="rp-chapter__no<%= isBonus(currentChapter) ? ' rp-chapter__no--bonus' : '' %>"><%= chapterLabel(currentChapter, chapters.indexOf(currentChapter)) %></p>
+            <h2 class="rp-chapter__t"><%= chapterText(currentChapter) %></h2>
           </div>
         <% } %>
 
