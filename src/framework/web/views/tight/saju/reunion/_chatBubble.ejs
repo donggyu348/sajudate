@@ -1,0 +1,26 @@
+<%
+/*
+ * 재회사주 말풍선 (카카오톡/문자 대화창 스타일)
+ *
+ * 사용: include('./_chatBubble', { text, side, tone, name, size, delay })
+ *
+ * 옵션
+ *   side  : 'left'(기본) | 'right'
+ *   tone  : 'gray'(기본) | 'pink' | 'warn'
+ *   text  : 본문 (HTML 허용 — <strong>, <span class="rb-blur"> 등)
+ *   name  : 말풍선 위 발신자 라벨 (없으면 미표시)
+ *   size  : 'lg' 지정 시 큰 글씨
+ *   delay : 등장 애니메이션 지연(ms)
+ */
+const _side  = (typeof side  !== 'undefined' && side)  ? side  : 'left';
+const _tone  = (typeof tone  !== 'undefined' && tone)  ? tone  : 'gray';
+const _name  = (typeof name  !== 'undefined') ? name : null;
+const _size  = (typeof size  !== 'undefined' && size === 'lg') ? ' rb-bubble--lg' : '';
+const _delay = (typeof delay !== 'undefined' && delay) ? Number(delay) : 0;
+%>
+<div class="rb-row rb-row--<%= _side %>">
+  <div class="rb-bubble rb-bubble--<%= _tone %><%= _size %>" data-bubble style="transition-delay: <%= _delay %>ms;">
+    <% if (_name) { %><span class="rb-bubble__name"><%= _name %></span><% } %>
+    <%- text %>
+  </div>
+</div>

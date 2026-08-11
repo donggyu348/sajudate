@@ -1,0 +1,56 @@
+<%
+/*
+ * #5 사주팔자 표 — 한 사람분.
+ * 사용: include('./_pillarTable', { table: reunion.me.table })
+ */
+const t = table;
+%>
+<div class="rs-pill" data-reveal>
+  <div class="rs-pill__head">
+    <span class="rs-pill__name"><%= t.name %> <span style="opacity:.55;font-weight:600;">(<%= t.gender %>)</span></span>
+    <span class="rs-pill__meta">
+      일주 <%= t.dayPillarHanja %> · <%= t.strength %><% if (t.yongshin) { %> · 용신 <%= t.yongshin %><% } %>
+    </span>
+  </div>
+
+  <table class="rs-pill__grid">
+    <thead>
+      <tr>
+        <th style="width:15%;"></th>
+        <th>천간</th>
+        <th>지지</th>
+        <th>십성</th>
+        <th>십이운성</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% t.rows.forEach(function (r) { %>
+      <tr class="<%= r.isDay ? 'rs-pill__day' : '' %>">
+        <td style="font-size:10.5px;color:#857b8e;font-weight:700;"><%= r.label %></td>
+        <td>
+          <% if (r.ganHanja) { %>
+            <span class="rs-pill__gj el-<%= r.ganElement %>"><%= r.ganHanja %><small><%= r.gan %></small></span>
+          <% } else { %>
+            <span style="color:#5f5768;font-size:11px;">시간<br>모름</span>
+          <% } %>
+        </td>
+        <td>
+          <% if (r.jiHanja) { %>
+            <span class="rs-pill__gj el-<%= r.jiElement %>"><%= r.jiHanja %><small><%= r.ji %></small></span>
+          <% } else { %>
+            <span style="color:#5f5768;">–</span>
+          <% } %>
+        </td>
+        <td><%= r.ganGod || '–' %></td>
+        <td><%= r.stage || '–' %></td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <div class="rs-pill__els">
+    <% t.elements.forEach(function (e) { %>
+    <div class="rs-pill__el el-<%= e.key %>"><%= e.key %> <%= e.value %></div>
+    <% }); %>
+  </div>
+</div>

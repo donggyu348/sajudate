@@ -1,0 +1,32 @@
+<%
+/* #8 레이더차트 6축 — reunion.radar / reunion.axes */
+const rd = reunion.radar;
+%>
+<div class="rs-chart" data-reveal>
+  <p class="rs-chart__title">두 사람의 관계 지표 6가지</p>
+  <p class="rs-chart__desc">일간·일지 합충, 오행 상보성, 배우자궁, 세운 전환 시점으로 산출한 값입니다.</p>
+
+  <svg viewBox="<%= rd.viewBox %>" style="width:100%;display:block;" role="img" aria-label="관계 지표 레이더 차트">
+    <!-- 격자 -->
+    <% rd.rings.forEach(function (ring) { %>
+    <path d="<%= ring.path %>" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <% }); %>
+
+    <!-- 축선 -->
+    <% rd.axisLines.forEach(function (a) { %>
+    <line x1="<%= rd.cx %>" y1="<%= rd.cy %>" x2="<%= a.x %>" y2="<%= a.y %>" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+    <% }); %>
+
+    <!-- 값 폴리곤 -->
+    <path d="<%= rd.polygonPath %>" fill="rgba(233,30,122,0.26)" stroke="#e91e7a" stroke-width="2" stroke-linejoin="round"/>
+    <% rd.points.forEach(function (p) { %>
+    <circle cx="<%= p.x %>" cy="<%= p.y %>" r="3.1" fill="#ff8ec0"/>
+    <% }); %>
+
+    <!-- 라벨 -->
+    <% rd.labelPoints.forEach(function (l) { %>
+    <text x="<%= l.x %>" y="<%= l.y %>" text-anchor="<%= l.anchor %>" fill="#cfc6d6" font-size="10.5" font-weight="700"><%= l.label %></text>
+    <text x="<%= l.x %>" y="<%= l.y + 12 %>" text-anchor="<%= l.anchor %>" fill="#e37fb0" font-size="10" font-weight="800"><%= l.value %></text>
+    <% }); %>
+  </svg>
+</div>

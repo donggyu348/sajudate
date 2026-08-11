@@ -1,0 +1,120 @@
+<%
+/*
+ * 재회사주 말풍선 컴포넌트 스타일 — <head> 안에서 한 번만 include 한다.
+ * 마크업은 ./_chatBubble.ejs 참고.
+ */
+%>
+<style>
+  /* ── 말풍선 공통 ── */
+  .rb-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .rb-row {
+    display: flex;
+    width: 100%;
+  }
+  .rb-row--left  { justify-content: flex-start; }
+  .rb-row--right { justify-content: flex-end; }
+
+  .rb-bubble {
+    position: relative;
+    max-width: 78%;
+    padding: 12px 15px;
+    border-radius: 16px;
+    font-size: 15px;
+    line-height: 1.55;
+    letter-spacing: -0.02em;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    word-break: keep-all;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    /* 등장 애니메이션 기본 상태 */
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .rb-bubble.is-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 꼬리 */
+  .rb-bubble::after {
+    content: "";
+    position: absolute;
+    bottom: 10px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+  }
+  .rb-row--left .rb-bubble::after {
+    left: -7px;
+    border-width: 6px 8px 6px 0;
+  }
+  .rb-row--right .rb-bubble::after {
+    right: -7px;
+    border-width: 6px 0 6px 8px;
+  }
+
+  /* ── 톤 ── */
+  /* gray = 상대방/내레이션 */
+  .rb-bubble--gray {
+    background: #2a2730;
+    color: #e8e4ec;
+    border-bottom-left-radius: 5px;
+  }
+  .rb-row--left .rb-bubble--gray::after { border-color: transparent #2a2730 transparent transparent; }
+  .rb-row--right .rb-bubble--gray::after { border-color: transparent transparent transparent #2a2730; }
+
+  /* pink = 나/시스템 */
+  .rb-bubble--pink {
+    background: linear-gradient(135deg, #e91e7a 0%, #c9186a 100%);
+    color: #fff;
+    border-bottom-right-radius: 5px;
+    box-shadow: 0 6px 18px rgba(233, 30, 122, 0.32), 0 2px 10px rgba(0, 0, 0, 0.4);
+  }
+  .rb-row--right .rb-bubble--pink::after { border-color: transparent transparent transparent #d51b71; }
+  .rb-row--left .rb-bubble--pink::after { border-color: transparent #e91e7a transparent transparent; }
+
+  /* warn = 경고 톤 (#3 금기) */
+  .rb-bubble--warn {
+    background: rgba(58, 20, 24, 0.94);
+    color: #ffd9d2;
+    border: 1px solid rgba(255, 92, 92, 0.42);
+    border-bottom-left-radius: 5px;
+  }
+  .rb-row--left .rb-bubble--warn::after { border-color: transparent rgba(58,20,24,0.94) transparent transparent; }
+  .rb-row--right .rb-bubble--warn::after { border-color: transparent transparent transparent rgba(58,20,24,0.94); }
+
+  /* ── 보조 요소 ── */
+  .rb-bubble__name {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    opacity: 0.6;
+  }
+
+  .rb-bubble strong { font-weight: 800; }
+
+  .rb-bubble--lg { font-size: 17px; font-weight: 700; }
+
+  /* 블러 키워드 (#3) */
+  .rb-blur {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.14);
+    color: transparent;
+    text-shadow: 0 0 11px rgba(255, 236, 236, 0.95);
+    user-select: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rb-bubble { transition: none; opacity: 1; transform: none; }
+  }
+</style>

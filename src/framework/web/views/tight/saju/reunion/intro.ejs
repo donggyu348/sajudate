@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+
+<head>
+  <%- include('./_bubbleStyles') %>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #100c14;
+      color: #ece7f0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .page { max-width: 393px; margin: 0 auto; padding-bottom: 96px; }
+
+    .hero {
+      position: relative;
+      min-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 20px 40px;
+      background:
+        radial-gradient(120% 70% at 50% 10%, rgba(90,40,80,0.55) 0%, rgba(16,12,20,0.96) 62%),
+        linear-gradient(180deg, #17101c 0%, #100c14 100%);
+      background-size: cover;
+      background-position: center;
+    }
+    .hero__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+    .hero__scrim {
+      position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(180deg, rgba(16,12,20,0.9) 0%, rgba(16,12,20,0.25) 30%, rgba(16,12,20,0.97) 100%);
+    }
+    .hero__inner { position: relative; z-index: 2; }
+    .hero__eyebrow {
+      margin: 0 0 10px; font-size: 12px; font-weight: 700;
+      letter-spacing: 0.1em; color: #e37fb0;
+    }
+    .hero__title {
+      margin: 0 0 22px; font-size: 27px; font-weight: 900;
+      line-height: 1.4; letter-spacing: -0.035em; word-break: keep-all;
+    }
+    .hero__title em { font-style: normal; color: #ff8ec0; }
+
+    .fixed-cta {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 393px; z-index: 100;
+      padding: 16px 20px;
+      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(180deg, rgba(16,12,20,0) 0%, #100c14 24%);
+    }
+    .cta-btn {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      width: 100%; height: 56px; border: none; border-radius: 12px;
+      background: #e91e7a; color: #fff;
+      font-size: 16px; font-weight: 800; letter-spacing: -0.02em;
+      text-decoration: none; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.45), 0 2px 10px rgba(233,30,122,0.35);
+      transition: transform 0.15s ease;
+    }
+    .cta-btn:active { transform: scale(0.985); }
+
+    @media (min-width: 768px) {
+      body { background: #0a070d; padding: 28px 0; }
+      .page { border-radius: 18px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.6); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <section class="hero">
+      <img class="hero__bg" src="/assets/images/tight/reunion/scene-01.png" alt="" onerror="this.remove()">
+      <div class="hero__scrim"></div>
+      <div class="hero__inner">
+        <p class="hero__eyebrow">재회사주</p>
+        <h1 class="hero__title">헤어진 그 사람과<br>다시 만날 확률,<br><em>사주로 계산해드립니다</em></h1>
+        <div class="rb-thread">
+          <%- include('./_chatBubble', { text: '아직도... 그 사람 생각나' }) %>
+          <%- include('./_chatBubble', { side: 'right', tone: 'pink', text: '두 사람 생년월일만 있으면 10초면 나와요', delay: 280 }) %>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="fixed-cta">
+    <a href="/saju/reunion/input" class="cta-btn">
+      <span>10초 만에 재회 확률 확인하기</span>
+      <span aria-hidden="true">--&gt;</span>
+    </a>
+  </div>
+
+  <script>
+    document.querySelectorAll('[data-bubble]').forEach(function (el, i) {
+      setTimeout(function () { el.classList.add('is-in'); }, 200 + i * 260);
+    });
+    $(document).ready(function () {
+      if (window.karrotPixel) window.karrotPixel.track('ViewContent');
+    });
+  </script>
+</body>
+</html>

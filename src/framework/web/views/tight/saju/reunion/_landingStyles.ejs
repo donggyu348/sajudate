@@ -1,0 +1,584 @@
+<%
+/* 재회사주 9섹션 랜딩 스타일 — result.ejs <head>에서 한 번만 include */
+%>
+<style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #100c14;
+    color: #ece7f0;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .page {
+    max-width: 393px;
+    margin: 0 auto;
+    padding-bottom: 104px;
+    overflow-x: hidden;
+  }
+
+  /* ── 섹션 공통 ── */
+  .rs {
+    position: relative;
+    width: 100%;
+  }
+  .rs--ui {
+    padding: 40px 20px;
+  }
+  .rs--scene {
+    min-height: 78vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 18px 34px;
+    /* 이미지 미배치 상태 폴백 — 교체 시에도 그대로 아래에 깔린다 */
+    background:
+      radial-gradient(120% 70% at 50% 12%, rgba(90, 40, 80, 0.5) 0%, rgba(16, 12, 20, 0.95) 62%),
+      linear-gradient(180deg, #17101c 0%, #100c14 100%);
+    background-size: cover;
+    background-position: center;
+  }
+  .rs__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+  /* 상하 블랙 페이드 */
+  .rs__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg,
+      rgba(16,12,20,0.92) 0%, rgba(16,12,20,0.28) 26%,
+      rgba(16,12,20,0.42) 62%, rgba(16,12,20,0.96) 100%);
+  }
+  .rs__inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+  }
+
+  .rs__eyebrow {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #e37fb0;
+    text-transform: uppercase;
+  }
+  .rs__title {
+    margin: 0 0 18px;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.42;
+    letter-spacing: -0.03em;
+    word-break: keep-all;
+  }
+  .rs__sub {
+    margin: -8px 0 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #a79fb2;
+    word-break: keep-all;
+  }
+
+  /* ── #1 훅 ── */
+  .rs-hook__label {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #d9cfe2;
+    letter-spacing: -0.02em;
+  }
+  .rs-hook__num {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
+    margin: 0 0 20px;
+    font-size: 92px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: #fff;
+    text-shadow: 0 0 34px rgba(233, 30, 122, 0.55), 0 6px 24px rgba(0, 0, 0, 0.7);
+  }
+  .rs-hook__num small {
+    font-size: 34px;
+    font-weight: 800;
+    color: #f18ab8;
+  }
+  .rs-hook__scroll {
+    margin: 14px auto 0;
+    width: 22px;
+    height: 34px;
+    border: 1.5px solid rgba(255,255,255,0.35);
+    border-radius: 12px;
+    position: relative;
+  }
+  .rs-hook__scroll::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 7px;
+    width: 3px;
+    height: 6px;
+    margin-left: -1.5px;
+    border-radius: 2px;
+    background: #fff;
+    animation: rsScroll 1.5s ease-in-out infinite;
+  }
+  @keyframes rsScroll { 0%{opacity:0;transform:translateY(0)} 40%{opacity:1} 100%{opacity:0;transform:translateY(12px)} }
+
+  /* ── 상단 고정 카운트다운 바 ── */
+  .rs-topbar {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 393px;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 14px;
+    background: linear-gradient(90deg, #3a0f28 0%, #5c1339 100%);
+    border-bottom: 1px solid rgba(233, 30, 122, 0.32);
+    font-size: 12.5px;
+    letter-spacing: -0.02em;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .rs-topbar.is-on { opacity: 1; pointer-events: auto; }
+  .rs-topbar__text { color: #ffd8e8; font-weight: 600; }
+  .rs-topbar__time {
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(0,0,0,0.32);
+    padding: 3px 9px;
+    border-radius: 7px;
+  }
+
+  /* ── #4 캘린더 ── */
+  .rs-cal {
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.035);
+    padding: 16px 14px;
+  }
+  .rs-cal__dday {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding: 11px 13px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(233,30,122,0.2), rgba(233,30,122,0.06));
+    border: 1px solid rgba(233,30,122,0.34);
+  }
+  .rs-cal__dday b { font-size: 20px; font-weight: 900; color: #ff8ec0; letter-spacing: -0.02em; }
+  .rs-cal__dday span { font-size: 12.5px; color: #d8ccdf; }
+  .rs-cal__month { margin-bottom: 18px; }
+  .rs-cal__month:last-child { margin-bottom: 0; }
+  .rs-cal__mlabel { margin: 0 0 9px; font-size: 13.5px; font-weight: 800; color: #efe7f2; }
+  .rs-cal__grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .rs-cal__grid th {
+    padding-bottom: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #7e7488;
+  }
+  .rs-cal__grid td { padding: 1.5px; text-align: center; }
+  .rs-cal__cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #6f6678;
+  }
+  .rs-cal__cell--in { color: #cfc7d6; background: rgba(255,255,255,0.045); }
+  .rs-cal__cell--golden  { background: rgba(233,30,122,0.9); color: #fff; font-weight: 800; box-shadow: 0 0 14px rgba(233,30,122,0.5); }
+  .rs-cal__cell--silence { background: rgba(70,72,84,0.85); color: #9aa0ae; text-decoration: line-through; }
+  .rs-cal__cell--step    { background: rgba(150,96,40,0.42); color: #f0cfa4; }
+  .rs-cal__cell--charge  { background: rgba(64,132,120,0.42); color: #a9e6d8; }
+  .rs-cal__cell--today::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1.5px solid #fff;
+    border-radius: 9px;
+  }
+  .rs-cal__legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-top: 14px;
+  }
+  .rs-cal__leg {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11.5px;
+    color: #b3a9bb;
+  }
+  .rs-cal__dot { width: 11px; height: 11px; border-radius: 4px; flex: none; }
+  .rs-cal__dot--golden  { background: #e91e7a; }
+  .rs-cal__dot--silence { background: #46484f; }
+  .rs-cal__dot--step    { background: #966028; }
+  .rs-cal__dot--charge  { background: #408478; }
+
+  /* ── #5 사주팔자 표 ── */
+  .rs-pill {
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    padding: 13px 12px;
+    margin-bottom: 12px;
+  }
+  .rs-pill__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .rs-pill__name { font-size: 14px; font-weight: 800; letter-spacing: -0.02em; }
+  .rs-pill__meta { font-size: 11px; color: #9d94a6; }
+  .rs-pill__grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .rs-pill__grid th {
+    padding: 5px 2px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #857b8e;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .rs-pill__grid td {
+    padding: 6px 2px;
+    text-align: center;
+    font-size: 11.5px;
+    color: #ccc3d3;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .rs-pill__gj {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 4px 0;
+    width: 100%;
+    border-radius: 7px;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+  .rs-pill__gj small { font-size: 9.5px; font-weight: 600; opacity: 0.72; }
+  .el-목 { background: rgba(74,158,96,0.24); color: #8fe0a8; }
+  .el-화 { background: rgba(206,66,66,0.24); color: #ff9b93; }
+  .el-토 { background: rgba(176,132,60,0.24); color: #f0cf94; }
+  .el-금 { background: rgba(150,158,172,0.24); color: #dfe4ee; }
+  .el-수 { background: rgba(58,112,190,0.24); color: #9cc4f5; }
+  .rs-pill__day td { background: rgba(233,30,122,0.09); }
+  .rs-pill__els { display: flex; gap: 5px; margin-top: 10px; }
+  .rs-pill__el {
+    flex: 1;
+    text-align: center;
+    padding: 6px 0;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* ── #6 락 카드 ── */
+  .rs-lock {
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    padding: 18px 16px 20px;
+    overflow: hidden;
+  }
+  .rs-lock__text { font-size: 14.5px; line-height: 1.72; color: #d9d1e0; word-break: keep-all; }
+  .rs-lock__text b { color: #ff8ec0; font-weight: 800; }
+  .rs-lock__fade {
+    position: relative;
+    margin-top: 8px;
+    filter: blur(4.5px);
+    user-select: none;
+    color: #b0a7b8;
+    font-size: 14.5px;
+    line-height: 1.72;
+    max-height: 108px;
+    overflow: hidden;
+  }
+  .rs-lock__veil {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 128px;
+    background: linear-gradient(180deg, rgba(20,15,24,0) 0%, rgba(20,15,24,0.92) 62%, #140f18 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-bottom: 16px;
+  }
+  .rs-lock__icon { font-size: 22px; }
+  .rs-lock__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 20px;
+    border: none;
+    border-radius: 11px;
+    background: #e91e7a;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(233,30,122,0.4);
+  }
+  .rs-discount {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 9px;
+    border-radius: 10px;
+    background: rgba(233,30,122,0.11);
+    border: 1px solid rgba(233,30,122,0.28);
+    font-size: 12.5px;
+    color: #ffd0e4;
+  }
+  .rs-discount b { font-variant-numeric: tabular-nums; color: #fff; font-weight: 800; }
+
+  /* ── 신뢰 3가지 이유 ── */
+  .rs-reasons { display: flex; flex-direction: column; gap: 9px; margin-top: 18px; }
+  .rs-reason {
+    display: flex;
+    gap: 11px;
+    padding: 12px 13px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .rs-reason__no {
+    flex: none;
+    width: 21px; height: 21px;
+    border-radius: 50%;
+    background: #e91e7a;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rs-reason__t { margin: 0 0 3px; font-size: 13.5px; font-weight: 800; }
+  .rs-reason__d { margin: 0; font-size: 12px; line-height: 1.55; color: #a79fb2; word-break: keep-all; }
+
+  /* ── #7 차트 ── */
+  .rs-chart {
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.035);
+    padding: 15px 12px 13px;
+  }
+  .rs-chart__title { margin: 0 0 3px; font-size: 13.5px; font-weight: 800; }
+  .rs-chart__desc { margin: 0 0 10px; font-size: 11.5px; color: #948b9d; }
+  .rs-chart__peak {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 6px 11px;
+    border-radius: 8px;
+    background: rgba(233,30,122,0.16);
+    border: 1px solid rgba(233,30,122,0.34);
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffb3d5;
+  }
+
+  /* ── #8 비교/가격 ── */
+  .rs-price { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .rs-price__card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 15px;
+    border-radius: 13px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .rs-price__card--mine {
+    background: linear-gradient(135deg, rgba(233,30,122,0.19), rgba(233,30,122,0.05));
+    border-color: rgba(233,30,122,0.45);
+  }
+  .rs-price__label { font-size: 13px; font-weight: 700; color: #cfc6d6; }
+  .rs-price__card--mine .rs-price__label { color: #fff; font-weight: 800; }
+  .rs-price__amt { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+  .rs-price__amt del { display: block; font-size: 11px; font-weight: 500; color: #8d8496; }
+  .rs-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+  .rs-stat {
+    text-align: center;
+    padding: 13px 4px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .rs-stat b { display: block; font-size: 17px; font-weight: 900; color: #ff8ec0; letter-spacing: -0.03em; }
+  .rs-stat span { font-size: 10.5px; color: #9d94a6; }
+
+  /* 구매 알림 토스트 */
+  .rs-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 96px;
+    transform: translateX(-50%) translateY(14px);
+    z-index: 95;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: 353px;
+    width: calc(100% - 40px);
+    padding: 10px 13px;
+    border-radius: 12px;
+    background: rgba(38, 30, 44, 0.96);
+    border: 1px solid rgba(255,255,255,0.11);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    font-size: 12.5px;
+    color: #e5dded;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .rs-toast.is-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .rs-toast__dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #38d67e; flex: none;
+    box-shadow: 0 0 8px #38d67e;
+  }
+
+  /* AI 고지 — 하단 고정 */
+  .rs-notice {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 393px;
+    z-index: 80;
+    padding: 5px 12px;
+    padding-bottom: calc(5px + env(safe-area-inset-bottom, 0px));
+    background: rgba(10, 7, 13, 0.94);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 10px;
+    color: #6f6678;
+    text-align: center;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── #9 목차 ── */
+  .rs-toc { display: flex; flex-direction: column; gap: 8px; }
+  .rs-toc__item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 14px;
+    border-radius: 11px;
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    word-break: keep-all;
+  }
+  .rs-toc__no {
+    flex: none;
+    font-size: 11px;
+    font-weight: 800;
+    color: #e37fb0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── 하단 고정 CTA ── */
+  .rs-cta {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 393px;
+    z-index: 100;
+    padding: 12px 18px 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(180deg, rgba(16,12,20,0) 0%, #100c14 22%);
+  }
+  .rs-cta__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 56px;
+    border: none;
+    border-radius: 12px;
+    background: #e91e7a;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.45), 0 2px 10px rgba(233,30,122,0.38);
+    transition: transform 0.15s ease;
+  }
+  .rs-cta__btn:active { transform: scale(0.985); }
+  .rs-cta__sub {
+    margin: 6px 0 22px;
+    font-size: 10.5px;
+    color: #6f6678;
+    text-align: center;
+  }
+
+  /* 스크롤 등장 */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  [data-reveal].is-in { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] { transition: none; opacity: 1; transform: none; }
+  }
+
+  /* 데스크톱: 중앙 정렬 카드형 */
+  @media (min-width: 768px) {
+    body {
+      background:
+        radial-gradient(80% 50% at 50% 0%, rgba(60,24,48,0.5) 0%, rgba(10,7,13,1) 70%),
+        #0a070d;
+      padding: 28px 0;
+    }
+    .page {
+      box-shadow: 0 24px 70px rgba(0,0,0,0.6);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #100c14;
+    }
+    .rs-topbar, .rs-cta, .rs-notice, .rs-toast { max-width: 393px; }
+  }
+</style>

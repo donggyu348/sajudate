@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<%
+  const TIME_OPTIONS = [
+    ['unknown', '시간모름'], ['00', '조자/朝子 (00:00~01:29)'], ['02', '축/丑 (01:30~03:29)'],
+    ['04', '인/寅 (03:30~05:29)'], ['06', '묘/卯 (05:30~07:29)'], ['08', '진/辰 (07:30~09:29)'],
+    ['10', '사/巳 (09:30~11:29)'], ['12', '오/午 (11:30~13:29)'], ['14', '미/未 (13:30~15:29)'],
+    ['16', '신/申 (15:30~17:29)'], ['18', '유/酉 (17:30~19:29)'], ['20', '술/戌 (19:30~21:29)'],
+    ['22', '해/亥 (21:30~23:29)'], ['24', '야자/夜子 (23:30~23:59)'],
+  ];
+%>
+
+<head>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #100c14; color: #ece7f0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .page { max-width: 393px; margin: 0 auto; padding: 62px 20px 120px; }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: none; border: none; padding: 0;
+      color: #8d8496; font-size: 13px; cursor: pointer;
+    }
+    .back-btn svg { width: 16px; height: 16px; }
+
+    .form-header { margin: 20px 0 26px; }
+    .form-header h1 {
+      margin: 0 0 8px; font-size: 23px; font-weight: 900;
+      letter-spacing: -0.035em; line-height: 1.4; word-break: keep-all;
+    }
+    .form-header p { margin: 0; font-size: 13.5px; color: #a79fb2; line-height: 1.6; word-break: keep-all; }
+
+    .card {
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.035);
+      padding: 16px 15px;
+      margin-bottom: 14px;
+    }
+    .card__title {
+      margin: 0 0 13px; font-size: 13px; font-weight: 800;
+      letter-spacing: -0.02em; color: #ff8ec0;
+    }
+
+    .field { margin-bottom: 11px; }
+    .field:last-child { margin-bottom: 0; }
+    .field__label {
+      display: block; margin-bottom: 6px;
+      font-size: 11.5px; font-weight: 700; color: #8d8496;
+    }
+    .input, .select {
+      width: 100%; height: 46px;
+      padding: 0 13px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.28);
+      color: #ece7f0;
+      font-size: 15px;
+      font-family: inherit;
+      letter-spacing: -0.02em;
+      appearance: none;
+    }
+    .input::placeholder { color: #5f5768; }
+    .input:focus, .select:focus { outline: none; border-color: rgba(233,30,122,0.6); }
+    .select {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d8496' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 17px;
+      padding-right: 36px;
+    }
+
+    .seg { display: flex; gap: 7px; }
+    .seg__btn {
+      flex: 1; height: 42px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      background: rgba(0,0,0,0.22);
+      color: #8d8496;
+      font-size: 14px; font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .seg__btn.active {
+      background: rgba(233,30,122,0.16);
+      border-color: rgba(233,30,122,0.6);
+      color: #fff;
+    }
+
+    .submit-wrap {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 393px; z-index: 100;
+      padding: 14px 20px;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+      background: linear-gradient(180deg, rgba(16,12,20,0) 0%, #100c14 22%);
+    }
+    .submit-btn {
+      width: 100%; height: 56px;
+      border: none; border-radius: 12px;
+      background: #e91e7a; color: #fff;
+      font-size: 16px; font-weight: 800; letter-spacing: -0.02em;
+      font-family: inherit; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.45), 0 2px 10px rgba(233,30,122,0.35);
+    }
+    .submit-btn:disabled { background: #3a3441; box-shadow: none; color: #6f6678; cursor: not-allowed; }
+
+    .err { margin: 8px 0 0; font-size: 12px; color: #ff8080; min-height: 16px; }
+
+    @media (min-width: 768px) {
+      body { background: #0a070d; padding: 28px 0; }
+      .page { border-radius: 18px; background: #100c14; box-shadow: 0 24px 70px rgba(0,0,0,0.6); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <button type="button" class="back-btn" onclick="history.back()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      뒤로가기
+    </button>
+
+    <div class="form-header">
+      <h1>두 사람의 정보를 입력해주세요</h1>
+      <p>재회 확률과 연락운 캘린더는 두 사람의 사주를 함께 대조해야 계산됩니다.</p>
+    </div>
+
+    <form id="reunionForm" method="POST" action="/saju/reunion/result">
+      <!-- 내 정보 -->
+      <div class="card">
+        <p class="card__title">내 정보</p>
+        <input type="hidden" name="gender" id="genderInput" value="여성">
+        <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
+
+        <div class="field">
+          <label class="field__label" for="nameInput">이름</label>
+          <input class="input" id="nameInput" name="name" type="text" placeholder="내 이름" autocomplete="name">
+        </div>
+        <div class="field">
+          <label class="field__label">성별</label>
+          <div class="seg" data-seg="gender">
+            <button type="button" class="seg__btn" data-value="남성">남자</button>
+            <button type="button" class="seg__btn active" data-value="여성">여자</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="birthdateInput">생년월일</label>
+          <input class="input" id="birthdateInput" name="birthdate" placeholder="1995.03.12" inputmode="numeric" maxlength="10" autocomplete="bday">
+        </div>
+        <div class="field">
+          <label class="field__label">양력/음력</label>
+          <div class="seg" data-seg="birthType">
+            <button type="button" class="seg__btn active" data-value="양력">양력</button>
+            <button type="button" class="seg__btn" data-value="음력">음력</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="birthTimeSelect">태어난 시</label>
+          <select class="select" id="birthTimeSelect" name="birthTime">
+            <% TIME_OPTIONS.forEach(function (o) { %><option value="<%= o[0] %>"><%= o[1] %></option><% }); %>
+          </select>
+        </div>
+      </div>
+
+      <!-- 상대방 정보 -->
+      <div class="card">
+        <p class="card__title">그 사람 정보</p>
+        <input type="hidden" name="partnerGender" id="partnerGenderInput" value="남성">
+        <input type="hidden" name="partnerBirthType" id="partnerBirthTypeInput" value="양력">
+
+        <div class="field">
+          <label class="field__label" for="partnerNameInput">이름</label>
+          <input class="input" id="partnerNameInput" name="partnerName" type="text" placeholder="그 사람 이름" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="field__label">성별</label>
+          <div class="seg" data-seg="partnerGender">
+            <button type="button" class="seg__btn active" data-value="남성">남자</button>
+            <button type="button" class="seg__btn" data-value="여성">여자</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="partnerBirthdateInput">생년월일</label>
+          <input class="input" id="partnerBirthdateInput" name="partnerBirthdate" placeholder="1993.08.24" inputmode="numeric" maxlength="10">
+        </div>
+        <div class="field">
+          <label class="field__label">양력/음력</label>
+          <div class="seg" data-seg="partnerBirthType">
+            <button type="button" class="seg__btn active" data-value="양력">양력</button>
+            <button type="button" class="seg__btn" data-value="음력">음력</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="partnerBirthTimeSelect">태어난 시</label>
+          <select class="select" id="partnerBirthTimeSelect" name="partnerBirthTime">
+            <% TIME_OPTIONS.forEach(function (o) { %><option value="<%= o[0] %>"><%= o[1] %></option><% }); %>
+          </select>
+        </div>
+      </div>
+
+      <!-- 이별 시점 -->
+      <div class="card">
+        <p class="card__title">헤어진 지 얼마나 됐나요?</p>
+        <div class="field">
+          <select class="select" name="breakupPeriod">
+            <option value="1개월 이내">1개월 이내</option>
+            <option value="1~3개월" selected>1~3개월</option>
+            <option value="3~6개월">3~6개월</option>
+            <option value="6개월~1년">6개월~1년</option>
+            <option value="1년 이상">1년 이상</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="err" id="errMsg"></p>
+    </form>
+  </div>
+
+  <div class="submit-wrap">
+    <button type="button" class="submit-btn" id="submitBtn" form="reunionForm">재회 확률 계산하기</button>
+  </div>
+
+  <script>
+    (function () {
+      /* 세그먼트 버튼 → hidden input 동기화 */
+      document.querySelectorAll('[data-seg]').forEach(function (seg) {
+        var key = seg.getAttribute('data-seg');
+        var hidden = document.getElementById(key + 'Input');
+        seg.querySelectorAll('.seg__btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            seg.querySelectorAll('.seg__btn').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            if (hidden) hidden.value = btn.getAttribute('data-value');
+          });
+        });
+      });
+
+      /* 생년월일 자동 포맷 */
+      function bindDate(el) {
+        if (!el) return;
+        el.addEventListener('input', function () {
+          var v = el.value.replace(/\D/g, '').slice(0, 8);
+          if (v.length > 6) v = v.slice(0, 4) + '.' + v.slice(4, 6) + '.' + v.slice(6);
+          else if (v.length > 4) v = v.slice(0, 4) + '.' + v.slice(4);
+          el.value = v;
+        });
+      }
+      bindDate(document.getElementById('birthdateInput'));
+      bindDate(document.getElementById('partnerBirthdateInput'));
+
+      /* 검증 후 제출 */
+      var form = document.getElementById('reunionForm');
+      var err = document.getElementById('errMsg');
+      document.getElementById('submitBtn').addEventListener('click', function () {
+        var mine = document.getElementById('birthdateInput').value.replace(/\D/g, '');
+        var theirs = document.getElementById('partnerBirthdateInput').value.replace(/\D/g, '');
+        if (mine.length !== 8) { err.textContent = '내 생년월일 8자리를 정확히 입력해주세요.'; return; }
+        if (theirs.length !== 8) { err.textContent = '그 사람 생년월일 8자리를 정확히 입력해주세요.'; return; }
+        err.textContent = '';
+        form.submit();
+      });
+    })();
+  </script>
+</body>
+</html>

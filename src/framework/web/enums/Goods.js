@@ -85,6 +85,17 @@ export const GoodsType = Object.freeze({
     platform: Platform.TIGHT
   },
 
+  /** 재회사주 — 가격은 랜딩 #8 가격 비교 카드와 연동된다(수정 시 함께 확인) */
+  REUNION: {
+    code: "REUNION",
+    title: "재회사주",
+    shortTitle: "재회사주",
+    originalPrice: 58800,
+    discountPrice: 21000,
+    price: 37800,
+    platform: Platform.TIGHT
+  },
+
   /* ── 추가 번들: 연애사주 · 29금(S궁합) · 저승사자(리퍼) 교차 묶음 ──
      각 상품 결제창에서 reportCode(본 리포트) 기준으로 2개씩 노출된다. */
 
