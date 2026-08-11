@@ -28,11 +28,19 @@
 
     <!-- 히어로 슬라이더 -->
     <section class="hero-section">
-      <div id="hero-counter">1 / 3</div>
+      <div id="hero-counter">1 / 4</div>
       <div class="swiper heroSwiper">
         <div class="swiper-wrapper">
 
-          <!-- 슬라이드 0: 사자록 -->
+          <!-- 슬라이드 0: 재회사주 (신규) -->
+          <div class="swiper-slide">
+            <a href="/saju/reunion/intro" class="hero-card" style="text-decoration:none;">
+              <img src="/assets/images/tight/return/intro.png" alt="재회사주"
+                onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#1b1430,#4d3ddb)';">
+            </a>
+          </div>
+
+          <!-- 슬라이드 1: 사자록 -->
           <div class="swiper-slide">
             <a href="/saju/reaper/intro" class="hero-card" style="text-decoration:none;">
               <img src="/assets/images/tight/reaper/sum.png" alt="사자록"
@@ -40,7 +48,7 @@
             </a>
           </div>
 
-          <!-- 슬라이드 1: 홍연 연애사주 -->
+          <!-- 슬라이드 2: 홍연 연애사주 -->
           <div class="swiper-slide">
             <a href="/saju/romantic/intro" class="hero-card" style="text-decoration:none;">
               <img src="/assets/images/tight/products/product_romantic.png" alt="홍연 연애사주"
@@ -48,7 +56,7 @@
             </a>
           </div>
 
-          <!-- 슬라이드 2: 29금 궁합사주 -->
+          <!-- 슬라이드 3: 29금 궁합사주 -->
           <div class="swiper-slide">
             <a href="/saju/adult/intro" class="hero-card" style="text-decoration:none;">
               <img src="/assets/images/tight/products/product_adult.png" alt="29금 궁합사주"
@@ -77,6 +85,14 @@
         .hot-scroll > a { flex: 0 0 44%; }
       </style>
       <div class="hot-scroll" style="display:flex; gap:12px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; margin:0 -16px; padding-left:16px; padding-right:16px;">
+
+        <!-- 재회사주 (신규) -->
+        <a href="/saju/reunion/intro" style="text-decoration:none;">
+          <div style="border-radius:12px; overflow:hidden; aspect-ratio:2/3; background:#161616;">
+            <img src="/assets/images/tight/return/intro.png" style="width:100%; height:100%; object-fit:cover; display:block;" alt="재회사주"
+              onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#1b1430,#4d3ddb)';">
+          </div>
+        </a>
 
         <a href="/saju/reaper/intro" style="text-decoration:none;">
           <div style="border-radius:12px; overflow:hidden; aspect-ratio:2/3; background:#161616;">
@@ -191,6 +207,13 @@
     <section class="product-row">
       <h2 class="product-row__title">전체 사주 보기</h2>
       <div class="product-row__list">
+        <!-- 재회사주 (신규) -->
+        <a href="/saju/reunion/intro" class="product-row__item">
+          <div class="product-row__thumb">
+            <img src="/assets/images/tight/return/intro.png" alt="재회사주"
+              onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#1b1430,#4d3ddb)';">
+          </div>
+        </a>
         <a href="/saju/reaper/intro" class="product-row__item">
           <div class="product-row__thumb">
             <img src="/assets/images/tight/reaper/sum.png" alt="사자록"
