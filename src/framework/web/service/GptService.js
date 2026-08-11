@@ -3988,6 +3988,8 @@ let promtParts;
               breakupReason: userInfo.breakupReason || "",
               contactStatus: userInfo.contactStatus || "",
               mainConcern: userInfo.mainConcern || "",
+              // 사용자가 직접 적어 넣은 사연 (input 마지막 단계)
+              freeText: userInfo.worry || "",
             },
           };
         } catch (e) {

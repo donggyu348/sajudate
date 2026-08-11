@@ -176,6 +176,61 @@
       transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
+    /* ── 직접 작성 ── */
+    .free-input {
+      width: 100%;
+      padding: 15px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.28);
+      color: #fff;
+      font-family: inherit;
+      font-size: 15.5px;
+      line-height: 1.72;
+      letter-spacing: -0.02em;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    .free-input::placeholder { color: rgba(255, 255, 255, 0.32); line-height: 1.72; }
+    .free-input:focus { border-color: rgba(255, 87, 34, 0.6); }
+
+    .free-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .free-hint {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.42);
+      letter-spacing: -0.02em;
+      word-break: keep-all;
+    }
+    .free-count {
+      flex: none;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.32);
+      font-variant-numeric: tabular-nums;
+    }
+    .free-count b { color: rgba(255, 255, 255, 0.6); font-weight: 700; }
+
+    .free-skip {
+      display: block;
+      margin: 26px auto 0;
+      padding: 6px 4px;
+      border: none;
+      background: none;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: inherit;
+      font-size: 13px;
+      letter-spacing: -0.02em;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+    }
+
     .q-opt.is-on {
       background: #fff;
       border-color: #fff;
@@ -536,6 +591,29 @@
       </div>
       <% }); %>
 
+      <!-- 직접 작성 — 리포트 전반에 반영된다 (GptService가 userInfo.worry를 프롬프트에 주입) -->
+      <div class="form-step" id="qFree">
+        <div class="form-header">
+          <p class="q-eyebrow">직접 작성</p>
+          <h1>이 리포트에서<br><em>어떤 걸</em> 알고 싶으신가요?</h1>
+        </div>
+
+        <textarea
+          class="free-input"
+          id="worryInput"
+          name="worry"
+          rows="6"
+          maxlength="500"
+          placeholder="예) 마지막에 심하게 다투고 헤어졌어요. 제가 먼저 연락하면 받아줄지, 아니면 기다리는 게 나을지 모르겠어요."></textarea>
+
+        <div class="free-meta">
+          <span class="free-hint">적어주신 내용은 리포트 전체에 반영됩니다</span>
+          <span class="free-count"><b id="worryCount">0</b> / 500</span>
+        </div>
+
+        <button type="button" class="free-skip" id="worrySkip">잘 모르겠어요, 건너뛸게요</button>
+      </div>
+
       <!-- 내 정보 -->
       <div class="form-step" id="step0">
         <div class="form-header">
@@ -718,8 +796,29 @@
     });
   });
 
+  /* ── 직접 작성 ── */
+  (function () {
+    const ta = document.getElementById('worryInput');
+    const counter = document.getElementById('worryCount');
+    const skip = document.getElementById('worrySkip');
+    if (!ta) return;
+
+    ta.addEventListener('input', function () {
+      if (counter) counter.textContent = ta.value.length;
+    });
+
+    // 건너뛰기 — 비워둔 채 다음 단계로
+    if (skip) {
+      skip.addEventListener('click', function () {
+        ta.value = '';
+        if (counter) counter.textContent = '0';
+        submitBtn.click();
+      });
+    }
+  })();
+
   /* ── 단계 ── */
-  const STEPS = ['q0', 'q1', 'q2', 'step0', 'step1'];
+  const STEPS = ['q0', 'q1', 'q2', 'qFree', 'step0', 'step1'];
   let step = 0;
 
   function renderStep() {
