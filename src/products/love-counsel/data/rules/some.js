@@ -12,9 +12,9 @@
  * 군별 우선순위. 숫자가 작을수록 먼저 채택된다.
  * A(안전) > B(구조) > F(상대유형) > G(유저상태) > C·D·E(전술) > H(맥락)
  */
-export const GROUP_PRIORITY = { A: 1, B: 2, F: 3, G: 4, C: 5, D: 5, E: 5, H: 6 };
+export const SOME_PRIORITY = { A: 1, B: 2, F: 3, G: 4, C: 5, D: 5, E: 5, H: 6 };
 
-export const RULES = [
+export const SOME_RULES = [
   // ── B군: 구조 판정 — "관계가 존재하는가"를 먼저 정한다 ──────────────
   {
     id: 'B1',
@@ -80,6 +80,24 @@ export const RULES = [
     prediction: '상대가 먼저 연락한다면 3~5일차에 옵니다. 7일이 지나도 없으면, 그게 답입니다.',
     forbid: ['관심 없는 척하라', '잠수', '읽씹'],
     probeQuestion: '만나자고 한 건 항상 본인이었나요, 아니면 몇 번은 상대였나요?',
+  },
+
+  // ── C군: 진입 실패 (만남 0~2회 구간) ────────────────────────────
+  {
+    id: 'C3',
+    group: 'C',
+    name: '만남 제안 반복 불발',
+    order: 1,
+    // 대안 날짜 없는 거절이 쌓였을 때. 체크리스트만으로는 제안 횟수를 모르니 자유 입력에서 잡는다.
+    match: (i, s) => s.has('REPEATED_DECLINE'),
+    deduction: '"다음에"라는 답을 들을 때마다, 언제가 그 다음인지는 끝내 안 나왔을 겁니다.',
+    diagnosis:
+      '대안 날짜를 주지 않는 거절은 거절입니다. 정말 일정 문제라면 상대가 날짜를 제시합니다.',
+    misdiagnosis: '요즘 바빠서 그런 거겠죠',
+    prescription: '날짜를 특정해서 한 번만 제안하세요. "이번 주 토요일"처럼.',
+    prediction: '여기서도 대안 날짜가 안 나오면 더 볼 것이 없습니다.',
+    forbid: ['제안 반복', '시간대만 바꿔 재시도'],
+    probeQuestion: '거절할 때 상대가 다른 날짜를 제시한 적이 한 번이라도 있나요?',
   },
 
   // ── F군: 상대 유형 — 전술을 뒤집는다 ─────────────────────────────
@@ -149,7 +167,7 @@ export const RULES = [
 ];
 
 /** 안전 규칙(A군)에 걸렸을 때 쓰는 카드. 상담을 이어가지 않고 여기서 끝낸다. */
-export const SAFETY_RULES = {
+export const SOME_SAFETY = {
   A1: {
     id: 'A1',
     group: 'A',

@@ -3,9 +3,10 @@ import { rateLimit } from 'express-rate-limit';
 import { CounselSession } from '../../models/index.js';
 import { judge, findRule, isHowToQuestion } from './logic/engine.js';
 import { buildSystemPrompt } from './logic/prompt.js';
-import { checkSafety } from './logic/safety.js';
+import { checkSafety, checkBlockedState } from './logic/safety.js';
 import { extractSlots, isReadyForReport, missingSlots, STAGE_LABEL } from './logic/slots.js';
 import { generateReport, SECTIONS } from './logic/report.js';
+import { reunionGrade } from './data/rules/index.js';
 import {
   REPORT_PRICE,
   buildOrderId,
@@ -29,6 +30,13 @@ const MODEL = process.env.LOVE_COUNSEL_MODEL || 'claude-sonnet-5';
 
 // 정보가 끝내 안 모여도 여기까지만 대화한다 — 무한정 물으면 사용자가 나간다
 const MAX_FREE_TURNS = 8;
+
+// 모듈마다 무료 구간에서 준 것이 다르므로 넘기는 문구도 다르다.
+const PAYWALL_HOOK = {
+  some: '지금부터가 실제 처방입니다. 앞으로 7일 동안 뭘 하고, 다음 연락을 정확히 뭐라고 할지 — 여기부터 이어갑니다.',
+  dating: '패턴은 찾았습니다. 이걸 실제로 어떻게 끊는지 — 여기부터 이어갑니다.',
+  reunion: '등급은 나왔습니다. 언제 어떻게 다시 연락해야 하는지 — 여기부터 이어갑니다.',
+};
 
 const router = Router();
 
@@ -84,7 +92,7 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
 
   try {
     // (1) 안전 검사가 가장 먼저다. 걸리면 LLM을 호출하지 않고 확정 문구로 끝낸다.
-    const safety = checkSafety(lastUser);
+    const safety = checkSafety(lastUser, s.filled?.stage);
     if (safety) {
       await save(s, { safetyStop: safety.id, lastStage: 'safety', lastUser, turn });
       res.setHeader('X-LC-Stop', safety.id);
@@ -95,30 +103,40 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
     if (history.length) s.filled = await extractSlots(history, s.filled || {});
     const filled = s.filled || {};
 
-    // (3) 썸 구간은 필요한 값이 모이면 코드가 판정을 확정한다. 그때부터 LLM은 말하기만 한다.
-    //     다른 단계는 규칙집이 없어 원칙 기반으로 상담한다.
+    // (3) 차단·명시적 거절이 확인되면 재회 접근 방법을 일절 제공하지 않는다.
+    const blocked = checkBlockedState(filled.stage, filled);
+    if (blocked) {
+      await save(s, { safetyStop: blocked.id, lastStage: 'safety', lastUser, turn });
+      res.setHeader('X-LC-Stop', blocked.id);
+      return res.end(blocked.message);
+    }
+
+    // (4) 필요한 값이 모이면 코드가 판정을 확정한다. 그때부터 LLM은 말하기만 한다.
     let rule = null;
-    if (filled.stage === 'some' && !missingSlots(filled).some((x) => x.required)) {
-      const verdict = judge(filled);
+    let grade = null;
+    if (filled.stage && !missingSlots(filled).some((x) => x.required)) {
+      const verdict = judge(filled.stage, filled);
       rule = verdict.activeRule;
       s.activeRule = rule.id;
       s.matched = verdict.matched;
       s.signals = verdict.signals;
+      if (filled.stage === 'reunion') {
+        grade = reunionGrade(filled);
+        s.grade = grade;
+      }
     }
 
-    // (4) 리포트로 넘길 시점 — 정보가 다 모였거나, 사용자가 처방을 요구했거나, 상한에 닿았을 때
+    // (5) 리포트로 넘길 시점 — 정보가 다 모였거나, 사용자가 처방을 요구했거나, 상한에 닿았을 때
     const ready = isReadyForReport(filled, turn - 1);
     const howTo = isHowToQuestion(lastUser);
     if (howTo && !s.howToTurn) s.howToTurn = turn;
     if (ready || (howTo && turn >= 3) || turn > MAX_FREE_TURNS) {
       await save(s, { paywalled: true, lastStage: 'paywall', lastUser, turn });
       res.setHeader('X-LC-Report', '1');
-      return res.end(
-        '여기까지 이야기로 판정에 필요한 건 모였습니다. 지금부터가 실제 처방입니다 — 앞으로 7일 동안 뭘 하고, 다음 연락을 정확히 뭐라고 할지 정리해 드리겠습니다.'
-      );
+      return res.end(PAYWALL_HOOK[filled.stage] || PAYWALL_HOOK.some);
     }
 
-    const systemPrompt = buildSystemPrompt({ rule, filled, turn });
+    const systemPrompt = buildSystemPrompt({ rule, filled, turn, grade });
 
     // 첫 턴은 사용자 입력이 없다. API는 메시지가 최소 하나 있어야 하므로 시작 발화를 넣는다.
     const messages = history.length
@@ -177,7 +195,8 @@ router.post('/report/prepare', async (req, res) => {
       const filled = s.filled || {};
       const report = await generateReport({
         filled,
-        rule: s.activeRule ? findRule(s.activeRule) : null,
+        rule: s.activeRule ? findRule(filled.stage, s.activeRule) : null,
+        grade: s.grade || null,
         history,
       });
       if (!report) return res.status(502).json({ error: '리포트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.' });
@@ -208,7 +227,7 @@ router.get('/report/:publicId', async (req, res, next) => {
       report: row.report,
       sections: SECTIONS,
       paid: row.paid,
-      rule: row.activeRule ? findRule(row.activeRule) : null,
+      rule: row.activeRule ? findRule(row.stage, row.activeRule) : null,
       stageLabel: STAGE_LABEL[row.stage] || '연애 상담',
       price: REPORT_PRICE,
       tossEnabled: isTossEnabled(),

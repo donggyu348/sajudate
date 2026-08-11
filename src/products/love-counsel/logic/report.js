@@ -31,6 +31,8 @@ const SYSTEM = `당신은 '해답'의 연애 상담 전문가다. 상담을 마�
 # 문체
 존댓말, 담백하고 단호하게. 이모지 금지. "~하시는 게 좋을 것 같아요" 금지, "~하세요"로 단정한다.
 "100% 성공", "무조건 이어집니다" 류 보장 표현 금지. 선택지 나열 금지 — 하나로 판정한다.
+확률 %를 쓰지 않는다. 연애 중 상담이면 상대의 성격·인격을 평가하지 않고 두 사람 사이의 패턴만 다룬다.
+재회 상담이면 상대에게 보낼 문자를 대신 써주지 않는다 — 무엇을 담고 무엇을 빼는지 원칙만 준다.
 
 # 출력 형식
 아래 JSON만 출력한다. 다른 텍스트나 마크다운은 절대 포함하지 않는다.
@@ -38,18 +40,19 @@ const SYSTEM = `당신은 '해답'의 연애 상담 전문가다. 상담을 마�
   "situation": "확정된 진단을 사용자 상황의 구체 사실로 풀어 쓴다. 4~6문장.",
   "reading": "상대의 행동이 무엇을 뜻하는지. 체크리스트 응답을 직접 인용한다. 4~6문장.",
   "plan": "7일 동안 할 일. 날짜별로 구체적으로. 행동은 하나의 축으로만 준다. 5~8문장.",
-  "script": "다음 연락에서 실제로 보낼 문장 2~3개. 각 문장은 따옴표로 감싸고 언제 쓰는지 덧붙인다.",
+  "script": "다음 연락에서 무엇을 말하고 무엇을 말하지 않을지. 썸·연애 중이면 예시 문장을 2~3개 들어도 되지만, 재회 상담이면 문장을 대신 써주지 말고 담을 것과 뺄 것만 정리한다.",
   "prediction": "무엇이 언제 일어나면 관계가 살아 있고, 무엇이 없으면 아닌지. 3~4문장."
 }`;
 
 /**
  * @param {object} params
  * @param {object} params.filled          대화로 파악된 정보
- * @param {object|null} params.rule       확정된 판정 카드 (썸 구간에서만 있다)
+ * @param {object|null} params.rule       확정된 판정 카드
+ * @param {{grade:string,label:string,reason:string}|null} [params.grade] 재회 가능성 등급
  * @param {{role:string,content:string}[]} params.history
  * @returns {Promise<object|null>} 섹션 키를 가진 객체. 실패하면 null
  */
-export async function generateReport({ filled, rule, history }) {
+export async function generateReport({ filled, rule, grade, history }) {
   const client = getCounselorClient();
   if (!client) return null;
 
@@ -72,12 +75,16 @@ export async function generateReport({ filled, rule, history }) {
 처방: ${rule.prescription}
 예측: ${rule.prediction || '(없음. 지어내지 마라.)'}
 이 규칙에서 금지: ${rule.forbid.join(', ')}`
-  // 썸 외 단계는 아직 규칙집이 없다. 없는 근거를 지어내지 않도록 명시한다.
+  // 규칙에 걸리지 않은 조합. 없는 근거를 지어내지 않도록 명시한다.
   : `# 확정된 판정 없음
-이 단계(${STAGE_LABEL[filled?.stage] || '연애 상담'})는 판정 규칙집이 아직 없다.
+이 상담(${STAGE_LABEL[filled?.stage] || '연애 상담'})은 걸린 규칙이 없다.
 위 원칙과 사용자가 말한 행동 사실만으로 쓴다. 연구나 통계를 지어내지 마라.`}
 
-# 대화로 파악된 정보
+${grade ? `# 재회 가능성 등급 (확정)
+${grade.grade}등급 — ${grade.label} (근거: ${grade.reason})
+등급은 이 값 그대로 쓴다. 확률 %로 바꾸지 마라.${grade.grade === 'D' ? '\nD등급이므로 재회 방법을 쓰지 않는다. 종료를 돕는 내용으로 채운다.' : ''}
+
+` : ''}# 대화로 파악된 정보
 ${Object.entries(filled || {}).filter(([k]) => k !== 'question').map(([k, v]) => `- ${k}: ${v}`).join('\n')}
 
 # 사용자가 가장 알고 싶은 것

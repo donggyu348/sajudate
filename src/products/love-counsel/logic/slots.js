@@ -12,15 +12,16 @@ import { safeJsonParse } from '../../dark-psych-love/logic/jsonUtil.js';
 // 추출은 판정이 아니라 받아적기다. 싸고 빠른 모델을 쓴다.
 const EXTRACT_MODEL = process.env.LOVE_COUNSEL_EXTRACT_MODEL || 'claude-haiku-4-5-20251001';
 
-/** 단계와 무관하게 항상 필요한 것 */
+/** 모듈과 무관하게 항상 필요한 것 */
 const COMMON = [
-  { key: 'stage', ask: '지금 두 사람이 어떤 사이인지 (썸 / 연애 중 / 헤어진 사이 / 재회를 원하는 사이)', required: true },
+  { key: 'stage', ask: '지금 어떤 상황인지 — 아직 사귀지 않는 썸(some) / 사귀는 중(dating) / 헤어졌고 다시 만나고 싶음(reunion)', required: true },
   { key: 'question', ask: '지금 가장 알고 싶은 것이 무엇인지', required: true },
 ];
 
 /**
- * 단계별로 더 받아야 하는 것.
- * 썸 항목은 판정 엔진(rules.js)이 그대로 쓰는 값이라 이름과 값 집합을 바꾸면 안 된다.
+ * 모듈별로 더 받아야 하는 것. 지시서의 체크리스트 문항을 그대로 옮긴 것이며,
+ * 판정 엔진이 이 값을 그대로 쓰므로 키 이름과 값 집합을 바꾸면 안 된다.
+ * 외모·스펙·이상형은 어느 모듈에서도 묻지 않는다 — 특정 상대를 향한 끌림을 예측하지 못한다.
  */
 const BY_STAGE = {
   some: [
@@ -34,36 +35,36 @@ const BY_STAGE = {
     { key: 'channel', ask: '어떻게 알게 됐는지 (blinddate / school_work / app / club / acquaintance)' },
   ],
   dating: [
-    { key: 'monthsDating', ask: '사귄 지 몇 개월 됐는지 (숫자)', required: true },
-    { key: 'conflict', ask: '지금 반복되는 갈등이 무엇인지', required: true },
-    { key: 'conflictSince', ask: '언제부터 그랬는지' },
-    { key: 'talkedAboutIt', ask: '그 문제로 직접 이야기해본 적이 있는지, 그때 상대 반응은 어땠는지' },
-  ],
-  breakup: [
-    { key: 'brokeUpWhen', ask: '헤어진 지 얼마나 됐는지', required: true },
-    { key: 'whoEnded', ask: '누가 먼저 헤어지자고 했는지 (me / them / mutual)', required: true },
-    { key: 'breakupReason', ask: '상대가 말한 이별 사유', required: true },
-    { key: 'contactSince', ask: '헤어진 뒤 연락이 오간 적이 있는지, 누가 먼저였는지' },
-    { key: 'blocked', ask: '차단이나 명확한 거절 의사가 있었는지 (yes / no)', required: true },
+    { key: 'duration', ask: '사귄 지 얼마나 됐는지 (3m / 6m / 1y / 2y / 3y+)', required: true },
+    { key: 'mainIssue', ask: '지금 가장 힘든 것 (fight 자주 싸움 / distance 마음이 멀어짐 / changed 상대가 변함 / trust 신뢰 흔들림 / future 미래가 안 보임 / exhausted 내가 지침)', required: true },
+    { key: 'conflictPattern', ask: '싸울 때 어떻게 되는지 (i_push_they_avoid 내가 따지고 상대가 피함 / they_push_i_avoid 반대 / both_explode 둘 다 폭발 / no_fight 아예 안 싸움)', required: true },
+    { key: 'repeating', ask: '같은 문제로 반복해서 싸우는지 (yes / no)', required: true },
+    { key: 'meetFreqChange', ask: '최근 3개월 만나는 빈도 변화 (up / same / down)' },
+    { key: 'affectionBalance', ask: '애정 표현은 누가 더 많이 하는지 (me / even / them)' },
+    { key: 'thoughtOfBreakup', ask: '헤어질 생각을 해본 적 있는지 (no / sometimes / often / now)' },
+    { key: 'cantLeaveReason', ask: '헤어지지 못하는 이유 (still_love 아직 좋아함 / attachment 정 / sunk_time 시간이 아까움 / fear_alone 혼자가 두려움 / na 해당 없음)' },
+    { key: 'partnerAware', ask: '상대도 이 문제를 인식하는지 (yes / no / told_no_change 말했는데 안 바뀜)' },
   ],
   reunion: [
-    { key: 'brokeUpWhen', ask: '헤어진 지 얼마나 됐는지', required: true },
-    { key: 'whoEnded', ask: '누가 먼저 헤어지자고 했는지 (me / them / mutual)', required: true },
-    { key: 'breakupReason', ask: '상대가 말한 이별 사유', required: true },
-    { key: 'contactSince', ask: '헤어진 뒤 상대가 먼저 연락한 적이 있는지', required: true },
-    { key: 'blocked', ask: '차단이나 명확한 거절 의사가 있었는지 (yes / no)', required: true },
-    { key: 'theirSituation', ask: '상대에게 새로운 사람이 생겼는지 아는지' },
+    { key: 'sinceBreakup', ask: '헤어진 지 얼마나 됐는지 (1w / 2-4w / 1-3m / 3-6m / 6m+)', required: true },
+    { key: 'whoEnded', ask: '헤어지자고 한 사람 (them / me / mutual / faded)', required: true },
+    { key: 'reason', ask: '헤어진 가장 큰 이유 (fights 반복된 다툼 / cooled 마음이 식음 / trust 신뢰 문제 / circumstance 상황 / i_burned_out 내가 지침 / unknown 모르겠다)', required: true },
+    { key: 'theirState', ask: '상대의 현재 상태 (replies 답장은 옴 / read_no_reply 읽고 답 없음 / blocked 차단됨 / unknown 모름)', required: true },
+    { key: 'cycles', ask: '전에도 헤어졌다 다시 만난 횟수 (0 / 1 / 2 / 3+)', required: true },
+    { key: 'contactSince', ask: '헤어진 뒤 연락한 횟수 (none / 1-2 / several / daily)', required: true },
+    { key: 'theyReachedOut', ask: '헤어진 뒤 상대가 먼저 연락한 적 있는지 (yes / no)', required: true },
+    { key: 'relDuration', ask: '사귄 기간 (3m / 6m / 1y / 2y / 3y+)' },
+    { key: 'theyDating', ask: '상대에게 새로 만나는 사람이 있는지 (yes / no / unknown)' },
   ],
 };
 
 export const STAGE_LABEL = {
   some: '썸',
   dating: '연애 중',
-  breakup: '이별',
   reunion: '재회',
 };
 
-/** 지금 단계에서 채워야 할 슬롯 목록 */
+/** 지금 모듈에서 채워야 할 슬롯 목록 */
 export function slotsFor(stage) {
   return [...COMMON, ...(BY_STAGE[stage] || [])];
 }
@@ -112,7 +113,8 @@ JSON 외에 다른 텍스트나 마크다운은 절대 출력하지 마라.
 뽑을 항목:
 ${wanted}
 
-stage는 다음 중 하나다: some(썸) / dating(연애 중) / breakup(이별, 정리 쪽) / reunion(재회를 원함)`;
+stage는 다음 중 하나다: some(아직 사귀지 않는 썸) / dating(사귀는 중) / reunion(헤어졌고 다시 만나고 싶음)
+헤어진 이야기를 하면 reunion으로 잡되, 재회 의사가 없고 정리하려는 것이면 reunion으로 두고 대화에서 다룬다.`;
 
   try {
     const message = await client.messages.create({
