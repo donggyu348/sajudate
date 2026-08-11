@@ -256,6 +256,28 @@
       0 0 26px rgba(255, 92, 92, 0.42);
   }
 
+  /* BONUS 뱃지 — 마무리 씬에서 덤을 알린다 */
+  .rs-bonus {
+    align-self: flex-start;
+    margin: 0;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(233, 30, 122, 0.9), rgba(201, 24, 106, 0.9));
+    color: #fff;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-indent: 0.16em;
+    line-height: 1.7;
+    box-shadow: 0 4px 16px rgba(233, 30, 122, 0.4);
+
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .rs-bonus.is-in { opacity: 1; transform: translateY(0); }
+
   /* 밑줄로 한 번 더 눌러주는 변형 */
   .rs-hl--line {
     background-image: linear-gradient(transparent 62%, rgba(233, 30, 122, 0.32) 62%);
