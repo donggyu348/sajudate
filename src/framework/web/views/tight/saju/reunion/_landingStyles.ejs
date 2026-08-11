@@ -78,65 +78,6 @@
     width: 100%;
   }
 
-  /* ──────────────────────────────────────────────────────────────
-   * 컷 배치 — 이미지는 붙이지 않고 띄운다.
-   * 이미지 위아래에 그라데이션이 구워져 있어 배경(#100c14)에 그대로 녹으므로,
-   * 그 맞닿는 자리에 대사를 얹으면 사진과 배경 사이에 떠 있는 것처럼 읽힌다.
-   * ────────────────────────────────────────────────────────────── */
-  .rs-scene {
-    position: relative;
-    width: 100%;
-  }
-  .rs-scene__img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  /* 대사 블록 — 위 이미지의 페이드 안으로 끌어올리고, 다음 이미지와는 넉넉히 띄운다 */
-  .rs-say {
-    position: relative;
-    z-index: 3;
-    margin: -54px 22px 60px;
-  }
-  .rs-say:last-child { margin-bottom: 34px; }
-
-  /* 이미지 바로 위(다음 컷 시작 전)에 오는 대사는 아래쪽으로 파고들게 */
-  .rs-say--lead { margin: 44px 22px -54px; }
-
-  /* ── 화자 ── */
-  .rs-say__who {
-    display: inline-block;
-    margin: 0 0 11px;
-    padding: 3px 11px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    line-height: 1.6;
-  }
-
-  /* 나(의뢰인) — 왼쪽, 핑크 */
-  .rs-say--me { text-align: left; }
-  .rs-say--me .rs-say__who {
-    background: rgba(233, 30, 122, 0.18);
-    color: #ff9dc6;
-    border: 1px solid rgba(233, 30, 122, 0.34);
-  }
-
-  /* 그 사람 — 오른쪽, 푸른 톤 */
-  .rs-say--you { text-align: right; }
-  .rs-say--you .rs-say__who {
-    background: rgba(94, 140, 255, 0.16);
-    color: #a3c1ff;
-    border: 1px solid rgba(94, 140, 255, 0.32);
-  }
-  .rs-say--you .rs-line { color: rgba(214, 226, 255, 0.95); }
-
-  /* 재회사주(풀이하는 목소리) — 가운데, 라벨 없음 */
-  .rs-say--tell { text-align: center; }
-  .rs-say--tell .rs-line { color: rgba(255, 255, 255, 0.9); }
-
   .rs__eyebrow {
     margin: 0 0 8px;
     font-size: 12px;
@@ -297,6 +238,31 @@
     color: #ff9dc6;
   }
 
+  /* ── 문장 안 핵심 단어 강조 ──
+     문장을 늘리는 대신 결정적인 단어에만 색을 준다. 한 문장에 하나만. */
+  .rs-hl {
+    color: #ff8ec0;
+    font-weight: 500;
+    text-shadow:
+      0 2px 18px rgba(0, 0, 0, 0.85),
+      0 0 26px rgba(233, 30, 122, 0.45);
+  }
+
+  /* 경고 단어 */
+  .rs-hl--warn {
+    color: #ff7a6e;
+    text-shadow:
+      0 2px 18px rgba(0, 0, 0, 0.85),
+      0 0 26px rgba(255, 92, 92, 0.42);
+  }
+
+  /* 밑줄로 한 번 더 눌러주는 변형 */
+  .rs-hl--line {
+    background-image: linear-gradient(transparent 62%, rgba(233, 30, 122, 0.32) 62%);
+    background-repeat: no-repeat;
+    padding: 0 2px;
+  }
+
   /* 블러 키워드 (#3) */
   .rs-blur {
     display: inline-block;
@@ -310,10 +276,10 @@
 
   /* ── 회상 — 시간이 흐르며 기억이 잊히고 방이 차가워진다 ── */
   /* --p: 0(기억이 선명) → 1(모두 잊힘). 씬이 눈에 들어오면 JS가 시간에 따라 흘려보낸다 */
-  .rs-scene { --p: 0; }
+  .rs-cut { --p: 0; }
 
   /* 기억이 빠져나갈수록 배경(혼자 앉아 있는 컷)도 온기를 잃는다 */
-  .rs-scene--memory .rs-scene__img {
+  .rs-cut--memory .rs__bg {
     filter:
       saturate(calc(1 - var(--p) * 0.4))
       brightness(calc(1.08 - var(--p) * 0.26));
