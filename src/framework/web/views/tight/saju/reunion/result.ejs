@@ -33,12 +33,6 @@
 </head>
 
 <body>
-  <!-- 상단 고정 카운트다운 (#2부터 노출) -->
-  <div class="rs-topbar" id="rsTopbar">
-    <span class="rs-topbar__text"><%= name %>님께 지금만 열려있는 특별 혜택</span>
-    <span class="rs-topbar__time" id="rsTopbarTime">--:--</span>
-  </div>
-
   <div class="page">
 
     <!-- ═══════════ #1 훅 — 재회 확률 + 실시간 카톡 ═══════════ -->
@@ -86,8 +80,8 @@
         <img class="rs__bg" src="<%= scene(2) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
         <div class="rs__scrim"></div>
         <div class="rs__inner">
-          <div class="rb-thread">
-            <%- include('./_chatBubble', { text: '이게 진짜 마지막이었을까요?', size: 'lg' }) %>
+          <div class="rs-lines">
+            <p class="rs-line" data-line>이게 진짜<br>마지막이었을까요?</p>
           </div>
         </div>
       </div>
@@ -95,9 +89,10 @@
       <div class="rs-cut">
         <img class="rs__bg" src="<%= scene(3) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
         <div class="rs__scrim"></div>
+        <%- include('./_memories') %>
         <div class="rs__inner">
-          <div class="rb-thread">
-            <%- include('./_chatBubble', { side: 'right', tone: 'pink', text: `${name}님, 잠깐 이야기 좀 할까요` }) %>
+          <div class="rs-lines">
+            <p class="rs-line rs-line--right" data-line><%= name %>님,<br>잠깐 이야기 좀 할까요</p>
           </div>
         </div>
       </div>
@@ -108,13 +103,9 @@
       <img class="rs__bg" src="<%= scene(4) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
       <div class="rs__scrim"></div>
       <div class="rs__inner">
-        <div class="rb-thread">
-          <%- include('./_chatBubble', { tone: 'warn', text: '지금 연락하면, 오히려 멀어져요', size: 'lg' }) %>
-          <%- include('./_chatBubble', {
-                tone: 'warn',
-                delay: 260,
-                text: `이 타이밍 하나만 지키면 <span class="rb-blur">${reunion.keyword}</span>`
-              }) %>
+        <div class="rs-lines">
+          <p class="rs-line rs-line--warn" data-line>지금 연락하면,<br>오히려 멀어져요</p>
+          <p class="rs-line rs-line--sm" data-line>이 타이밍 하나만 지키면 <span class="rs-blur"><%= reunion.keyword %></span></p>
         </div>
       </div>
     </section>
@@ -123,8 +114,8 @@
     <section class="rs rs--ui" id="sec4">
       <p class="rs__eyebrow">Contact Timeline</p>
       <h2 class="rs__title">우리 둘의 연락운 타임라인</h2>
-      <div class="rb-thread" style="margin-bottom:20px;">
-        <%- include('./_chatBubble', { text: `${name}님, 그 사람은 언제쯤 마음을 열까요?` }) %>
+      <div class="rs-lines" style="margin-bottom:22px;">
+        <p class="rs-line rs-line--sm" data-line><%= name %>님, 그 사람은 언제쯤 마음을 열까요?</p>
       </div>
       <%- include('./_calendar') %>
     </section>
@@ -134,8 +125,8 @@
       <img class="rs__bg" src="<%= scene(5) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
       <div class="rs__scrim"></div>
       <div class="rs__inner">
-        <div class="rb-thread" style="margin-bottom:20px;">
-          <%- include('./_chatBubble', { text: '두 사람의 사주, 숫자로 확인해보세요' }) %>
+        <div class="rs-lines" style="margin-bottom:22px;">
+          <p class="rs-line" data-line>두 사람의 사주,<br>숫자로 확인해보세요</p>
         </div>
         <%- include('./_pillarTable', { table: reunion.me.table }) %>
         <%- include('./_pillarTable', { table: reunion.partner.table }) %>
@@ -144,11 +135,8 @@
 
     <!-- ═══════════ #6 클라이맥스 + 락 ═══════════ -->
     <section class="rs rs--ui" id="sec6">
-      <div class="rb-thread" style="margin-bottom:18px;">
-        <%- include('./_chatBubble', {
-              side: 'right', tone: 'pink', size: 'lg',
-              text: `"두 사람, 다시 이어질 확률은 <strong>${reunion.probability}%</strong>로 나왔어요."`
-            }) %>
+      <div class="rs-lines" style="margin-bottom:20px;">
+        <p class="rs-line" data-line>두 사람, 다시 이어질 확률은<br><strong><%= reunion.probability %>%</strong>로 나왔어요.</p>
       </div>
 
       <div class="rs-lock" data-reveal>
@@ -246,9 +234,9 @@
       <img class="rs__bg" src="<%= scene(6) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
       <div class="rs__scrim"></div>
       <div class="rs__inner">
-        <div class="rb-thread" style="margin-bottom:20px;">
-          <%- include('./_chatBubble', { text: '리포트 안에 뭐가 들어있는지 보여드릴게요' }) %>
-          <%- include('./_chatBubble', { side: 'right', tone: 'pink', text: '왜 자꾸 어긋났던 걸까요?', delay: 220 }) %>
+        <div class="rs-lines" style="margin-bottom:24px;">
+          <p class="rs-line" data-line>리포트 안에 뭐가 들어있는지<br>보여드릴게요</p>
+          <p class="rs-line rs-line--sm rs-line--right" data-line>왜 자꾸 어긋났던 걸까요?</p>
         </div>
 
         <div class="rs-toc">
@@ -260,8 +248,8 @@
           <% }); %>
         </div>
 
-        <div class="rb-thread" style="margin-top:20px;">
-          <%- include('./_chatBubble', { text: '상대방 쪽 풀이도 하나 더 얹어드려요' }) %>
+        <div class="rs-lines" style="margin-top:24px;">
+          <p class="rs-line rs-line--sm" data-line>상대방 쪽 풀이도 하나 더 얹어드려요</p>
         </div>
       </div>
     </section>
@@ -304,7 +292,14 @@
         });
       }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
 
-      document.querySelectorAll('[data-bubble], [data-reveal]').forEach(function (el) { io.observe(el); });
+      document.querySelectorAll('[data-line], [data-reveal]').forEach(function (el) { io.observe(el); });
+
+      /* 한 씬에 문장이 여럿이면 순서대로 뜨게 지연을 준다 */
+      document.querySelectorAll('.rs-lines').forEach(function (group) {
+        group.querySelectorAll('[data-line]').forEach(function (el, i) {
+          el.style.transitionDelay = (i * 420) + 'ms';
+        });
+      });
 
       /* ── 히어로 카톡 ──
          내가 보낸 메시지는 하나씩 차례로 뜨고,
@@ -344,10 +339,9 @@
         setTimeout(loop, t);
       })();
 
-      /* ── 카운트다운 (#2 상단바 · #6 할인) ── */
+      /* ── 할인 카운트다운 (#6) ── */
       var DEADLINE_MIN = 15;
       var endAt = Date.now() + DEADLINE_MIN * 60 * 1000;
-      var topTime = document.getElementById('rsTopbarTime');
       var discTime = document.getElementById('rsDiscountTime');
 
       function pad(n) { return String(n).padStart(2, '0'); }
@@ -355,24 +349,10 @@
         var left = Math.max(0, endAt - Date.now());
         var m = Math.floor(left / 60000);
         var s = Math.floor((left % 60000) / 1000);
-        var text = pad(m) + ':' + pad(s);
-        if (topTime) topTime.textContent = text;
-        if (discTime) discTime.textContent = text;
+        if (discTime) discTime.textContent = pad(m) + ':' + pad(s);
       }
       tick();
       setInterval(tick, 1000);
-
-      /* ── 상단바: #2 진입 이후 노출 ── */
-      var topbar = document.getElementById('rsTopbar');
-      var sec2 = document.getElementById('sec2');
-      if (topbar && sec2) {
-        var barIo = new IntersectionObserver(function (entries) {
-          entries.forEach(function (e) {
-            topbar.classList.toggle('is-on', e.boundingClientRect.top < 0 || e.isIntersecting);
-          });
-        }, { threshold: 0 });
-        barIo.observe(sec2);
-      }
 
       /* ── 구매 알림 토스트 ── */
       var toast = document.getElementById('rsToast');

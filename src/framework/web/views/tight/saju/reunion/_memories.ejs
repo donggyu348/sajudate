@@ -1,0 +1,22 @@
+<%
+/*
+ * 회상 연출 — 함께 행복했던 순간들이 폴라로이드처럼 떠올랐다 흐려진다.
+ * 에셋: public/assets/images/tight/return/memory-1~3.png
+ *       (없으면 onerror로 조용히 사라지므로 배치 전에도 화면이 깨지지 않는다)
+ */
+const MEMORIES = [
+  { n: 1, top: '5%',  left: '3%',  w: '44%', rot: '-7deg', delay: '0s'   },
+  { n: 2, top: '20%', left: '50%', w: '41%', rot: '6deg',  delay: '2.6s' },
+  { n: 3, top: '42%', left: '13%', w: '39%', rot: '-3deg', delay: '5.2s' },
+];
+%>
+<div class="rs-memories" aria-hidden="true">
+  <% MEMORIES.forEach(function (m) { %>
+  <figure class="rs-mem"
+          style="top:<%= m.top %>; left:<%= m.left %>; width:<%= m.w %>; --rot:<%= m.rot %>; animation-delay:<%= m.delay %>;">
+    <img src="/assets/images/tight/return/memory-<%= m.n %>.png" alt=""
+         loading="lazy" decoding="async"
+         onerror="this.closest('.rs-mem').remove()">
+  </figure>
+  <% }); %>
+</div>

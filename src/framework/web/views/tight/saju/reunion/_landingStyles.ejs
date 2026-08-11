@@ -182,37 +182,123 @@
   }
   @keyframes rsScroll { 0%{opacity:0;transform:translateY(0)} 40%{opacity:1} 100%{opacity:0;transform:translateY(12px)} }
 
-  /* ── 상단 고정 카운트다운 바 ── */
-  .rs-topbar {
-    position: fixed;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 393px;
-    z-index: 90;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 9px 14px;
-    background: linear-gradient(90deg, #3a0f28 0%, #5c1339 100%);
-    border-bottom: 1px solid rgba(233, 30, 122, 0.32);
-    font-size: 12.5px;
-    letter-spacing: -0.02em;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.35s ease;
+  /*
+   * 리디바탕 — main.css의 전역 @font-face가 '/public/assets/fonts/...'라 302로 튕긴다.
+   * express가 public을 루트로 서빙하므로 실제 경로는 '/assets/fonts/...'.
+   */
+  @font-face {
+    font-family: 'RIDIBatangRs';
+    src: url('/assets/fonts/RIDIBatang.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
   }
-  .rs-topbar.is-on { opacity: 1; pointer-events: auto; }
-  .rs-topbar__text { color: #ffd8e8; font-weight: 600; }
-  .rs-topbar__time {
-    font-variant-numeric: tabular-nums;
-    font-weight: 800;
-    color: #fff;
-    background: rgba(0,0,0,0.32);
-    padding: 3px 9px;
-    border-radius: 7px;
+
+  /* ── 씬 위에 얹는 문장 (말풍선 대신) ── */
+  .rs-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .rs-line {
+    margin: 0;
+    font-family: 'RIDIBatangRs', 'Noto Serif KR', 'Apple SD Gothic Neo', serif;
+    font-size: clamp(20px, 5.6vw, 27px);
+    font-weight: 400;
+    line-height: 1.72;
+    letter-spacing: -0.01em;
+    color: rgba(255, 255, 255, 0.95);
+    word-break: keep-all;
+    text-shadow:
+      0 2px 18px rgba(0, 0, 0, 0.85),
+      0 0 44px rgba(0, 0, 0, 0.6);
+
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(4px);
+    transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), filter 0.9s ease;
+  }
+  .rs-line.is-in { opacity: 1; transform: translateY(0); filter: blur(0); }
+
+  .rs-line--sm {
+    font-size: clamp(15px, 4.1vw, 18px);
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.68);
+  }
+
+  .rs-line--warn { color: #ff9d92; }
+
+  .rs-line--center { text-align: center; }
+  .rs-line--right  { text-align: right; }
+
+  .rs-line strong {
+    font-weight: 400;
+    color: #ff9dc6;
+  }
+
+  /* 블러 키워드 (#3) */
+  .rs-blur {
+    display: inline-block;
+    padding: 1px 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    color: transparent;
+    text-shadow: 0 0 12px rgba(255, 236, 236, 0.95);
+    user-select: none;
+  }
+
+  /* ── 회상 — 함께였던 순간들이 떠올랐다 흐려진다 ── */
+  .rs-memories {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* 떠오르는 순간 번지는 따뜻한 빛 */
+  .rs-memories::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(70% 45% at 50% 30%, rgba(255, 206, 148, 0.2) 0%, transparent 70%);
+    animation: memGlow 7.8s ease-in-out infinite;
+  }
+  @keyframes memGlow {
+    0%, 100% { opacity: 0.25; }
+    50%      { opacity: 0.75; }
+  }
+
+  .rs-mem {
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    border: 6px solid #f4ece0;
+    border-bottom-width: 20px;
+    border-radius: 2px;
+    background: #f4ece0;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
+    filter: sepia(0.5) saturate(0.8) contrast(0.95) brightness(1.06);
+    opacity: 0;
+    transform: rotate(var(--rot)) scale(0.93);
+    animation: memRecall 7.8s ease-in-out infinite;
+  }
+  .rs-mem img { display: block; width: 100%; height: auto; }
+
+  /* 떠올랐다가 — 붙잡으려는 순간 흐려진다 */
+  @keyframes memRecall {
+    0%   { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px); filter: sepia(0.5) blur(6px) brightness(1.2); }
+    16%  { opacity: 0.96; transform: rotate(var(--rot)) scale(1)    translateY(0);    filter: sepia(0.5) blur(0)   brightness(1.06); }
+    58%  { opacity: 0.96; transform: rotate(var(--rot)) scale(1.02) translateY(-8px); filter: sepia(0.5) blur(0)   brightness(1.06); }
+    82%  { opacity: 0;    transform: rotate(var(--rot)) scale(1.05) translateY(-16px); filter: sepia(0.5) blur(7px) brightness(1.25); }
+    100% { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px); filter: sepia(0.5) blur(6px) brightness(1.2); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rs-mem { animation: none; opacity: 0.9; transform: rotate(var(--rot)); filter: sepia(0.5) saturate(0.8); }
+    .rs-memories::after { animation: none; opacity: 0.5; }
   }
 
   /* ── #4 캘린더 ── */
@@ -625,6 +711,6 @@
       overflow: hidden;
       background: #100c14;
     }
-    .rs-topbar, .rs-cta, .rs-notice, .rs-toast { max-width: 393px; }
+    .rs-cta, .rs-notice, .rs-toast { max-width: 393px; }
   }
 </style>
