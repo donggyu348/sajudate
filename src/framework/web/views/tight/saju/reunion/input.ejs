@@ -1,6 +1,50 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
+<%
+  /*
+   * 이별 정황 3문항. 사주 계산에는 쓰이지 않고, 리포트 본문에서
+   * "왜 어긋났는지 / 지금 뭘 해야 하는지"를 사용자 상황에 맞춰 쓰기 위한 입력이다.
+   */
+  const QUESTIONS = [
+    {
+      field: 'breakupReason',
+      eyebrow: '이별의 사유',
+      title: '우리는 <em>왜 멀어졌던</em> 걸까요?',
+      options: [
+        '썸붕 및 고백 실패',
+        '성격 차이와 잦은 다툼',
+        '집착 및 이성 문제',
+        '상대방의 잠수이별 및 통보',
+        '상대방의 바람 및 외도',
+      ],
+    },
+    {
+      field: 'contactStatus',
+      eyebrow: '지금의 거리',
+      title: '지금 두 사람은 <em>어떤 상태</em>인가요?',
+      options: [
+        '연락이 완전히 끊겼어요',
+        '제가 연락하면 답은 와요',
+        '가끔 안부 정도는 주고받아요',
+        '차단당한 상태예요',
+        '아직 종종 만나고 있어요',
+      ],
+    },
+    {
+      field: 'mainConcern',
+      eyebrow: '가장 알고 싶은 것',
+      title: '리포트에서 <em>무엇을</em> 가장 알고 싶으세요?',
+      options: [
+        '다시 만날 수 있을지',
+        '언제 연락해야 할지',
+        '그 사람의 속마음',
+        '내가 뭘 잘못했는지',
+        '다시 만나도 잘 지낼 수 있을지',
+      ],
+    },
+  ];
+%>
 <head>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
@@ -23,7 +67,7 @@
       max-width: 480px;
       min-height: 100dvh;
       margin: 0 auto;
-      padding: 20px 24px calc(96px + env(safe-area-inset-bottom, 0px));
+      padding: 20px 24px calc(40px + env(safe-area-inset-bottom, 0px));
       background: #000;
       overflow-x: hidden;
     }
@@ -74,6 +118,7 @@
       font-weight: 800;
       line-height: 1.25;
       letter-spacing: -0.04em;
+      word-break: keep-all;   /* '알려주/세요'처럼 단어 중간에서 끊기지 않게 */
     }
 
     .form-header p {
@@ -92,6 +137,51 @@
     /* 재회사주는 두 사람 사주가 필요해 단계로 나눈다 (그 외 디자인은 연애사주와 동일) */
     .form-step { display: none; }
     .form-step.is-active { display: block; }
+
+    /* 이별 정황 선택 단계 — 전역 .active 규칙을 피해 is-on을 쓴다 */
+    .form-header em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .q-eyebrow {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .q-options {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .q-opt {
+      max-width: 100%;
+      padding: 14px 22px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.88);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      text-align: left;
+      word-break: keep-all;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .q-opt.is-on {
+      background: #fff;
+      border-color: #fff;
+      color: #111;
+      font-weight: 800;
+    }
 
     .name-input {
       width: 100%;
@@ -227,14 +317,11 @@
       color: #111;
     }
 
+    /* 화면 하단 고정 대신 콘텐츠 바로 아래에 붙인다 (빈 여백 제거) */
     .submit-btn {
-      position: fixed;
-      left: 50%;
-      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-      transform: translateX(-50%);
-      z-index: 10;
-      width: calc(100% - 48px);
-      max-width: 432px;
+      display: block;
+      width: 100%;
+      margin: 40px 0 0;
       height: 54px;
       border: none;
       border-radius: 999px;
@@ -301,41 +388,43 @@
       max-width: 320px;
     }
 
-    .thread-visual {
-      width: min(82vw, 300px);
-      margin-bottom: 24px;
-      position: relative;
+    /* 깨진 하트가 다시 붙는 연출 */
+    .heart-mend {
+      width: min(46vw, 168px);
+      margin-bottom: 26px;
+      filter: drop-shadow(0 0 14px rgba(230, 45, 55, 0.4));
     }
 
-    .thread-img {
-      display: block;
-      width: 100%;
-      height: auto;
-      filter: drop-shadow(0 0 8px rgba(230, 45, 55, 0.35));
-      -webkit-mask-image: linear-gradient(128deg, #000 42%, transparent 58%);
-      mask-image: linear-gradient(128deg, #000 42%, transparent 58%);
-      -webkit-mask-size: 260% 260%;
-      mask-size: 260% 260%;
-      -webkit-mask-position: 88% 8%;
-      mask-position: 88% 8%;
-      animation: threadReveal 4.5s ease-in-out forwards;
+    .heart-mend svg { display: block; width: 100%; height: auto; }
+
+    .heart-mend__half {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .heart-mend__half--l { animation: mendLeft 3.4s cubic-bezier(0.34, 1.3, 0.4, 1) infinite; }
+    .heart-mend__half--r { animation: mendRight 3.4s cubic-bezier(0.34, 1.3, 0.4, 1) infinite; }
+
+    @keyframes mendLeft {
+      0%           { transform: translate(-13px, 7px) rotate(-11deg); opacity: 0.5; }
+      52%, 88%     { transform: translate(0, 0) rotate(0deg);         opacity: 1; }
+      100%         { transform: translate(-13px, 7px) rotate(-11deg); opacity: 0.5; }
+    }
+    @keyframes mendRight {
+      0%           { transform: translate(13px, 7px) rotate(11deg);   opacity: 0.5; }
+      52%, 88%     { transform: translate(0, 0) rotate(0deg);         opacity: 1; }
+      100%         { transform: translate(13px, 7px) rotate(11deg);   opacity: 0.5; }
     }
 
-    @keyframes threadReveal {
-      0%   { -webkit-mask-position: 88% 8%;  mask-position: 88% 8%; }
-      100% { -webkit-mask-position: 8% 92%; mask-position: 8% 92%; }
+    /* 두 조각이 맞물리는 순간의 빛 */
+    .heart-mend__spark {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: mendSpark 3.4s ease-out infinite;
     }
-
-    .loading-flower {
-      font-size: 22px;
-      line-height: 1;
-      margin-bottom: 14px;
-      animation: flowerFloat 2.2s ease-in-out infinite;
-    }
-
-    @keyframes flowerFloat {
-      0%, 100% { transform: translateY(0) scale(1); opacity: 0.75; }
-      50%      { transform: translateY(-4px) scale(1.06); opacity: 1; }
+    @keyframes mendSpark {
+      0%, 44%  { opacity: 0; transform: scale(0.5); }
+      56%      { opacity: 0.9; transform: scale(1.25); }
+      72%, 100%{ opacity: 0; transform: scale(1.5); }
     }
 
     .loading-title {
@@ -395,15 +484,31 @@
       뒤로가기
     </button>
 
-    <div class="form-header">
-      <h1 id="formTitle">이름을 입력해주세요</h1>
-    </div>
-
     <div id="loading" class="loading-overlay" aria-live="polite" aria-busy="false">
       <div class="loading-inner">
-        <div class="loading-flower" aria-hidden="true">🌸</div>
-        <div class="thread-visual" aria-hidden="true">
-          <img class="thread-img" src="/assets/images/tight/romantic/loading/red-thread.png" alt="" width="300" height="188">
+        <div class="heart-mend" aria-hidden="true">
+          <svg viewBox="0 0 100 100" role="presentation">
+            <defs>
+              <linearGradient id="mendGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stop-color="#ff8fb4"/>
+                <stop offset="100%" stop-color="#e02b46"/>
+              </linearGradient>
+              <radialGradient id="sparkGrad">
+                <stop offset="0%"   stop-color="#fff8e7" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#ffb0c6" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+
+            <!-- 왼쪽 조각 -->
+            <path class="heart-mend__half heart-mend__half--l" fill="url(#mendGrad)"
+                  d="M50,88 C30,72 8,52 8,34 C8,20 22,11 34,17 C42,21 48,27 50,34 Z"/>
+            <!-- 오른쪽 조각 -->
+            <path class="heart-mend__half heart-mend__half--r" fill="url(#mendGrad)"
+                  d="M50,88 C70,72 92,52 92,34 C92,20 78,11 66,17 C58,21 52,27 50,34 Z"/>
+
+            <!-- 맞물리는 순간의 빛 -->
+            <circle class="heart-mend__spark" cx="50" cy="52" r="17" fill="url(#sparkGrad)"/>
+          </svg>
         </div>
         <p id="loading-title" class="loading-title">두 사람의 사주를 겹쳐 보고 있습니다</p>
         <p class="loading-sub">REUNION</p>
@@ -415,8 +520,28 @@
 
     <form id="sajuForm" method="POST" action="/saju/reunion/result">
 
-      <!-- 1단계: 내 정보 -->
-      <div class="form-step is-active" id="step0">
+      <!-- 이별 정황 3문항 — 리포트 조언의 근거가 된다 -->
+      <% QUESTIONS.forEach(function (q, qi) { %>
+      <div class="form-step<%= qi === 0 ? ' is-active' : '' %>" id="q<%= qi %>" data-question="<%= q.field %>">
+        <input type="hidden" name="<%= q.field %>" id="<%= q.field %>Input">
+        <div class="form-header">
+          <p class="q-eyebrow"><%= q.eyebrow %></p>
+          <h1><%- q.title %></h1>
+        </div>
+        <div class="q-options" role="radiogroup" aria-label="<%= q.eyebrow %>">
+          <% q.options.forEach(function (opt) { %>
+          <button type="button" class="q-opt" data-field="<%= q.field %>" data-value="<%= opt %>"><%= opt %></button>
+          <% }); %>
+        </div>
+      </div>
+      <% }); %>
+
+      <!-- 내 정보 -->
+      <div class="form-step" id="step0">
+        <div class="form-header">
+          <h1>이름을 입력해주세요</h1>
+        </div>
+
         <input type="hidden" name="gender" id="genderInput">
         <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
 
@@ -459,8 +584,12 @@
         </div>
       </div>
 
-      <!-- 2단계: 그 사람 정보 -->
+      <!-- 그 사람 정보 -->
       <div class="form-step" id="step1">
+        <div class="form-header">
+          <h1>그 사람 정보를<br>알려주세요</h1>
+        </div>
+
         <input type="hidden" name="partnerGender" id="partnerGenderInput">
         <input type="hidden" name="partnerBirthType" id="partnerBirthTypeInput" value="양력">
 
@@ -527,7 +656,6 @@
   const partnerTimePill = document.getElementById('partnerTimePill');
 
   const submitBtn = document.getElementById('submitBtn');
-  const formTitle = document.getElementById('formTitle');
 
   genderInput.value = '남성';
   partnerGenderInput.value = '남성';
@@ -578,20 +706,33 @@
     );
   }
 
+  /* ── 이별 정황 선택 ── */
+  document.querySelectorAll('.q-opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const field = btn.dataset.field;
+      document.querySelectorAll('.q-opt[data-field="' + field + '"]').forEach(function (b) {
+        b.classList.remove('is-on');
+      });
+      btn.classList.add('is-on');
+      document.getElementById(field + 'Input').value = btn.dataset.value;
+    });
+  });
+
   /* ── 단계 ── */
+  const STEPS = ['q0', 'q1', 'q2', 'step0', 'step1'];
   let step = 0;
 
   function renderStep() {
-    document.getElementById('step0').classList.toggle('is-active', step === 0);
-    document.getElementById('step1').classList.toggle('is-active', step === 1);
-    formTitle.textContent = step === 0 ? '이름을 입력해주세요' : '헤어진 그 사람의 정보를 알려주세요';
-    submitBtn.textContent = step === 0 ? '다음으로' : '재회 확률 확인하기';
+    STEPS.forEach(function (id, i) {
+      document.getElementById(id).classList.toggle('is-active', i === step);
+    });
+    submitBtn.textContent = step === STEPS.length - 1 ? '재회 확률 확인하기' : '다음으로';
     window.scrollTo({ top: 0 });
   }
 
   document.getElementById('backBtn').addEventListener('click', function () {
-    if (step === 1) {
-      step = 0;
+    if (step > 0) {
+      step--;
       renderStep();
       return;
     }
@@ -639,12 +780,11 @@
     overlay.setAttribute('aria-busy', 'true');
     submitBtn.disabled = true;
 
-    const threadImg = overlay.querySelector('.thread-img');
-    if (threadImg) {
-      threadImg.style.animation = 'none';
-      void threadImg.offsetWidth;
-      threadImg.style.animation = '';
-    }
+    overlay.querySelectorAll('.heart-mend__half, .heart-mend__spark').forEach(function (el) {
+      el.style.animation = 'none';
+      void el.getBoundingClientRect();
+      el.style.animation = '';
+    });
 
     if (loadingMsgTimer) clearInterval(loadingMsgTimer);
     loadingMsgTimer = setInterval(function () {
@@ -677,14 +817,34 @@
     }, LOADING_MIN_MS);
   }
 
+  function validateCurrentStep() {
+    const id = STEPS[step];
+
+    // 이별 정황 문항 — 하나는 골라야 넘어간다
+    const stepEl = document.getElementById(id);
+    const field = stepEl.dataset.question;
+    if (field) {
+      if (!document.getElementById(field + 'Input').value) {
+        shake(stepEl.querySelector('.q-options'));
+        return false;
+      }
+      return true;
+    }
+
+    if (id === 'step0') {
+      return validateStep("input[name='name']", birthdateInput, genderInput, 'genderRowMe');
+    }
+    return validateStep("input[name='partnerName']", partnerBirthdateInput, partnerGenderInput, 'genderRowPartner');
+  }
+
   submitBtn.addEventListener('click', function () {
-    if (step === 0) {
-      if (!validateStep("input[name='name']", birthdateInput, genderInput, 'genderRowMe')) return;
-      step = 1;
+    if (!validateCurrentStep()) return;
+
+    if (step < STEPS.length - 1) {
+      step++;
       renderStep();
       return;
     }
-    if (!validateStep("input[name='partnerName']", partnerBirthdateInput, partnerGenderInput, 'genderRowPartner')) return;
     submitReunionForm();
   });
 
