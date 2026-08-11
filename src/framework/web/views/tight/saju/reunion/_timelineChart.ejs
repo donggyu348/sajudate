@@ -33,7 +33,7 @@ const tl = reunion.timeline;
     <circle cx="<%= tl.peak.x %>" cy="<%= tl.peak.y %>" r="9" fill="#e91e7a" opacity="0.26"/>
     <circle cx="<%= tl.peak.x %>" cy="<%= tl.peak.y %>" r="4.6" fill="#ff8ec0"/>
     <text x="<%= tl.peak.x %>" y="<%= Math.max(14, tl.peak.y - 13) %>" text-anchor="middle"
-          fill="#ffb3d5" font-size="9.5" font-weight="700">기운이 가장 강한 시점</text>
+          fill="#ffb3d5" font-size="9.5" font-weight="700">🔒 기운이 가장 강한 시점</text>
 
     <% tl.points.forEach(function (p, i) { %>
       <circle cx="<%= p.x %>" cy="<%= p.y %>" r="2.2" fill="#e91e7a" opacity="0.55"/>
@@ -43,7 +43,8 @@ const tl = reunion.timeline;
     <% }); %>
   </svg>
 
-  <div class="rs-chart__peak">
-    ★ <%= tl.peak.label %> · <%= tl.peak.ganji %>(<%= tl.peak.tenGod %>) · <%= tl.peak.score %>점
+  <!-- 정점이 '언제'인지가 핵심 정보라 시점만 가린다 -->
+  <div class="rs-chart__lock">
+    🔒 기운이 가장 강한 시점 · <span class="blurred-val"><%= tl.peak.label %> <%= tl.peak.ganji %></span> · <%= tl.peak.score %>점
   </div>
 </div>

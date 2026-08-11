@@ -288,12 +288,13 @@
   }
   .rs-mem img { display: block; width: 100%; height: auto; }
 
-  /* 떠올랐다가 — 붙잡으려는 순간 흐려진다 */
+  /* 떠올랐다가 — 붙잡으려는 순간 흐려진다.
+     배경 인물을 오래 가리지 않도록 머무는 구간을 짧게 잡았다. */
   @keyframes memRecall {
     0%   { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px);  filter: sepia(0.18) blur(6px) brightness(1.18); }
-    16%  { opacity: 0.97; transform: rotate(var(--rot)) scale(1)    translateY(0);     filter: sepia(0.18) blur(0)   brightness(1.04); }
-    58%  { opacity: 0.97; transform: rotate(var(--rot)) scale(1.02) translateY(-8px);  filter: sepia(0.18) blur(0)   brightness(1.04); }
-    82%  { opacity: 0;    transform: rotate(var(--rot)) scale(1.05) translateY(-16px); filter: sepia(0.18) blur(7px) brightness(1.22); }
+    12%  { opacity: 0.94; transform: rotate(var(--rot)) scale(1)    translateY(0);     filter: sepia(0.18) blur(0)   brightness(1.04); }
+    34%  { opacity: 0.94; transform: rotate(var(--rot)) scale(1.02) translateY(-8px);  filter: sepia(0.18) blur(0)   brightness(1.04); }
+    52%  { opacity: 0;    transform: rotate(var(--rot)) scale(1.05) translateY(-16px); filter: sepia(0.18) blur(7px) brightness(1.22); }
     100% { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px);  filter: sepia(0.18) blur(6px) brightness(1.18); }
   }
 
@@ -301,6 +302,79 @@
     .rs-mem { animation: none; opacity: 0.9; transform: rotate(var(--rot)); filter: sepia(0.18) saturate(0.92); }
     .rs-memories::after { animation: none; opacity: 0.5; }
   }
+
+  /* ── 잠금(티저) 처리 ── */
+  .rs-locked { position: relative; overflow: hidden; border-radius: 14px; }
+  .rs-locked__body {
+    filter: blur(7px);
+    opacity: 0.72;
+    user-select: none;
+    pointer-events: none;
+  }
+  .rs-locked__veil {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 12px;
+    text-align: center;
+    background: radial-gradient(70% 60% at 50% 50%, rgba(16,12,20,0.55) 0%, rgba(16,12,20,0.85) 100%);
+  }
+  .rs-locked__icon { font-size: 20px; }
+  .rs-locked__text {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #efe7f2;
+    letter-spacing: -0.02em;
+    word-break: keep-all;
+  }
+  .rs-locked__sub {
+    margin: 0;
+    font-size: 11px;
+    color: #9d94a6;
+  }
+
+  /* 잠긴 날짜 — 개별 셀만 흐리게 */
+  .rs-cal__cell--locked {
+    filter: blur(3.6px);
+    opacity: 0.85;
+  }
+
+  .rs-cal__lockbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(233, 30, 122, 0.1);
+    border: 1px solid rgba(233, 30, 122, 0.28);
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffb3d5;
+    letter-spacing: -0.02em;
+  }
+
+  /* 그래프·차트 위 부분 잠금 */
+  .rs-chart__lock {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 6px 11px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: 12px;
+    font-weight: 700;
+    color: #b3a9bb;
+  }
+  .blurred-val { filter: blur(4.5px); user-select: none; }
 
   /* ── #4 캘린더 ── */
   .rs-cal {

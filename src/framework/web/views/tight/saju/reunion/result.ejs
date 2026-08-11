@@ -120,23 +120,23 @@
       <%- include('./_calendar') %>
     </section>
 
-    <!-- ═══════════ #5 신뢰 소스 — 두 사람의 사주팔자 ═══════════ -->
-    <section class="rs rs--scene" id="sec5" style="min-height:auto;padding-top:44px;">
-      <img class="rs__bg" src="<%= scene(5) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
-      <div class="rs__scrim"></div>
-      <div class="rs__inner">
-        <div class="rs-lines" style="margin-bottom:22px;">
-          <p class="rs-line" data-line>두 사람의 사주,<br>숫자로 확인해보세요</p>
-        </div>
-        <%- include('./_pillarTable', { table: reunion.me.table }) %>
-        <%- include('./_pillarTable', { table: reunion.partner.table }) %>
+    <!-- ═══════════ #5 신뢰 소스 — 두 사람의 사주팔자 (UI 전용) ═══════════ -->
+    <section class="rs rs--ui" id="sec5">
+      <div class="rs-lines" style="margin-bottom:22px;">
+        <p class="rs-line" data-line>두 사람의 사주,<br>숫자로 확인해보세요</p>
       </div>
+      <%- include('./_pillarTable', { table: reunion.me.table, locked: false }) %>
+      <%- include('./_pillarTable', { table: reunion.partner.table, locked: true }) %>
     </section>
 
     <!-- ═══════════ #6 클라이맥스 + 락 ═══════════ -->
     <section class="rs rs--ui" id="sec6">
       <div class="rs-lines" style="margin-bottom:20px;">
         <p class="rs-line" data-line>두 사람, 다시 이어질 확률은<br><strong><%= reunion.probability %>%</strong>로 나왔어요.</p>
+        <p class="rs-line rs-line--sm" data-line>
+          <span class="rs-blur"><%= reunion.boost.action %></span>
+          확률이 <strong><%= reunion.boost.percent %>%</strong> 올라갑니다.
+        </p>
       </div>
 
       <div class="rs-lock" data-reveal>

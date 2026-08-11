@@ -453,54 +453,57 @@ function judgeDay(date, me, partner) {
   };
 }
 
-/** 오늘부터 rangeDays일치를 달력 그리드(주 단위)로 만든다 */
-function buildContactCalendar(me, partner, rangeDays = 62) {
+/**
+ * 접속한 달(= 사용자가 정보를 입력한 달) 하나만 달력으로 만든다.
+ * 오늘부터 revealDays일까지만 라벨을 공개하고, 그 이후는 잠근다(리포트 유도).
+ */
+function buildContactCalendar(me, partner, revealDays = 7) {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const todayKey = ymd(start);
 
+  const year = start.getFullYear();
+  const month = start.getMonth() + 1;
+  const lastDate = new Date(year, month, 0).getDate();
+
+  // 오늘 ~ 이달 말일
   const days = [];
-  for (let i = 0; i < rangeDays; i++) {
-    days.push(judgeDay(addDays(start, i), me, partner));
+  for (let d = start.getDate(); d <= lastDate; d++) {
+    const judged = judgeDay(new Date(year, month - 1, d), me, partner);
+    judged.locked = days.length >= revealDays;
+    days.push(judged);
   }
 
-  const byMonth = new Map();
-  days.forEach((d) => {
-    const [y, m] = d.date.split("-");
-    const key = `${y}-${m}`;
-    if (!byMonth.has(key)) byMonth.set(key, { year: Number(y), month: Number(m), days: [] });
-    byMonth.get(key).days.push(d);
-  });
+  // 달력 그리드
+  const cells = [];
+  const firstWeekday = new Date(year, month - 1, 1).getDay();
+  for (let i = 0; i < firstWeekday; i++) cells.push(null);
 
-  const months = [...byMonth.values()].map((mo) => {
-    const first = new Date(mo.year, mo.month - 1, 1);
-    const lastDate = new Date(mo.year, mo.month, 0).getDate();
-    const cells = [];
-
-    for (let i = 0; i < first.getDay(); i++) cells.push(null);
-    for (let d = 1; d <= lastDate; d++) {
-      const key = `${mo.year}-${String(mo.month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-      const hit = mo.days.find((x) => x.date === key);
-      cells.push(hit ? { ...hit, isToday: key === todayKey } : { date: key, day: d, weekday: new Date(mo.year, mo.month - 1, d).getDay(), outOfRange: true });
+  for (let d = 1; d <= lastDate; d++) {
+    const key = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const hit = days.find((x) => x.date === key);
+    if (hit) {
+      cells.push({ ...hit, isToday: key === todayKey });
+    } else {
+      // 오늘 이전 = 지나간 날
+      cells.push({ date: key, day: d, weekday: new Date(year, month - 1, d).getDay(), past: true });
     }
-    while (cells.length % 7 !== 0) cells.push(null);
+  }
+  while (cells.length % 7 !== 0) cells.push(null);
 
-    const weeks = [];
-    for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-
-    return { year: mo.year, month: mo.month, label: `${mo.year}년 ${mo.month}월`, weeks };
-  });
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
   const golden = days.filter((d) => d.label === "golden");
   const nextGolden = golden[0] || null;
-  const dday = nextGolden
-    ? Math.round((new Date(nextGolden.date) - start) / 86400000)
-    : null;
+  const dday = nextGolden ? Math.round((new Date(nextGolden.date) - start) / 86400000) : null;
 
   return {
-    months,
+    month: { year, month, label: `${year}년 ${month}월`, weeks },
     days,
     legend: Object.values(DAY_LABELS),
+    revealDays,
+    lockedCount: days.filter((d) => d.locked && d.label).length,
     goldenCount: golden.length,
     silenceCount: days.filter((d) => d.label === "silence").length,
     nextGolden,
@@ -645,6 +648,18 @@ export function buildReunionAnalysis(userInfo = {}) {
 
   const calendar = buildContactCalendar(me, partner);
 
+  /**
+   * "○○하면 확률이 N% 올라갑니다" — 가려서 보여줄 행동 제안.
+   * N은 지금 확률과 12개월 중 정점 사이의 실제 격차에서 뽑는다.
+   */
+  const boostPercent = clamp(Math.max(12, timeline.peak.score - probability), 12, 38);
+  const goldenDate = calendar.nextGolden
+    ? `${Number(calendar.nextGolden.date.slice(5, 7))}월 ${Number(calendar.nextGolden.date.slice(8, 10))}일`
+    : timeline.peak.label;
+  const boostAction = calendar.nextGolden
+    ? `${goldenDate} ${calendar.nextGolden.ganji}일에 먼저 연락하면`
+    : `${timeline.peak.label}의 ${timeline.peak.tenGod} 흐름을 타면`;
+
   // ── 카피 치환용 동적 값
   const dayRel = pairRelation(me.saju.day.ji, partner.saju.day.ji);
   const keyword = dayRel.chung ? "충(沖)"
@@ -680,6 +695,7 @@ export function buildReunionAnalysis(userInfo = {}) {
     timeline,
     calendar,
     keyword,
+    boost: { action: boostAction, percent: boostPercent },
     relation: dayRel,
     /** GPT 리포트·디버깅용 스냅샷 */
     snapshot: {

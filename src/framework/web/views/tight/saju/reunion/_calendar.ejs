@@ -1,20 +1,31 @@
 <%
-/* #4 재회 캘린더 — reunion.calendar (reunionSajuService.buildContactCalendar) */
+/*
+ * #4 재회 캘린더 — 접속한 달 하나만 보여준다.
+ * 오늘부터 revealDays일까지만 라벨을 공개하고 나머지 날짜는 흐리게 잠근다.
+ */
 const cal = reunion.calendar;
+const mo = cal.month;
 const WD = ['일','월','화','수','목','금','토'];
 %>
 <div class="rs-cal" data-reveal>
-  <% if (cal.nextGolden) { %>
+  <% if (cal.nextGolden && !cal.nextGolden.locked) { %>
   <div class="rs-cal__dday">
     <div>
       <b><%= cal.ddayText %></b>
       <span> · 가장 먼저 열리는 골든타임</span>
     </div>
-    <span><%= cal.nextGolden.date.replace(/-/g, '.') %> (<%= cal.nextGolden.ganjiHanja %>)</span>
+    <span><%= cal.nextGolden.date.replace(/-/g, '.') %></span>
+  </div>
+  <% } else { %>
+  <div class="rs-cal__dday">
+    <div>
+      <b>🔒</b>
+      <span> · 다음 골든타임은 리포트에서</span>
+    </div>
+    <span>이번 달 <%= cal.goldenCount %>일</span>
   </div>
   <% } %>
 
-  <% cal.months.forEach(function (mo) { %>
   <div class="rs-cal__month">
     <p class="rs-cal__mlabel"><%= mo.label %></p>
     <table class="rs-cal__grid">
@@ -28,11 +39,11 @@ const WD = ['일','월','화','수','목','금','토'];
           <td>
             <% if (!cell) { %>
               <div class="rs-cal__cell"></div>
-            <% } else if (cell.outOfRange) { %>
+            <% } else if (cell.past) { %>
               <div class="rs-cal__cell"><%= cell.day %></div>
             <% } else { %>
-              <div class="rs-cal__cell rs-cal__cell--in<%= cell.tone ? ' rs-cal__cell--' + cell.tone : '' %><%= cell.isToday ? ' rs-cal__cell--today' : '' %>"
-                   title="<%= cell.ganji %><%= cell.labelText ? ' · ' + cell.labelText : '' %>">
+              <div class="rs-cal__cell rs-cal__cell--in<%= cell.tone ? ' rs-cal__cell--' + cell.tone : '' %><%= cell.locked ? ' rs-cal__cell--locked' : '' %><%= cell.isToday ? ' rs-cal__cell--today' : '' %>"
+                   <% if (!cell.locked) { %>title="<%= cell.ganji %><%= cell.labelText ? ' · ' + cell.labelText : '' %>"<% } %>>
                 <%= cell.day %>
               </div>
             <% } %>
@@ -43,7 +54,6 @@ const WD = ['일','월','화','수','목','금','토'];
       </tbody>
     </table>
   </div>
-  <% }); %>
 
   <div class="rs-cal__legend">
     <% cal.legend.forEach(function (lg) { %>
@@ -52,5 +62,9 @@ const WD = ['일','월','화','수','목','금','토'];
       <%= lg.text %>
     </div>
     <% }); %>
+  </div>
+
+  <div class="rs-cal__lockbar">
+    🔒 <%= cal.revealDays %>일 이후 <%= cal.lockedCount %>일의 연락운은 리포트에서 공개
   </div>
 </div>
