@@ -57,6 +57,31 @@ async function ensureReportColumns() {
   }
 }
 
+/** 기존 lc_sessions에 누락된 컬럼만 추가 (리포트·결제는 테이블 생성 이후에 붙었다). */
+async function ensureCounselSessionColumns() {
+  const qi = sequelize.getQueryInterface();
+  const table = 'lc_sessions';
+  let desc;
+  try {
+    desc = await qi.describeTable(table);
+  } catch {
+    return;
+  }
+  const columns = {
+    report: { type: DataTypes.JSON, allowNull: true },
+    paid: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    orderId: { type: DataTypes.STRING(128), allowNull: true },
+    paymentKey: { type: DataTypes.STRING(128), allowNull: true },
+    amount: { type: DataTypes.INTEGER, allowNull: true },
+  };
+  for (const [name, spec] of Object.entries(columns)) {
+    if (!desc[name]) {
+      await qi.addColumn(table, name, spec);
+      console.log(`[db] lc_sessions.${name} 컬럼 추가`);
+    }
+  }
+}
+
 async function start() {
   assertProductionSecrets();
   logIntegrationStatus();
@@ -67,6 +92,7 @@ async function start() {
     await sequelize.sync();
     // sync()는 기존 테이블에 컬럼을 추가하지 않으므로, 필요한 컬럼만 안전하게 보강한다.
     await ensureReportColumns();
+    await ensureCounselSessionColumns();
     console.log('[db] connected & synced');
   } catch (err) {
     console.error('[db] connection failed:', err.message);
