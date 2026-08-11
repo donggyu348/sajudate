@@ -339,38 +339,44 @@
         setTimeout(loop, t);
       })();
 
-      /* ── 회상: 스크롤 진행도(--p)를 씬에 넣어준다 ──
-         0 = 기억이 가장 선명 / 1 = 모두 빠져나가고 방만 남음.
-         스크롤을 내릴수록 기억이 --gone 순서대로 하나씩 사라지고,
-         같은 값으로 온기가 걷히고 냉기가 내려앉는다. */
-      (function bindMemoryScroll() {
+      /* ── 회상: 저절로 잊혀진다 ──
+         씬이 눈에 들어오면 --p가 0 → 1로 천천히 흘러가고,
+         기억은 --gone 순서대로 하나씩 색이 빠지며 흩어진다.
+         스크롤과 무관하게 한 번만 흐르고, 끝나면 돌아오지 않는다. */
+      (function playForgetting() {
         var cut = document.querySelector('[data-memory-cut]');
         if (!cut) return;
 
-        var ticking = false;
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduce) return;   // 모션을 줄인 환경에서는 기억을 그대로 둔다
 
-        function update() {
-          ticking = false;
-          var rect = cut.getBoundingClientRect();
-          var vh = window.innerHeight || document.documentElement.clientHeight;
+        var HOLD_MS = 1800;    // 잠시 온전히 머무는 시간
+        var FADE_MS = 11000;   // 전부 잊히기까지
 
-          // 씬이 화면 아래에서 올라와 완전히 지나갈 때까지를 0→1로
-          var p = (vh - rect.top) / (vh + rect.height);
-          p = Math.max(0, Math.min(1, p));
+        var started = false;
 
-          // 앞쪽 20%는 기억이 온전히 남아 있도록 여유를 준다
-          p = Math.max(0, (p - 0.2) / 0.8);
+        function run(startedAt) {
+          var elapsed = performance.now() - startedAt - HOLD_MS;
+          var p = elapsed <= 0 ? 0 : Math.min(1, elapsed / FADE_MS);
 
-          cut.style.setProperty('--p', p.toFixed(3));
+          // 처음엔 더디게, 갈수록 걷잡을 수 없이 흐려진다
+          var eased = p * p * (3 - 2 * p);
+          cut.style.setProperty('--p', eased.toFixed(3));
+
+          if (p < 1) requestAnimationFrame(function () { run(startedAt); });
         }
 
-        window.addEventListener('scroll', function () {
-          if (ticking) return;
-          ticking = true;
-          requestAnimationFrame(update);
-        }, { passive: true });
-        window.addEventListener('resize', update, { passive: true });
-        update();
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (!e.isIntersecting || started) return;
+            started = true;
+            io.disconnect();
+            var t0 = performance.now();
+            requestAnimationFrame(function () { run(t0); });
+          });
+        }, { threshold: 0.35 });
+
+        io.observe(cut);
       })();
 
       /* ── 할인 카운트다운 (#6) ── */

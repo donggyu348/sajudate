@@ -249,8 +249,8 @@
     user-select: none;
   }
 
-  /* ── 회상 — 스크롤을 내릴수록 기억이 빠져나가고 방이 차가워진다 ── */
-  /* --p: 0(기억이 가장 선명) → 1(모두 사라짐). JS가 스크롤에 맞춰 넣어준다 */
+  /* ── 회상 — 시간이 흐르며 기억이 잊히고 방이 차가워진다 ── */
+  /* --p: 0(기억이 선명) → 1(모두 잊힘). 씬이 눈에 들어오면 JS가 시간에 따라 흘려보낸다 */
   .rs-cut { --p: 0; }
 
   /* 기억이 빠져나갈수록 배경(혼자 앉아 있는 컷)도 온기를 잃는다 */
@@ -258,8 +258,7 @@
     filter:
       saturate(calc(1 - var(--p) * 0.4))
       brightness(calc(1.08 - var(--p) * 0.26));
-    transform: scale(calc(1 + var(--p) * 0.035));
-    transition: filter 0.25s linear, transform 0.25s linear;
+    transform: scale(calc(1 + var(--p) * 0.035));
   }
 
   .rs-memories {
@@ -280,8 +279,7 @@
       radial-gradient(66% 42% at 50% 22%, rgba(255, 198, 132, 0.34) 0%, transparent 72%),
       radial-gradient(40% 30% at 22% 12%, rgba(255, 176, 120, 0.2) 0%, transparent 70%);
     opacity: clamp(0, calc((1 - var(--p)) * 1.15), 1);
-    mix-blend-mode: screen;
-    transition: opacity 0.25s linear;
+    mix-blend-mode: screen;
   }
 
   /* 기억이 빠져나간 자리를 채우는 냉기 */
@@ -293,8 +291,7 @@
     background:
       radial-gradient(90% 70% at 50% 60%, transparent 0%, rgba(8, 10, 24, 0.72) 100%),
       linear-gradient(180deg, rgba(10, 14, 32, 0.5) 0%, rgba(6, 8, 20, 0.72) 100%);
-    opacity: clamp(0, calc(var(--p) * 1.25 - 0.12), 1);
-    transition: opacity 0.25s linear;
+    opacity: clamp(0, calc(var(--p) * 1.25 - 0.12), 1);
   }
 
   .rs-mem {
@@ -318,8 +315,7 @@
       sepia(0.18)
       saturate(calc(1 - var(--p) * 0.85))
       brightness(calc(1.04 + var(--p) * 0.16))
-      blur(calc(var(--p) * 5px));
-    transition: opacity 0.25s linear, transform 0.25s linear, filter 0.25s linear;
+      blur(calc(var(--p) * 5px));
   }
 
   /* 사진 자체는 아주 느리게 숨 쉰다 (스크롤을 멈춰도 정지 화면이 되지 않게) */
