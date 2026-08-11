@@ -86,7 +86,7 @@
         </div>
       </div>
 
-      <div class="rs-cut">
+      <div class="rs-cut rs-cut--memory" data-memory-cut>
         <img class="rs__bg" src="<%= scene(3) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
         <div class="rs__scrim"></div>
         <%- include('./_memories') %>
@@ -337,6 +337,40 @@
 
         // 내 메시지가 다 뜬 뒤부터 시작
         setTimeout(loop, t);
+      })();
+
+      /* ── 회상: 스크롤 진행도(--p)를 씬에 넣어준다 ──
+         0 = 기억이 가장 선명 / 1 = 모두 빠져나가고 방만 남음.
+         스크롤을 내릴수록 기억이 --gone 순서대로 하나씩 사라지고,
+         같은 값으로 온기가 걷히고 냉기가 내려앉는다. */
+      (function bindMemoryScroll() {
+        var cut = document.querySelector('[data-memory-cut]');
+        if (!cut) return;
+
+        var ticking = false;
+
+        function update() {
+          ticking = false;
+          var rect = cut.getBoundingClientRect();
+          var vh = window.innerHeight || document.documentElement.clientHeight;
+
+          // 씬이 화면 아래에서 올라와 완전히 지나갈 때까지를 0→1로
+          var p = (vh - rect.top) / (vh + rect.height);
+          p = Math.max(0, Math.min(1, p));
+
+          // 앞쪽 20%는 기억이 온전히 남아 있도록 여유를 준다
+          p = Math.max(0, (p - 0.2) / 0.8);
+
+          cut.style.setProperty('--p', p.toFixed(3));
+        }
+
+        window.addEventListener('scroll', function () {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(update);
+        }, { passive: true });
+        window.addEventListener('resize', update, { passive: true });
+        update();
       })();
 
       /* ── 할인 카운트다운 (#6) ── */

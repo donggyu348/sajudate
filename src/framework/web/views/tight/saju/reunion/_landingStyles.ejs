@@ -249,7 +249,19 @@
     user-select: none;
   }
 
-  /* ── 회상 — 함께였던 순간들이 떠올랐다 흐려진다 ── */
+  /* ── 회상 — 스크롤을 내릴수록 기억이 빠져나가고 방이 차가워진다 ── */
+  /* --p: 0(기억이 가장 선명) → 1(모두 사라짐). JS가 스크롤에 맞춰 넣어준다 */
+  .rs-cut { --p: 0; }
+
+  /* 기억이 빠져나갈수록 배경(혼자 앉아 있는 컷)도 온기를 잃는다 */
+  .rs-cut--memory .rs__bg {
+    filter:
+      saturate(calc(1 - var(--p) * 0.4))
+      brightness(calc(1.08 - var(--p) * 0.26));
+    transform: scale(calc(1 + var(--p) * 0.035));
+    transition: filter 0.25s linear, transform 0.25s linear;
+  }
+
   .rs-memories {
     position: absolute;
     inset: 0;
@@ -258,17 +270,31 @@
     pointer-events: none;
   }
 
-  /* 떠오르는 순간 번지는 따뜻한 빛 */
-  .rs-memories::after {
-    content: "";
+  /* 기억이 남아 있는 동안만 도는 온기 — 사라질수록 함께 걷힌다 */
+  .rs-warm {
     position: absolute;
     inset: 0;
-    background: radial-gradient(70% 45% at 50% 30%, rgba(255, 206, 148, 0.2) 0%, transparent 70%);
-    animation: memGlow 7.8s ease-in-out infinite;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(66% 42% at 50% 22%, rgba(255, 198, 132, 0.34) 0%, transparent 72%),
+      radial-gradient(40% 30% at 22% 12%, rgba(255, 176, 120, 0.2) 0%, transparent 70%);
+    opacity: clamp(0, calc((1 - var(--p)) * 1.15), 1);
+    mix-blend-mode: screen;
+    transition: opacity 0.25s linear;
   }
-  @keyframes memGlow {
-    0%, 100% { opacity: 0.25; }
-    50%      { opacity: 0.75; }
+
+  /* 기억이 빠져나간 자리를 채우는 냉기 */
+  .rs-cold {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(90% 70% at 50% 60%, transparent 0%, rgba(8, 10, 24, 0.72) 100%),
+      linear-gradient(180deg, rgba(10, 14, 32, 0.5) 0%, rgba(6, 8, 20, 0.72) 100%);
+    opacity: clamp(0, calc(var(--p) * 1.25 - 0.12), 1);
+    transition: opacity 0.25s linear;
   }
 
   .rs-mem {
@@ -280,27 +306,35 @@
     border-radius: 2px;
     background: #f4ece0;
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
-    /* 원본이 이미 따뜻한 톤이라 세피아는 아주 옅게만 */
-    filter: sepia(0.18) saturate(0.92) brightness(1.04);
-    opacity: 0;
-    transform: rotate(var(--rot)) scale(0.93);
-    animation: memRecall 7.8s ease-in-out infinite;
-  }
-  .rs-mem img { display: block; width: 100%; height: auto; }
 
-  /* 떠올랐다가 — 붙잡으려는 순간 흐려진다.
-     배경 인물을 오래 가리지 않도록 머무는 구간을 짧게 잡았다. */
-  @keyframes memRecall {
-    0%   { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px);  filter: sepia(0.18) blur(6px) brightness(1.18); }
-    12%  { opacity: 0.94; transform: rotate(var(--rot)) scale(1)    translateY(0);     filter: sepia(0.18) blur(0)   brightness(1.04); }
-    34%  { opacity: 0.94; transform: rotate(var(--rot)) scale(1.02) translateY(-8px);  filter: sepia(0.18) blur(0)   brightness(1.04); }
-    52%  { opacity: 0;    transform: rotate(var(--rot)) scale(1.05) translateY(-16px); filter: sepia(0.18) blur(7px) brightness(1.22); }
-    100% { opacity: 0;    transform: rotate(var(--rot)) scale(0.93) translateY(16px);  filter: sepia(0.18) blur(6px) brightness(1.18); }
+    /* --gone 임계값에 다다르면 그 기억부터 색이 빠지며 위로 흩어진다 */
+    opacity: clamp(0, calc((var(--gone) - var(--p)) / 0.16), 1);
+    transform:
+      rotate(var(--rot))
+      translateY(calc(var(--p) * -72px))
+      scale(calc(1 - var(--p) * 0.08));
+    filter:
+      sepia(0.18)
+      saturate(calc(1 - var(--p) * 0.85))
+      brightness(calc(1.04 + var(--p) * 0.16))
+      blur(calc(var(--p) * 5px));
+    transition: opacity 0.25s linear, transform 0.25s linear, filter 0.25s linear;
+  }
+
+  /* 사진 자체는 아주 느리게 숨 쉰다 (스크롤을 멈춰도 정지 화면이 되지 않게) */
+  .rs-mem img {
+    display: block;
+    width: 100%;
+    height: auto;
+    animation: memBreathe 5.6s ease-in-out infinite;
+  }
+  @keyframes memBreathe {
+    0%, 100% { transform: translateY(0)   scale(1); }
+    50%      { transform: translateY(-5px) scale(1.012); }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .rs-mem { animation: none; opacity: 0.9; transform: rotate(var(--rot)); filter: sepia(0.18) saturate(0.92); }
-    .rs-memories::after { animation: none; opacity: 0.5; }
+    .rs-mem img { animation: none; }
   }
 
   /* ── 잠금(티저) 처리 ── */
