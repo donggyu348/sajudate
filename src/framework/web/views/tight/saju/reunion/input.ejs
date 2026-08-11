@@ -1,21 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
-<%
-  /* 연애사주(romantic) input 포맷 그대로 — 재회사주는 두 사람 사주가 필요해 2단계로 받는다 */
-  const TIME_OPTIONS = [
-    ['unknown', '시간모름'], ['00', '조자/朝子 (00:00~01:29)'], ['02', '축/丑 (01:30~03:29)'],
-    ['04', '인/寅 (03:30~05:29)'], ['06', '묘/卯 (05:30~07:29)'], ['08', '진/辰 (07:30~09:29)'],
-    ['10', '사/巳 (09:30~11:29)'], ['12', '오/午 (11:30~13:29)'], ['14', '미/未 (13:30~15:29)'],
-    ['16', '신/申 (15:30~17:29)'], ['18', '유/酉 (17:30~19:29)'], ['20', '술/戌 (19:30~21:29)'],
-    ['22', '해/亥 (21:30~23:29)'], ['24', '야자/夜子 (23:30~23:59)'],
-  ];
-%>
 <head>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
     :root {
-      --accent: #6a5af9;
+      --accent: #ff5722;
       --text-dim: rgba(255, 255, 255, 0.45);
     }
 
@@ -46,7 +36,7 @@
       width: 140%;
       height: 52%;
       transform: translateX(-50%);
-      background: radial-gradient(ellipse at center bottom, rgba(106, 90, 249, 0.26) 0%, rgba(60, 45, 150, 0.08) 38%, transparent 72%);
+      background: radial-gradient(ellipse at center bottom, rgba(212, 155, 55, 0.28) 0%, rgba(120, 70, 20, 0.08) 38%, transparent 72%);
       pointer-events: none;
     }
 
@@ -59,16 +49,16 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin-bottom: 28px;
-      padding: 0;
-      border: none;
-      background: none;
+      margin-bottom: 44px;
       color: rgba(255, 255, 255, 0.88);
-      font-family: inherit;
       font-size: 14px;
       font-weight: 500;
       text-decoration: none;
       letter-spacing: -0.02em;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
       cursor: pointer;
     }
 
@@ -76,29 +66,6 @@
       width: 18px;
       height: 18px;
       flex-shrink: 0;
-    }
-
-    /* ── 단계 표시 ── */
-    .steps {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
-    .steps__dot {
-      width: 26px;
-      height: 3px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.16);
-      transition: background 0.25s ease;
-    }
-    .steps__dot.active { background: var(--accent); }
-    .steps__label {
-      margin-left: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.5);
-      letter-spacing: -0.02em;
     }
 
     .form-header h1 {
@@ -109,13 +76,22 @@
       letter-spacing: -0.04em;
     }
 
+    .form-header p {
+      margin: 0 0 36px;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.72);
+      letter-spacing: -0.02em;
+    }
+
     .form-header strong {
       color: var(--accent);
       font-weight: 800;
     }
 
+    /* 재회사주는 두 사람 사주가 필요해 단계로 나눈다 (그 외 디자인은 연애사주와 동일) */
     .form-step { display: none; }
-    .form-step.active { display: block; }
+    .form-step.is-active { display: block; }
 
     .name-input {
       width: 100%;
@@ -294,7 +270,7 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      background: linear-gradient(180deg, #05040d 0%, #08061a 45%, #030209 100%);
+      background: linear-gradient(180deg, #060101 0%, #090202 45%, #050000 100%);
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -325,21 +301,42 @@
       max-width: 320px;
     }
 
-    /* 두 사람의 사주를 겹쳐 보는 중임을 보여주는 두 원 */
-    .rings { position: relative; width: 132px; height: 78px; margin-bottom: 26px; }
-    .rings span {
-      position: absolute;
-      top: 0;
-      width: 78px;
-      height: 78px;
-      border-radius: 50%;
-      border: 1px solid rgba(160, 148, 255, 0.55);
-      box-shadow: 0 0 18px rgba(106, 90, 249, 0.32) inset;
+    .thread-visual {
+      width: min(82vw, 300px);
+      margin-bottom: 24px;
+      position: relative;
     }
-    .rings span:first-child { left: 0;  animation: ringL 3.2s ease-in-out infinite; }
-    .rings span:last-child  { right: 0; animation: ringR 3.2s ease-in-out infinite; }
-    @keyframes ringL { 0%,100% { transform: translateX(-10px); opacity: .6; } 50% { transform: translateX(8px); opacity: 1; } }
-    @keyframes ringR { 0%,100% { transform: translateX(10px);  opacity: .6; } 50% { transform: translateX(-8px); opacity: 1; } }
+
+    .thread-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 0 8px rgba(230, 45, 55, 0.35));
+      -webkit-mask-image: linear-gradient(128deg, #000 42%, transparent 58%);
+      mask-image: linear-gradient(128deg, #000 42%, transparent 58%);
+      -webkit-mask-size: 260% 260%;
+      mask-size: 260% 260%;
+      -webkit-mask-position: 88% 8%;
+      mask-position: 88% 8%;
+      animation: threadReveal 4.5s ease-in-out forwards;
+    }
+
+    @keyframes threadReveal {
+      0%   { -webkit-mask-position: 88% 8%;  mask-position: 88% 8%; }
+      100% { -webkit-mask-position: 8% 92%; mask-position: 8% 92%; }
+    }
+
+    .loading-flower {
+      font-size: 22px;
+      line-height: 1;
+      margin-bottom: 14px;
+      animation: flowerFloat 2.2s ease-in-out infinite;
+    }
+
+    @keyframes flowerFloat {
+      0%, 100% { transform: translateY(0) scale(1); opacity: 0.75; }
+      50%      { transform: translateY(-4px) scale(1.06); opacity: 1; }
+    }
 
     .loading-title {
       font-family: 'Noto Serif KR', serif;
@@ -358,7 +355,7 @@
       margin-top: 8px;
       font-size: 11px;
       letter-spacing: 0.18em;
-      color: rgba(210, 205, 245, 0.45);
+      color: rgba(243, 230, 200, 0.45);
       text-transform: uppercase;
     }
 
@@ -375,7 +372,7 @@
       width: 40%;
       height: 100%;
       border-radius: inherit;
-      background: linear-gradient(90deg, transparent, #a094ff, #6a5af9, transparent);
+      background: linear-gradient(90deg, transparent, #e6c27a, #ff6b9d, transparent);
       animation: barShimmer 4.5s ease-in-out infinite;
     }
 
@@ -398,19 +395,16 @@
       뒤로가기
     </button>
 
-    <div class="steps" aria-hidden="true">
-      <span class="steps__dot active" id="stepDot0"></span>
-      <span class="steps__dot" id="stepDot1"></span>
-      <span class="steps__label" id="stepLabel">1 / 2 · 내 정보</span>
-    </div>
-
     <div class="form-header">
-      <h1 id="formTitle">내 이름을 입력해주세요</h1>
+      <h1 id="formTitle">이름을 입력해주세요</h1>
     </div>
 
     <div id="loading" class="loading-overlay" aria-live="polite" aria-busy="false">
       <div class="loading-inner">
-        <div class="rings" aria-hidden="true"><span></span><span></span></div>
+        <div class="loading-flower" aria-hidden="true">🌸</div>
+        <div class="thread-visual" aria-hidden="true">
+          <img class="thread-img" src="/assets/images/tight/romantic/loading/red-thread.png" alt="" width="300" height="188">
+        </div>
         <p id="loading-title" class="loading-title">두 사람의 사주를 겹쳐 보고 있습니다</p>
         <p class="loading-sub">REUNION</p>
         <div class="loading-bar" aria-hidden="true">
@@ -420,19 +414,33 @@
     </div>
 
     <form id="sajuForm" method="POST" action="/saju/reunion/result">
-      <!-- ── 1단계: 내 정보 ── -->
-      <div class="form-step active" id="step0">
-        <input type="hidden" name="gender" id="genderInput" value="여성">
+
+      <!-- 1단계: 내 정보 -->
+      <div class="form-step is-active" id="step0">
+        <input type="hidden" name="gender" id="genderInput">
         <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
 
-        <input name="name" type="text" class="name-input" id="nameInput" placeholder="홍길동" autocomplete="name">
+        <input name="name" type="text" class="name-input" placeholder="홍길동" autocomplete="name">
 
         <div class="form-row">
           <span class="form-row__label" id="timeDisplay">시간모름</span>
           <div class="time-picker">
             <span class="pill-btn active" id="timePill">시간모름</span>
             <select name="birthTime" id="birthTimeSelect" aria-label="태어난 시">
-              <% TIME_OPTIONS.forEach(function (o, i) { %><option value="<%= o[0] %>"<%= i === 0 ? ' selected' : '' %>><%= o[1] %></option><% }); %>
+              <option selected value="unknown">시간모름</option>
+              <option value="00">조자/朝子 (00:00~01:29)</option>
+              <option value="02">축/丑 (01:30~03:29)</option>
+              <option value="04">인/寅 (03:30~05:29)</option>
+              <option value="06">묘/卯 (05:30~07:29)</option>
+              <option value="08">진/辰 (07:30~09:29)</option>
+              <option value="10">사/巳 (09:30~11:29)</option>
+              <option value="12">오/午 (11:30~13:29)</option>
+              <option value="14">미/未 (13:30~15:29)</option>
+              <option value="16">신/申 (15:30~17:29)</option>
+              <option value="18">유/酉 (17:30~19:29)</option>
+              <option value="20">술/戌 (19:30~21:29)</option>
+              <option value="22">해/亥 (21:30~23:29)</option>
+              <option value="24">야자/夜子 (23:30~23:59)</option>
             </select>
           </div>
         </div>
@@ -446,24 +454,37 @@
         </div>
 
         <div class="gender-row" id="genderRowMe" role="group" aria-label="성별">
-          <button type="button" class="gender-btn" data-gender="남성" data-target="me">남자</button>
-          <button type="button" class="gender-btn active" data-gender="여성" data-target="me">여자</button>
+          <button type="button" class="gender-btn active" data-gender="남성" data-target="me">남자</button>
+          <button type="button" class="gender-btn" data-gender="여성" data-target="me">여자</button>
         </div>
       </div>
 
-      <!-- ── 2단계: 그 사람 정보 ── -->
+      <!-- 2단계: 그 사람 정보 -->
       <div class="form-step" id="step1">
-        <input type="hidden" name="partnerGender" id="partnerGenderInput" value="남성">
+        <input type="hidden" name="partnerGender" id="partnerGenderInput">
         <input type="hidden" name="partnerBirthType" id="partnerBirthTypeInput" value="양력">
 
-        <input name="partnerName" type="text" class="name-input" id="partnerNameInput" placeholder="그 사람 이름" autocomplete="off">
+        <input name="partnerName" type="text" class="name-input" placeholder="그 사람 이름" autocomplete="off">
 
         <div class="form-row">
           <span class="form-row__label" id="partnerTimeDisplay">시간모름</span>
           <div class="time-picker">
             <span class="pill-btn active" id="partnerTimePill">시간모름</span>
             <select name="partnerBirthTime" id="partnerBirthTimeSelect" aria-label="상대방 태어난 시">
-              <% TIME_OPTIONS.forEach(function (o, i) { %><option value="<%= o[0] %>"<%= i === 0 ? ' selected' : '' %>><%= o[1] %></option><% }); %>
+              <option selected value="unknown">시간모름</option>
+              <option value="00">조자/朝子 (00:00~01:29)</option>
+              <option value="02">축/丑 (01:30~03:29)</option>
+              <option value="04">인/寅 (03:30~05:29)</option>
+              <option value="06">묘/卯 (05:30~07:29)</option>
+              <option value="08">진/辰 (07:30~09:29)</option>
+              <option value="10">사/巳 (09:30~11:29)</option>
+              <option value="12">오/午 (11:30~13:29)</option>
+              <option value="14">미/未 (13:30~15:29)</option>
+              <option value="16">신/申 (15:30~17:29)</option>
+              <option value="18">유/酉 (17:30~19:29)</option>
+              <option value="20">술/戌 (19:30~21:29)</option>
+              <option value="22">해/亥 (21:30~23:29)</option>
+              <option value="24">야자/夜子 (23:30~23:59)</option>
             </select>
           </div>
         </div>
@@ -507,14 +528,15 @@
 
   const submitBtn = document.getElementById('submitBtn');
   const formTitle = document.getElementById('formTitle');
-  const stepLabel = document.getElementById('stepLabel');
 
-  /* ── 성별 / 양력·음력 ── */
+  genderInput.value = '남성';
+  partnerGenderInput.value = '남성';
+
   document.querySelectorAll('.gender-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
       const target = btn.dataset.target;
-      const row = target === 'me' ? '#genderRowMe' : '#genderRowPartner';
-      document.querySelectorAll(row + ' .gender-btn').forEach(function (b) { b.classList.remove('active'); });
+      const rowId = target === 'me' ? 'genderRowMe' : 'genderRowPartner';
+      document.querySelectorAll('#' + rowId + ' .gender-btn').forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
       (target === 'me' ? genderInput : partnerGenderInput).value = btn.dataset.gender;
     });
@@ -532,7 +554,6 @@
   window.setupBirthdateInput(birthdateInput);
   window.setupBirthdateInput(partnerBirthdateInput);
 
-  /* ── 태어난 시 라벨 ── */
   function bindTimeDisplay(select, display, pill) {
     function update() {
       const label = select.options[select.selectedIndex].textContent.trim();
@@ -557,26 +578,15 @@
     );
   }
 
-  /* ── 단계 전환 ── */
+  /* ── 단계 ── */
   let step = 0;
 
   function renderStep() {
-    document.getElementById('step0').classList.toggle('active', step === 0);
-    document.getElementById('step1').classList.toggle('active', step === 1);
-    document.getElementById('stepDot0').classList.toggle('active', step >= 0);
-    document.getElementById('stepDot1').classList.toggle('active', step >= 1);
-
-    if (step === 0) {
-      formTitle.textContent = '내 이름을 입력해주세요';
-      stepLabel.textContent = '1 / 2 · 내 정보';
-      submitBtn.textContent = '다음으로';
-    } else {
-      const myName = document.getElementById('nameInput').value.trim();
-      formTitle.innerHTML = '헤어진 <strong>그 사람</strong>의<br>정보를 입력해주세요';
-      stepLabel.textContent = '2 / 2 · ' + (myName ? myName + '님과 그 사람' : '그 사람 정보');
-      submitBtn.textContent = '재회 확률 확인하기';
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('step0').classList.toggle('is-active', step === 0);
+    document.getElementById('step1').classList.toggle('is-active', step === 1);
+    formTitle.textContent = step === 0 ? '이름을 입력해주세요' : '헤어진 그 사람의 정보를 알려주세요';
+    submitBtn.textContent = step === 0 ? '다음으로' : '재회 확률 확인하기';
+    window.scrollTo({ top: 0 });
   }
 
   document.getElementById('backBtn').addEventListener('click', function () {
@@ -585,43 +595,23 @@
       renderStep();
       return;
     }
-    history.back();
+    location.href = '/saju/reunion/intro';
   });
 
-  /* ── 검증 ── */
-  function validateStep0() {
-    const name = document.getElementById('nameInput').value.trim();
-    if (!name) {
-      shake(document.getElementById('nameInput'));
-      document.getElementById('nameInput').focus();
+  function validateStep(nameSelector, dateEl, genderEl, genderRowId) {
+    const nameEl = document.querySelector(nameSelector);
+    if (!nameEl.value.trim()) {
+      shake(nameEl);
+      nameEl.focus();
       return false;
     }
-    if (!/^\d{8}$/.test(birthdateInput.value.replace(/\D/g, ''))) {
-      shake(birthdateInput);
-      birthdateInput.focus();
+    if (!/^\d{8}$/.test(dateEl.value.replace(/\D/g, ''))) {
+      shake(dateEl);
+      dateEl.focus();
       return false;
     }
-    if (!genderInput.value) {
-      shake(document.getElementById('genderRowMe'));
-      return false;
-    }
-    return true;
-  }
-
-  function validateStep1() {
-    const name = document.getElementById('partnerNameInput').value.trim();
-    if (!name) {
-      shake(document.getElementById('partnerNameInput'));
-      document.getElementById('partnerNameInput').focus();
-      return false;
-    }
-    if (!/^\d{8}$/.test(partnerBirthdateInput.value.replace(/\D/g, ''))) {
-      shake(partnerBirthdateInput);
-      partnerBirthdateInput.focus();
-      return false;
-    }
-    if (!partnerGenderInput.value) {
-      shake(document.getElementById('genderRowPartner'));
+    if (!genderEl.value) {
+      shake(document.getElementById(genderRowId));
       return false;
     }
     return true;
@@ -634,8 +624,7 @@
   const loadingMessages = [
     '두 사람의 사주를 겹쳐 보고 있습니다',
     '일지의 합과 충을 대조하는 중…',
-    '연락운이 열리는 날을 찾는 중…',
-    '곧 재회 확률이 나옵니다'
+    '연락운이 열리는 날을 찾는 중…'
   ];
   let loadingMsgIndex = 0;
 
@@ -649,6 +638,13 @@
     overlay.classList.add('is-visible');
     overlay.setAttribute('aria-busy', 'true');
     submitBtn.disabled = true;
+
+    const threadImg = overlay.querySelector('.thread-img');
+    if (threadImg) {
+      threadImg.style.animation = 'none';
+      void threadImg.offsetWidth;
+      threadImg.style.animation = '';
+    }
 
     if (loadingMsgTimer) clearInterval(loadingMsgTimer);
     loadingMsgTimer = setInterval(function () {
@@ -667,7 +663,7 @@
     showLoadingOverlay();
 
     setTimeout(function () {
-      // 서버는 숫자 8자리만 파싱하므로 점(.)을 제거해 넘긴다
+      // 서버는 숫자 8자리만 파싱한다
       birthdateInput.value = birthdateInput.value.replace(/\D/g, '');
       partnerBirthdateInput.value = partnerBirthdateInput.value.replace(/\D/g, '');
 
@@ -683,12 +679,12 @@
 
   submitBtn.addEventListener('click', function () {
     if (step === 0) {
-      if (!validateStep0()) return;
+      if (!validateStep("input[name='name']", birthdateInput, genderInput, 'genderRowMe')) return;
       step = 1;
       renderStep();
       return;
     }
-    if (!validateStep1()) return;
+    if (!validateStep("input[name='partnerName']", partnerBirthdateInput, partnerGenderInput, 'genderRowPartner')) return;
     submitReunionForm();
   });
 
