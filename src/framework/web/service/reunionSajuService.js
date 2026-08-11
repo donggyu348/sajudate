@@ -660,6 +660,12 @@ export function buildReunionAnalysis(userInfo = {}) {
     ? `${goldenDate} ${calendar.nextGolden.ganji}일에 먼저 연락하면`
     : `${timeline.peak.label}의 ${timeline.peak.tenGod} 흐름을 타면`;
 
+  /** "이 ○○ 지키면 재회할 수 있습니다" — 가려서 보여줄 금기 구간 */
+  const firstSilence = calendar.days.find((d) => d.label === "silence");
+  const silenceRule = firstSilence
+    ? `${Number(firstSilence.date.slice(5, 7))}월 ${Number(firstSilence.date.slice(8, 10))}일 전후 ${calendar.silenceCount}일만`
+    : `연락을 멈춰야 하는 날만`;
+
   // ── 카피 치환용 동적 값
   const dayRel = pairRelation(me.saju.day.ji, partner.saju.day.ji);
   const keyword = dayRel.chung ? "충(沖)"
@@ -696,6 +702,7 @@ export function buildReunionAnalysis(userInfo = {}) {
     calendar,
     keyword,
     boost: { action: boostAction, percent: boostPercent },
+    silenceRule,
     relation: dayRel,
     /** GPT 리포트·디버깅용 스냅샷 */
     snapshot: {
