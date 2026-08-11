@@ -85,7 +85,7 @@ export const GoodsType = Object.freeze({
     platform: Platform.TIGHT
   },
 
-  /** 재회사주 — 가격은 랜딩 #8 가격 비교 카드와 연동된다(수정 시 함께 확인) */
+  /** 재회사주 — 판매가 37,800원 확정. 번들(REUNION_*_BUNDLE) 정가 계산의 기준값이므로 수정 시 함께 확인 */
   REUNION: {
     code: "REUNION",
     title: "재회사주",
