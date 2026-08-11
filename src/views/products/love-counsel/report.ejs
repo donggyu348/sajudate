@@ -1,0 +1,122 @@
+<%
+  // 잠긴 섹션은 앞 한 문장만 읽히고 나머지가 흐려진다.
+  // 수치·판정은 그대로 보여주고 "결론에 가장 가까운 문장"만 가린다 — 아끼면 결제하지 않는다.
+  function split(text) {
+    const s = String(text || '');
+    const cut = s.search(/[.!?]\s/);
+    const head = cut > 0 ? s.slice(0, cut + 1) : s.slice(0, 40);
+    return { head, tail: s.slice(head.length).trim() };
+  }
+%>
+
+<style>
+  .lc-blur {
+    filter: blur(5px);
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
+  }
+  .lc-lock { cursor: pointer; }
+</style>
+
+<div class="px-5 py-8 <%= paid ? '' : 'pb-28' %>">
+  <p class="text-[11px] font-medium tracking-[0.14em] text-ink-soft">REPORT</p>
+  <h1 class="mt-2 font-serif text-[22px] font-bold leading-[1.45] text-ink">
+    <%= paid ? '전체 리포트' : '미리보는 리포트' %>
+  </h1>
+
+  <div class="mt-4 rounded-xl border border-accent-ring bg-accent-soft px-4 py-3.5">
+    <p class="text-[11px] font-semibold text-accent"><%= rule.id %> · <%= rule.name %></p>
+    <p class="mt-1.5 text-[13px] font-semibold leading-relaxed text-ink"><%= rule.diagnosis %></p>
+  </div>
+
+  <% if (purchased) { %>
+    <p class="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-[12px] text-ink-soft">결제가 완료됐습니다. 전체 내용이 열렸습니다.</p>
+  <% } %>
+
+  <% sections.forEach(function (s, i) {
+       const open = paid || s.free;
+       const parts = open ? null : split(report[s.key]); %>
+    <section class="mt-8 <%= open ? '' : 'lc-lock' %>" <%= open ? '' : 'data-lock="1"' %>>
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] font-bold text-accent"><%= String(i + 1).padStart(2, '0') %></span>
+        <h2 class="text-[15px] font-bold text-ink"><%= s.title %></h2>
+        <% if (!open) { %>
+          <span class="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-[10.5px] font-medium text-ink-soft">잠김</span>
+        <% } %>
+      </div>
+
+      <% if (open) { %>
+        <p class="mt-2.5 whitespace-pre-line text-[13.5px] leading-[1.85] text-ink"><%= report[s.key] %></p>
+      <% } else { %>
+        <p class="mt-2.5 text-[13.5px] leading-[1.85] text-ink"><%= parts.head %></p>
+        <p class="lc-blur mt-1 whitespace-pre-line text-[13.5px] leading-[1.85] text-ink"><%= parts.tail %></p>
+      <% } %>
+    </section>
+  <% }); %>
+
+  <p class="mt-10 text-[11px] leading-relaxed text-ink-soft">
+    본 상담은 참고용이며 임상적 진단을 대체하지 않습니다.
+  </p>
+</div>
+
+<% if (!paid) { %>
+  <div class="fixed inset-x-0 bottom-14 z-20 mx-auto max-w-app px-4 pb-3">
+    <button id="buyBtn" type="button" class="btn-primary flex w-full items-center justify-center gap-1.5 py-3.5">
+      전체 리포트 보기 · <%= price.toLocaleString('ko-KR') %>원
+    </button>
+    <p id="buyError" class="mt-2 hidden text-center text-[11px] text-red-600"></p>
+  </div>
+
+  <% if (tossEnabled) { %>
+    <script src="https://js.tosspayments.com/v1/payment"></script>
+  <% } %>
+
+  <script>
+    (function () {
+      var base = <%- JSON.stringify(base) %>;
+      var publicId = <%- JSON.stringify(publicId) %>;
+      var tossEnabled = <%- JSON.stringify(Boolean(tossEnabled)) %>;
+      var clientKey = <%- JSON.stringify(clientKey) %>;
+      var buyBtn = document.getElementById('buyBtn');
+      var buyError = document.getElementById('buyError');
+
+      // 가려진 곳을 눌러도 결제로 이어지게 한다 — 궁금해서 누른 순간이 가장 가까운 지점이다
+      document.querySelectorAll('[data-lock]').forEach(function (el) {
+        el.addEventListener('click', function () { buyBtn.click(); });
+      });
+
+      buyBtn.addEventListener('click', async function () {
+        if (!tossEnabled) {
+          buyError.textContent = '결제가 아직 설정되지 않았습니다.';
+          buyError.classList.remove('hidden');
+          return;
+        }
+        buyError.classList.add('hidden');
+        buyBtn.disabled = true;
+        buyBtn.textContent = '결제창으로 이동 중…';
+
+        try {
+          // orderId와 금액은 서버가 만든 값만 쓴다
+          var res = await fetch(base + '/report/' + publicId + '/checkout/prepare', { method: 'POST' });
+          var data = await res.json();
+          if (!res.ok || !data.ok) throw new Error(data.error || '결제를 시작하지 못했어요.');
+
+          var origin = window.location.origin;
+          await TossPayments(clientKey).requestPayment('카드', {
+            amount: data.amount,
+            orderId: data.orderId,
+            orderName: '연애 상담 전체 리포트',
+            successUrl: origin + base + '/report/' + publicId + '/checkout/success',
+            failUrl: origin + base + '/report/' + publicId + '/checkout/fail',
+          });
+        } catch (err) {
+          buyError.textContent = err.message || '결제를 시작하지 못했어요.';
+          buyError.classList.remove('hidden');
+          buyBtn.disabled = false;
+          buyBtn.textContent = '전체 리포트 보기';
+        }
+      });
+    })();
+  </script>
+<% } %>

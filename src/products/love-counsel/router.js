@@ -5,6 +5,15 @@ import { QUESTIONS, parseIntake } from './logic/checklist.js';
 import { judge, findRule, isHowToQuestion } from './logic/engine.js';
 import { buildSystemPrompt } from './logic/prompt.js';
 import { checkSafety } from './logic/safety.js';
+import { generateReport, SECTIONS } from './logic/report.js';
+import {
+  REPORT_PRICE,
+  buildOrderId,
+  parseOrderId,
+  confirmTossPayment,
+  getTossClientKey,
+  isTossEnabled,
+} from './logic/payments.js';
 import {
   streamCounsel,
   isCounselorEnabled,
@@ -123,6 +132,7 @@ router.post('/check', async (req, res, next) => {
     req.session.lc = {
       ...state(req),
       sessionId: row.id,
+      publicId: row.publicId,
       intake,
       activeRule: activeRule.id,
       matched,
@@ -247,6 +257,112 @@ router.post('/counsel/stream', streamLimiter, async (req, res) => {
     console.error('[love-counsel/stream]', err);
     if (!res.writableEnded) res.end('상담 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
   }
+});
+
+// ── 4. 리포트 ─────────────────────────────────────────────────
+/**
+ * 상담 대화를 받아 리포트를 만든다. 대화 이력은 클라이언트에만 있으므로 여기서 받는다.
+ * 결제 전에 미리 만들어 두고 화면에서 뒷부분을 가린다 — 결제 직후 기다림 없이 바로 열린다.
+ */
+router.post('/report/prepare', async (req, res) => {
+  const s = state(req);
+  if (!s?.sessionId) return res.status(400).json({ error: '상담 정보가 없습니다.' });
+
+  try {
+    const row = await CounselSession.findByPk(s.sessionId);
+    if (!row) return res.status(404).json({ error: '상담을 찾을 수 없습니다.' });
+
+    if (!row.report) {
+      const history = Array.isArray(req.body?.messages) ? req.body.messages.slice(-24) : [];
+      const report = await generateReport({
+        intake: s.intake,
+        rule: findRule(s.activeRule),
+        history,
+      });
+      if (!report) return res.status(502).json({ error: '리포트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.' });
+      row.report = report;
+    }
+    row.lastStage = 'report';
+    await row.save();
+
+    res.json({ ok: true, url: `${BASE}/report/${row.publicId}` });
+  } catch (err) {
+    console.error('[love-counsel/report/prepare]', err);
+    res.status(500).json({ error: '리포트 생성 중 오류가 발생했습니다.' });
+  }
+});
+
+router.get('/report/:publicId', async (req, res, next) => {
+  try {
+    // 조회는 항상 publicId로만 한다 — 순차 id를 URL에 쓰면 남의 리포트를 추측으로 열 수 있다.
+    const row = await CounselSession.findOne({ where: { publicId: req.params.publicId } });
+    if (!row || !row.report) return res.status(404).render('platform/404', { title: '리포트 없음', activeTab: null });
+
+    res.render(view('report'), {
+      title: row.paid ? '전체 리포트' : '미리보는 리포트',
+      base: BASE,
+      activeTab: 'home',
+      hideFooter: true,
+      publicId: row.publicId,
+      report: row.report,
+      sections: SECTIONS,
+      paid: row.paid,
+      rule: findRule(row.activeRule),
+      price: REPORT_PRICE,
+      tossEnabled: isTossEnabled(),
+      clientKey: isTossEnabled() ? getTossClientKey() : null,
+      purchased: Boolean(req.query.purchased),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * 결제 시작. orderId와 금액은 반드시 서버에서 만든다 —
+ * 클라이언트가 보낸 금액을 쓰면 누구나 1원 결제를 만들 수 있다.
+ */
+router.post('/report/:publicId/checkout/prepare', async (req, res) => {
+  const row = await CounselSession.findOne({ where: { publicId: req.params.publicId } });
+  if (!row) return res.status(404).json({ error: '리포트를 찾을 수 없습니다.' });
+  if (row.paid) return res.status(400).json({ error: '이미 결제된 리포트입니다.' });
+
+  // 결제를 시도할 때마다 새로 발급한다 — 실패 후 다시 누를 때 같은 orderId를 재사용하면 토스가 거부한다.
+  const orderId = buildOrderId(row.id, REPORT_PRICE);
+  res.json({ ok: true, orderId, amount: REPORT_PRICE });
+});
+
+router.get('/report/:publicId/checkout/success', async (req, res, next) => {
+  try {
+    const { paymentKey, orderId } = req.query;
+    const parsed = parseOrderId(orderId);
+    const row = await CounselSession.findOne({ where: { publicId: req.params.publicId } });
+    if (!row) return res.status(404).render('platform/404', { title: '리포트 없음', activeTab: null });
+
+    // 금액은 URL 쿼리가 아니라 서명된 orderId에서 복원한 값으로만 승인한다.
+    if (!parsed || String(parsed.sessionId) !== String(row.id)) {
+      return res.redirect(`${BASE}/report/${row.publicId}?failed=1`);
+    }
+
+    if (!row.paid) {
+      await confirmTossPayment({ paymentKey, orderId, amount: parsed.amount });
+      row.paid = true;
+      row.orderId = orderId;
+      row.paymentKey = String(paymentKey || '').slice(0, 128);
+      row.amount = parsed.amount;
+      row.lastStage = 'paid';
+      await row.save();
+    }
+
+    res.redirect(`${BASE}/report/${row.publicId}?purchased=1`);
+  } catch (err) {
+    console.error('[love-counsel/checkout/success]', err);
+    next(err);
+  }
+});
+
+router.get('/report/:publicId/checkout/fail', (req, res) => {
+  res.redirect(`${BASE}/report/${req.params.publicId}?failed=1`);
 });
 
 /**

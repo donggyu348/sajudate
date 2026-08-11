@@ -14,7 +14,8 @@
     <p class="mt-1.5 text-[12px] leading-relaxed text-ink-soft">
       앞으로 7일 동안 뭘 하고, 다음 연락을 정확히 뭐라고 할지 — 여기부터 이어갑니다.
     </p>
-    <button type="button" class="btn-primary mt-3 w-full py-3" disabled>결제 연동 준비 중</button>
+    <p class="mt-2.5 text-[12px] text-ink-soft">지금까지 이야기로 리포트를 만들고 있어요…</p>
+    <p id="paywallStatus" class="mt-2 hidden text-[12px] text-red-600"></p>
   </div>
 
   <form id="chatForm" class="border-t border-line px-4 py-3">
@@ -93,13 +94,33 @@
           lock('상담이 종료됐습니다');
         } else if (res.headers.get('X-LC-Paywall')) {
           paywall.classList.remove('hidden');
-          lock('여기부터는 유료 구간입니다');
+          lock('리포트를 만들고 있어요');
+          goToReport();
         }
       } catch (err) {
         answer.textContent = '연결이 끊겼어요. 잠시 후 다시 시도해 주세요.';
       } finally {
         busy = false;
         if (!stopped) { sendBtn.disabled = false; input.focus(); }
+      }
+    }
+
+    // 페이월이 열리면 지금까지의 대화로 리포트를 만들고 리포트 화면으로 넘긴다.
+    // 대화 이력은 이 화면에만 있으므로 여기서 서버로 보낸다.
+    async function goToReport() {
+      var status = document.getElementById('paywallStatus');
+      try {
+        var res = await fetch(base + '/report/prepare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: history }),
+        });
+        var data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || '리포트를 만들지 못했어요.');
+        location.href = data.url;
+      } catch (err) {
+        status.textContent = err.message || '리포트를 만들지 못했어요. 잠시 후 다시 시도해 주세요.';
+        status.classList.remove('hidden');
       }
     }
 

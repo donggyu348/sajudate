@@ -40,8 +40,17 @@ export default function defineCounselSession(sequelize) {
       paywalled: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
       // 안전 규칙으로 중단된 경우 그 규칙 id (A1/A2/A3)
       safetyStop: { type: DataTypes.STRING(8), allowNull: true },
-      // 마지막으로 도달한 지점 — 이탈 분석용 (checklist/counsel/paywall/safety)
+      // 마지막으로 도달한 지점 — 이탈 분석용 (checklist/counsel/paywall/report/paid/safety)
       lastStage: { type: DataTypes.STRING(16), allowNull: false, defaultValue: 'checklist' },
+
+      // 상담 종료 후 1회 생성해 캐싱하는 리포트(SECTIONS 구조).
+      // 결제 전에도 만들어 두고 화면에서 뒷부분을 가린다 — 결제 직후 기다림 없이 바로 열린다.
+      report: { type: DataTypes.JSON, allowNull: true },
+      paid: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+      orderId: { type: DataTypes.STRING(128), allowNull: true },
+      paymentKey: { type: DataTypes.STRING(128), allowNull: true },
+      // 결제 시점의 실제 승인 금액 스냅샷 — 나중에 가격이 바뀌어도 과거 매출이 흔들리지 않는다
+      amount: { type: DataTypes.INTEGER, allowNull: true },
     },
     {
       tableName: 'lc_sessions',
