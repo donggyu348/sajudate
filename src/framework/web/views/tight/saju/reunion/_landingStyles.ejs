@@ -41,6 +41,20 @@
     background-size: cover;
     background-position: center;
   }
+  /* 한 섹션 안에 배경컷을 여러 장 쌓을 때 (#2 공감 2컷) */
+  .rs-cut {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 66vh;
+    padding: 0 18px 30px;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 70% at 50% 12%, rgba(90, 40, 80, 0.5) 0%, rgba(16, 12, 20, 0.95) 62%),
+      linear-gradient(180deg, #17101c 0%, #100c14 100%);
+  }
+
   .rs__bg {
     position: absolute;
     inset: 0;

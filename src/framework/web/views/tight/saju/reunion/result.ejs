@@ -8,7 +8,13 @@
    */
   const name = reunion.me.name;
   const partnerName = reunion.partner.name;
-  const scene = (n) => `/assets/images/tight/reunion/scene-${String(n).padStart(2, '0')}.png`;
+
+  /*
+   * 배경 일러스트 — public/assets/images/tight/return/1~6.png (퍼널 등장 순서)
+   *   1 훅(빗물 창문) · 2,3 공감 2컷 · 4 금기 · 5 신뢰(카페 분할컷) · 6 마무리(지하철)
+   *   #4·#6·#7·#8은 UI 전용이라 이미지가 없다.
+   */
+  const scene = (n) => `/assets/images/tight/return/${n}.png`;
 
   const TOC = [
     '두 사람이 왜 어긋났는지 — 사주로 본 이별의 진짜 이유',
@@ -50,20 +56,31 @@
     </section>
 
     <!-- ═══════════ #2 공감 (2컷) ═══════════ -->
-    <section class="rs rs--scene" id="sec2">
-      <img class="rs__bg" src="<%= scene(2) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
-      <div class="rs__scrim"></div>
-      <div class="rs__inner">
-        <div class="rb-thread">
-          <%- include('./_chatBubble', { text: '이게 진짜 마지막이었을까요?', size: 'lg' }) %>
-          <%- include('./_chatBubble', { side: 'right', tone: 'pink', text: `${name}님, 잠깐 이야기 좀 할까요`, delay: 260 }) %>
+    <section class="rs" id="sec2">
+      <div class="rs-cut">
+        <img class="rs__bg" src="<%= scene(2) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
+        <div class="rs__scrim"></div>
+        <div class="rs__inner">
+          <div class="rb-thread">
+            <%- include('./_chatBubble', { text: '이게 진짜 마지막이었을까요?', size: 'lg' }) %>
+          </div>
+        </div>
+      </div>
+
+      <div class="rs-cut">
+        <img class="rs__bg" src="<%= scene(3) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
+        <div class="rs__scrim"></div>
+        <div class="rs__inner">
+          <div class="rb-thread">
+            <%- include('./_chatBubble', { side: 'right', tone: 'pink', text: `${name}님, 잠깐 이야기 좀 할까요` }) %>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- ═══════════ #3 금기 / 호기심 갭 ═══════════ -->
     <section class="rs rs--scene" id="sec3">
-      <img class="rs__bg" src="<%= scene(3) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
+      <img class="rs__bg" src="<%= scene(4) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
       <div class="rs__scrim"></div>
       <div class="rs__inner">
         <div class="rb-thread">
@@ -201,7 +218,7 @@
 
     <!-- ═══════════ #9 마무리 / 목차 ═══════════ -->
     <section class="rs rs--scene" id="sec9" style="min-height:auto;padding-top:44px;padding-bottom:40px;">
-      <img class="rs__bg" src="<%= scene(9) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
+      <img class="rs__bg" src="<%= scene(6) %>" alt="" onerror="this.remove()" loading="lazy" decoding="async">
       <div class="rs__scrim"></div>
       <div class="rs__inner">
         <div class="rb-thread" style="margin-bottom:20px;">
