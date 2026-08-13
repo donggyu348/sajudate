@@ -11,6 +11,8 @@ import {
 import { buildReaperCharts } from "./reaperChartService.js";
 import { REUNION_REPORT_PROMPT_PARTS, REUNION_STEP_LABELS } from "./prompts/reunionReportPrompt.js";
 import { buildReunionAnalysis } from "./reunionSajuService.js";
+import { CHARM_REPORT_PROMPT_PARTS, CHARM_STEP_LABELS } from "./prompts/charmReportPrompt.js";
+import { buildCharmAnalysis } from "./charmSajuService.js";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const GPT_CHAPTER_DELAY_MS = Number(process.env.GPT_CHAPTER_DELAY_MS) || 16000;
@@ -1959,6 +1961,7 @@ const REPORT_VIEW_PATHS = Object.freeze({
   ROMANTIC: "tight/saju/romantic/report",
   REAPER: "tight/saju/reaper/report",
   REUNION: "tight/saju/reunion/report",
+  CHARM: "tight/saju/charm/report",
   CLASSIC: "tight/saju/classic/report",
   PREMIUM_SAJU: "tight/saju/classic/report",
 });
@@ -1975,6 +1978,7 @@ export function getReportStepInfo(goodsType) {
 
   if (reportCode === "REAPER") return { total: REAPER_STEP_LABELS.length, labels: REAPER_STEP_LABELS.slice() };
   if (reportCode === "REUNION") return { total: REUNION_STEP_LABELS.length, labels: REUNION_STEP_LABELS.slice() };
+  if (reportCode === "CHARM") return { total: CHARM_STEP_LABELS.length, labels: CHARM_STEP_LABELS.slice() };
   if (reportCode === "CLASSIC") return { total: CLASSIC_REPORT_PROMPT_PARTS.length, labels: CLASSIC_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
   if (reportCode === "ADULT") return { total: ADULT_REPORT_PROMPT_PARTS.length, labels: ADULT_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
   if (reportCode === "PREMIUM_SAJU") return { total: PREMIUM_REPORT_PROMPT_PARTS.length, labels: PREMIUM_REPORT_PROMPT_PARTS.map((_, i) => `제${i + 1}부 작성`) };
@@ -3897,6 +3901,8 @@ let promtParts;
         promtParts = ADULT_REPORT_PROMPT_PARTS;
     } else if (reportCode === "REUNION") {
         promtParts = REUNION_REPORT_PROMPT_PARTS;
+    } else if (reportCode === "CHARM") {
+        promtParts = CHARM_REPORT_PROMPT_PARTS;
     } else if (reportCode === "PREMIUM_SAJU") {
         promtParts = PREMIUM_REPORT_PROMPT_PARTS;
     } else {
@@ -4003,6 +4009,48 @@ let promtParts;
             : { userInfo: { name: partnerInfo.name, gender: partnerInfo.gender } },
           REUNION: reunionSnapshot,
         };
+      } else if (reportCode === "CHARM") {
+        // 매혹사주: 본인 원국만 쓴다. 랜딩에서 이미 보여준 값(CHARM)을 그대로 넘겨
+        // 랜딩의 매혹지수·함락일과 리포트 본문이 어긋나지 않게 한다.
+        let charmSnapshot = null;
+        try {
+          const c = buildCharmAnalysis(userInfo);
+          charmSnapshot = {
+            charmScore: c.charmScore,
+            scores: c.scores,
+            keyword: c.keyword,
+            dayPillar: c.me.dayPillar,
+            strength: c.me.strength,
+            yongshin: c.me.yongshin,
+            stars: c.me.stars,
+            targetType: c.targetType,
+            boost: c.boost,
+            silenceRule: c.silenceRule,
+            calendar: {
+              month: c.calendar.month.label,
+              goldenDays: c.calendar.days
+                .filter((d) => d.label === "golden")
+                .map((d) => ({ date: d.date, ganji: d.ganji, tenGod: d.tenGod })),
+              silenceDays: c.calendar.days
+                .filter((d) => d.label === "silence")
+                .map((d) => ({ date: d.date, ganji: d.ganji, tenGod: d.tenGod })),
+              nextGolden: c.calendar.nextGolden ? c.calendar.nextGolden.date : null,
+            },
+            months: c.months.map((m) => ({
+              label: m.label, ganji: m.ganji, tenGod: m.tenGod, score: m.score,
+            })),
+            peak: { label: c.timeline.peak.label, ganji: c.timeline.peak.ganji, score: c.timeline.peak.score },
+            bottom: { label: c.timeline.bottom.label, score: c.timeline.bottom.score },
+            axes: c.axes.map((a) => ({ label: a.label, value: a.value })),
+          };
+        } catch (e) {
+          console.warn("매혹사주 스냅샷 생성 실패:", e.message);
+        }
+
+        sajuJsonForGPT = {
+          my: { userInfo: { name: userInfo.name, gender: userInfo.gender }, ...mySajuJson },
+          CHARM: charmSnapshot,
+        };
       }
 
       const pillarSummary = `${pillars.year.gan}${pillars.year.ji}년 ${pillars.month.gan}${pillars.month.ji}월 ${pillars.day.gan}${pillars.day.ji}일 ${pillars.hour.gan}${pillars.hour.ji}시 (${pillars.zodiac})`;
@@ -4065,7 +4113,8 @@ let promtParts;
         const isReaperReport = reportCode === "REAPER";
         const expectedAdultChapter = isAdultReport ? extractAdultChapterTitleFromPrompt(promtParts[i]) : null;
         const isReunionReport = reportCode === "REUNION";
-        const gptMaxTokens = (isAdultReport || isReaperReport || isReunionReport) ? 16384 : 4096;
+        const isCharmReport = reportCode === "CHARM";
+        const gptMaxTokens = (isAdultReport || isReaperReport || isReunionReport || isCharmReport) ? 16384 : 4096;
 
 let parsed = null;
 let retryCount = 0;

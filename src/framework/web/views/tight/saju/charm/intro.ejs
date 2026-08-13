@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<%
+  /*
+   * 매혹사주 intro — 등장인물을 보여주는 표지 한 장.
+   *
+   * 여기서는 스토리가 진행되지 않는다. 영상이 돌고 CTA 하나가 전부다.
+   * 스토리(영상 1 → 2 + 대사)는 다음 화면인 story.ejs가 맡는다.
+   */
+%>
+
+<head>
+  <%- include('./_stageStyles') %>
+</head>
+
+<body>
+  <div class="page">
+    <div class="topbar">
+      <button type="button" class="topbar__btn topbar__btn--back" aria-label="뒤로" onclick="history.back()">&#8249;</button>
+      <span class="topbar__title">월하점</span>
+    </div>
+
+    <div class="intro-hero">
+      <!--
+        등장인물 영상. loop을 걸지 않아 끝까지 재생되면 마지막 프레임에서 멈춘다.
+        영상을 못 읽으면 JS가 요소를 지워 .intro-hero의 배경 그라데이션만 남긴다.
+      -->
+      <video
+        class="scene is-on"
+        id="introVideo"
+        autoplay muted playsinline preload="auto"
+        aria-label="매혹사주 — 그 사람을 내 쪽으로 넘어오게 만드는 법"
+      >
+        <source src="/assets/images/tight/charm/intro.mp4" type="video/mp4">
+      </video>
+
+      <div class="wm-mask" id="wmMask" aria-hidden="true"></div>
+      <div class="intro-hero__gradient" aria-hidden="true"></div>
+
+      <!--
+        사운드 게이트 — 누르면 소리가 켜지고, 안 누르면 끝까지 무음이다.
+        (브라우저가 소리 있는 자동재생을 막기 때문에 영상은 무음으로 시작한다)
+      -->
+      <button type="button" class="sound-gate" id="soundGate" aria-label="사운드 켜기">
+        <span class="sound-gate__icon">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <!-- 눌러 달라는 신호: 파문 두 겹 -->
+            <circle class="sg-ring" cx="60" cy="60" r="34"/>
+            <circle class="sg-ring sg-ring--b" cx="60" cy="60" r="34"/>
+            <circle class="sg-disc" cx="60" cy="60" r="34"/>
+            <!-- 스피커 -->
+            <path class="sg-speaker" d="M44 52h9l13-11v38l-13-11h-9z"/>
+            <!-- 음파 -->
+            <path class="sg-wave" d="M73 50a14 14 0 0 1 0 20"/>
+            <path class="sg-wave sg-wave--b" d="M81 43a25 25 0 0 1 0 34"/>
+          </svg>
+        </span>
+        <span class="sound-gate__text">사운드를 들으려면<br>터치하세요</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 표지 CTA — 스토리 화면으로 넘어간다. 진입 즉시 떠 있다. -->
+  <div class="fixed-cta is-in">
+    <div class="cta-shell">
+      <a href="/saju/charm/story" class="cta-btn">
+        <span class="cta-btn__text">매혹사주 보러가기</span>
+        <span class="cta-btn__arrow" aria-hidden="true">--></span>
+      </a>
+    </div>
+  </div>
+
+  <%- include('./_watermarkMask') %>
+
+  <script>
+  (function () {
+    var video = document.getElementById('introVideo');
+    if (!video) return;
+
+    // 워터마크 가리개를 이 영상 위에 앉힌다 (좌표는 _watermarkMask.ejs)
+    CharmWatermark.setVideo(video);
+
+    // 영상을 못 읽으면 요소를 지워 배경 그라데이션만 남긴다 (가리개도 함께 숨긴다)
+    video.addEventListener('error', function () {
+      video.remove();
+      CharmWatermark.hide();
+    }, true);
+
+    /*
+     * 일부 브라우저는 autoplay 속성만으로 재생하지 않는다 — 명시적으로 한 번 더 시도.
+     * 단 loop이 없으므로 끝난 영상에 play()를 부르면 처음부터 다시 도는데,
+     * 그러면 탭할 때마다 영상이 되감긴다. 끝났으면 그냥 둔다.
+     */
+    function tryPlay() {
+      if (video.ended) return;
+      var p = video.play();
+      if (p && p.catch) p.catch(function () {});
+    }
+    tryPlay();
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) tryPlay();
+    });
+    // 자동재생이 막히면 첫 터치/클릭에서 재생
+    document.addEventListener('touchstart', tryPlay, { once: true, passive: true });
+    document.addEventListener('click', tryPlay, { once: true });
+
+    /* ── 사운드 게이트 ──
+       브라우저는 소리 있는 자동재생을 막는다. 그래서 무음으로 시작하고,
+       사용자가 직접 누른 경우에만 소리를 켠다(안 누르면 끝까지 무음).
+       선택은 sessionStorage에 남겨 다음 화면(story)까지 이어진다. */
+    var gate = document.getElementById('soundGate');
+
+    function enableSound() {
+      video.muted = false;
+      video.volume = 1;
+
+      var p = video.play();
+      if (p && p.catch) {
+        p.catch(function () {
+          // 소리를 켜자 재생이 거부되면 원래대로 되돌린다 — 화면이 멈추는 것보다 낫다
+          video.muted = true;
+          tryPlay();
+        });
+      }
+
+      try { sessionStorage.setItem('charmSound', 'on'); } catch (e) {}
+      if (gate) gate.classList.add('is-off');
+    }
+
+    if (gate) gate.addEventListener('click', enableSound);
+  })();
+
+  $(document).ready(function(){
+    if(window.karrotPixel) window.karrotPixel.track('ViewContent');
+  });
+  </script>
+</body>
+</html>

@@ -1,0 +1,481 @@
+<%
+/*
+ * 매혹사주 온보딩 공통 스타일 — intro.ejs / story.ejs 의 <head>에서 include.
+ *
+ * 두 페이지 모두 "스크롤 없는 한 화면 + 영상 꽉 채움 + 하단 CTA" 규약을 공유한다.
+ * 한쪽만 고치면 두 화면이 어긋나므로 여기서 함께 관리한다.
+ */
+%>
+<style>
+  * { box-sizing: border-box; }
+
+  /*
+   * 스크롤 없는 한 화면.
+   * 문서가 뷰포트를 넘지 않도록 html·body 높이를 못박고 넘치는 건 잘라낸다.
+   * (모바일 주소창이 접혔다 펴져도 100dvh가 따라오므로 여백이 생기지 않는다)
+   */
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    overscroll-behavior: none;   /* 고무줄 스크롤로 검은 띠가 보이는 것 방지 */
+  }
+
+  /* DaisyUI(:root) 밝은테마 배경이 html을 덮어써 데스크톱에서 흰 여백이 생기는 것 방지 */
+  html:root { background: #000; }
+
+  /*
+   * 무대 폭 — 화면 높이에 9:16을 곱해 영상 비율에 맞춘다.
+   * 이렇게 묶지 않으면 데스크톱(584×800)에서 상하 23%가 잘려나간다.
+   * 모바일은 화면 폭이 이 값보다 좁아 아무 영향이 없다.
+   */
+  :root {
+    --stage-w: 584px;                              /* dvh를 모르는 구형 브라우저용 */
+    --stage-w: min(584px, calc(100dvh * 9 / 16));
+  }
+
+  .page {
+    position: relative;
+    max-width: var(--stage-w);
+    height: 100vh;               /* dvh를 모르는 구형 브라우저용 */
+    height: 100dvh;
+    margin: 0 auto;
+    overflow: hidden;
+    background: #000;
+  }
+
+  /* ── 상단 바 (영상 위에 겹친다) ── */
+  .topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .topbar__title {
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 3px;
+  }
+  .topbar__btn {
+    position: absolute;
+    top: 0;
+    height: 52px;
+    width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .topbar__btn--back { left: 4px; }
+
+  /* ── 히어로 — 화면 전체를 덮는다 ── */
+  .intro-hero {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    /* 영상이 아직 안 떴거나 못 읽을 때도 화면이 비지 않도록 배경을 깔아둔다 */
+    background:
+      radial-gradient(ellipse at 50% 22%, rgba(214, 51, 108, 0.42) 0%, rgba(60, 8, 34, 0.35) 46%, #000 78%),
+      #000;
+  }
+
+  /*
+   * 영상 — 화면을 빈 곳 없이 꽉 채운다.
+   *
+   * 영상은 9:16(0.5625)인데 요즘 폰은 그보다 세로로 길다(375×812 = 0.4618).
+   * 여백 없이 채우려면 넘치는 쪽을 잘라내는 수밖에 없어서 cover를 쓴다.
+   * 375×812 기준 좌우 각각 41px(합 18%)이 잘리므로,
+   * 모든 영상은 인물·자막을 가운데 82% 안에 두어야 안전하다.
+   *
+   * 여러 편을 겹쳐 두고 opacity로 교차시킨다(story.ejs).
+   * 검은 화면을 거치지 않아 장면이 끊기지 않는다.
+   */
+  .scene {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    background: transparent;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .scene.is-on { opacity: 1; }
+
+  /*
+   * ── 워터마크 가리개 ──
+   * 영상에 박힌 워터마크 위에 얹어 뭉개는 판. 위치·크기는 JS가 잡아준다
+   * (영상이 cover로 잘리므로 CSS %로는 어긋난다 — 각 페이지의 WATERMARK 참고).
+   *
+   * backdrop-filter로 그 자리만 흐리고 살짝 어둡게 눌러, 단색 사각형을 덮는 것보다
+   * 훨씬 자연스럽게 배경에 녹는다. 지원하지 않는 브라우저는 아래 @supports에서
+   * 불투명한 판으로 대체한다.
+   */
+  .wm-mask {
+    position: absolute;
+    z-index: 2;
+    display: none;               /* JS가 위치를 잡으면 block으로 바꾼다 */
+    pointer-events: none;
+    border-radius: 10px;
+    -webkit-backdrop-filter: blur(16px) brightness(0.82) saturate(0.9);
+    backdrop-filter: blur(16px) brightness(0.82) saturate(0.9);
+    /* 가장자리를 부드럽게 풀어 경계선이 눈에 띄지 않게 한다 */
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 58%, transparent 100%);
+    mask-image: radial-gradient(ellipse at center, #000 58%, transparent 100%);
+  }
+
+  /* backdrop-filter가 없으면 흐리게 할 방법이 없으니 어두운 판으로 덮는다 */
+  @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .wm-mask {
+      background: rgba(8, 3, 6, 0.94);
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+  }
+
+  /*
+   * 영상 아래를 검정으로 흘려보내는 그라데이션.
+   * 하단 버튼·자막이 밝은 장면 위에 놓여도 읽히게 해준다.
+   */
+  .intro-hero__gradient {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 34%;
+    pointer-events: none;
+    z-index: 3;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.15) 35%,
+      rgba(0, 0, 0, 0.55) 62%,
+      rgba(0, 0, 0, 0.88) 84%,
+      #000 100%
+    );
+  }
+
+  /* ══════════════ 사운드 게이트 (intro.ejs) ══════════════ */
+
+  /*
+   * 자동재생은 음소거일 때만 허용된다. 그래서 영상은 무음으로 시작하고,
+   * 화면 전체를 덮는 이 버튼을 누른 사람에게만 소리를 켜준다.
+   * 안 누르면 끝까지 무음 — 소리가 갑자기 튀어나오는 일이 없다.
+   *
+   * 하단 CTA(z-index 100)보다 아래에 깔아 두어, 소리를 건너뛰고
+   * 바로 다음으로 넘어가려는 사람의 길을 막지 않는다.
+   */
+  .sound-gate {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 0 24px 90px;   /* 하단 CTA 자리를 비켜 가운데보다 살짝 위로 */
+    border: none;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.5s ease;
+  }
+
+  /* 소리를 켠 뒤에는 자취를 감춘다 */
+  .sound-gate.is-off {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sound-gate__icon {
+    width: 108px;
+    height: 108px;
+    display: block;
+  }
+  .sound-gate__icon svg { width: 100%; height: 100%; display: block; }
+
+  /* 눌러 달라는 신호 — 파문이 번져 나간다 */
+  .sg-ring {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.85);
+    stroke-width: 1.6;
+    transform-origin: 60px 60px;
+    animation: sgRipple 2.6s ease-out infinite;
+  }
+  .sg-ring--b { animation-delay: 1.3s; }
+
+  @keyframes sgRipple {
+    0%   { transform: scale(0.68); opacity: 0; }
+    22%  { opacity: 0.75; }
+    100% { transform: scale(1.32); opacity: 0; }
+  }
+
+  .sg-disc {
+    fill: rgba(255, 255, 255, 0.10);
+    stroke: rgba(255, 255, 255, 0.42);
+    stroke-width: 1.2;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  .sg-speaker { fill: #fff; }
+
+  /* 음파 두 줄이 안쪽부터 차례로 켜진다 */
+  .sg-wave {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 4;
+    stroke-linecap: round;
+    animation: sgWave 1.8s ease-in-out infinite;
+  }
+  .sg-wave--b { animation-delay: 0.28s; }
+
+  @keyframes sgWave {
+    0%, 100% { opacity: 0.25; }
+    45%      { opacity: 1; }
+  }
+
+  .sound-gate__text {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.88);
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sg-ring { animation: none; opacity: 0.35; }
+    .sg-wave { animation: none; opacity: 1; }
+  }
+
+  /* ══════════════ 화면 가운데 대사 (story.ejs) ══════════════ */
+
+  @font-face {
+    font-family: 'RIDIBatangCharm';
+    src: url('/assets/fonts/RIDIBatang.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  /*
+   * 대사가 여러 줄 이어질 때 같은 자리를 물려받으므로
+   * 겹쳐 두고 opacity로만 갈아끼운다(자리가 움직이면 시선이 흔들린다).
+   */
+  .line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 38%;
+    z-index: 20;
+    margin: 0;
+    padding: 0 28px;
+    text-align: center;
+    font-family: 'RIDIBatangCharm', 'Noto Serif KR', 'Apple SD Gothic Neo', serif;
+    font-size: clamp(26px, 7.4vw, 36px);
+    font-weight: 400;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    color: #fff;
+    word-break: keep-all;
+    pointer-events: none;
+    text-shadow:
+      0 2px 22px rgba(0, 0, 0, 0.85),
+      0 0 48px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 1s ease, transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .line.is-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ══════════════ 하단 버튼 ══════════════ */
+
+  /*
+   * 한 화면에 버튼이 여럿 있어도 같은 자리를 쓴다(story.ejs).
+   * 뜨기 전에는 pointer-events를 꺼서 안 보이는 버튼이 눌리는 사고를 막는다.
+   */
+  .fixed-cta {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    width: 100%;
+    max-width: var(--stage-w);   /* 영상 무대와 좌우를 맞춘다 */
+    z-index: 100;
+    padding: 16px 20px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(to top, #000 72%, rgba(0, 0, 0, 0));
+    opacity: 0;
+    transform: translateX(-50%) translateY(22px);
+    pointer-events: none;
+    transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .fixed-cta.is-in {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  /*
+   * ── CTA 버튼 (유리) ──
+   *
+   * 영상이 주인공이라 버튼은 배경을 가리지 않는다.
+   * 채색된 판 대신 뒤를 비추는 유리판을 얹고, 테두리와 글자로만 존재를 알린다.
+   *   · 바탕은 흰색 6% — 어떤 장면 위에서도 색이 튀지 않는다
+   *   · backdrop-filter로 뒤를 살짝 흐려 글자가 배경에 묻히지 않게 한다
+   *   · 테두리가 아주 느리게 밝아졌다 어두워지며 눌러야 할 곳임을 알린다
+   *
+   * .cta-shell은 마크업 구조를 유지하기 위한 껍데기다.
+   * 유리 버튼에서는 테두리·글로우를 전부 .cta-btn이 맡으므로 여기선 아무것도 하지 않는다.
+   */
+  .cta-shell {
+    position: relative;
+    border-radius: 999px;
+  }
+
+  .cta-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 58px;
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.06);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    backdrop-filter: blur(14px) saturate(1.15);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    animation: ctaGlassPulse 3.4s ease-in-out infinite;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 테두리만 아주 느리게 숨쉰다 — 배경을 건드리지 않는 최소한의 신호 */
+  @keyframes ctaGlassPulse {
+    0%, 100% { border-color: rgba(255, 255, 255, 0.30); }
+    50%      { border-color: rgba(255, 255, 255, 0.62); }
+  }
+
+  /* backdrop-filter가 없으면 뒤가 그대로 비쳐 글자가 묻힌다 — 검정으로 살짝 눌러준다 */
+  @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .cta-btn { background: rgba(0, 0, 0, 0.42); }
+  }
+
+  .cta-btn:active {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.75);
+    transform: scale(0.98);
+  }
+
+  .cta-btn__arrow {
+    font-size: 1.06em;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    opacity: 0.8;
+    animation: ctaNudge 2.4s ease-in-out infinite;
+  }
+
+  /* 화살표만 오른쪽으로 살짝 밀렸다 돌아온다 */
+  @keyframes ctaNudge {
+    0%, 70%, 100% { transform: translateX(0); }
+    82%           { transform: translateX(4px); }
+  }
+
+  .cta-btn__text {
+    line-height: 1;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+  }
+
+  /*
+   * 스토리 건너뛰기 — CTA 바로 아래에 작게 붙는다.
+   * 눈에 띄지 않아야 하지만(본 흐름은 스토리를 보는 것) 찾으면 바로 보여야 하므로
+   * 밑줄만 남기고 색을 죽였다.
+   */
+  .cta-skip {
+    display: block;
+    margin: 11px auto 0;
+    padding: 4px 8px;
+    border: none;
+    background: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: rgba(255, 255, 255, 0.52);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.2s ease;
+  }
+  .cta-skip:active { color: rgba(255, 255, 255, 0.9); }
+
+  /*
+   * 화면 맨 아래 고정형 — 영상이 도는 내내 떠 있다.
+   * CTA가 아직 안 뜬 구간(1막 초반·2막 초반)에도 빠져나갈 길을 열어 둔다.
+   */
+  .cta-skip--float {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 101;         /* CTA 바(100) 위에 얹어 가려지지 않게 */
+    margin: 0;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
+  }
+
+  /* 고정 스킵이 있는 화면에서는 CTA 버튼을 그만큼 위로 올려 겹치지 않게 한다 */
+  .fixed-cta--with-skip {
+    padding-bottom: calc(46px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* 모션을 줄인 환경에서는 움직임을 전부 멈추고 정지 상태로 보여준다 */
+  @media (prefers-reduced-motion: reduce) {
+    .fixed-cta { transition: opacity 0.3s ease; transform: translateX(-50%); }
+    .fixed-cta.is-in { transform: translateX(-50%); }
+    .line { transition: opacity 0.3s ease; transform: none; }
+    .line.is-in { transform: none; }
+    .cta-btn {
+      animation: none;
+      border-color: rgba(255, 255, 255, 0.46);
+    }
+    .cta-btn__arrow { animation: none; }
+  }
+</style>

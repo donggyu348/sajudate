@@ -96,6 +96,41 @@ export const GoodsType = Object.freeze({
     platform: Platform.TIGHT
   },
 
+  /** 매혹사주 — 판매가는 재회사주와 동일한 37,800원. 번들 정가 계산의 기준값이므로 수정 시 함께 확인 */
+  CHARM: {
+    code: "CHARM",
+    title: "매혹사주",
+    shortTitle: "매혹사주",
+    originalPrice: 58800,
+    discountPrice: 21000,
+    price: 37800,
+    platform: Platform.TIGHT
+  },
+
+  // 매혹사주 + S궁합사주 (매혹 구매 시 29금 티켓 증정)
+  CHARM_ADULT_BUNDLE: {
+    code: "CHARM_ADULT_BUNDLE",
+    title: "매혹사주 + S궁합사주",
+    originalPrice: 75600,   // 37,800 + 37,800
+    discountPrice: 25800,
+    price: 49800,
+    platform: Platform.TIGHT,
+    reportCode: "CHARM",
+    giveTicket: "ADULT"
+  },
+
+  // 매혹사주 + 홍연사주(연애사주) (매혹 구매 시 연애 티켓 증정)
+  CHARM_ROMANTIC_BUNDLE: {
+    code: "CHARM_ROMANTIC_BUNDLE",
+    title: "매혹사주 + 홍연사주(연애사주)",
+    originalPrice: 72700,   // 37,800 + 34,900
+    discountPrice: 22900,
+    price: 49800,
+    platform: Platform.TIGHT,
+    reportCode: "CHARM",
+    giveTicket: "ROMANTIC"
+  },
+
   // 재회사주 + S궁합사주 (재회 구매 시 29금 티켓 증정)
   REUNION_ADULT_BUNDLE: {
     code: "REUNION_ADULT_BUNDLE",

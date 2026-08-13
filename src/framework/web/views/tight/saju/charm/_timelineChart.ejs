@@ -1,0 +1,50 @@
+<%
+/* #7 시기별 매혹운 곡선 — charm.timeline (월운 12개월 실계산) */
+const tl = charm.timeline;
+%>
+<div class="rs-chart" data-reveal>
+  <p class="rs-chart__title">앞으로 12개월, 내 매혹운</p>
+  <p class="rs-chart__desc">월운(月運) 간지와 <%= charm.me.name %>님 일지의 합·충을 월 단위로 대조한 흐름입니다.</p>
+
+  <svg viewBox="0 0 <%= tl.chartW %> <%= tl.chartH %>" style="width:100%;display:block;" role="img"
+       aria-label="12개월 매혹운 흐름 그래프">
+    <defs>
+      <linearGradient id="rsLineFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#e91e7a" stop-opacity="0.34"/>
+        <stop offset="100%" stop-color="#e91e7a" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+
+    <!-- 기준선 -->
+    <% [0.25, 0.5, 0.75].forEach(function (r) { const y = Math.round(tl.baseY - 128 * r); %>
+    <line x1="24" y1="<%= y %>" x2="296" y2="<%= y %>" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+    <% }); %>
+    <line x1="24" y1="<%= tl.baseY %>" x2="296" y2="<%= tl.baseY %>" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
+
+    <path d="<%= tl.areaPath %>" fill="url(#rsLineFill)"/>
+    <path d="<%= tl.linePath %>" fill="none" stroke="#e91e7a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+
+    <!-- 최저점 -->
+    <circle cx="<%= tl.bottom.x %>" cy="<%= tl.bottom.y %>" r="3.4" fill="#6f6678"/>
+
+    <!-- 피크 -->
+    <line x1="<%= tl.peak.x %>" y1="<%= tl.peak.y %>" x2="<%= tl.peak.x %>" y2="<%= tl.baseY %>"
+          stroke="#ff8ec0" stroke-width="1" stroke-dasharray="3 3" opacity="0.65"/>
+    <circle cx="<%= tl.peak.x %>" cy="<%= tl.peak.y %>" r="9" fill="#e91e7a" opacity="0.26"/>
+    <circle cx="<%= tl.peak.x %>" cy="<%= tl.peak.y %>" r="4.6" fill="#ff8ec0"/>
+    <text x="<%= tl.peak.x %>" y="<%= Math.max(14, tl.peak.y - 13) %>" text-anchor="middle"
+          fill="#ffb3d5" font-size="9.5" font-weight="700">🔒 기운이 가장 강한 시점</text>
+
+    <% tl.points.forEach(function (p, i) { %>
+      <circle cx="<%= p.x %>" cy="<%= p.y %>" r="2.2" fill="#e91e7a" opacity="0.55"/>
+      <% if (i % 2 === 0) { %>
+      <text x="<%= p.x %>" y="<%= tl.baseY + 16 %>" text-anchor="middle" fill="#6f6678" font-size="8"><%= p.shortLabel %></text>
+      <% } %>
+    <% }); %>
+  </svg>
+
+  <!-- 정점이 '언제'인지가 핵심 정보라 시점만 가린다 -->
+  <div class="rs-chart__lock">
+    🔒 기운이 가장 강한 시점 · <span class="blurred-val"><%= tl.peak.label %> <%= tl.peak.ganji %></span> · <%= tl.peak.score %>점
+  </div>
+</div>

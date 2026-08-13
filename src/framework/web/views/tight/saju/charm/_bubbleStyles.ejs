@@ -1,0 +1,90 @@
+<%
+/*
+ * 매혹사주 말풍선 스타일 — <head>에서 한 번만 include.
+ *
+ * .kt-* 카카오톡 대화 (히어로 #1 전용). 실시간으로 메시지가 하나씩 뜬다.
+ */
+%>
+<style>
+  /* ══════════════ 2) 카카오톡 실시간 대화 (히어로) ══════════════ */
+  .kt {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    width: 100%;
+  }
+
+  .kt-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .kt-row.is-in { opacity: 1; transform: translateY(0); }
+  .kt-row--left  { justify-content: flex-start; }
+  .kt-row--right { justify-content: flex-end; }
+
+  .kt-msg {
+    max-width: 74%;
+    padding: 10px 13px;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.03em;
+    word-break: keep-all;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  /* 상대 = 흰 말풍선, 왼쪽 위 모서리만 각짐 */
+  .kt-msg--them {
+    background: #fff;
+    color: #1b1b1b;
+    border-radius: 3px 16px 16px 16px;
+  }
+
+  /* 나 = 카카오 노랑, 오른쪽 위 모서리만 각짐 */
+  .kt-msg--me {
+    background: #fee500;
+    color: #191600;
+    border-radius: 16px 3px 16px 16px;
+  }
+
+  .kt-time {
+    flex: none;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    padding-bottom: 2px;
+  }
+
+  /* 입력 중… 점 세 개 */
+  .kt-typing .kt-msg {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 13px 14px;
+  }
+  .kt-typing .kt-msg i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #b6b2ae;
+    animation: ktDot 1.25s infinite ease-in-out;
+  }
+  .kt-typing .kt-msg i:nth-child(2) { animation-delay: 0.16s; }
+  .kt-typing .kt-msg i:nth-child(3) { animation-delay: 0.32s; }
+
+  @keyframes ktDot {
+    0%, 60%, 100% { transform: translateY(0);    opacity: 0.45; }
+    30%           { transform: translateY(-4px); opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kt-row { transition: none; opacity: 1; transform: none; }
+    .kt-typing { display: none; }
+  }
+</style>

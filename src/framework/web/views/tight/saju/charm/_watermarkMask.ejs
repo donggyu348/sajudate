@@ -1,0 +1,92 @@
+<%
+/*
+ * 워터마크 가리개 — intro.ejs / story.ejs 가 </body> 직전에 include.
+ * 화면에 <div class="wm-mask" id="wmMask"> 가 있어야 동작한다(스타일은 _stageStyles.ejs).
+ *
+ * 세 영상(intro·1·2)이 같은 생성기에서 나와 워터마크 위치가 같으므로
+ * 좌표를 여기 한 곳에서만 관리한다. 페이지마다 복사해두면 한쪽만 고쳐져 어긋난다.
+ */
+%>
+<script>
+window.CharmWatermark = (function () {
+  /* ═══════════════════════════════════════════════════════════════
+   *  가릴 영역 — 영상 원본 기준 비율(0~1)로 적는다.
+   *
+   *  화면 기준 %가 아니라 원본 기준인 이유: 영상이 cover로 잘려서
+   *  기기마다 보이는 범위가 다르기 때문이다. 아래 place()가 잘린 양을
+   *  계산해 실제 화면 좌표로 옮겨주므로 어떤 기기에서도 같은 자리를 덮는다.
+   *
+   *  값의 출처: 세 영상의 프레임(시작·중간·끝)을 픽셀 단위로 비교하고
+   *  하단을 명암 지도로 훑은 결과, 워터마크가 x 0.80~0.89 · y 0.88~0.93에 있다.
+   *  여기에 사방 여유를 둬서 덮는다.
+   *
+   *  enabled를 false로 두면 끈다. 워터마크 없는 영상으로 바꾸면 꺼둘 것.
+   * ═══════════════════════════════════════════════════════════════ */
+  var CONFIG = {
+    enabled: true,
+    x: 0.775, y: 0.862, w: 0.135, h: 0.082,
+    pad: 0.012
+  };
+
+  var maskEl = null;
+  var current = null;
+
+  function mask() {
+    if (!maskEl) maskEl = document.getElementById('wmMask');
+    return maskEl;
+  }
+
+  /*
+   * 가리개를 영상의 실제 픽셀 위에 올려놓는다.
+   * object-fit이 contain이든 cover든 실제로 그려진 영역을 되짚어 계산한다.
+   * (contain = 화면 안에 다 담기게 축소 → min, cover = 꽉 채우게 확대 → max)
+   */
+  function place() {
+    var m = mask();
+    if (!CONFIG.enabled || !m) return;
+    var v = current;
+    if (!v || !v.isConnected) { m.style.display = 'none'; return; }
+    if (!v.videoWidth || !v.videoHeight) return;   // 메타데이터 오기 전
+
+    var boxW = v.clientWidth;
+    var boxH = v.clientHeight;
+    if (!boxW || !boxH) return;
+
+    var fit = getComputedStyle(v).objectFit;
+    var ratioW = boxW / v.videoWidth;
+    var ratioH = boxH / v.videoHeight;
+    var scale = (fit === 'cover') ? Math.max(ratioW, ratioH) : Math.min(ratioW, ratioH);
+
+    var drawnW = v.videoWidth * scale;
+    var drawnH = v.videoHeight * scale;
+    // object-position:center — 남거나 넘치는 만큼 양쪽으로 균등하게 배분된다
+    var originX = (boxW - drawnW) / 2;
+    var originY = (boxH - drawnH) / 2;
+
+    var pad = CONFIG.pad || 0;
+    m.style.left = Math.round(originX + (CONFIG.x - pad) * drawnW) + 'px';
+    m.style.top = Math.round(originY + (CONFIG.y - pad) * drawnH) + 'px';
+    m.style.width = Math.round((CONFIG.w + pad * 2) * drawnW) + 'px';
+    m.style.height = Math.round((CONFIG.h + pad * 2) * drawnH) + 'px';
+    m.style.display = 'block';
+  }
+
+  /** 지금 화면에 보이는 영상을 알려준다. 장면이 바뀔 때마다 호출할 것. */
+  function setVideo(v) {
+    current = v;
+    if (v) v.addEventListener('loadedmetadata', place);
+    place();
+  }
+
+  function hide() {
+    var m = mask();
+    if (m) m.style.display = 'none';
+  }
+
+  // 회전·주소창 접힘으로 무대 크기가 바뀌면 다시 계산한다
+  window.addEventListener('resize', place);
+  window.addEventListener('orientationchange', place);
+
+  return { config: CONFIG, setVideo: setVideo, place: place, hide: hide };
+})();
+</script>

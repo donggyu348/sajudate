@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    :root {
+      --accent: #ff2d78;
+      --text-dim: rgba(255, 255, 255, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .stage {
+      position: relative;
+      max-width: 480px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      padding: 20px 24px calc(40px + env(safe-area-inset-bottom, 0px));
+      background: #000;
+      overflow-x: hidden;
+    }
+
+    .stage::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 140%;
+      height: 52%;
+      transform: translateX(-50%);
+      background: radial-gradient(ellipse at center bottom, rgba(214, 51, 108, 0.30) 0%, rgba(90, 16, 52, 0.10) 38%, transparent 72%);
+      pointer-events: none;
+    }
+
+    .stage-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 44px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      letter-spacing: -0.02em;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .back-btn svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .form-header h1 {
+      margin: 0 0 36px;
+      font-size: clamp(28px, 7.5vw, 34px);
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.04em;
+      word-break: keep-all;   /* '알려주/세요'처럼 단어 중간에서 끊기지 않게 */
+    }
+
+    .form-header p {
+      margin: 0 0 36px;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.72);
+      letter-spacing: -0.02em;
+    }
+
+    .form-header strong {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .name-input {
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 14px 0;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      background: transparent;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      outline: none;
+    }
+
+    .name-input::placeholder {
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+
+    .name-input:focus {
+      border-bottom-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .form-row__label {
+      flex: 1;
+      min-width: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+
+    .form-row__input {
+      flex: 1;
+      min-width: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      outline: none;
+    }
+
+    .form-row__input::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    .pill-group {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .pill-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      height: 34px;
+      padding: 0 14px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.42);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .pill-btn.active {
+      background: #fff;
+      color: #111;
+    }
+
+    .time-picker {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .time-picker select {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      color: #111;
+      color-scheme: light;
+    }
+
+    .time-picker select option {
+      color: #111;
+      background-color: #fff;
+    }
+
+    .gender-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 36px;
+    }
+
+    .gender-btn {
+      flex: 1;
+      height: 54px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      border-radius: 999px;
+      background: transparent;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .gender-btn.active {
+      background: #fff;
+      border-color: #fff;
+      color: #111;
+    }
+
+    /* 화면 하단 고정 대신 콘텐츠 바로 아래에 붙인다 (빈 여백 제거) */
+    .submit-btn {
+      display: block;
+      width: 100%;
+      margin: 40px 0 0;
+      height: 54px;
+      border: none;
+      border-radius: 999px;
+      background: #fff;
+      color: #111;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px #000 inset;
+      -webkit-text-fill-color: #fff;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+
+    /* ===== 로딩 오버레이 ===== */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(180deg, #060101 0%, #090202 45%, #050000 100%);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    .loading-overlay.is-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .loading-overlay::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 35%, rgba(0,0,0,0.75) 100%);
+      pointer-events: none;
+    }
+
+    .loading-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    /* 시선을 끌어당기는 파문 — 매혹 모티프 */
+    .lure {
+      width: min(46vw, 168px);
+      margin-bottom: 26px;
+      filter: drop-shadow(0 0 16px rgba(214, 51, 108, 0.45));
+    }
+
+    .lure svg { display: block; width: 100%; height: auto; }
+
+    .lure__ring {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: lurePulse 3.2s ease-out infinite;
+    }
+    .lure__ring--b { animation-delay: 1.05s; }
+    .lure__ring--c { animation-delay: 2.1s; }
+
+    @keyframes lurePulse {
+      0%   { transform: scale(0.35); opacity: 0; }
+      18%  { opacity: 0.85; }
+      100% { transform: scale(1.25); opacity: 0; }
+    }
+
+    .lure__core {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: lureCore 3.2s ease-in-out infinite;
+    }
+    @keyframes lureCore {
+      0%, 100% { transform: scale(0.94); opacity: 0.85; }
+      50%      { transform: scale(1.06); opacity: 1; }
+    }
+
+    .loading-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: rgba(255, 255, 255, 0.88);
+      text-align: center;
+      min-height: 1.5em;
+      transition: opacity 0.25s ease;
+    }
+
+    .loading-title.is-fading { opacity: 0; }
+
+    .loading-sub {
+      margin-top: 8px;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: rgba(243, 230, 200, 0.45);
+      text-transform: uppercase;
+    }
+
+    .loading-bar {
+      width: 160px;
+      height: 2px;
+      margin-top: 28px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .loading-bar-fill {
+      width: 40%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, transparent, #e6c27a, #ff6b9d, transparent);
+      animation: barShimmer 4.5s ease-in-out infinite;
+    }
+
+    @keyframes barShimmer {
+      0%   { transform: translateX(-120%); }
+      100% { transform: translateX(320%); }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="stage">
+  <div class="stage-inner">
+
+    <button type="button" id="backBtn" class="back-btn" aria-label="뒤로가기">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+      뒤로가기
+    </button>
+
+    <div id="loading" class="loading-overlay" aria-live="polite" aria-busy="false">
+      <div class="loading-inner">
+        <div class="lure" aria-hidden="true">
+          <svg viewBox="0 0 100 100" role="presentation">
+            <defs>
+              <radialGradient id="lureCoreGrad">
+                <stop offset="0%"   stop-color="#fff2f7" stop-opacity="0.98"/>
+                <stop offset="60%"  stop-color="#ff5c96" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#c01050" stop-opacity="0.75"/>
+              </radialGradient>
+            </defs>
+
+            <circle class="lure__ring" cx="50" cy="50" r="38" fill="none" stroke="#ff7aa8" stroke-width="1.4"/>
+            <circle class="lure__ring lure__ring--b" cx="50" cy="50" r="38" fill="none" stroke="#ff7aa8" stroke-width="1.4"/>
+            <circle class="lure__ring lure__ring--c" cx="50" cy="50" r="38" fill="none" stroke="#ff7aa8" stroke-width="1.4"/>
+
+            <circle class="lure__core" cx="50" cy="50" r="15" fill="url(#lureCoreGrad)"/>
+          </svg>
+        </div>
+        <p id="loading-title" class="loading-title">원국에서 매혹의 결을 찾고 있습니다</p>
+        <p class="loading-sub">CHARM</p>
+        <div class="loading-bar" aria-hidden="true">
+          <div class="loading-bar-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 매혹사주는 본인 원국 하나만 본다 — 입력도 한 화면으로 끝낸다 -->
+    <form id="sajuForm" method="POST" action="/saju/charm/result">
+
+      <div class="form-header">
+        <h1>이름을 입력해주세요</h1>
+      </div>
+
+      <input type="hidden" name="gender" id="genderInput">
+      <input type="hidden" name="birthType" id="birthTypeInput" value="양력">
+
+      <input name="name" type="text" class="name-input" placeholder="홍길동" autocomplete="name">
+
+      <div class="form-row">
+        <span class="form-row__label" id="timeDisplay">시간모름</span>
+        <div class="time-picker">
+          <span class="pill-btn active" id="timePill">시간모름</span>
+          <select name="birthTime" id="birthTimeSelect" aria-label="태어난 시">
+            <option selected value="unknown">시간모름</option>
+            <option value="00">조자/朝子 (00:00~01:29)</option>
+            <option value="02">축/丑 (01:30~03:29)</option>
+            <option value="04">인/寅 (03:30~05:29)</option>
+            <option value="06">묘/卯 (05:30~07:29)</option>
+            <option value="08">진/辰 (07:30~09:29)</option>
+            <option value="10">사/巳 (09:30~11:29)</option>
+            <option value="12">오/午 (11:30~13:29)</option>
+            <option value="14">미/未 (13:30~15:29)</option>
+            <option value="16">신/申 (15:30~17:29)</option>
+            <option value="18">유/酉 (17:30~19:29)</option>
+            <option value="20">술/戌 (19:30~21:29)</option>
+            <option value="22">해/亥 (21:30~23:29)</option>
+            <option value="24">야자/夜子 (23:30~23:59)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <input name="birthdate" id="birthdateInput" class="form-row__input" placeholder="2001.01.01" inputmode="numeric" maxlength="10" autocomplete="bday">
+        <div class="pill-group" role="group" aria-label="양력/음력">
+          <button type="button" class="pill-btn active" data-birth-type="양력">양력</button>
+          <button type="button" class="pill-btn" data-birth-type="음력">음력</button>
+        </div>
+      </div>
+
+      <div class="gender-row" id="genderRowMe" role="group" aria-label="성별">
+        <button type="button" class="gender-btn" data-gender="남성">남자</button>
+        <button type="button" class="gender-btn active" data-gender="여성">여자</button>
+      </div>
+
+      <button type="button" id="submitBtn" class="submit-btn">매혹지수 확인하기</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const ticketCode = urlParams.get('ticket');
+
+  const genderInput = document.getElementById('genderInput');
+  const birthTypeInput = document.getElementById('birthTypeInput');
+  const birthdateInput = document.getElementById('birthdateInput');
+  const birthTimeSelect = document.getElementById('birthTimeSelect');
+  const timeDisplay = document.getElementById('timeDisplay');
+  const timePill = document.getElementById('timePill');
+  const submitBtn = document.getElementById('submitBtn');
+
+  /* 주 타깃이 여성이라 기본값을 여성으로 둔다 (남성도 그대로 선택 가능) */
+  genderInput.value = '여성';
+
+  document.querySelectorAll('.gender-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('#genderRowMe .gender-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      genderInput.value = btn.dataset.gender;
+    });
+  });
+
+  document.querySelectorAll('[data-birth-type]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('[data-birth-type]').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      birthTypeInput.value = btn.dataset.birthType;
+    });
+  });
+
+  window.setupBirthdateInput(birthdateInput);
+
+  (function bindTimeDisplay() {
+    function update() {
+      const label = birthTimeSelect.options[birthTimeSelect.selectedIndex].textContent.trim();
+      timeDisplay.textContent = label;
+      timePill.textContent = label.length > 8 ? '시간선택' : label;
+    }
+    birthTimeSelect.addEventListener('change', update);
+    update();
+  })();
+
+  function shake(target) {
+    target.animate(
+      [
+        { transform: 'translateX(0)' },
+        { transform: 'translateX(-6px)' },
+        { transform: 'translateX(6px)' },
+        { transform: 'translateX(0)' }
+      ],
+      { duration: 300 }
+    );
+  }
+
+  document.getElementById('backBtn').addEventListener('click', function () {
+    location.href = '/saju/charm/story';
+  });
+
+  /* ── 로딩 후 제출 ── */
+  let isSubmitting = false;
+  let loadingMsgTimer = null;
+  const LOADING_MIN_MS = 4500;
+  const loadingMessages = [
+    '원국에서 매혹의 결을 찾고 있습니다',
+    '도화와 홍염을 짚어보는 중…',
+    '그가 무너지는 날을 계산하는 중…'
+  ];
+  let loadingMsgIndex = 0;
+
+  function showLoadingOverlay() {
+    const overlay = document.getElementById('loading');
+    const title = document.getElementById('loading-title');
+
+    loadingMsgIndex = 0;
+    title.textContent = loadingMessages[0];
+    title.classList.remove('is-fading');
+    overlay.classList.add('is-visible');
+    overlay.setAttribute('aria-busy', 'true');
+    submitBtn.disabled = true;
+
+    overlay.querySelectorAll('.lure__ring, .lure__core').forEach(function (el) {
+      el.style.animation = 'none';
+      void el.getBoundingClientRect();
+      el.style.animation = '';
+    });
+
+    if (loadingMsgTimer) clearInterval(loadingMsgTimer);
+    loadingMsgTimer = setInterval(function () {
+      loadingMsgIndex = (loadingMsgIndex + 1) % loadingMessages.length;
+      title.classList.add('is-fading');
+      setTimeout(function () {
+        title.textContent = loadingMessages[loadingMsgIndex];
+        title.classList.remove('is-fading');
+      }, 220);
+    }, 2200);
+  }
+
+  function submitCharmForm() {
+    if (isSubmitting) return;
+    isSubmitting = true;
+    showLoadingOverlay();
+
+    setTimeout(function () {
+      // 서버는 숫자 8자리만 파싱한다
+      birthdateInput.value = birthdateInput.value.replace(/\D/g, '');
+
+      if (ticketCode) {
+        const $form = $('#sajuForm');
+        $form.find('input[name="ticket"]').remove();
+        $('<input>', { type: 'hidden', name: 'ticket', value: ticketCode }).appendTo($form);
+      }
+
+      document.getElementById('sajuForm').submit();
+    }, LOADING_MIN_MS);
+  }
+
+  function validate() {
+    const nameEl = document.querySelector("input[name='name']");
+    if (!nameEl.value.trim()) {
+      shake(nameEl);
+      nameEl.focus();
+      return false;
+    }
+    if (!/^\d{8}$/.test(birthdateInput.value.replace(/\D/g, ''))) {
+      shake(birthdateInput);
+      birthdateInput.focus();
+      return false;
+    }
+    if (!genderInput.value) {
+      shake(document.getElementById('genderRowMe'));
+      return false;
+    }
+    return true;
+  }
+
+  submitBtn.addEventListener('click', function () {
+    if (!validate()) return;
+    submitCharmForm();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && document.activeElement.tagName !== 'SELECT') {
+      e.preventDefault();
+      submitBtn.click();
+    }
+  });
+</script>
+
+</body>
+</html>

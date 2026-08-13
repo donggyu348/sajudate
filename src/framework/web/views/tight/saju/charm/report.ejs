@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<%
+  /*
+   * 매혹사주 리포트 — reportInfo는 [{ chapter, title, content }] 평면 배열.
+   * 장(chapter)이 바뀌는 지점에서 장 표지를 끼워 넣는다.
+   */
+  const items = Array.isArray(reportInfo) ? reportInfo : [];
+  const myName = (userInfo && userInfo.name) || "나";
+
+  // 장 목록 (등장 순서 유지)
+  const chapters = [];
+  items.forEach((it) => {
+    const key = it.chapter || "";
+    if (!chapters.includes(key)) chapters.push(key);
+  });
+
+  // 덤(넘어왔다는 신호) 장은 CHAPTER 05가 아니라 BONUS로 표기한다
+  const isBonus = (ch) => /^덤\b|신호/.test(ch || "");
+  const chapterLabel = (ch, i) =>
+    isBonus(ch) ? "BONUS" : `CHAPTER ${String(chapters.filter((c, j) => j <= i && !isBonus(c)).length).padStart(2, "0")}`;
+  const chapterText = (ch) => String(ch || "").replace(/^덤\s*[—-]\s*/, "");
+%>
+<head>
+  <style>
+    @font-face {
+      font-family: 'RIDIBatangRp';
+      src: url('/assets/fonts/RIDIBatang.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #100c14;
+      color: #ece7f0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 0 80px;
+      background: #100c14;
+    }
+
+    /* ── 표지 ── */
+    .rp-cover {
+      position: relative;
+      min-height: 62vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 24px 40px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #17101c 0%, #100c14 100%);
+    }
+    .rp-cover__bg {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .rp-cover__scrim {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(16,12,20,0.72) 0%, rgba(16,12,20,0.3) 34%, rgba(16,12,20,0.97) 100%);
+    }
+    .rp-cover__inner { position: relative; z-index: 1; }
+    .rp-cover__label {
+      margin: 0 0 10px;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.3em; text-indent: 0.3em;
+      color: #e37fb0;
+    }
+    .rp-cover__title {
+      margin: 0 0 14px;
+      font-family: 'RIDIBatangRp', 'Noto Serif KR', serif;
+      font-size: clamp(28px, 8vw, 38px);
+      font-weight: 400;
+      line-height: 1.4;
+      letter-spacing: -0.02em;
+    }
+    .rp-cover__who {
+      margin: 0;
+      font-size: 14px;
+      color: rgba(255,255,255,0.66);
+      letter-spacing: -0.02em;
+    }
+
+    /* ── 목차 ── */
+    .rp-toc {
+      margin: 28px 20px 8px;
+      padding: 18px 18px 14px;
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.035);
+    }
+    .rp-toc__t {
+      margin: 0 0 13px;
+      font-size: 12px; font-weight: 800;
+      letter-spacing: 0.16em; color: #e37fb0;
+    }
+    .rp-toc__item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 14px; font-weight: 600;
+      letter-spacing: -0.025em;
+      color: #d7cfdd; text-decoration: none;
+      word-break: keep-all;
+    }
+    .rp-toc__item:first-of-type { border-top: none; }
+    .rp-toc__no {
+      flex: none;
+      font-size: 11px; font-weight: 800;
+      color: #8d8496;
+      padding-top: 3px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── 장 표지 ── */
+    .rp-chapter {
+      margin: 46px 20px 22px;
+      padding-top: 26px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .rp-chapter__no {
+      margin: 0 0 8px;
+      font-size: 11px; font-weight: 800;
+      letter-spacing: 0.2em; color: #e37fb0;
+    }
+    .rp-chapter__no--bonus { color: #ffd27a; }
+    .rp-toc__no--bonus { color: #ffd27a; font-size: 10px; font-weight: 800; }
+
+    .rp-chapter__t {
+      margin: 0;
+      font-family: 'RIDIBatangRp', 'Noto Serif KR', serif;
+      font-size: 25px; font-weight: 400;
+      line-height: 1.42; letter-spacing: -0.02em;
+      word-break: keep-all;
+    }
+
+    /* ── 본문 ── */
+    .rp-sec { margin: 0 20px 34px; }
+    .rp-sec__t {
+      margin: 0 0 12px;
+      padding-left: 11px;
+      border-left: 3px solid #e91e7a;
+      font-size: 17px; font-weight: 800;
+      line-height: 1.4; letter-spacing: -0.03em;
+      word-break: keep-all;
+    }
+    .rp-sec__c {
+      margin: 0;
+      font-size: 15.5px;
+      line-height: 1.92;
+      letter-spacing: -0.02em;
+      color: #cfc7d6;
+      white-space: pre-wrap;
+      word-break: keep-all;
+    }
+
+    .rp-end {
+      margin: 46px 20px 0;
+      padding: 22px 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+    }
+    .rp-end p { margin: 0 0 6px; font-size: 14px; color: #d7cfdd; letter-spacing: -0.02em; word-break: keep-all; }
+    .rp-end small { font-size: 11px; color: #7e7488; }
+
+    .rp-empty {
+      margin: 60px 20px;
+      padding: 30px 20px;
+      text-align: center;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 14px; color: #a79fb2;
+    }
+
+    @media (min-width: 768px) {
+      body { background: #0a070d; padding: 24px 0; }
+      .page { border-radius: 18px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.6); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <!-- 표지 -->
+    <div class="rp-cover">
+      <img class="rp-cover__bg" src="/assets/images/tight/charm/6.png" alt="" onerror="this.remove()">
+      <div class="rp-cover__scrim"></div>
+      <div class="rp-cover__inner">
+        <p class="rp-cover__label">매혹사주 리포트</p>
+        <h1 class="rp-cover__title">그 사람을<br>내 것으로 만드는 법</h1>
+        <p class="rp-cover__who"><%= myName %>님의 사주 분석</p>
+      </div>
+    </div>
+
+    <% if (!items.length) { %>
+      <div class="rp-empty">
+        리포트를 준비하고 있습니다.<br>잠시 후 새로고침해 주세요.
+      </div>
+    <% } else { %>
+
+      <!-- 목차 -->
+      <div class="rp-toc">
+        <p class="rp-toc__t">CONTENTS</p>
+        <% chapters.forEach(function (ch, i) { %>
+        <a class="rp-toc__item" href="#ch<%= i %>">
+          <span class="rp-toc__no<%= isBonus(ch) ? ' rp-toc__no--bonus' : '' %>"><%= isBonus(ch) ? 'BONUS' : String(i + 1).padStart(2, '0') %></span>
+          <span><%= chapterText(ch) %></span>
+        </a>
+        <% }); %>
+      </div>
+
+      <!-- 본문 -->
+      <% let currentChapter = null; %>
+      <% items.forEach(function (item) { %>
+        <% if (item.chapter !== currentChapter) { %>
+          <% currentChapter = item.chapter; %>
+          <div class="rp-chapter" id="ch<%= chapters.indexOf(currentChapter) %>">
+            <p class="rp-chapter__no<%= isBonus(currentChapter) ? ' rp-chapter__no--bonus' : '' %>"><%= chapterLabel(currentChapter, chapters.indexOf(currentChapter)) %></p>
+            <h2 class="rp-chapter__t"><%= chapterText(currentChapter) %></h2>
+          </div>
+        <% } %>
+
+        <div class="rp-sec">
+          <h3 class="rp-sec__t"><%= item.title %></h3>
+          <p class="rp-sec__c"><%= item.content %></p>
+        </div>
+      <% }); %>
+
+      <div class="rp-end">
+        <p><%= myName %>님, 여기까지 읽어주셔서 고맙습니다.</p>
+        <p>사주는 정해진 답이 아니라 흐름입니다. 무엇을 선택할지는 <%= myName %>님의 몫입니다.</p>
+        <small>AI 분석 기반 참고용 콘텐츠입니다. 의사결정의 근거로 사용하지 마세요.</small>
+      </div>
+
+    <% } %>
+  </div>
+</body>
+</html>

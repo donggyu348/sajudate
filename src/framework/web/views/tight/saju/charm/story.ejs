@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<%- include('./../../common/header') %>
+<%
+  /*
+   * 매혹사주 story — 영상 두 편으로 스토리를 끌고 가는 한 화면.
+   *
+   *   1막  1.mp4가 돌다가 잠시 뒤 버튼이 떠오른다 → 누르면 2막
+   *   2막  2.mp4가 돌면서 "그 남자를 조종하고 싶어?"가 떴다 사라지고,
+   *        "그럼 생년월일을 말해봐"가 뜨는 동시에 하단 입력 버튼이 올라온다
+   *
+   * 스크롤은 없다. 전부 한 화면 안에서 벌어진다.
+   * 타이밍·문구는 <script> 맨 위 TIMELINE 블록에서 전부 조정한다.
+   */
+%>
+
+<head>
+  <%- include('./_stageStyles') %>
+</head>
+
+<body>
+  <div class="page">
+    <div class="topbar">
+      <button type="button" class="topbar__btn topbar__btn--back" aria-label="뒤로" onclick="history.back()">&#8249;</button>
+      <span class="topbar__title">월하점</span>
+    </div>
+
+    <div class="intro-hero">
+      <!--
+        1막·2막 영상을 겹쳐 두고 opacity로 교차시킨다.
+        2막은 preload="none"으로 두어 1막 로딩을 방해하지 않게 하고,
+        1막 버튼이 뜨는 시점에 미리 받아둔다.
+
+        둘 다 loop을 걸지 않는다 — 끝까지 재생되면 마지막 프레임에서 멈춘다.
+      -->
+      <video
+        class="scene is-on"
+        id="scene1"
+        autoplay muted playsinline preload="auto"
+        aria-label="매혹사주 이야기 1"
+      >
+        <source src="/assets/images/tight/charm/1.mp4" type="video/mp4">
+      </video>
+
+      <video
+        class="scene"
+        id="scene2"
+        muted playsinline preload="none"
+        aria-hidden="true" tabindex="-1"
+      >
+        <source src="/assets/images/tight/charm/2.mp4" type="video/mp4">
+      </video>
+
+      <div class="wm-mask" id="wmMask" aria-hidden="true"></div>
+      <div class="intro-hero__gradient" aria-hidden="true"></div>
+
+      <!-- 2막 대사 — 같은 자리를 이어받는다 -->
+      <p class="line" id="line1">그 남자를 조종하고 싶어?</p>
+      <p class="line" id="line2">그럼, 생년월일을 말해봐</p>
+    </div>
+  </div>
+
+  <!-- 1막 버튼 — 누르면 2막으로 넘어간다 -->
+  <div class="fixed-cta fixed-cta--with-skip" id="ctaAct1">
+    <div class="cta-shell">
+      <button type="button" class="cta-btn" id="ctaAct1Btn">
+        <span class="cta-btn__text">방 둘러보기</span>
+        <span class="cta-btn__arrow" aria-hidden="true">--></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2막 버튼 — 입력 화면으로 -->
+  <div class="fixed-cta fixed-cta--with-skip" id="ctaAct2">
+    <div class="cta-shell">
+      <a href="/saju/charm/input" class="cta-btn">
+        <span class="cta-btn__text">생년월일 입력하기</span>
+        <span class="cta-btn__arrow" aria-hidden="true">--></span>
+      </a>
+    </div>
+  </div>
+
+  <!--
+    스토리 건너뛰기 — 영상이 도는 내내 하단에 떠 있다.
+    CTA가 뜨기 전(1막 초반)에도 빠져나갈 길이 있어야 하므로 CTA 바와 별개로 둔다.
+  -->
+  <a class="cta-skip cta-skip--float" id="skipStory" href="/saju/charm/input">스토리 스킵하기</a>
+
+  <%- include('./_watermarkMask') %>
+
+  <script>
+  (function () {
+    /* ═══════════════════════════════════════════════════════════════
+     *  연출 타임라인 — 영상을 갈아끼우면 여기 숫자만 고치면 된다.
+     *
+     *  기준은 벽시계가 아니라 각 영상의 재생 위치(초)다.
+     *  로딩이 느려 재생이 늦게 시작돼도 항상 같은 장면에서 터진다.
+     * ═══════════════════════════════════════════════════════════════ */
+    var TIMELINE = {
+      // 1막 — 1.mp4가 이만큼 재생되면 버튼이 떠오른다 (0이면 즉시).
+      //        지금 1.mp4가 2.97초라 끝나기 1초쯤 전에 뜨도록 잡았다.
+      act1CtaAt: 2.0,
+
+      // 2막 — 2.mp4 재생 위치 기준
+      line1In: 1.0,    // "그 남자를 조종하고 싶어?" 등장
+      line1Out: 4.2,   // 사라짐
+      line2In: 5.0,    // "그럼, 생년월일을 말해봐" 등장 + 하단 버튼 동시 등장
+
+      // 영상이 이 값들보다 짧으면 끝에서 이만큼 남기고 전부 당겨 붙인다
+      tail: 0.5,
+
+      // 재생이 아예 안 되는 경우(자동재생 차단·파일 없음) 벽시계로라도 진행시킨다.
+      // 이게 없으면 버튼이 영영 안 떠서 퍼널이 통째로 막힌다.
+      failsafeMs: 9000
+    };
+
+    var scene1 = document.getElementById('scene1');
+    var scene2 = document.getElementById('scene2');
+    var ctaAct1 = document.getElementById('ctaAct1');
+    var ctaAct2 = document.getElementById('ctaAct2');
+    var line1 = document.getElementById('line1');
+    var line2 = document.getElementById('line2');
+
+    /* ── 공통 유틸 ────────────────────────────────────────────── */
+
+    function show(el) { if (el) el.classList.add('is-in'); }
+    function hide(el) { if (el) el.classList.remove('is-in'); }
+
+    /*
+     * loop이 없으므로 끝난 영상에 play()를 부르면 처음부터 다시 돈다.
+     * 아래 자동재생 보정(탭·복귀 시 재시도)이 끝난 장면을 되감지 않도록 막는다.
+     */
+    function play(v) {
+      if (!v || v.ended) return;
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {});
+    }
+
+    /**
+     * 영상이 at(초)를 지나면 fn을 한 번 실행한다.
+     * - 영상이 at보다 짧으면 끝나기 tail초 전으로 당겨 붙인다.
+     * - 재생이 시작되지 않으면(자동재생 차단) failsafeMs 뒤 벽시계로 실행한다.
+     * - 영상 자체가 없으면 처음부터 벽시계(at초)로 돌린다.
+     *   이때 setTimeout을 쓰지 않고 즉시 실행하면 대사 셋이 한꺼번에 터진다.
+     */
+    function atTime(video, at, fn) {
+      var done = false;
+      var startedAt = Date.now();
+
+      function fire() {
+        if (done) return;
+        done = true;
+        if (video) video.removeEventListener('timeupdate', onTick);
+        fn();
+      }
+
+      function onTick() {
+        var mark = at;
+        if (isFinite(video.duration) && video.duration > 0) {
+          mark = Math.min(mark, Math.max(0, video.duration - TIMELINE.tail));
+        }
+        if (video.currentTime >= mark) fire();
+      }
+
+      // 남은 시간만큼 기다렸다 벽시계로 실행 (이미 지났으면 즉시)
+      function fallbackToClock() {
+        setTimeout(fire, Math.max(0, at * 1000 - (Date.now() - startedAt)));
+      }
+
+      if (at <= 0) { fire(); return; }
+
+      if (!video) { fallbackToClock(); return; }
+
+      video.addEventListener('timeupdate', onTick);
+
+      // 파일을 못 읽는 게 확정되면 실패안전장치(9초)를 기다리지 않고 바로 벽시계로 넘어간다.
+      // 그러지 않으면 대사가 한참 뒤에 한꺼번에 뜬다.
+      video.addEventListener('error', fallbackToClock, true);
+
+      setTimeout(fire, at * 1000 + TIMELINE.failsafeMs);
+    }
+
+    /* 지금 보이는 장면 — 워터마크 가리개가 이 영상을 기준으로 자리를 잡는다 */
+    var activeVideo = scene1;
+    CharmWatermark.setVideo(scene1);
+
+    /* ── 사운드 ──
+       intro에서 사운드를 켠 사람은 여기서도 소리를 듣게 한다.
+       다만 새 페이지에서 소리 있는 자동재생은 거부될 수 있으므로,
+       거부되면 조용히 무음으로 되돌린다(화면이 멈추는 것보다 낫다). */
+    var wantSound = false;
+    try { wantSound = sessionStorage.getItem('charmSound') === 'on'; } catch (e) {}
+
+    function applySound(v) {
+      if (!v || !wantSound) return;
+      v.muted = false;
+      v.volume = 1;
+      var p = v.play();
+      if (p && p.catch) {
+        p.catch(function () {
+          v.muted = true;
+          var again = v.play();
+          if (again && again.catch) again.catch(function () {});
+        });
+      }
+    }
+
+    /* ── 1막 ──────────────────────────────────────────────────── */
+
+    play(scene1);
+    applySound(scene1);
+
+    // 자동재생이 막히는 브라우저 대비
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) play(activeVideo);
+    });
+    document.addEventListener('touchstart', function () { play(activeVideo); }, { once: true, passive: true });
+    document.addEventListener('click', function () { play(activeVideo); }, { once: true });
+
+    // 영상1을 못 읽으면 기다릴 이유가 없다 — 배경만 남기고 바로 버튼을 띄운다
+    if (scene1) {
+      scene1.addEventListener('error', function () {
+        scene1.remove();
+        show(ctaAct1);
+      }, true);
+    }
+
+    atTime(scene1, TIMELINE.act1CtaAt, function () {
+      show(ctaAct1);
+      // 버튼이 뜨는 시점 = 사용자가 넘어가기 직전 → 이때 2막을 미리 받아둔다
+      if (scene2) scene2.load();
+    });
+
+    /* ── 1막 → 2막 ────────────────────────────────────────────── */
+
+    var advanced = false;
+
+    function goAct2() {
+      if (advanced) return;
+      advanced = true;
+
+      hide(ctaAct1);
+      ctaAct1.setAttribute('aria-hidden', 'true');
+
+      if (!scene2) { runAct2Lines(); return; }
+
+      scene2.removeAttribute('aria-hidden');
+      scene2.currentTime = 0;
+      play(scene2);
+      applySound(scene2);   // 2막은 버튼을 누른 직후라 소리 켜기가 거부되지 않는다
+      scene2.classList.add('is-on');
+      scene1.classList.remove('is-on');
+
+      activeVideo = scene2;
+      CharmWatermark.setVideo(scene2);   // 가리개도 2막 영상 위로 옮긴다
+
+      // 교차가 끝나면 1막은 세워둔다(디코더·배터리 아끼기)
+      setTimeout(function () { if (scene1) scene1.pause(); }, 700);
+
+      // 2막 영상을 못 읽어도 대사는 흘러가야 한다
+      scene2.addEventListener('error', function () {
+        scene2.remove();
+        activeVideo = null;
+        CharmWatermark.hide();
+      }, true);
+
+      runAct2Lines();
+    }
+
+    document.getElementById('ctaAct1Btn').addEventListener('click', goAct2);
+
+    /* ── 2막 대사 ─────────────────────────────────────────────── */
+
+    function schedule(v) {
+      atTime(v, TIMELINE.line1In, function () {
+        show(line1);
+      });
+
+      atTime(v, TIMELINE.line1Out, function () {
+        hide(line1);
+      });
+
+      // 두 번째 대사와 입력 버튼은 동시에 올라온다
+      atTime(v, TIMELINE.line2In, function () {
+        show(line2);
+        show(ctaAct2);
+      });
+    }
+
+    /*
+     * 대사 타이밍을 영상 시간에 맡길지, 벽시계로 돌릴지 여기서 한 번만 정한다.
+     *
+     * 세 단계가 각자 실패안전장치를 기다리면 재생이 막힌 기기에서 2막 전체가
+     * 15초까지 늘어진다. 그래서 재생이 실제로 도는지 먼저 확인하고,
+     * 안 돌면 그 시점에 셋 다 벽시계로 넘긴다.
+     */
+    function runAct2Lines() {
+      var v = scene2 && scene2.isConnected ? scene2 : null;
+      if (!v) { schedule(null); return; }
+
+      var startedAt = Date.now();
+      var probe = setInterval(function () {
+        if (v.currentTime > 0.05) {          // 재생이 돌기 시작했다
+          clearInterval(probe);
+          schedule(v);
+        } else if (Date.now() - startedAt > 1200) {   // 안 돈다 — 벽시계로
+          clearInterval(probe);
+          schedule(null);
+        }
+      }, 100);
+    }
+  })();
+
+  $(document).ready(function(){
+    if(window.karrotPixel) window.karrotPixel.track('ViewContent');
+  });
+  </script>
+</body>
+</html>

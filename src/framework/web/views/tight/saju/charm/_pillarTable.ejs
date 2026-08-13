@@ -1,0 +1,68 @@
+<%
+/*
+ * #5 사주팔자 표 — 한 사람분.
+ * 사용: include('./_pillarTable', { table: charm.me.table, locked: false })
+ * locked=true면 흐리게 잠근다.
+ */
+const t = table;
+const isLocked = (typeof locked !== 'undefined' && locked);
+%>
+<% if (isLocked) { %><div class="rs-locked" data-reveal><div class="rs-locked__body"><% } %>
+<div class="rs-pill"<%= isLocked ? '' : ' data-reveal' %>>
+  <div class="rs-pill__head">
+    <span class="rs-pill__name"><%= t.name %> <span style="opacity:.55;font-weight:600;">(<%= t.gender %>)</span></span>
+    <span class="rs-pill__meta">
+      일주 <%= t.dayPillarHanja %> · <%= t.strength %><% if (t.yongshin) { %> · 용신 <%= t.yongshin %><% } %>
+    </span>
+  </div>
+
+  <table class="rs-pill__grid">
+    <thead>
+      <tr>
+        <th style="width:15%;"></th>
+        <th>천간</th>
+        <th>지지</th>
+        <th>십성</th>
+        <th>십이운성</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% t.rows.forEach(function (r) { %>
+      <tr class="<%= r.isDay ? 'rs-pill__day' : '' %>">
+        <td style="font-size:10.5px;color:#857b8e;font-weight:700;"><%= r.label %></td>
+        <td>
+          <% if (r.ganHanja) { %>
+            <span class="rs-pill__gj el-<%= r.ganElement %>"><%= r.ganHanja %><small><%= r.gan %></small></span>
+          <% } else { %>
+            <span style="color:#5f5768;font-size:11px;">시간<br>모름</span>
+          <% } %>
+        </td>
+        <td>
+          <% if (r.jiHanja) { %>
+            <span class="rs-pill__gj el-<%= r.jiElement %>"><%= r.jiHanja %><small><%= r.ji %></small></span>
+          <% } else { %>
+            <span style="color:#5f5768;">–</span>
+          <% } %>
+        </td>
+        <td><%= r.ganGod || '–' %></td>
+        <td><%= r.stage || '–' %></td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <div class="rs-pill__els">
+    <% t.elements.forEach(function (e) { %>
+    <div class="rs-pill__el el-<%= e.key %>"><%= e.key %> <%= e.value %></div>
+    <% }); %>
+  </div>
+</div>
+<% if (isLocked) { %>
+  </div>
+  <div class="rs-locked__veil">
+    <span class="rs-locked__icon">🔒</span>
+    <p class="rs-locked__text"><%= t.name %>님의 사주 원국</p>
+    <p class="rs-locked__sub">전체 풀이는 리포트에서 공개됩니다</p>
+  </div>
+</div>
+<% } %>

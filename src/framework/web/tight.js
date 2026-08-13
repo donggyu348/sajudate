@@ -16,6 +16,7 @@ import { metaParamBuilderMiddleware } from "./middleware/metaParamBuilder.js";
 
 import sajuRouter from "./router/tight/sajuRouter.js";
 import reunionRouter from "./router/tight/reunionRouter.js";
+import charmRouter from "./router/tight/charmRouter.js";
 import adminRouter from "./router/tight/adminRouter.js";
 import paymentRouter from "./router/api/paymentRouter.js";
 import errorHandler from "../middleware/errorHandler.js";
@@ -90,8 +91,9 @@ app.get("/", (req, res) => {
 
 
 
-// 재회사주는 sajuRouter보다 먼저 마운트해야 /saju 하위 라우트에 먹히지 않는다
+// 재회사주·매혹사주는 sajuRouter보다 먼저 마운트해야 /saju 하위 라우트에 먹히지 않는다
 app.use("/saju/reunion", reunionRouter);
+app.use("/saju/charm", charmRouter);
 app.use("/saju", sajuRouter);
 app.use("/admin", adminRouter);
 app.use("/user", userRouter);

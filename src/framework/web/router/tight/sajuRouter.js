@@ -648,6 +648,7 @@ const CHANNEL_POPUP_IMAGES = {
   ROMANTIC: "/assets/images/tight/romantic/landing/hero.png",
   ADULT: "/assets/images/tight/products/product_adult.png",
   REUNION: "/assets/images/tight/return/6.png",
+  CHARM: "/assets/images/tight/charm/6.png",
   CLASSIC: "/assets/images/tight/classic/index_banner.png"
 };
 
