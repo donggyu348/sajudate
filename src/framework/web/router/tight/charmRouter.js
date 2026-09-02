@@ -1,6 +1,7 @@
 import express from "express";
 import { GoodsType } from "../../enums/Goods.js";
 import { buildCharmAnalysis } from "../../service/charmSajuService.js";
+import { redeemTicket } from "../../service/TicketService.js";
 
 /*
  * 매혹사주 — 재회사주(reunionRouter)와 같은 규약으로 별도 라우터로 분리한다.
@@ -28,9 +29,23 @@ router.get("/input", (req, res) => {
   res.render("tight/saju/charm/input");
 });
 
-router.post("/result", (req, res) => {
+router.post("/result", async (req, res) => {
   try {
-    const encodedUserInfo = encodeURIComponent(JSON.stringify(req.body));
+    const userInfo = req.body;
+
+    // 무료 티켓이 붙어 있으면 결제를 건너뛰고 바로 리포트를 만든다
+    const ticketCode = req.query.ticket || userInfo.ticket || userInfo.ticketCode;
+    if (ticketCode) {
+      const shopOrderNo = await redeemTicket({
+        ticketCode,
+        userInfo,
+        goodsType: GoodsType.CHARM.code,
+      });
+      // 티켓이 유효하지 않으면 아래 일반 결제 흐름으로 이어간다
+      if (shopOrderNo) return res.redirect(`/saju/waiting?shopOrderNo=${shopOrderNo}`);
+    }
+
+    const encodedUserInfo = encodeURIComponent(JSON.stringify(userInfo));
     return res.redirect(`/saju/charm/result?userInfo=${encodedUserInfo}`);
   } catch (e) {
     console.error("❌ 매혹사주 POST /result 실패:", e);

@@ -966,6 +966,33 @@ router.get("/ticket", (req, res) => {
         res.status(500).send("페이지를 로드할 수 없습니다.");
     }
 });
+/*
+ * 티켓의 상품코드 → 입력 화면 경로.
+ *
+ * 예전에는 if 사슬로 네 상품만 적어둬서, 새 상품 티켓은 전부 정통사주로 떨어졌다.
+ * 이제 GoodsType 코드를 그대로 소문자 경로로 쓰고, 진입점이 다른 상품만 예외로 둔다.
+ * (구버전 티켓의 숫자 코드도 계속 받아준다)
+ */
+const LEGACY_GIFT_TYPES = { "1": "CLASSIC", "2": "ROMANTIC", "3": "ADULT", "4": "REAPER" };
+
+/** 입력창이 /input 이 아닌 상품 — 사자록은 인트로부터 시작한다 */
+const TICKET_ENTRY_OVERRIDES = { REAPER: "/saju/reaper/intro" };
+
+function resolveTicketEntryPath(rawGoodsType) {
+  const raw = String(rawGoodsType || "").trim();
+  const code = (LEGACY_GIFT_TYPES[raw] || raw).toUpperCase();
+
+  // 번들 티켓이면 본 리포트 상품으로 보낸다
+  const goods = GoodsType[code];
+  const target = goods?.reportCode || code;
+
+  if (TICKET_ENTRY_OVERRIDES[target]) return TICKET_ENTRY_OVERRIDES[target];
+  if (GoodsType[target]) return `/saju/${target.toLowerCase()}/input`;
+
+  console.warn(`[ticket] 알 수 없는 상품코드(${rawGoodsType}) — 정통사주로 보냄`);
+  return "/saju/classic/input";
+}
+
 /* 티켓 코드 검증 및 리다이렉트 */
 router.get("/ticket/verify", async (req, res) => {
   const { code } = req.query;
@@ -977,20 +1004,7 @@ const ticket = await Coupons.findOne({ where: { code: code, isUsed: false } });
       return res.send("<script>alert('유효하지 않거나 이미 사용된 티켓입니다.'); history.back();</script>");
     }
 
-    // PaymentService에서 설정한 giftType 대조
-    // '1' = 정통(Classic), '2' = 연애(Romantic), '3' = 29금(Adult), '4' = 저승사자(Reaper)
-    let targetPath = "";
-    if (ticket.goodsType === '1') {
-      targetPath = "/saju/classic/input";
-    } else if (ticket.goodsType === '2') {
-      targetPath = "/saju/romantic/input";
-    } else if (ticket.goodsType === '3' || String(ticket.goodsType).toUpperCase() === 'ADULT') {
-      targetPath = "/saju/adult/input";
-    } else if (ticket.goodsType === '4' || String(ticket.goodsType).toUpperCase() === 'REAPER') {
-      targetPath = "/saju/reaper/intro";
-    } else {
-      targetPath = "/saju/classic/input"; // 기본값
-    }
+    const targetPath = resolveTicketEntryPath(ticket.goodsType);
 
     // 티켓 번호를 쿼리스트링에 담아 해당 입력창으로 리다이렉트
     return res.redirect(`${targetPath}?ticket=${code}`);
