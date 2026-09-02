@@ -1,6 +1,40 @@
 <!DOCTYPE html>
 <html lang="ko">
 <%- include('./../../common/header') %>
+<%
+  /*
+   * 사주 계산에는 쓰이지 않는 문항들. 리포트 본문을 사용자 상황에 맞춰 쓰기 위한 입력이다.
+   * (GptService의 CHARM 스냅샷 context로 들어가 프롬프트에 반영된다)
+   *
+   * 말투는 intro·story의 반말 도발체와 맞췄다. 존댓말로 물으면 톤이 끊긴다.
+   */
+  const QUESTIONS = [
+    {
+      field: 'loveStatus',
+      eyebrow: '지금의 자리',
+      title: '지금 네 옆엔 <em>누가</em> 있어?',
+      options: [
+        '아직 아무도 없어',
+        '썸인지 아닌지 애매해',
+        '혼자 좋아하는 중이야',
+        '사귀는 사람이 있어',
+        '헤어진 지 얼마 안 됐어',
+      ],
+    },
+    {
+      field: 'mainConcern',
+      eyebrow: '가장 알고 싶은 것',
+      title: '뭐가 제일 <em>궁금해</em>?',
+      options: [
+        '그 사람을 넘어오게 하는 법',
+        '내가 가진 진짜 무기',
+        '내가 자꾸 끌어당기는 남자',
+        '움직여야 할 정확한 타이밍',
+        '내 연애가 매번 틀어지는 이유',
+      ],
+    },
+  ];
+%>
 <head>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <style>
@@ -66,6 +100,55 @@
       width: 18px;
       height: 18px;
       flex-shrink: 0;
+    }
+
+    /* 문항 → 생년월일까지 한 번에 한 화면씩 보여준다 */
+    .form-step { display: none; }
+    .form-step.is-active { display: block; }
+
+    /* 전역 .active 규칙과 부딪히지 않도록 선택 표시는 is-on을 쓴다 */
+    .form-header em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .q-eyebrow {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .q-options {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .q-opt {
+      max-width: 100%;
+      padding: 14px 22px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.88);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      text-align: left;
+      word-break: keep-all;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .q-opt.is-on {
+      background: #fff;
+      border-color: #fff;
+      color: #111;
+      font-weight: 800;
     }
 
     .form-header h1 {
@@ -412,8 +495,27 @@
       </div>
     </div>
 
-    <!-- 매혹사주는 본인 원국 하나만 본다 — 입력도 한 화면으로 끝낸다 -->
+    <!-- 매혹사주는 본인 원국 하나만 본다 — 상대방 정보는 받지 않는다 -->
     <form id="sajuForm" method="POST" action="/saju/charm/result">
+
+      <!-- 상황 문항 — 사주 계산이 아니라 리포트 문장을 맞추는 데 쓰인다 -->
+      <% QUESTIONS.forEach(function (q, qi) { %>
+      <div class="form-step<%= qi === 0 ? ' is-active' : '' %>" id="q<%= qi %>" data-question="<%= q.field %>">
+        <input type="hidden" name="<%= q.field %>" id="<%= q.field %>Input">
+        <div class="form-header">
+          <p class="q-eyebrow"><%= q.eyebrow %></p>
+          <h1><%- q.title %></h1>
+        </div>
+        <div class="q-options" role="radiogroup" aria-label="<%= q.eyebrow %>">
+          <% q.options.forEach(function (opt) { %>
+          <button type="button" class="q-opt" data-field="<%= q.field %>" data-value="<%= opt %>"><%= opt %></button>
+          <% }); %>
+        </div>
+      </div>
+      <% }); %>
+
+      <!-- 생년월일 -->
+      <div class="form-step" id="stepBirth">
 
       <div class="form-header">
         <h1>이름을 입력해주세요</h1>
@@ -460,7 +562,9 @@
         <button type="button" class="gender-btn active" data-gender="여성">여자</button>
       </div>
 
-      <button type="button" id="submitBtn" class="submit-btn">매혹지수 확인하기</button>
+      </div><!-- /stepBirth -->
+
+      <button type="button" id="submitBtn" class="submit-btn">다음으로</button>
     </form>
   </div>
 </div>
@@ -520,7 +624,37 @@
     );
   }
 
+  /* ── 문항 선택 ── */
+  document.querySelectorAll('.q-opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const field = btn.dataset.field;
+      document.querySelectorAll('.q-opt[data-field="' + field + '"]').forEach(function (b) {
+        b.classList.remove('is-on');
+      });
+      btn.classList.add('is-on');
+      document.getElementById(field + 'Input').value = btn.dataset.value;
+    });
+  });
+
+  /* ── 단계 ── */
+  const STEPS = ['q0', 'q1', 'stepBirth'];
+  let step = 0;
+
+  function renderStep() {
+    STEPS.forEach(function (id, i) {
+      document.getElementById(id).classList.toggle('is-active', i === step);
+    });
+    submitBtn.textContent = step === STEPS.length - 1 ? '매혹지수 확인하기' : '다음으로';
+    window.scrollTo({ top: 0 });
+  }
+
+  // 첫 단계에서만 스토리로 빠지고, 그 뒤로는 이전 문항으로 되돌아간다
   document.getElementById('backBtn').addEventListener('click', function () {
+    if (step > 0) {
+      step--;
+      renderStep();
+      return;
+    }
     location.href = '/saju/charm/story';
   });
 
@@ -582,7 +716,7 @@
     }, LOADING_MIN_MS);
   }
 
-  function validate() {
+  function validateBirth() {
     const nameEl = document.querySelector("input[name='name']");
     if (!nameEl.value.trim()) {
       shake(nameEl);
@@ -601,8 +735,30 @@
     return true;
   }
 
+  function validateCurrentStep() {
+    const stepEl = document.getElementById(STEPS[step]);
+    const field = stepEl.dataset.question;
+
+    // 문항 단계 — 하나는 골라야 넘어간다
+    if (field) {
+      if (!document.getElementById(field + 'Input').value) {
+        shake(stepEl.querySelector('.q-options'));
+        return false;
+      }
+      return true;
+    }
+
+    return validateBirth();
+  }
+
   submitBtn.addEventListener('click', function () {
-    if (!validate()) return;
+    if (!validateCurrentStep()) return;
+
+    if (step < STEPS.length - 1) {
+      step++;
+      renderStep();
+      return;
+    }
     submitCharmForm();
   });
 
