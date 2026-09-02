@@ -1,6 +1,6 @@
 import GptClient, { parseRateLimitWaitMs, isRateLimitError } from "../api/GptClient.js";
 import { GoodsType } from "../enums/Goods.js";
-import { getFourPillars } from "./sajuCalService.js";
+import { getFourPillars, findCurrentDaewoon } from "./sajuCalService.js";
 import { Solar } from "lunar-javascript";
 import { toHanja, toHangul } from "./toHanja.js";
 import {
@@ -330,9 +330,7 @@ function buildSajuJsonForReport(userInfo) {
   const rawBirth = String(fixedUser.birthDate || "").replace(/[^0-9]/g, "");
   const birthYear = rawBirth.length >= 4 ? parseInt(rawBirth.slice(0, 4), 10) : currentYear;
   const age = currentYear - birthYear;
-  const currentDaewoon = pillars.daewoon.find(
-    (dw) => age >= dw.startAge && age <= dw.endAge
-  ) || pillars.daewoon[0];
+  const currentDaewoon = findCurrentDaewoon(pillars.daewoon, age);
 
   return {
     tenGodTable,
@@ -4042,6 +4040,11 @@ let promtParts;
             peak: { label: c.timeline.peak.label, ganji: c.timeline.peak.ganji, score: c.timeline.peak.score },
             bottom: { label: c.timeline.bottom.label, score: c.timeline.bottom.score },
             axes: c.axes.map((a) => ({ label: a.label, value: a.value })),
+            context: {
+              // input 문항에서 고른 값 — 리포트 문장을 사용자 상황에 맞추는 데 쓴다
+              loveStatus: userInfo.loveStatus || "",
+              mainConcern: userInfo.mainConcern || "",
+            },
           };
         } catch (e) {
           console.warn("매혹사주 스냅샷 생성 실패:", e.message);

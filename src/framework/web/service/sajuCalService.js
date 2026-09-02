@@ -2,6 +2,7 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import tz from "dayjs/plugin/timezone.js";
+import { Solar } from "lunar-javascript";
 import { JIJANGGAN_MAP, CHEONGAN_REVERSE } from "./toHanja.js";
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -465,47 +466,137 @@ function getTenGodFromBranch(dayGan, ji) {
   return TEN_GOD[diff]?.[sameYY ? 0 : 1] ?? null;
 }
 
-function getDaewoonStartAge(date, gender, yearGan) {
-  const Y = date.year();
-  const birth = date;
-  const ipchun = dayjs.tz(`${Y}-02-04 05:00`, "Asia/Seoul"); // 입춘기준
-  
-  // 🔹 다음 절기까지 며칠 차이
-  const diffDays = dayjs(ipchun).diff(birth, "day");
-
-  // 🔹 대운 시작나이 (일수 ÷ 3 규칙)
-  const startAge = Math.max(1, Math.round(diffDays / 3));
-
-  // 🔹 성별 + 연간 음양 → 순행/역행 결정
-  const yangStem = ["갑","병","무","경","신"];
-  const isYangYear = yangStem.includes(yearGan);
-  const isForward = 
-        (gender === "남" && isYangYear) ||
-        (gender === "여" && !isYangYear); // 남양여음 순행 / 남음여양 역행
-
-  return { startAge, isForward };
+/** 성별 표기 정규화 — 폼은 "남성"/"여성"을 보내고, 코드 곳곳은 "남"/"여"를 쓴다. */
+function normalizeGenderKo(gender) {
+  const g = String(gender ?? "").trim();
+  if (g.startsWith("남") || /^(m|male)$/i.test(g)) return "남";
+  if (g.startsWith("여") || /^(f|female|w|woman)$/i.test(g)) return "여";
+  return "여";
 }
-function generateDaewoonList(monthPillar, startAge, isForward, count = 8) {
+
+/** 양간(陽干) — 갑·병·무·경·임. 신(辛)은 음간이므로 넣으면 안 된다. */
+const YANG_STEMS = ["갑", "병", "무", "경", "임"];
+
+/**
+ * 대운 방향과 시작 나이.
+ *
+ * 방향: 남자+양년간 / 여자+음년간 → 순행, 그 반대는 역행.
+ * 시작 나이: 순행이면 다음 절기까지, 역행이면 직전 절기까지의 일수를 3으로 나눈다
+ *            (3일 = 1년). 절기는 입춘 하나가 아니라 12절기 전부가 기준이므로
+ *            lunar-javascript의 절기표로 계산한다.
+ *
+ * @returns {{ startAge:number, startAgeExact:number, isForward:boolean }}
+ *          startAgeExact는 소수점을 살린 값으로, 대운 구간 경계 판정에 쓴다.
+ */
+function getDaewoonStartAge(date, gender, yearGan) {
+  const g = normalizeGenderKo(gender);
+  const isYangYear = YANG_STEMS.includes(yearGan);
+  // 남양여음 순행 / 남음여양 역행
+  const isForward = (g === "남" && isYangYear) || (g === "여" && !isYangYear);
+
+  const startAgeExact = getDaewoonStartAgeExact(date, isForward);
+
+  return {
+    startAge: Math.max(1, Math.round(startAgeExact)),
+    startAgeExact,
+    isForward,
+  };
+}
+
+/**
+ * 출생 시각에서 인접 절기까지의 거리를 나이로 환산한다(3일 = 1년).
+ * lunar-javascript의 절기표를 쓰므로 달마다 다른 절기 날짜가 정확히 반영된다.
+ */
+function getDaewoonStartAgeExact(date, isForward) {
+  const birthMs = date.valueOf();
+
+  try {
+    const solar = Solar.fromYmdHms(
+      date.year(), date.month() + 1, date.date(),
+      date.hour(), date.minute(), 0
+    );
+    // 절기표는 해를 걸쳐 있으므로 전년·당해·다음해를 모두 모은다
+    const marks = [];
+    for (const yy of [date.year() - 1, date.year(), date.year() + 1]) {
+      const table = Solar.fromYmd(yy, 6, 1).getLunar().getJieQiTable();
+      for (const name of Object.keys(table)) {
+        // 節(월을 바꾸는 12절)만 대운 기준이다. 氣(중기)는 제외.
+        if (!DAEWOON_JIE.has(name)) continue;
+        const s = table[name];
+        marks.push(new Date(s.getYear(), s.getMonth() - 1, s.getDay(), s.getHour(), s.getMinute(), 0).getTime());
+      }
+    }
+    marks.sort((a, b) => a - b);
+
+    let targetMs = null;
+    if (isForward) {
+      targetMs = marks.find((t) => t > birthMs) ?? null;          // 다음 절기
+    } else {
+      const past = marks.filter((t) => t <= birthMs);
+      targetMs = past.length ? past[past.length - 1] : null;      // 직전 절기
+    }
+    if (targetMs === null) throw new Error("절기를 찾지 못함");
+
+    const diffDays = Math.abs(targetMs - birthMs) / 86400000;
+    return diffDays / 3;   // 3일 = 1년
+  } catch (e) {
+    // 절기표를 못 읽으면 입춘 기준의 근사값으로 물러선다 (기존 동작)
+    console.warn("대운수 절기 계산 실패, 입춘 근사로 대체:", e.message);
+    const ipchun = dayjs.tz(`${date.year()}-02-04 05:00`, "Asia/Seoul");
+    return Math.abs(dayjs(ipchun).diff(date, "day")) / 3;
+  }
+}
+
+/** 대운 기준이 되는 12절(節). 중기(中氣)는 대운 계산에 쓰지 않는다. */
+const DAEWOON_JIE = new Set([
+  "立春", "驚蟄", "清明", "立夏", "芒種", "小暑",
+  "立秋", "白露", "寒露", "立冬", "大雪", "小寒",
+]);
+
+/**
+ * 대운 목록.
+ *
+ * 첫 대운은 월주 **다음**(순행) 또는 **이전**(역행) 간지다.
+ * 월주 자체는 대운이 아니므로 목록에 넣으면 전체가 한 칸씩 밀린다.
+ *
+ * 나이 구간은 startAgeExact를 반올림해 서로 겹치지 않게 이어붙인다.
+ */
+function generateDaewoonList(monthPillar, startAgeExact, isForward, count = 8) {
   const list = [];
-  let ganIndex = GAN.indexOf(monthPillar.gan);
-  let jiIndex = JI.indexOf(monthPillar.ji);
+  const baseGan = GAN.indexOf(monthPillar.gan);
+  const baseJi = JI.indexOf(monthPillar.ji);
+  const step = isForward ? 1 : -1;
 
   for (let i = 0; i < count; i++) {
-    if (i > 0) {
-      if (isForward) { ganIndex++; jiIndex++; }
-      else { ganIndex--; jiIndex--; }
-    }
-    ganIndex = (ganIndex + 10) % 10;
-    jiIndex = (jiIndex + 12) % 12;
+    const n = i + 1;   // 1번째 대운부터 시작 (월주 자신은 건너뛴다)
+    const ganIndex = ((baseGan + step * n) % 10 + 10) % 10;
+    const jiIndex = ((baseJi + step * n) % 12 + 12) % 12;
+
+    const from = startAgeExact + i * 10;
+    const to = startAgeExact + (i + 1) * 10;
 
     list.push({
-      startAge: startAge + i*10,
-      endAge:   startAge + (i+1)*10 - 1,
+      startAge: Math.max(0, Math.round(from)),
+      endAge: Math.max(0, Math.round(to)) - 1,
+      startAgeExact: from,
+      endAgeExact: to,
       gan: GAN[ganIndex],
-      ji: JI[jiIndex]
+      ji: JI[jiIndex],
     });
   }
   return list;
+}
+
+/**
+ * 만 나이로 현재 대운을 찾는다.
+ * 첫 대운 전(유년기)이면 첫 대운을 돌려준다 — 호출부가 빈 값을 다루지 않아도 되게.
+ */
+export function findCurrentDaewoon(daewoonList, age) {
+  if (!Array.isArray(daewoonList) || !daewoonList.length) return null;
+  return (
+    daewoonList.find((dw) => age >= dw.startAge && age <= dw.endAge) ||
+    daewoonList[0]
+  );
 }
 function generateSeWoon(startYear = new Date().getFullYear(), count = 20) {
   const list = [];
@@ -667,8 +758,8 @@ const isUnknownTime =
     hour:  isUnknownTime ? null : getTenGod(day.gan, hour.gan),
   };
 
-  const { startAge, isForward } = getDaewoonStartAge(date, userInfo.gender, year.gan);
-  const daewoonRaw = generateDaewoonList(month, startAge, isForward);
+  const { startAgeExact, isForward } = getDaewoonStartAge(date, userInfo.gender, year.gan);
+  const daewoonRaw = generateDaewoonList(month, startAgeExact, isForward);
   const sewunRaw = generateSeWoon(y, 30);
 
   const daewoon = daewoonRaw.map(dw => ({

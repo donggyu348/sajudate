@@ -27,6 +27,7 @@
     "start-prod-jujangso": "NODE_ENV=product node src/jujangso.js",
     "start-local-tight": "cross-env NODE_ENV=local concurrently \"yarn watch:css\" \"node --import ./src/loadEnv.js src/initDB.js && nodemon --ext js,mjs,cjs,json,ejs --exec \\\"node --import ./src/loadEnv.js\\\" src/tight.js\"",
     "start-prod-tight": "NODE_ENV=product node src/tight.js",
+    "test:daewoon": "node src/framework/web/service/__tests__/daewoon.test.mjs",
     "build:css": "npx tailwindcss -i src/framework/web/styles/input.css -o public/assets/css/main.css",
     "watch:css": "npx tailwindcss -i src/framework/web/styles/input.css -o public/assets/css/main.css --watch"
   },
